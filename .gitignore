@@ -1,0 +1,27 @@
+# Environments
+.env
+.env.*
+
+# Python
+backend/venv/
+__pycache__/
+*.py[cod]
+
+# Node
+frontend/node_modules/
+dist/
+dist-ssr/
+
+# Oracle Wallet (CRITICAL - DO NOT COMMIT)
+Wallet_DKGLORACLEDB1/
+
+# Terraform
+*.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store

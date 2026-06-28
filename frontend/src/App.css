@@ -1,0 +1,48 @@
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  background-image: url('./assets/watermark_bg.png');
+  background-size: 100% 100%;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Subtle overlay if the watermark needs to be darkened/lightened for contrast */
+.bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.4);
+  z-index: 1;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 450px;
+  padding: 20px;
+}
+
+.theme-toggle { position: absolute; top: 20px; right: 20px; z-index: 10; padding: 10px 15px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.7); cursor: pointer; font-family: inherit; font-weight: 600; backdrop-filter: blur(5px); transition: all 0.3s; }
+.theme-toggle:hover { background: rgba(255,255,255,0.9); }
+.dark .bg-overlay { background: rgba(0, 0, 0, 0.7); }
+.dark .theme-toggle { background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.dark .glass-panel { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: #f0f0f0; }
+.dark .input-group label { color: #ccc; }
+.dark .input-group input, .dark .input-group select { background: rgba(0,0,0,0.4); color: white; border-color: rgba(255,255,255,0.2); }
+.dark .input-group input::placeholder { color: #888; }
+.dark .tab-btn { color: #aaa; }
+.dark .tab-btn.active { color: #FF6B6B; }
+.dark .btn-biometric { background: rgba(0,0,0,0.4); color: white; border-color: rgba(255,255,255,0.2); }
+.dark .logo-sub { color: #aaa; }
+
+.dark .input-group input:focus, .dark .dropdown-input:focus { background: rgba(0,0,0,0.6); color: white; border-color: #FF6B6B; }
+/* Fix browser autofill colors in dark mode */
+.dark input:-webkit-autofill { -webkit-text-fill-color: white; -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.8) inset; }

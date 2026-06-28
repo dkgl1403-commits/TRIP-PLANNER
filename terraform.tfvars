@@ -1,0 +1,5 @@
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaacvznm7m5howrbi4gfyz6nwehf7fdj7dt2xvxeeptv2msjtu3lqaq"
+user_ocid        = "ocid1.user.oc1..aaaaaaaaewr36nadc2riknwficnar7togf2vcuv4aib4g57gwfbqvpitunma"
+fingerprint      = "de:91:fc:8b:47:b1:5a:15:36:c7:e1:5f:42:7f:76:e6"
+private_key_path = "/home/opc/.oci/oci_api_key.pem"
+region           = "ap-mumbai-1"

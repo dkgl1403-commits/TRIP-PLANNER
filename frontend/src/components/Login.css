@@ -1,0 +1,192 @@
+.login-card {
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-container {
+  margin-bottom: 24px;
+}
+
+/* Beautiful DKGL Text Logo */
+.logo-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.logo-sub {
+  font-size: 1rem;
+  font-weight: 300;
+  color: #555;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: -5px;
+}
+
+.auth-tabs {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 10px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active {
+  color: #FF6B6B;
+  border-bottom: 3px solid #FF6B6B;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.7);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #FF6B6B;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 25px 0;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.divider::before {
+  margin-right: 15px;
+}
+.divider::after {
+  margin-left: 15px;
+}
+
+.btn-biometric {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.btn-biometric:hover {
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.message {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.message.success {
+  background: rgba(46, 204, 113, 0.2);
+  color: #27ae60;
+}
+
+.message.error {
+  background: rgba(231, 76, 60, 0.2);
+  color: #c0392b;
+}
+
+/* Biometric Fingerprint Icon */
+.fingerprint-icon {
+  width: 24px;
+  height: 24px;
+  fill: #FF6B6B;
+}
+
+.form-row { display: flex; gap: 15px; }
+.input-group.half { flex: 1; }
+.auth-form { max-height: 60vh; overflow-y: auto; padding-right: 5px; }
+.auth-form::-webkit-scrollbar { width: 4px; }
+.auth-form::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+
+.input-group.compact { margin-bottom: 12px; }
+.form-row.compact { margin-bottom: 12px; }
+.dropdown-input { width: 100%; padding: 12px 16px; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; background: rgba(255,255,255,0.7); font-size: 1rem; font-family: inherit; transition: all 0.2s; color: #333; }
+.dropdown-input:focus { outline: none; border-color: #FF6B6B; background: rgba(255,255,255,0.9); box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1); }
+.logo-container.compact-logo { margin-bottom: 15px; }
+.auth-tabs.compact-tabs { margin-bottom: 20px; }
+.dark .dropdown-input { background: rgba(0,0,0,0.4); color: white; border-color: rgba(255,255,255,0.2); }
+.dark .dropdown-input option { background: #333; color: white; }
