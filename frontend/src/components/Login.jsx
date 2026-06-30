@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './Login.css';
 
-export default function Login() {
+export default function Login({ onLoginSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
   
   // Form fields
@@ -40,7 +40,7 @@ export default function Login() {
       : { email, password, confirm_password: confirmPassword, name, gender, phone, address };
       
     try {
-      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+      const response = await fetch(`${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +52,12 @@ export default function Login() {
       
       if (response.ok) {
         setMessage({ text: data.message, type: 'success' });
-        if (!isLogin) {
+        if (isLogin && onLoginSuccess) {
+            onLoginSuccess({ 
+              name: data.name || loginId,
+              login_id: data.login_id || loginId 
+            }); 
+        } else if (!isLogin) {
             // Optional: reset form after successful signup
             setName('');
             setGender('');
@@ -87,6 +92,9 @@ export default function Login() {
 
       if (credential) {
         setMessage({ text: 'Biometric Login Successful!', type: 'success' });
+        if (onLoginSuccess) {
+          onLoginSuccess({ name: 'Biometric User' });
+        }
       }
     } catch (error) {
       console.error(error);

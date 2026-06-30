@@ -9,29 +9,49 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
+}
+
+.app-container.dashboard-active {
+  align-items: flex-start;
+  overflow-y: auto;
 }
 
 /* Subtle overlay if the watermark needs to be darkened/lightened for contrast */
 .bg-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(255, 255, 255, 0.4);
   z-index: 1;
+  pointer-events: none;
 }
 
 .content-wrapper {
   position: relative;
   z-index: 2;
   width: 100%;
+}
+
+.content-wrapper.login-mode {
   max-width: 450px;
   padding: 20px;
 }
 
+.content-wrapper.dashboard-mode {
+  max-width: 100%;
+  padding: 0;
+  height: auto;
+  min-height: 100vh;
+}
+
 .theme-toggle { position: absolute; top: 20px; right: 20px; z-index: 10; padding: 10px 15px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.7); cursor: pointer; font-family: inherit; font-weight: 600; backdrop-filter: blur(5px); transition: all 0.3s; }
 .theme-toggle:hover { background: rgba(255,255,255,0.9); }
+
+/* Global Dark Mode Rules */
+.app-container.dark { color: #f0f0f0; }
 .dark .bg-overlay { background: rgba(0, 0, 0, 0.7); }
 .dark .theme-toggle { background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2); }
 .dark .glass-panel { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: #f0f0f0; }

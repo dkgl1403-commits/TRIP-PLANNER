@@ -1,0 +1,242 @@
+.create-trip-container {
+  display: flex;
+  height: 100%;
+  min-height: 90vh;
+  gap: 20px;
+  padding: 20px;
+}
+
+.form-panel {
+  flex: 1;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  overflow-y: auto;
+  border-radius: 20px;
+}
+
+.map-panel {
+  flex: 2;
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.form-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.trip-detail-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.trip-detail-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.trip-detail-btn.danger {
+  background: rgba(220, 38, 38, 0.9);
+  border-color: rgba(220, 38, 38, 1);
+  color: white;
+}
+.trip-detail-btn.danger:hover {
+  background: rgba(220, 38, 38, 1);
+  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+}
+
+.trip-detail-btn.primary {
+  background: #FF6B6B;
+  border-color: #FF6B6B;
+  color: white;
+}
+.trip-detail-btn.primary:hover {
+  background: #ff5252;
+  box-shadow: 0 4px 6px rgba(255, 107, 107, 0.3);
+}
+
+/* Round icon-only buttons */
+.round-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  position: relative;
+}
+.round-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.round-icon-btn.primary {
+  background: #FF6B6B;
+  border-color: #FF6B6B;
+}
+.round-icon-btn.primary:hover {
+  background: #ff5252;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+.round-icon-btn.danger {
+  background: rgba(220, 38, 38, 0.85);
+  border-color: rgba(220, 38, 38, 1);
+}
+.round-icon-btn.danger:hover {
+  background: rgba(220, 38, 38, 1);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.trip-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.relative {
+  position: relative;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin: 5px 0 0 0;
+  padding: 0;
+  border-radius: 12px;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.autocomplete-dropdown li {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 0.9rem;
+}
+.dark .autocomplete-dropdown li {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.autocomplete-dropdown li:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.row {
+  display: flex;
+  gap: 15px;
+}
+
+.section-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.1);
+  margin: 10px 0;
+}
+.dark .section-divider { background: rgba(255,255,255,0.1); }
+
+.sub-text {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
+
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.participant-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.participant-row input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.5);
+  font-size: 0.9rem;
+}
+.dark .participant-row input {
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.4);
+  color: white;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+.remove-btn:hover { opacity: 1; }
+
+.add-participant-btn {
+  background: none;
+  border: 1px dashed #FF6B6B;
+  color: #FF6B6B;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+.add-participant-btn:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.submit-trip-btn {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .create-trip-container {
+    flex-direction: column;
+    padding: 10px;
+  }
+  .form-panel {
+    max-width: 100%;
+    flex: auto;
+  }
+  .map-panel {
+    min-height: 400px;
+    flex: auto;
+  }
+}
