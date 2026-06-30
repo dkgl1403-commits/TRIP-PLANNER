@@ -533,6 +533,15 @@ export default function TripDetails({ tripId, onBack, user }) {
                 {trip.actual_start_time && <span style={{ color: '#4ade80' }}>🚀 Started: {new Date(trip.actual_start_time).toLocaleString()}</span>}
               </div>
 
+              {trip.description && (
+                <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '10px', borderLeft: '4px solid #a855f7' }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: '#d8b4fe' }}>✨ AI Trip Suggestions</h4>
+                  <div style={{ fontSize: '0.85rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                    {trip.description}
+                  </div>
+                </div>
+              )}
+
               {routeData && routeData.length > 0 && (
                 <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>

@@ -4,6 +4,7 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import CreateTrip from './components/CreateTrip'
 import TripDetails from './components/TripDetails'
+import AiCreateTrip from './components/AiCreateTrip'
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -61,11 +62,15 @@ function App() {
             theme={theme} 
             toggleTheme={toggleTheme} 
             onCreateTrip={() => setCurrentView('create_trip')}
+            onAiPlanTrip={() => setCurrentView('ai_create_trip')}
             onViewTrip={handleViewTrip}
           />
         )}
         {currentView === 'create_trip' && (
           <CreateTrip user={user} onBack={() => setCurrentView('dashboard')} />
+        )}
+        {currentView === 'ai_create_trip' && (
+          <AiCreateTrip user={user} onBack={() => setCurrentView('dashboard')} onViewTrip={handleViewTrip} />
         )}
         {currentView === 'view_trip' && (
           <TripDetails tripId={selectedTripId} onBack={() => setCurrentView('dashboard')} user={user} />

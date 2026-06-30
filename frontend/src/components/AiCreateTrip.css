@@ -1,0 +1,188 @@
+.ai-trip-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.ai-trip-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.ai-trip-header h2 {
+  margin: 0;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ai-form-group {
+  margin-bottom: 20px;
+}
+
+.ai-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.ai-form-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.ai-form-group input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.ai-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 0;
+  text-align: center;
+}
+
+.ai-spinner {
+  font-size: 40px;
+  animation: spin 2s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.ai-route-option {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.ai-route-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ai-route-option.selected {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.ai-route-title {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  color: #a855f7;
+}
+
+.ai-checkpoint-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ai-checkpoint-tag {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.ai-checkpoint-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.ai-checkpoint-checkbox {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.ai-checkpoint-content h4 {
+  margin: 0 0 5px 0;
+}
+
+.ai-places {
+  font-size: 0.9rem;
+  color: #a855f7;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.ai-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ai-magic-btn {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.ai-magic-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+}
+
+.ai-magic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.ai-secondary-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--text-color);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.ai-secondary-btn:hover {
+  background: rgba(255,255,255,0.1);
+}

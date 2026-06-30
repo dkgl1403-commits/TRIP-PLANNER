@@ -353,8 +353,13 @@ function ResizeController({ isFullscreen }) {
   return null;
 }
 
-export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false }) {
+export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false, onRoutesFound }) {
   const [routes, setRoutes] = React.useState([]);
+
+  const handleRoutesFound = React.useCallback((routeData) => {
+    setRoutes(routeData);
+    if (onRoutesFound) onRoutesFound(routeData);
+  }, [onRoutesFound]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -386,7 +391,7 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
         destination={destination} 
         checkpoints={checkpoints} 
         enableNavigation={enableNavigation}
-        onRoutesFound={setRoutes}
+        onRoutesFound={handleRoutesFound}
       />
       <NavigationController isNavigating={isNavigating} />
 

@@ -162,6 +162,7 @@ class TripCreateRequest(BaseModel):
     start_date: str
     end_date: str
     cover_image_url: Optional[str] = None
+    description: Optional[str] = None
     checkpoints: List[Checkpoint] = []
     participants: List[Participant] = []
 
@@ -175,15 +176,15 @@ def create_trip(request: TripCreateRequest):
         insert_trip_sql = """
             INSERT INTO trips (
                 login_id, title, source_name, source_lat, source_lon,
-                dest_name, dest_lat, dest_lon, start_date, end_date, cover_image_url
-            ) VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11)
-            RETURNING id INTO :12
+                dest_name, dest_lat, dest_lon, start_date, end_date, cover_image_url, description
+            ) VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12)
+            RETURNING id INTO :13
         """
         out_val = cursor.var(int)
         cursor.execute(insert_trip_sql, [
             request.login_id, request.title, request.source_name, request.source_lat, request.source_lon,
             request.dest_name, request.dest_lat, request.dest_lon, request.start_date, request.end_date, 
-            request.cover_image_url, out_val
+            request.cover_image_url, request.description, out_val
         ])
         
         trip_id = out_val.getvalue()[0]
@@ -286,7 +287,7 @@ def get_trip_details(trip_id: int):
         cursor = conn.cursor()
         # Fetch Trip
         cursor.execute("""
-            SELECT id, title, source_name, source_lat, source_lon, dest_name, dest_lat, dest_lon, start_date, end_date, cover_image_url, login_id, status, actual_start_time, actual_end_time, end_lat, end_lon
+            SELECT id, title, source_name, source_lat, source_lon, dest_name, dest_lat, dest_lon, start_date, end_date, cover_image_url, login_id, status, actual_start_time, actual_end_time, end_lat, end_lon, description
             FROM trips WHERE id = :1
         """, [trip_id])
         trip_row = cursor.fetchone()
@@ -308,6 +309,7 @@ def get_trip_details(trip_id: int):
             "actual_end_time": trip_row[14],
             "end_lat": trip_row[15],
             "end_lon": trip_row[16],
+            "description": trip_row[17],
             "checkpoints": [],
             "participants": []
         }

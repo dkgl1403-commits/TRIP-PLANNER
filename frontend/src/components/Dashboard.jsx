@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Dashboard.css';
 
-function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onViewTrip }) {
+function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanTrip, onViewTrip }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -115,9 +115,14 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onViewTri
             <div className="hero-content">
               <h2>Welcome back, {user?.name?.split(' ')[0] || 'Explorer'}!</h2>
               <p>Ready for your next adventure?</p>
-              <button className="btn-primary create-trip-btn" onClick={onCreateTrip}>
-                ➕ Plan a New Trip
-              </button>
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '15px' }}>
+                <button className="btn-primary create-trip-btn" onClick={onCreateTrip} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  ✍️ Plan your trip
+                </button>
+                <button className="btn-primary create-trip-btn ai-magic-btn" onClick={onAiPlanTrip} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', border: 'none', boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)' }}>
+                  ✨ Let AI plan your trip
+                </button>
+              </div>
             </div>
           </div>
         )}
