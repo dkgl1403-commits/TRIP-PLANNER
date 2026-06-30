@@ -23,28 +23,23 @@ jobs:
           npm install
           npm run build
 
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy Frontend & Backend to Server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "frontend/dist/,backend/"
-          target: "/home/ubuntu/TRIP_Planner"
-          strip_components: 0
+        run: |
+          scp -r frontend/dist backend ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
 
       - name: Restart Backend & Fix Permissions
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            # Fix frontend permissions for Nginx
+        run: |
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
             sudo chmod -R 755 /home/ubuntu/TRIP_Planner/frontend/dist
-            
-            # Restart the FastAPI backend
             cd /home/ubuntu/TRIP_Planner/backend
             pip install -r requirements.txt || true
             pkill -f uvicorn || true
             nohup ~/.local/bin/uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+          EOF
