@@ -183,9 +183,14 @@ export default function CreateTrip({ user, onBack }) {
   return (
     <div className="create-trip-container">
       <div className="form-panel glass-panel">
-        <div className="form-header">
-          <button className="back-btn" onClick={onBack}>⬅ Back</button>
-          <h2>Plan a New Trip</h2>
+        <div className="form-header" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <button 
+            className="round-icon-btn" 
+            title="Back to Dashboard"
+            onClick={onBack}
+            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)' }}
+          >⬅</button>
+          <h2 style={{ margin: 0 }}>Plan a New Trip</h2>
         </div>
 
         {errorMsg && <div className="alert alert-error">{errorMsg}</div>}
