@@ -66,3 +66,4 @@
 .dark .input-group input:focus, .dark .dropdown-input:focus { background: rgba(0,0,0,0.6); color: white; border-color: #FF6B6B; }
 /* Fix browser autofill colors in dark mode */
 .dark input:-webkit-autofill { -webkit-text-fill-color: white; -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.8) inset; }
+.leaflet-routing-container { display: none !important; } 
