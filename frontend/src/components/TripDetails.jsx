@@ -17,6 +17,7 @@ export default function TripDetails({ tripId, onBack, user }) {
   // Live Map Mode States
   const [liveLocations, setLiveLocations] = useState([]);
   const [myLocation, setMyLocation] = useState(null);
+  const [routeData, setRouteData] = useState(null);
 
   // Form states for edit mode
   const [title, setTitle] = useState('');
@@ -531,6 +532,30 @@ export default function TripDetails({ tripId, onBack, user }) {
                 <span>📅 {trip.start_date} → {trip.end_date}</span>
                 {trip.actual_start_time && <span style={{ color: '#4ade80' }}>🚀 Started: {new Date(trip.actual_start_time).toLocaleString()}</span>}
               </div>
+
+              {routeData && routeData.length > 0 && (
+                <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
+                    <strong>Total Distance: {routeData[0].distanceKm} KM</strong>
+                    <strong>Time: {routeData[0].timeHrs} hr {routeData[0].timeMins} min</strong>
+                  </div>
+                  {routeData[0].segments && routeData[0].segments.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', opacity: 0.8 }}>
+                      {routeData[0].segments.map((seg, idx) => {
+                        const allStops = [trip.source, ...(trip.checkpoints || []), trip.destination];
+                        const fromName = allStops[idx]?.name || `Point ${idx + 1}`;
+                        const toName = allStops[idx + 1]?.name || `Point ${idx + 2}`;
+                        return (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{fromName} ➔ {toName}</span>
+                            <span>{seg.distanceKm} KM • {seg.timeHrs} hr {seg.timeMins} min</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -647,6 +672,7 @@ export default function TripDetails({ tripId, onBack, user }) {
           enableNavigation={isInProgress}
           isNavigating={isNavigating}
           isFullscreen={isFullscreen}
+          onRoutesFound={setRouteData}
         />
       </div>
     </div>

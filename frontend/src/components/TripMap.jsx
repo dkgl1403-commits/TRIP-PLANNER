@@ -87,12 +87,42 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, on
 
         control.on('routesfound', (e) => {
           if (onRoutesFound) {
-            const routeData = e.routes.map((route, idx) => ({
-              name: idx === 0 ? 'Recommended Route' : `Alternative ${idx}`,
-              distanceKm: (route.summary.totalDistance / 1000).toFixed(1),
-              timeHrs: Math.floor(route.summary.totalTime / 3600),
-              timeMins: Math.floor((route.summary.totalTime % 3600) / 60)
-            }));
+            const routeData = e.routes.map((route, idx) => {
+              const segments = [];
+              let currentDist = 0;
+              let currentTime = 0;
+              if (route.instructions) {
+                 route.instructions.forEach(inst => {
+                    currentDist += inst.distance || 0;
+                    currentTime += inst.time || 0;
+                    // LRM uses 'WaypointReached' and 'DestinationReached'
+                    if (inst.type === 'WaypointReached' || inst.type === 'DestinationReached') {
+                       segments.push({
+                         distanceKm: (currentDist / 1000).toFixed(1),
+                         timeHrs: Math.floor(currentTime / 3600),
+                         timeMins: Math.floor((currentTime % 3600) / 60)
+                       });
+                       currentDist = 0;
+                       currentTime = 0;
+                    }
+                 });
+                 if (currentDist > 10) {
+                   segments.push({
+                     distanceKm: (currentDist / 1000).toFixed(1),
+                     timeHrs: Math.floor(currentTime / 3600),
+                     timeMins: Math.floor((currentTime % 3600) / 60)
+                   });
+                 }
+              }
+
+              return {
+                name: idx === 0 ? 'Recommended Route' : `Alternative ${idx}`,
+                distanceKm: (route.summary.totalDistance / 1000).toFixed(1),
+                timeHrs: Math.floor(route.summary.totalTime / 3600),
+                timeMins: Math.floor((route.summary.totalTime % 3600) / 60),
+                segments: segments
+              };
+            });
             onRoutesFound(routeData);
           }
         });
