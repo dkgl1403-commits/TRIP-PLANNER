@@ -7,8 +7,13 @@ import TripDetails from './components/TripDetails'
 
 function App() {
   const [theme, setTheme] = useState('light');
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create_trip', 'view_trip'
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('tripPlannerUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [currentView, setCurrentView] = useState(() => {
+    return localStorage.getItem('tripPlannerUser') ? 'dashboard' : 'login';
+  });
   const [selectedTripId, setSelectedTripId] = useState(null);
 
   const isLoggedIn = currentView !== 'login';
@@ -22,11 +27,13 @@ function App() {
   };
 
   const handleLoginSuccess = (userData) => {
+    localStorage.setItem('tripPlannerUser', JSON.stringify(userData));
     setUser(userData);
     setCurrentView('dashboard');
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('tripPlannerUser');
     setUser(null);
     setCurrentView('login');
   };
