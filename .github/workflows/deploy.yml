@@ -33,7 +33,9 @@ jobs:
 
       - name: Deploy Frontend & Backend to Server
         run: |
-          scp -r frontend/dist backend ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /home/ubuntu/TRIP_Planner/frontend"
+          scp -r frontend/dist ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/frontend/
+          scp -r backend ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
 
       - name: Restart Backend & Fix Permissions
         run: |
