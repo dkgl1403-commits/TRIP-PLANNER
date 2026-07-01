@@ -176,10 +176,11 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
 
   const geocodeLocation = async (query) => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in`);
+      // Use photon for better fuzzy matching (e.g. if AI hallucinates the wrong state for a city)
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
       const data = await res.json();
-      if (data && data.length > 0) {
-        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      if (data && data.features && data.features.length > 0) {
+        return { lat: data.features[0].geometry.coordinates[1], lon: data.features[0].geometry.coordinates[0] };
       }
     } catch (err) {
       console.error('Geocoding failed for', query);

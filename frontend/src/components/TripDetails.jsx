@@ -18,6 +18,7 @@ export default function TripDetails({ tripId, onBack, user }) {
   const [liveLocations, setLiveLocations] = useState([]);
   const [myLocation, setMyLocation] = useState(null);
   const [routeData, setRouteData] = useState(null);
+  const [hoveredLocation, setHoveredLocation] = useState(null);
 
   // Form states for edit mode
   const [title, setTitle] = useState('');
@@ -518,15 +519,29 @@ export default function TripDetails({ tripId, onBack, user }) {
             <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '14px', padding: '18px' }}>
               <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', opacity: 0.9 }}>🗺️ Route Overview</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', flexWrap: 'wrap' }}>
-                <span style={{ background: 'rgba(59,130,246,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>📍 {trip.source.name}</span>
+                <span 
+                  onMouseEnter={() => setHoveredLocation(trip.source.name)}
+                  onMouseLeave={() => setHoveredLocation(null)}
+                  style={{ background: 'rgba(59,130,246,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', cursor: 'pointer', border: hoveredLocation === trip.source.name ? '2px solid white' : '2px solid transparent' }}
+                >📍 {trip.source.name}</span>
+                
                 {trip.checkpoints && trip.checkpoints.length > 0 && trip.checkpoints.map((cp, idx) => (
                   <React.Fragment key={idx}>
                     <span style={{ opacity: 0.5 }}>→</span>
-                    <span style={{ background: 'rgba(245,158,11,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>📌 {cp.name}</span>
+                    <span 
+                      onMouseEnter={() => setHoveredLocation(cp.name)}
+                      onMouseLeave={() => setHoveredLocation(null)}
+                      style={{ background: 'rgba(245,158,11,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', cursor: 'pointer', border: hoveredLocation === cp.name ? '2px solid white' : '2px solid transparent' }}
+                    >📌 {cp.name}</span>
                   </React.Fragment>
                 ))}
+                
                 <span style={{ opacity: 0.5 }}>→</span>
-                <span style={{ background: 'rgba(16,185,129,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem' }}>🏁 {trip.destination.name}</span>
+                <span 
+                  onMouseEnter={() => setHoveredLocation(trip.destination.name)}
+                  onMouseLeave={() => setHoveredLocation(null)}
+                  style={{ background: 'rgba(16,185,129,0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', cursor: 'pointer', border: hoveredLocation === trip.destination.name ? '2px solid white' : '2px solid transparent' }}
+                >🏁 {trip.destination.name}</span>
               </div>
               <div style={{ display: 'flex', gap: '20px', marginTop: '12px', fontSize: '0.85rem', opacity: 0.7 }}>
                 <span>📅 {trip.start_date} → {trip.end_date}</span>
@@ -680,6 +695,7 @@ export default function TripDetails({ tripId, onBack, user }) {
           isNavigating={isNavigating}
           isFullscreen={isFullscreen}
           onRoutesFound={setRouteData}
+          hoveredLocation={hoveredLocation}
         />
       </div>
     </div>

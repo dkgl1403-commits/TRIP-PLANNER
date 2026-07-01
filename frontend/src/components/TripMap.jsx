@@ -359,9 +359,20 @@ function ResizeController({ isFullscreen }) {
   return null;
 }
 
-export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false, onRoutesFound }) {
+export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false, hoveredLocation = null, onRoutesFound }) {
   const [routes, setRoutes] = React.useState([]);
   const [liveLocation, setLiveLocation] = React.useState(null);
+
+  // Find the coordinates of the hovered location
+  const getHoveredCoords = () => {
+    if (!hoveredLocation) return null;
+    if (source && source.name === hoveredLocation && source.lat) return { lat: source.lat, lon: source.lon, name: source.name };
+    if (destination && destination.name === hoveredLocation && destination.lat) return { lat: destination.lat, lon: destination.lon, name: destination.name };
+    const cp = checkpoints.find(c => c.name === hoveredLocation);
+    if (cp && cp.lat) return { lat: cp.lat, lon: cp.lon, name: cp.name };
+    return null;
+  };
+  const hoveredData = getHoveredCoords();
 
   const handleRoutesFound = React.useCallback((routeData) => {
     setRoutes(routeData);
@@ -388,6 +399,11 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
           margin-right: 10px !important;
         }
         .leaflet-routing-alt h2 { display: none; }
+        @keyframes pulseMarker {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
       `}</style>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -421,6 +437,22 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
           </Marker>
         );
       })}
+
+      {/* Render tooltip for hovered location */}
+      {hoveredData && (
+        <Marker 
+          position={[hoveredData.lat, hoveredData.lon]} 
+          zIndexOffset={2000}
+          icon={L.divIcon({
+            className: 'hovered-marker',
+            html: `<div style="width: 24px; height: 24px; background: #fbbf24; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5); animation: pulseMarker 2s infinite;"></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          })}
+        >
+          <Popup autoPan={false}>{hoveredData.name}</Popup>
+        </Marker>
+      )}
     </MapContainer>
 
     {/* Distance & Time Overlay */}
