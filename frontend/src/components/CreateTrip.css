@@ -230,13 +230,19 @@
   .create-trip-container {
     flex-direction: column;
     padding: 10px;
+    height: auto;
+    min-height: auto;
   }
   .form-panel {
     max-width: 100%;
-    flex: auto;
+    flex: none;
+    height: auto;
   }
   .map-panel {
-    min-height: 400px;
-    flex: auto;
+    min-height: 50vh;
+    height: 50vh;
+    flex: none;
+    width: 100%;
+    margin-top: 10px;
   }
 }

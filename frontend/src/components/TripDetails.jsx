@@ -646,33 +646,31 @@ export default function TripDetails({ tripId, onBack, user }) {
 
       <div className={`map-panel glass-panel ${isFullscreen ? 'navigating-fullscreen' : ''}`} style={isFullscreen ? {position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, borderRadius: 0, margin: 0, padding: 0} : {position: 'relative'}}>
         {isInProgress && (
-          <>
-            <button 
-              onClick={() => {
-                if (!isNavigating && !("geolocation" in navigator)) {
-                  alert("Geolocation is blocked or unsupported. A secure HTTPS connection or localhost is required.");
-                  return;
-                }
-                setIsNavigating(!isNavigating);
-              }}
-              style={{
-                position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
-                background: isNavigating ? 'red' : 'blue', color: 'white', border: 'none', padding: '10px 20px',
-                borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-              }}>
-              {isNavigating ? '❌ Exit Navigation' : '🧭 Start Navigation'}
-            </button>
-            <button 
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              style={{
-                position: 'absolute', top: '20px', right: '20px', zIndex: 1000,
-                background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '10px 15px',
-                borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-              }}>
-              {isFullscreen ? '⏬ Exit Full Screen' : '🔲 Full Screen'}
-            </button>
-          </>
+          <button 
+            onClick={() => {
+              if (!isNavigating && !("geolocation" in navigator)) {
+                alert("Geolocation is blocked or unsupported. A secure HTTPS connection or localhost is required.");
+                return;
+              }
+              setIsNavigating(!isNavigating);
+            }}
+            style={{
+              position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+              background: isNavigating ? 'red' : 'blue', color: 'white', border: 'none', padding: '10px 20px',
+              borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+            }}>
+            {isNavigating ? '❌ Exit Navigation' : '🧭 Start Navigation'}
+          </button>
         )}
+        <button 
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          style={{
+            position: 'absolute', top: '20px', right: '20px', zIndex: 1000,
+            background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '10px 15px',
+            borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+          }}>
+          {isFullscreen ? '⏬ Exit Full Screen' : '🔲 Full Screen'}
+        </button>
         <TripMap 
           source={isEditing ? source : trip.source} 
           destination={isEditing ? destination : trip.destination} 

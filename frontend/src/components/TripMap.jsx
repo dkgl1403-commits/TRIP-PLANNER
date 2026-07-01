@@ -42,7 +42,7 @@ const getParticipantIcon = (color) => {
   });
 };
 
-function RoutingMachine({ source, destination, checkpoints, enableNavigation, onRoutesFound }) {
+function RoutingMachine({ source, destination, checkpoints, enableNavigation, liveLocation, onRoutesFound }) {
   const map = useMap();
   const routingControlRef = useRef(null);
 
@@ -50,8 +50,9 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, on
     if (!map) return;
 
     const waypoints = [];
-    if (source && source.lat && source.lon) {
-      waypoints.push(L.latLng(source.lat, source.lon));
+    const effectiveSource = (enableNavigation && liveLocation) ? liveLocation : source;
+    if (effectiveSource && effectiveSource.lat && effectiveSource.lon) {
+      waypoints.push(L.latLng(effectiveSource.lat, effectiveSource.lon));
     }
     
     if (checkpoints && checkpoints.length > 0) {
@@ -141,7 +142,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, on
   return null;
 }
 
-function NavigationController({ isNavigating }) {
+function NavigationController({ isNavigating, onLocationUpdate }) {
   const map = useMap();
   const markerRef = useRef(null);
   const circleRef = useRef(null);
@@ -299,6 +300,11 @@ function NavigationController({ isNavigating }) {
               map.setView(latlng, 18, { animate: true, duration: 1.5 });
               hasZoomed.current = true;
             }
+
+            // Update parent component to recalculate dynamic routing!
+            if (onLocationUpdate) {
+              onLocationUpdate({ lat: latlng[0], lon: latlng[1] });
+            }
           } else {
             // Stationary — stop interpolation drift
             isMovingRef.current = false;
@@ -355,6 +361,7 @@ function ResizeController({ isFullscreen }) {
 
 export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false, onRoutesFound }) {
   const [routes, setRoutes] = React.useState([]);
+  const [liveLocation, setLiveLocation] = React.useState(null);
 
   const handleRoutesFound = React.useCallback((routeData) => {
     setRoutes(routeData);
@@ -391,9 +398,13 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
         destination={destination} 
         checkpoints={checkpoints} 
         enableNavigation={enableNavigation}
+        liveLocation={liveLocation}
         onRoutesFound={handleRoutesFound}
       />
-      <NavigationController isNavigating={isNavigating} />
+      <NavigationController 
+        isNavigating={isNavigating} 
+        onLocationUpdate={setLiveLocation} 
+      />
 
       {/* Trigger map resize on fullscreen toggle */}
       <ResizeController isFullscreen={isFullscreen} />

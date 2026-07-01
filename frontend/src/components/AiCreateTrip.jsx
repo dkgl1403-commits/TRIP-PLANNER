@@ -11,6 +11,7 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
   const [destSuggestions, setDestSuggestions] = useState([]);
   
   const [startDateTime, setStartDateTime] = useState('');
+  const [feedback, setFeedback] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,7 +59,7 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
   // Customization step
   const [selectedCheckpoints, setSelectedCheckpoints] = useState({});
 
-  const generateTripPlan = async () => {
+  const generateTripPlan = async (isFeedback = false) => {
     if (!sourceQuery || !destQuery || !startDateTime) {
       setError('Please enter source, destination, and start date/time.');
       return;
@@ -67,18 +68,27 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
     setLoading(true);
     setError(null);
     
-    const prompt = `You are an expert travel planner. The user wants to travel from ${sourceQuery} to ${destQuery} by road.
+    let prompt = `You are an expert travel planner. The user wants to travel from ${sourceQuery} to ${destQuery} by road.
 They are starting on ${startDateTime}.
 
 Provide 2 distinct route options. For each route, break the journey down into a day-by-day itinerary (Day 1, Day 2, etc.).
 CRITICAL RULES:
-1. Provide checkpoints every 150-200 kms.
-2. Calculate realistic driving times between checkpoints, factoring in average traffic and rest breaks.
-3. Include the estimated Arrival Time and Departure Time for each checkpoint based on the start time.
-4. If driving time exceeds 8-10 hours in a single day, or if it gets too late (e.g., past 8 PM), schedule an overnight halt at a major city/checkpoint, and resume the journey on the next Day.
-5. Provide 2-3 suggestive places to visit for each checkpoint and the final destination.
+1. Provide checkpoints every 150-200 kms. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.
+2. Give preference to National Highways (NH), then State highways. Ensure routes are passable by a 4-wheeler.
+3. Calculate realistic driving times between checkpoints, factoring in average traffic and rest breaks.
+4. Include the estimated Arrival Time and Departure Time for each checkpoint based on the start time.
+5. If driving time exceeds 8-10 hours in a single day, or if it gets too late, schedule an overnight halt at a major city/checkpoint, and resume the journey on the next Day.
+6. Provide 2-3 suggestive places to visit for each checkpoint and the final destination. Ensure the city is a prominent tourist attraction with good restaurants.
+7. Suggested overnight stays MUST have good 3 to 5-star hotels available.
+8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").
 
-Return ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):
+Return ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
+
+    if (isFeedback && routes.length > 0) {
+      prompt = `You previously generated this JSON itinerary:\n${JSON.stringify({routes})}\n\nThe user provided this feedback to revise the plan: "${feedback}"\n\nBased on this feedback, completely regenerate the JSON itinerary following all the CRITICAL RULES below, but incorporating the user's feedback.\n\nCRITICAL RULES:\n1. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.\n2. Give preference to National Highways (NH), then State highways. Ensure routes are passable by a 4-wheeler.\n3. Provide checkpoints every 150-200 kms.\n4. Calculate realistic driving times.\n5. If driving time exceeds 8-10 hours in a single day, schedule an overnight halt.\n6. Provide 2-3 suggestive places to visit. Ensure the city is a prominent tourist attraction with good restaurants.\n7. Suggested overnight stays MUST have good 3 to 5-star hotels available.\n8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").\n\nReturn ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
+    }
+
+    const format = `
 {
   "routes": [
     {
@@ -105,7 +115,7 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [{ parts: [{ text: prompt + '\n' + format }] }],
           generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
         })
       });
@@ -151,7 +161,7 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
 
   const geocodeLocation = async (query) => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in`);
       const data = await res.json();
       if (data && data.length > 0) {
         return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
@@ -356,6 +366,20 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
                 </div>
               </div>
             ))}
+          </div>
+
+          <div style={{ marginTop: '30px', padding: '20px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
+            <h4 style={{ margin: '0 0 10px 0' }}>Not quite right? Give feedback!</h4>
+            <textarea 
+              className="ai-form-group"
+              style={{ width: '100%', minHeight: '80px', padding: '10px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              placeholder="e.g. Add a stop in Mumbai, I prefer driving less per day, change the hotel stop..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+            />
+            <button className="ai-magic-btn" style={{ marginTop: '10px', fontSize: '0.9rem', padding: '8px 16px' }} onClick={() => generateTripPlan(true)}>
+              🔄 Revise Plan
+            </button>
           </div>
         </div>
       )}
