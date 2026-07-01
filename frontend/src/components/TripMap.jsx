@@ -360,6 +360,34 @@ function ResizeController({ isFullscreen }) {
   return null;
 }
 
+function BoundsFitter({ source, destination, checkpoints, enableNavigation }) {
+  const map = useMap();
+  useEffect(() => {
+    // Don't interfere with navigation zooming
+    if (enableNavigation) return;
+    
+    const points = [];
+    if (source && source.lat && source.lon) points.push([source.lat, source.lon]);
+    if (destination && destination.lat && destination.lon) points.push([destination.lat, destination.lon]);
+    if (checkpoints && checkpoints.length > 0) {
+      checkpoints.forEach(cp => {
+        if (cp.lat && cp.lon) points.push([cp.lat, cp.lon]);
+      });
+    }
+    
+    if (points.length > 0) {
+      try {
+        const bounds = L.latLngBounds(points);
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+      } catch (e) {
+        console.error("Error fitting bounds", e);
+      }
+    }
+  }, [map, source, destination, checkpoints, enableNavigation]);
+  
+  return null;
+}
+
 export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false, hoveredLocation = null, onRoutesFound }) {
   const [routes, setRoutes] = React.useState([]);
   const [liveLocation, setLiveLocation] = React.useState(null);
@@ -385,6 +413,7 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
     <MapContainer 
       center={[20.5937, 78.9629]} // Default to India
       zoom={5} 
+      scrollWheelZoom={false}
       style={{ height: '100%', width: '100%', borderRadius: '15px' }}
     >
       <style>{`
@@ -425,6 +454,7 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
 
       {/* Trigger map resize on fullscreen toggle */}
       <ResizeController isFullscreen={isFullscreen} />
+      <BoundsFitter source={source} destination={destination} checkpoints={checkpoints} enableNavigation={enableNavigation} />
 
       {/* Render live participant locations as colored arrows */}
       {liveLocations.map((loc, idx) => {
