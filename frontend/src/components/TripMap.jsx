@@ -69,6 +69,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
 
     if (waypoints.length > 0) {
       if (routingControlRef.current) {
+        routingControlRef.current.options.fitSelectedRoutes = !enableNavigation;
         routingControlRef.current.getPlan().setWaypoints(waypoints);
       } else {
         const control = L.Routing.control({
@@ -82,7 +83,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
           show: false,
           routeWhileDragging: false,
           addWaypoints: false,
-          fitSelectedRoutes: true,
+          fitSelectedRoutes: !enableNavigation,
           showAlternatives: true
         }).addTo(map);
 
