@@ -69,7 +69,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
 
     if (waypoints.length > 0) {
       if (routingControlRef.current) {
-        routingControlRef.current.options.fitSelectedRoutes = !enableNavigation;
+        routingControlRef.current.options.fitSelectedRoutes = false;
         routingControlRef.current.getPlan().setWaypoints(waypoints);
       } else {
         const control = L.Routing.control({
@@ -83,7 +83,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
           show: false,
           routeWhileDragging: false,
           addWaypoints: false,
-          fitSelectedRoutes: !enableNavigation,
+          fitSelectedRoutes: false,
           showAlternatives: true
         }).addTo(map);
 
@@ -122,7 +122,8 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
                 distanceKm: (route.summary.totalDistance / 1000).toFixed(1),
                 timeHrs: Math.floor(route.summary.totalTime / 3600),
                 timeMins: Math.floor((route.summary.totalTime % 3600) / 60),
-                segments: segments
+                segments: segments,
+                coordinates: route.coordinates
               };
             });
             onRoutesFound(routeData);
@@ -379,6 +380,19 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
     if (onRoutesFound) onRoutesFound(routeData);
   }, [onRoutesFound]);
 
+  // Robustly fit bounds to the route whenever we are NOT navigating
+  const mapRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!enableNavigation && routes && routes.length > 0 && routes[0].coordinates && mapRef.current) {
+      try {
+        const line = L.polyline(routes[0].coordinates);
+        mapRef.current.fitBounds(line.getBounds(), { padding: [50, 50] });
+      } catch (err) {
+        console.error("Error fitting route bounds:", err);
+      }
+    }
+  }, [enableNavigation, routes]);
+
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
     <MapContainer 
@@ -386,6 +400,7 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
       zoom={5} 
       scrollWheelZoom={false}
       style={{ height: '100%', width: '100%', borderRadius: '15px' }}
+      ref={mapRef}
     >
       <style>{`
         .leaflet-routing-container {
