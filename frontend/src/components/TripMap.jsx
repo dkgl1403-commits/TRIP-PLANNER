@@ -367,7 +367,15 @@ function RouteFitter({ routes, enableNavigation }) {
     if (!enableNavigation && routes && routes.length > 0 && routes[0].coordinates) {
       try {
         const line = L.polyline(routes[0].coordinates);
-        map.fitBounds(line.getBounds(), { padding: [10, 10] });
+        map.fitBounds(line.getBounds(), { padding: [0, 0] });
+        
+        // User requested: "zoom in a bit even if destination checkpoints cuts the corner"
+        // Wait for fitBounds animation to complete, then force zoom in 1 level
+        const timer = setTimeout(() => {
+          map.setZoom(map.getZoom() + 1, { animate: true });
+        }, 600);
+        
+        return () => clearTimeout(timer);
       } catch (err) {
         console.error("Error fitting route bounds:", err);
       }
