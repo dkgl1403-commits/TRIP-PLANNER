@@ -378,13 +378,13 @@ function BoundsFitter({ source, destination, checkpoints, enableNavigation }) {
     if (points.length > 0) {
       try {
         const bounds = L.latLngBounds(points);
-        map.fitBounds(bounds, { padding: [0, 0] });
         
-        // Force zoom in to cut corners as requested
-        const timer = setTimeout(() => {
-          map.setZoom(map.getZoom() + 1, { animate: true });
-        }, 600);
-        return () => clearTimeout(timer);
+        // Calculate the optimal zoom for the bounding box
+        const targetZoom = map.getBoundsZoom(bounds, false, [0, 0]);
+        
+        // Force the map directly to the center, and increase zoom by 1 as requested by the user
+        map.setView(bounds.getCenter(), targetZoom + 1, { animate: false });
+        
       } catch (err) {
         console.error("Error fitting bounds:", err);
       }
