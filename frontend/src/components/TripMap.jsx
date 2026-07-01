@@ -376,18 +376,36 @@ function BoundsFitter({ source, destination, checkpoints, enableNavigation }) {
     }
     
     if (points.length > 0) {
-      try {
-        const bounds = L.latLngBounds(points);
+      let attempts = 0;
+      let timer;
+      
+      const enforceCamera = () => {
+        attempts++;
+        try {
+          map.invalidateSize();
+          const bounds = L.latLngBounds(points);
+          if (map.getSize().x > 0) {
+            // First use the native fitBounds to center it perfectly
+            map.fitBounds(bounds, { padding: [0, 0], animate: false });
+            
+            // Immediately forcefully zoom in by 1 level
+            setTimeout(() => {
+               map.setZoom(map.getZoom() + 1, { animate: false });
+            }, 10);
+          }
+        } catch (err) {
+          console.error("Camera enforce error:", err);
+        }
         
-        // Calculate the optimal zoom for the bounding box
-        const targetZoom = map.getBoundsZoom(bounds, false, [0, 0]);
-        
-        // Force the map directly to the center, and increase zoom by 1 as requested by the user
-        map.setView(bounds.getCenter(), targetZoom + 1, { animate: false });
-        
-      } catch (err) {
-        console.error("Error fitting bounds:", err);
-      }
+        // Repeat 5 times over 1 second to crush ANY race conditions from LRM or CSS
+        if (attempts < 5) {
+          timer = setTimeout(enforceCamera, 200);
+        }
+      };
+      
+      enforceCamera();
+      
+      return () => clearTimeout(timer);
     }
   }, [map, source, destination, checkpoints, enableNavigation]);
   return null;
