@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
@@ -450,7 +450,7 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
             iconAnchor: [12, 12]
           })}
         >
-          <Popup autoPan={false}>{hoveredData.name}</Popup>
+          <Tooltip permanent direction="top" className="custom-tooltip">{hoveredData.name}</Tooltip>
         </Marker>
       )}
     </MapContainer>
