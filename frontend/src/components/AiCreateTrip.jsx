@@ -110,30 +110,47 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
   ]
 }`;
 
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt + '\n' + format }] }],
-          generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
-        })
-      });
-      
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || 'Failed to generate trip');
-      
-      let aiResponseText = data.candidates[0].content.parts[0].text;
-      
-      const parsedData = JSON.parse(aiResponseText);
-      setRoutes(parsedData.routes);
-      setStep(2);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to contact AI planner. ' + err.message);
-    } finally {
-      setLoading(false);
+    let retries = 3;
+    let success = false;
+    let lastError = null;
+
+    while (retries > 0 && !success) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt + '\n' + format }] }],
+            generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
+          })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || 'Failed to generate trip');
+        
+        let aiResponseText = data.candidates[0].content.parts[0].text;
+        
+        const parsedData = JSON.parse(aiResponseText);
+        setRoutes(parsedData.routes);
+        setStep(2);
+        success = true;
+      } catch (err) {
+        lastError = err;
+        retries--;
+        if (retries > 0) {
+          console.warn(`Gemini API error. Retrying... (${retries} attempts left)`, err.message);
+          // Exponential backoff: Wait 2s, then 4s, etc.
+          await new Promise(resolve => setTimeout(resolve, (4 - retries) * 2000));
+        }
+      }
     }
+
+    if (!success) {
+      console.error("All retries failed:", lastError);
+      setError('Failed to contact AI planner after multiple attempts. ' + (lastError?.message || ''));
+    }
+
+    setLoading(false);
   };
 
   const handleRouteSelect = (idx) => {
