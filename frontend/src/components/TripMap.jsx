@@ -361,26 +361,35 @@ function ResizeController({ isFullscreen }) {
   return null;
 }
 
-function RouteFitter({ routes, enableNavigation }) {
+function BoundsFitter({ source, destination, checkpoints, enableNavigation }) {
   const map = useMap();
   useEffect(() => {
-    if (!enableNavigation && routes && routes.length > 0 && routes[0].coordinates) {
+    if (enableNavigation) return;
+    
+    const points = [];
+    if (source && source.lat && source.lon) points.push([source.lat, source.lon]);
+    if (destination && destination.lat && destination.lon) points.push([destination.lat, destination.lon]);
+    if (checkpoints && checkpoints.length > 0) {
+      checkpoints.forEach(cp => {
+        if (cp.lat && cp.lon) points.push([cp.lat, cp.lon]);
+      });
+    }
+    
+    if (points.length > 0) {
       try {
-        const line = L.polyline(routes[0].coordinates);
-        map.fitBounds(line.getBounds(), { padding: [0, 0] });
+        const bounds = L.latLngBounds(points);
+        map.fitBounds(bounds, { padding: [0, 0] });
         
-        // User requested: "zoom in a bit even if destination checkpoints cuts the corner"
-        // Wait for fitBounds animation to complete, then force zoom in 1 level
+        // Force zoom in to cut corners as requested
         const timer = setTimeout(() => {
           map.setZoom(map.getZoom() + 1, { animate: true });
         }, 600);
-        
         return () => clearTimeout(timer);
       } catch (err) {
-        console.error("Error fitting route bounds:", err);
+        console.error("Error fitting bounds:", err);
       }
     }
-  }, [map, enableNavigation, routes]);
+  }, [map, source, destination, checkpoints, enableNavigation]);
   return null;
 }
 
@@ -448,8 +457,8 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
         onLocationUpdate={setLiveLocation} 
       />
 
-      {/* Robust custom route fitter */}
-      <RouteFitter routes={routes} enableNavigation={enableNavigation} />
+      {/* Robust custom route fitter based on checkpoints */}
+      <BoundsFitter source={source} destination={destination} checkpoints={checkpoints} enableNavigation={enableNavigation} />
 
       {/* Trigger map resize on fullscreen toggle */}
       <ResizeController isFullscreen={isFullscreen} />
