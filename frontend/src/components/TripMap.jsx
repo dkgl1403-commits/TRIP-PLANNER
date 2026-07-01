@@ -69,7 +69,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
 
     if (waypoints.length > 0) {
       if (routingControlRef.current) {
-        routingControlRef.current.options.fitSelectedRoutes = false;
+        routingControlRef.current.options.fitSelectedRoutes = !enableNavigation;
         routingControlRef.current.getPlan().setWaypoints(waypoints);
       } else {
         const control = L.Routing.control({
@@ -83,7 +83,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
           show: false,
           routeWhileDragging: false,
           addWaypoints: false,
-          fitSelectedRoutes: false,
+          fitSelectedRoutes: !enableNavigation,
           showAlternatives: true
         }).addTo(map);
 
@@ -357,35 +357,6 @@ function ResizeController({ isFullscreen }) {
       map.invalidateSize();
     }, 100);
   }, [isFullscreen, map]);
-  return null;
-}
-
-function BoundsFitter({ source, destination, checkpoints, enableNavigation }) {
-  const map = useMap();
-  useEffect(() => {
-    // Don't interfere with navigation zooming
-    if (enableNavigation) return;
-    
-    const points = [];
-    if (source && source.lat && source.lon) points.push([source.lat, source.lon]);
-    if (destination && destination.lat && destination.lon) points.push([destination.lat, destination.lon]);
-    if (checkpoints && checkpoints.length > 0) {
-      checkpoints.forEach(cp => {
-        if (cp.lat && cp.lon) points.push([cp.lat, cp.lon]);
-      });
-    }
-    
-    if (points.length > 0) {
-      try {
-        const bounds = L.latLngBounds(points);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
-      } catch (e) {
-        console.error("Error fitting bounds", e);
-      }
-    }
-  }, [map, source, destination, checkpoints, enableNavigation]);
-  
-  return null;
 }
 
 export default function TripMap({ source, destination, checkpoints = [], liveLocations = [], enableNavigation = false, isNavigating = false, isFullscreen = false, hoveredLocation = null, onRoutesFound }) {
@@ -454,7 +425,6 @@ export default function TripMap({ source, destination, checkpoints = [], liveLoc
 
       {/* Trigger map resize on fullscreen toggle */}
       <ResizeController isFullscreen={isFullscreen} />
-      <BoundsFitter source={source} destination={destination} checkpoints={checkpoints} enableNavigation={enableNavigation} />
 
       {/* Render live participant locations as colored arrows */}
       {liveLocations.map((loc, idx) => {
