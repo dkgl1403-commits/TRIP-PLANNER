@@ -110,7 +110,7 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
   ]
 }`;
 
-    const models = ["gemini-1.5-pro", "gemini-1.0-pro", "gemini-2.5-flash", "gemini-1.5-flash"];
+    const models = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
     let success = false;
     let lastError = null;
 
