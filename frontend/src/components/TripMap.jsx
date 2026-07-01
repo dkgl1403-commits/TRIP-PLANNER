@@ -137,7 +137,7 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
       if (onRoutesFound) onRoutesFound([]);
     }
 
-  }, [map, source, destination, checkpoints, enableNavigation]);
+  }, [map, source, destination, checkpoints, enableNavigation, liveLocation]);
 
   return null;
 }
