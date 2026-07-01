@@ -110,13 +110,16 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
   ]
 }`;
 
-    let retries = 3;
+    const models = ["gemini-1.5-pro", "gemini-1.0-pro", "gemini-2.5-flash", "gemini-1.5-flash"];
     let success = false;
     let lastError = null;
 
-    while (retries > 0 && !success) {
+    for (const model of models) {
+      if (success) break;
+      
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        console.log(`Trying model: ${model}...`);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -126,7 +129,7 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
         });
         
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || 'Failed to generate trip');
+        if (!response.ok) throw new Error(`[${model}] ` + (data.error?.message || 'Failed to generate trip'));
         
         let aiResponseText = data.candidates[0].content.parts[0].text;
         
@@ -136,12 +139,7 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
         success = true;
       } catch (err) {
         lastError = err;
-        retries--;
-        if (retries > 0) {
-          console.warn(`Gemini API error. Retrying... (${retries} attempts left)`, err.message);
-          // Exponential backoff: Wait 2s, then 4s, etc.
-          await new Promise(resolve => setTimeout(resolve, (4 - retries) * 2000));
-        }
+        console.warn(`Model ${model} failed. Switching to next model...`, err.message);
       }
     }
 
