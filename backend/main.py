@@ -9,7 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="../.env", override=True)
+load_dotenv(dotenv_path=".env", override=True)
+load_dotenv(dotenv_path="../.env", override=False)
 
 app = FastAPI(title="Event Planner API")
 
@@ -308,6 +309,7 @@ def get_presigned_url(filename: str):
 @app.get("/api/trips")
 def get_user_trips(login_id: str):
     conn = get_db_connection()
+    s3_client = get_s3_client()
     try:
         cursor = conn.cursor()
         query = """
@@ -331,7 +333,7 @@ def get_user_trips(login_id: str):
                 "dest_name": row[3],
                 "start_date": row[4],
                 "end_date": row[5],
-                "cover_image_url": row[6],
+                "cover_image_url": presign_url_if_needed(row[6], s3_client),
                 "status": row[7],
                 "actual_start_time": row[8],
                 "participant_count": row[9],
@@ -347,6 +349,7 @@ def get_user_trips(login_id: str):
 @app.get("/api/trips/{trip_id}")
 def get_trip_details(trip_id: int):
     conn = get_db_connection()
+    s3_client = get_s3_client()
     try:
         cursor = conn.cursor()
         # Fetch Trip
@@ -366,7 +369,7 @@ def get_trip_details(trip_id: int):
             "destination": {"name": trip_row[5], "lat": trip_row[6], "lon": trip_row[7]},
             "start_date": trip_row[8],
             "end_date": trip_row[9],
-            "cover_image_url": trip_row[10],
+            "cover_image_url": presign_url_if_needed(trip_row[10], s3_client),
             "login_id": trip_row[11],
             "status": trip_row[12],
             "actual_start_time": trip_row[13],
@@ -780,6 +783,24 @@ def get_s3_client():
         config=Config(signature_version='s3v4', s3={'addressing_style': 'path'})
     )
 
+def presign_url_if_needed(file_url: str, s3_client) -> str:
+    """Helper to convert a private Oracle Cloud storage URL into a temporary public presigned URL."""
+    if not file_url or not s3_client or "oraclecloud.com" not in file_url:
+        return file_url
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(file_url)
+        path_parts = parsed.path.strip('/').split('/', 1)
+        if len(path_parts) == 2:
+            return s3_client.generate_presigned_url(
+                ClientMethod='get_object',
+                Params={'Bucket': path_parts[0], 'Key': path_parts[1]},
+                ExpiresIn=3600
+            )
+    except Exception as e:
+        print(f"Failed to generate presigned URL for {file_url}: {e}")
+    return file_url
+
 @app.get("/api/trips/{trip_id}/media/upload_url")
 def get_presigned_url(trip_id: int, file_name: str, file_type: str):
     s3_client = get_s3_client()
@@ -862,28 +883,7 @@ def get_trip_media(trip_id: int):
         
         media_list = []
         for row in cursor.fetchall():
-            file_url = row[2]
-            
-            # If s3_client is available, generate a secure read URL that bypasses bucket privacy
-            if s3_client and "oraclecloud.com" in file_url:
-                try:
-                    # Extract the object key from the file URL
-                    # Format: https://[namespace].compat.objectstorage.[region].oraclecloud.com/[bucket]/[key]
-                    url_parts = file_url.split(f"/{bucket_name}/")
-                    if len(url_parts) == 2:
-                        object_key = url_parts[1]
-                        
-                        presigned_read_url = s3_client.generate_presigned_url(
-                            ClientMethod='get_object',
-                            Params={
-                                'Bucket': bucket_name,
-                                'Key': object_key
-                            },
-                            ExpiresIn=3600
-                        )
-                        file_url = presigned_read_url
-                except Exception as e:
-                    print(f"Failed to generate presigned read URL: {e}")
+            file_url = presign_url_if_needed(row[2], s3_client)
             
             media_list.append({
                 "id": row[0],
