@@ -1050,7 +1050,7 @@ export default function TripDetails({ tripId, onBack, user }) {
       {activeTab !== 'dashboard' && (
         <div className="full-screen-tab glass-panel">
           <div className="full-screen-header">
-            <button className="back-to-trip-btn" onClick={() => setActiveTab('dashboard')}>⬅ Back to Trip Dashboard</button>
+            <button className="back-to-trip-btn" onClick={() => window.history.back()}>⬅ Back to Trip Dashboard</button>
             <h2 className="full-screen-title">{trip.title}</h2>
             <div className={`status-badge ${trip.status === 'In Progress' ? 'status-green' : 'status-blue'}`}>{trip.status || 'Planned'}</div>
           </div>

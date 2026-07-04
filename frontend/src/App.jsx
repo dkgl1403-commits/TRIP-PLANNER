@@ -36,14 +36,22 @@ function App() {
   useEffect(() => {
     const handlePopState = (e) => {
       if (e.state && e.state.view) {
-        setCurrentViewRaw(e.state.view);
-        if (e.state.tripId) {
-          setSelectedTripId(e.state.tripId);
+        if (e.state.view === 'login' && localStorage.getItem('tripPlannerUser')) {
+          setCurrentViewRaw('dashboard');
+          window.history.replaceState({ view: 'dashboard' }, '', '');
+        } else {
+          setCurrentViewRaw(e.state.view);
+          if (e.state.tripId) {
+            setSelectedTripId(e.state.tripId);
+          }
         }
       } else {
         // No state means we're at the beginning — go to dashboard if logged in
         if (localStorage.getItem('tripPlannerUser')) {
           setCurrentViewRaw('dashboard');
+          window.history.replaceState({ view: 'dashboard' }, '', '');
+        } else {
+          setCurrentViewRaw('login');
         }
       }
     };
