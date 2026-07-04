@@ -55,7 +55,8 @@ export default function Login({ onLoginSuccess }) {
         if (isLogin && onLoginSuccess) {
             onLoginSuccess({ 
               name: data.name || loginId,
-              login_id: data.login_id || loginId 
+              login_id: data.login_id || loginId,
+              phone: data.phone
             }); 
         } else if (!isLogin) {
             // Optional: reset form after successful signup

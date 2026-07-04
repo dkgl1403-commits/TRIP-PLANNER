@@ -1,12 +1,15 @@
 import os
 import random
+import uuid
+import boto3
+from botocore.client import Config
 import oracledb
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="../.env")
+load_dotenv(dotenv_path="../.env", override=True)
 
 app = FastAPI(title="Event Planner API")
 
@@ -112,12 +115,13 @@ def signup(request: SignupRequest):
     finally:
         conn.close()
 
+
 @app.post("/api/auth/login")
 def login(request: LoginRequest):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT login_id, name, password_hash FROM users WHERE login_id = :1 OR phone = :2", [request.login_id, request.login_id])
+        cursor.execute("SELECT login_id, name, password_hash, phone FROM users WHERE login_id = :1 OR phone = :2", [request.login_id, request.login_id])
         row = cursor.fetchone()
         
         if not row:
@@ -130,7 +134,8 @@ def login(request: LoginRequest):
             "status": "success", 
             "message": f"Welcome back, {row[1]}!",
             "name": row[1],
-            "login_id": row[0]
+            "login_id": row[0],
+            "phone": row[3]
         }
     finally:
         conn.close()
@@ -207,6 +212,65 @@ def create_trip(request: TripCreateRequest):
             
         conn.commit()
         return {"status": "success", "message": "Trip created successfully!", "trip_id": trip_id}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.post("/api/trips/{trip_id}/participants")
+def add_trip_participant(trip_id: int, p: Participant):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO trip_participants (trip_id, name, mobile, email) VALUES (:1, :2, :3, :4)",
+            [trip_id, p.name, p.mobile, p.email]
+        )
+        conn.commit()
+        return {"status": "success", "message": "Participant added"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+class ParticipantEditRequest(BaseModel):
+    original_name: str
+    name: str
+    mobile: Optional[str] = None
+    email: Optional[str] = None
+
+@app.put("/api/trips/{trip_id}/participants")
+def update_trip_participant(trip_id: int, req: ParticipantEditRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE trip_participants SET name = :1, mobile = :2, email = :3 WHERE trip_id = :4 AND name = :5",
+            [req.name, req.mobile, req.email, trip_id, req.original_name]
+        )
+        conn.commit()
+        return {"status": "success", "message": "Participant updated"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.delete("/api/trips/{trip_id}/participants/{participant_name}")
+def remove_trip_participant(trip_id: int, participant_name: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM trip_participants WHERE trip_id = :1 AND name = :2",
+            [trip_id, participant_name]
+        )
+        conn.commit()
+        return {"status": "success", "message": "Participant removed"}
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -628,6 +692,149 @@ def end_trip(trip_id: int, request: EndTripRequest):
         return {"status": "success", "message": "Trip completed successfully!"}
     except Exception as e:
         conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+# --- Media Upload Endpoints ---
+# Initialize the S3 client for Oracle Object Storage
+def get_s3_client():
+    ACCESS_KEY = os.getenv("OCI_ACCESS_KEY")
+    SECRET_KEY = os.getenv("OCI_SECRET_KEY")
+    NAMESPACE = os.getenv("OCI_NAMESPACE")
+    REGION = os.getenv("OCI_REGION")
+    
+    if not all([ACCESS_KEY, SECRET_KEY, NAMESPACE, REGION]):
+        print("WARNING: OCI Credentials not found in .env")
+        return None
+
+    endpoint_url = f"https://{NAMESPACE}.compat.objectstorage.{REGION}.oraclecloud.com"
+    return boto3.client(
+        's3',
+        region_name=REGION,
+        endpoint_url=endpoint_url,
+        aws_access_key_id=ACCESS_KEY,
+        aws_secret_access_key=SECRET_KEY,
+        config=Config(signature_version='s3v4', s3={'addressing_style': 'path'})
+    )
+
+@app.get("/api/trips/{trip_id}/media/upload_url")
+def get_presigned_url(trip_id: int, file_name: str, file_type: str):
+    s3_client = get_s3_client()
+    if not s3_client:
+        raise HTTPException(status_code=500, detail="Storage not configured")
+        
+    bucket_name = os.getenv("OCI_BUCKET_NAME", "DKGL-BUCKET1")
+    
+    # Generate unique filename to prevent overwriting
+    ext = file_name.split('.')[-1] if '.' in file_name else 'bin'
+    unique_name = f"trip_{trip_id}/{uuid.uuid4().hex}.{ext}"
+    
+    try:
+        presigned_url = s3_client.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': bucket_name,
+                'Key': unique_name,
+                'ContentType': file_type
+            },
+            ExpiresIn=3600
+        )
+        
+        NAMESPACE = os.getenv("OCI_NAMESPACE")
+        REGION = os.getenv("OCI_REGION")
+        # Construct public URL for future fetching
+        file_url = f"https://{NAMESPACE}.compat.objectstorage.{REGION}.oraclecloud.com/{bucket_name}/{unique_name}"
+        
+        return {
+            "upload_url": presigned_url,
+            "file_url": file_url,
+            "unique_name": unique_name
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class MediaSaveRequest(BaseModel):
+    login_id: str
+    file_url: str
+    file_type: str
+
+@app.post("/api/trips/{trip_id}/media")
+def save_trip_media(trip_id: int, request: MediaSaveRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO trip_media (trip_id, login_id, file_url, file_type) 
+            VALUES (:1, :2, :3, :4)
+            """,
+            [trip_id, request.login_id, request.file_url, request.file_type]
+        )
+        conn.commit()
+        return {"status": "success", "message": "Media saved successfully"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.get("/api/trips/{trip_id}/media")
+def get_trip_media(trip_id: int):
+    conn = get_db_connection()
+    s3_client = get_s3_client()
+    bucket_name = os.getenv("OCI_BUCKET_NAME", "DKGL-BUCKET1")
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT tm.id, tm.login_id, tm.file_url, tm.file_type, tm.uploaded_at, u.name 
+            FROM trip_media tm
+            LEFT JOIN users u ON tm.login_id = u.login_id
+            WHERE tm.trip_id = :1 
+            ORDER BY tm.uploaded_at DESC
+            """,
+            [trip_id]
+        )
+        
+        media_list = []
+        for row in cursor.fetchall():
+            file_url = row[2]
+            
+            # If s3_client is available, generate a secure read URL that bypasses bucket privacy
+            if s3_client and "oraclecloud.com" in file_url:
+                try:
+                    # Extract the object key from the file URL
+                    # Format: https://[namespace].compat.objectstorage.[region].oraclecloud.com/[bucket]/[key]
+                    url_parts = file_url.split(f"/{bucket_name}/")
+                    if len(url_parts) == 2:
+                        object_key = url_parts[1]
+                        
+                        presigned_read_url = s3_client.generate_presigned_url(
+                            ClientMethod='get_object',
+                            Params={
+                                'Bucket': bucket_name,
+                                'Key': object_key
+                            },
+                            ExpiresIn=3600
+                        )
+                        file_url = presigned_read_url
+                except Exception as e:
+                    print(f"Failed to generate presigned read URL: {e}")
+            
+            media_list.append({
+                "id": row[0],
+                "login_id": row[1],
+                "file_url": file_url,
+                "file_type": row[3],
+                "uploaded_at": row[4],
+                "uploader_name": row[5] or row[1]
+            })
+            
+        return {"status": "success", "media": media_list}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()

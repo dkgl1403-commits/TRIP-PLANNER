@@ -84,7 +84,8 @@ function RoutingMachine({ source, destination, checkpoints, enableNavigation, li
           routeWhileDragging: false,
           addWaypoints: false,
           fitSelectedRoutes: false,
-          showAlternatives: true
+          showAlternatives: true,
+          draggableWaypoints: false
         }).addTo(map);
 
         control.on('routesfound', (e) => {
