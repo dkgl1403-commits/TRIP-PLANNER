@@ -68,6 +68,25 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
     setLoading(true);
     setError(null);
     
+
+    let favoritesText = "";
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        const locRes = await fetch(`/api/locations?login_id=${encodeURIComponent(userObj.login_id)}`);
+        if (locRes.ok) {
+          const locData = await locRes.json();
+          if (locData.locations && locData.locations.length > 0) {
+            const favoritesList = locData.locations.map(l => `${l.name} (${l.city || ''}, ${l.state || ''})`).join(', ');
+            favoritesText = `\n9. FAVORITE LOCATIONS: The user has these saved/favorite locations: [${favoritesList}]. If any of these locations naturally fall along or near the route, you MUST include them as checkpoints!`;
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch favorite locations", e);
+    }
+
     let prompt = `You are an expert travel planner. The user wants to travel from ${sourceQuery} to ${destQuery} by road.
 They are starting on ${startDateTime}.
 
@@ -80,12 +99,13 @@ CRITICAL RULES:
 5. If driving time exceeds 8-10 hours in a single day, or if it gets too late, schedule an overnight halt at a major city/checkpoint, and resume the journey on the next Day.
 6. Provide 2-3 suggestive places to visit for each checkpoint and the final destination. Ensure the city is a prominent tourist attraction with good restaurants.
 7. Suggested overnight stays MUST have good 3 to 5-star hotels available.
-8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").
+8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").${favoritesText}
 
 Return ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
 
+
     if (isFeedback && routes.length > 0) {
-      prompt = `You previously generated this JSON itinerary:\n${JSON.stringify({routes})}\n\nThe user provided this feedback to revise the plan: "${feedback}"\n\nBased on this feedback, completely regenerate the JSON itinerary following all the CRITICAL RULES below, but incorporating the user's feedback.\n\nCRITICAL RULES:\n1. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.\n2. Give preference to National Highways (NH), then State highways. Ensure routes are passable by a 4-wheeler.\n3. Provide checkpoints every 150-200 kms.\n4. Calculate realistic driving times.\n5. If driving time exceeds 8-10 hours in a single day, schedule an overnight halt.\n6. Provide 2-3 suggestive places to visit. Ensure the city is a prominent tourist attraction with good restaurants.\n7. Suggested overnight stays MUST have good 3 to 5-star hotels available.\n8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").\n\nReturn ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
+      prompt = `You previously generated this JSON itinerary:\n${JSON.stringify({routes})}\n\nThe user provided this feedback to revise the plan: "${feedback}"\n\nBased on this feedback, completely regenerate the JSON itinerary following all the CRITICAL RULES below, but incorporating the user's feedback.\n\nCRITICAL RULES:\n1. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.\n2. Give preference to National Highways (NH), then State highways. Ensure routes are passable by a 4-wheeler.\n3. Provide checkpoints every 150-200 kms.\n4. Calculate realistic driving times.\n5. If driving time exceeds 8-10 hours in a single day, schedule an overnight halt.\n6. Provide 2-3 suggestive places to visit. Ensure the city is a prominent tourist attraction with good restaurants.\n7. Suggested overnight stays MUST have good 3 to 5-star hotels available.\n8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").${favoritesText}\n\nReturn ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
     }
 
     const format = `

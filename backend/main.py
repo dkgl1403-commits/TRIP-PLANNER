@@ -398,18 +398,79 @@ def get_trip_details(trip_id: int):
                 "login_id": pt[3]
             })
 
-        # Fetch checkpoint checkins for this trip
+
+        # Fetch checkins... (Existing)
         try:
             cursor.execute("SELECT participant_name, checkpoint_order_idx, checked_in_at FROM checkpoint_checkins WHERE trip_id = :1", [trip_id])
             checkins = {}
             for row in cursor.fetchall():
-                key = row[0]  # participant_name
+                key = row[0]
                 if key not in checkins:
                     checkins[key] = []
                 checkins[key].append({"order_idx": row[1], "checked_in_at": str(row[2]) if row[2] else None})
             trip["checkins"] = checkins
         except:
             trip["checkins"] = {}
+            
+
+        # Fetch Expenses to calculate balances
+        try:
+            cursor.execute("SELECT id, payer_name, amount FROM trip_expenses WHERE trip_id = :1", [trip_id])
+            expenses_data = cursor.fetchall()
+            balances = {}
+            for exp in expenses_data:
+                exp_id = exp[0]
+                payer = exp[1]
+                amount = exp[2]
+                balances[payer] = balances.get(payer, 0) + amount
+                
+                cursor.execute("SELECT participant_name, amount_owed FROM trip_expense_splits WHERE expense_id = :1", [exp_id])
+                splits = cursor.fetchall()
+                for split in splits:
+                    participant = split[0]
+                    amount_owed = split[1]
+                    balances[participant] = balances.get(participant, 0) - amount_owed
+            trip["balances"] = balances
+            
+            # Calculate Settlements
+            debtors = []
+            creditors = []
+            for name, balance in balances.items():
+                balance = round(balance, 2)
+                if balance < 0:
+                    debtors.append({"name": name, "amount": -balance})
+                elif balance > 0:
+                    creditors.append({"name": name, "amount": balance})
+                    
+            debtors.sort(key=lambda x: x["amount"], reverse=True)
+            creditors.sort(key=lambda x: x["amount"], reverse=True)
+            
+            settlements = []
+            i, j = 0, 0
+            while i < len(debtors) and j < len(creditors):
+                debtor = debtors[i]
+                creditor = creditors[j]
+                settle_amount = min(debtor["amount"], creditor["amount"])
+                
+                if settle_amount > 0.01:
+                    settlements.append({
+                        "from": debtor["name"],
+                        "to": creditor["name"],
+                        "amount": round(settle_amount, 2)
+                    })
+                    
+                debtor["amount"] -= settle_amount
+                creditor["amount"] -= settle_amount
+                
+                if debtor["amount"] < 0.01: i += 1
+                if creditor["amount"] < 0.01: j += 1
+                
+            trip["settlements"] = settlements
+        except:
+            trip["balances"] = {}
+            trip["settlements"] = []
+
+
             
         return {"status": "success", "trip": trip}
     except Exception as e:
@@ -838,3 +899,300 @@ def get_trip_media(trip_id: int):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
+
+# --- Expense Tracker Endpoints ---
+
+from typing import List
+
+class ExpenseSplit(BaseModel):
+    participant_name: str
+    amount_owed: float
+
+class SavedLocationRequest(BaseModel):
+    login_id: str
+    name: str
+    description: Optional[str] = None
+    lat: float
+    lon: float
+    city: Optional[str] = None
+    state: Optional[str] = None
+
+class ExpenseRequest(BaseModel):
+    payer_name: str
+    amount: float
+    description: str
+    category: str
+    splits: List[ExpenseSplit]
+
+@app.post("/api/trips/{trip_id}/expenses")
+def add_expense(trip_id: int, request: ExpenseRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Validate total split amount matches total expense amount
+        total_split = sum(split.amount_owed for split in request.splits)
+        if abs(total_split - request.amount) > 0.01:
+            raise HTTPException(status_code=400, detail="Split amounts do not equal total amount")
+            
+        out_val = cursor.var(oracledb.NUMBER)
+        # Insert expense
+        cursor.execute(
+            """
+            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category) 
+            VALUES (:1, :2, :3, :4, :5) RETURNING id INTO :6
+            """,
+            [trip_id, request.payer_name, request.amount, request.description, request.category, out_val]
+        )
+        expense_id = out_val.getvalue()[0]
+        
+        # Insert splits
+        for split in request.splits:
+            if split.amount_owed > 0:
+                cursor.execute(
+                    """
+                    INSERT INTO trip_expense_splits (expense_id, participant_name, amount_owed)
+                    VALUES (:1, :2, :3)
+                    """,
+                    [expense_id, split.participant_name, split.amount_owed]
+                )
+                
+        conn.commit()
+        return {"status": "success", "message": "Expense added successfully", "expense_id": expense_id}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.get("/api/trips/{trip_id}/expenses")
+def get_expenses(trip_id: int):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Fetch all expenses
+        cursor.execute(
+            """
+            SELECT id, payer_name, amount, description, category, expense_date 
+            FROM trip_expenses 
+            WHERE trip_id = :1 
+            ORDER BY expense_date DESC
+            """,
+            [trip_id]
+        )
+        expenses_data = cursor.fetchall()
+        
+        expenses = []
+        balances = {} # name -> net_balance (positive means they are owed money, negative means they owe money)
+        
+        for exp in expenses_data:
+            exp_id = exp[0]
+            payer = exp[1]
+            amount = exp[2]
+            
+            # Payer gets positive balance (they paid, so they should get it back)
+            balances[payer] = balances.get(payer, 0) + amount
+            
+            # Fetch splits for this expense
+            cursor.execute("SELECT participant_name, amount_owed FROM trip_expense_splits WHERE expense_id = :1", [exp_id])
+            splits = cursor.fetchall()
+            
+            split_details = []
+            for split in splits:
+                participant = split[0]
+                amount_owed = split[1]
+                
+                # Participant gets negative balance (they owe money)
+                balances[participant] = balances.get(participant, 0) - amount_owed
+                
+                split_details.append({
+                    "participant_name": participant,
+                    "amount_owed": amount_owed
+                })
+                
+            expenses.append({
+                "id": exp_id,
+                "payer_name": payer,
+                "amount": amount,
+                "description": exp[3],
+                "category": exp[4],
+                "date": exp[5],
+                "splits": split_details
+            })
+            
+        # 2. Calculate Settlements
+        # Separate into debtors (who owe) and creditors (who are owed)
+        debtors = []
+        creditors = []
+        
+        for name, balance in balances.items():
+            # rounding to avoid floating point issues
+            balance = round(balance, 2)
+            if balance < 0:
+                debtors.append({"name": name, "amount": -balance})
+            elif balance > 0:
+                creditors.append({"name": name, "amount": balance})
+                
+        # Sort so largest debts/credits are processed first
+        debtors.sort(key=lambda x: x["amount"], reverse=True)
+        creditors.sort(key=lambda x: x["amount"], reverse=True)
+        
+        settlements = []
+        
+        i, j = 0, 0
+        while i < len(debtors) and j < len(creditors):
+            debtor = debtors[i]
+            creditor = creditors[j]
+            
+            settle_amount = min(debtor["amount"], creditor["amount"])
+            
+            if settle_amount > 0.01: # ignore tiny fractions
+                settlements.append({
+                    "from": debtor["name"],
+                    "to": creditor["name"],
+                    "amount": round(settle_amount, 2)
+                })
+                
+            debtor["amount"] -= settle_amount
+            creditor["amount"] -= settle_amount
+            
+            if debtor["amount"] < 0.01: i += 1
+            if creditor["amount"] < 0.01: j += 1
+            
+        return {
+            "status": "success",
+            "expenses": expenses,
+            "settlements": settlements,
+            "balances": balances
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.put("/api/trips/{trip_id}/expenses/{expense_id}")
+def update_expense(trip_id: int, expense_id: int, request: ExpenseRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Validate total split amount matches total expense amount
+        total_split = sum(split.amount_owed for split in request.splits)
+        if abs(total_split - request.amount) > 0.01:
+            raise HTTPException(status_code=400, detail="Split amounts do not equal total amount")
+            
+        # Update expense
+        cursor.execute(
+            """
+            UPDATE trip_expenses 
+            SET payer_name = :1, amount = :2, description = :3, category = :4 
+            WHERE id = :5 AND trip_id = :6
+            """,
+            [request.payer_name, request.amount, request.description, request.category, expense_id, trip_id]
+        )
+        
+        # Delete old splits
+        cursor.execute("DELETE FROM trip_expense_splits WHERE expense_id = :1", [expense_id])
+        
+        # Insert new splits
+        for split in request.splits:
+            if split.amount_owed > 0:
+                cursor.execute(
+                    """
+                    INSERT INTO trip_expense_splits (expense_id, participant_name, amount_owed)
+                    VALUES (:1, :2, :3)
+                    """,
+                    [expense_id, split.participant_name, split.amount_owed]
+                )
+                
+        conn.commit()
+        return {"status": "success", "message": "Expense updated successfully"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.delete("/api/trips/{trip_id}/expenses/{expense_id}")
+def delete_expense(trip_id: int, expense_id: int):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM trip_expenses WHERE id = :1 AND trip_id = :2", [expense_id, trip_id])
+        conn.commit()
+        return {"status": "success", "message": "Expense deleted"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.get("/api/locations")
+def get_locations(login_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, name, description, lat, lon, city, state 
+            FROM saved_locations 
+            WHERE login_id = :1 
+            ORDER BY created_at DESC
+            """, 
+            [login_id]
+        )
+        locations = []
+        for row in cursor.fetchall():
+            locations.append({
+                "id": row[0],
+                "name": row[1],
+                "description": row[2],
+                "lat": row[3],
+                "lon": row[4],
+                "city": row[5],
+                "state": row[6]
+            })
+        return {"status": "success", "locations": locations}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.post("/api/locations")
+def save_location(request: SavedLocationRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        out_val = cursor.var(oracledb.NUMBER)
+        cursor.execute(
+            """
+            INSERT INTO saved_locations (login_id, name, description, lat, lon, city, state)
+            VALUES (:1, :2, :3, :4, :5, :6, :7) RETURNING id INTO :8
+            """,
+            [request.login_id, request.name, request.description, request.lat, request.lon, request.city, request.state, out_val]
+        )
+        loc_id = out_val.getvalue()[0]
+        conn.commit()
+        return {"status": "success", "id": loc_id}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.delete("/api/locations/{location_id}")
+def delete_location(location_id: int):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM saved_locations WHERE id = :1", [location_id])
+        conn.commit()
+        return {"status": "success"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+

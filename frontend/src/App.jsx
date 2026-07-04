@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import CreateTrip from './components/CreateTrip'
 import TripDetails from './components/TripDetails'
 import AiCreateTrip from './components/AiCreateTrip'
+import { ToastProvider } from './components/Toast'
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -12,16 +13,48 @@ function App() {
     const saved = localStorage.getItem('tripPlannerUser');
     return saved ? JSON.parse(saved) : null;
   });
-  const [currentView, setCurrentView] = useState(() => {
+  const [currentView, setCurrentViewRaw] = useState(() => {
     return localStorage.getItem('tripPlannerUser') ? 'dashboard' : 'login';
   });
   const [selectedTripId, setSelectedTripId] = useState(null);
+
+  // Wrap setCurrentView to push browser history
+  const setCurrentView = useCallback((view, pushHistory = true) => {
+    setCurrentViewRaw(view);
+    if (pushHistory && view !== 'login') {
+      window.history.pushState({ view }, '', '');
+    }
+  }, []);
 
   const isLoggedIn = currentView !== 'login';
 
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
+
+  // Listen for browser back button
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (e.state && e.state.view) {
+        setCurrentViewRaw(e.state.view);
+        if (e.state.tripId) {
+          setSelectedTripId(e.state.tripId);
+        }
+      } else {
+        // No state means we're at the beginning — go to dashboard if logged in
+        if (localStorage.getItem('tripPlannerUser')) {
+          setCurrentViewRaw('dashboard');
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // Set initial history state
+    window.history.replaceState({ view: currentView }, '', '');
+    
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -36,15 +69,19 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('tripPlannerUser');
     setUser(null);
-    setCurrentView('login');
+    setCurrentViewRaw('login');
+    // Clear history so back button doesn't go to logged-in pages
+    window.history.replaceState({ view: 'login' }, '', '');
   };
 
   const handleViewTrip = (tripId) => {
     setSelectedTripId(tripId);
-    setCurrentView('view_trip');
+    setCurrentViewRaw('view_trip');
+    window.history.pushState({ view: 'view_trip', tripId }, '', '');
   };
 
   return (
+    <ToastProvider>
     <div className={`app-container ${theme} ${isLoggedIn ? 'dashboard-active' : ''}`}>
       <div className="bg-overlay"></div>
       
@@ -67,19 +104,20 @@ function App() {
           />
         )}
         {currentView === 'create_trip' && (
-          <CreateTrip user={user} onBack={() => setCurrentView('dashboard')} />
+          <CreateTrip user={user} onBack={() => window.history.back()} />
         )}
         {currentView === 'ai_create_trip' && (
-          <AiCreateTrip user={user} onBack={() => setCurrentView('dashboard')} onViewTrip={handleViewTrip} />
+          <AiCreateTrip user={user} onBack={() => window.history.back()} onViewTrip={handleViewTrip} />
         )}
         {currentView === 'view_trip' && (
-          <TripDetails tripId={selectedTripId} onBack={() => setCurrentView('dashboard')} user={user} />
+          <TripDetails tripId={selectedTripId} onBack={() => window.history.back()} user={user} />
         )}
         {currentView === 'login' && (
           <Login theme={theme} onLoginSuccess={handleLoginSuccess} />
         )}
       </div>
     </div>
+    </ToastProvider>
   )
 }
 

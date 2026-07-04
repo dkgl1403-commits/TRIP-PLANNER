@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './CreateTrip.css'; // Re-use the styling from Create Trip for consistency
 import './TripDetails.css'; // Split Layout styles
 import TripMap from './TripMap';
+import ExpenseTracker from './ExpenseTracker';
 
 export default function TripDetails({ tripId, onBack, user }) {
   const [trip, setTrip] = useState(null);
@@ -37,7 +38,162 @@ export default function TripDetails({ tripId, onBack, user }) {
   const [participants, setParticipants] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTabRaw] = useState('dashboard');
+  
+  const setActiveTab = useCallback((tab) => {
+    setActiveTabRaw(tab);
+    window.history.pushState({ view: 'view_trip', tripId, tab }, '', '');
+  }, [tripId]);
+
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (e.state && e.state.view === 'view_trip') {
+        setActiveTabRaw(e.state.tab || 'dashboard');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationData, setLocationData] = useState({ name: '', description: '', lat: null, lon: null, city: '', state: '' });
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+  const [savedLocations, setSavedLocations] = useState([]);
+
+  // Fetch saved locations on mount
+  useEffect(() => {
+    if (user?.login_id) {
+      fetch(`/api/locations?login_id=${user.login_id}`)
+        .then(r => r.json())
+        .then(data => { if (data.locations) setSavedLocations(data.locations); })
+        .catch(console.error);
+    }
+  }, [user]);
+
+  const handleSaveLocationClick = async () => {
+    setIsSavingLocation(true);
+    
+    const fetchCityState = async (lat, lon) => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        const city = data.address?.city || data.address?.town || data.address?.village || '';
+        const state = data.address?.state || '';
+        return { city, state };
+      } catch (err) {
+        console.error("Reverse geocoding failed", err);
+        return { city: '', state: '' };
+      }
+    };
+
+    const openModalWithCoords = async (lat, lon) => {
+      const { city, state } = await fetchCityState(lat, lon);
+      setLocationData({ name: '', description: '', lat, lon, city, state });
+      setShowLocationModal(true);
+      setIsSavingLocation(false);
+    };
+
+    const fallbackToIpGeolocation = async () => {
+      try {
+        console.log("Trying IP-based geolocation...");
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        if (data.latitude && data.longitude) {
+          await openModalWithCoords(data.latitude, data.longitude);
+          return;
+        }
+      } catch (e) { console.error("ipapi.co failed", e); }
+      
+      try {
+        console.log("Trying ip-api.com fallback...");
+        const res = await fetch('http://ip-api.com/json/?fields=lat,lon,city,regionName');
+        const data = await res.json();
+        if (data.lat && data.lon) {
+          setLocationData({ name: '', description: '', lat: data.lat, lon: data.lon, city: data.city || '', state: data.regionName || '' });
+          setShowLocationModal(true);
+          setIsSavingLocation(false);
+          return;
+        }
+      } catch (e) { console.error("ip-api.com failed", e); }
+      
+      // Absolute last resort: open modal with empty fields
+      setLocationData({ name: '', description: '', lat: 0, lon: 0, city: '', state: '' });
+      setShowLocationModal(true);
+      setIsSavingLocation(false);
+    };
+
+    // METHOD 1: Use already-tracked live location (from trip tracking)
+    if (myLocation && myLocation.lat && myLocation.lon) {
+      console.log("Using tracked myLocation:", myLocation);
+      await openModalWithCoords(myLocation.lat, myLocation.lon);
+      return;
+    }
+
+    // METHOD 2: Try browser Geolocation API (works on HTTPS / localhost)
+    if (navigator.geolocation) {
+      let resolved = false;
+      
+      const geoTimeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          console.log("Browser geolocation timed out, falling back to IP...");
+          fallbackToIpGeolocation();
+        }
+      }, 5000);
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(geoTimeout);
+          console.log("Browser geolocation succeeded:", pos.coords);
+          await openModalWithCoords(pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(geoTimeout);
+          console.warn("Browser geolocation failed:", err.message, "- falling back to IP...");
+          fallbackToIpGeolocation();
+        },
+        { timeout: 4000, enableHighAccuracy: false, maximumAge: 60000 }
+      );
+      return;
+    }
+
+    // METHOD 3: No geolocation API at all, use IP directly
+    console.log("No geolocation API, using IP fallback...");
+    await fallbackToIpGeolocation();
+  };
+
+  const handleLocationSubmit = async (e) => {
+    e.preventDefault();
+    if (!locationData.name) return alert("Please enter a name for the location");
+    
+    try {
+      const res = await fetch('/api/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login_id: user.login_id,
+          name: locationData.name,
+          description: locationData.description,
+          lat: locationData.lat,
+          lon: locationData.lon,
+          city: locationData.city,
+          state: locationData.state
+        })
+      });
+      if (!res.ok) throw new Error("Failed to save location");
+      
+      const newLoc = await res.json();
+      setSavedLocations([{...locationData, id: newLoc.id}, ...savedLocations]);
+      setShowLocationModal(false);
+      alert("Location saved successfully!");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
 
   const [mediaList, setMediaList] = useState([]);
   const [selectedMedia, setSelectedMedia] = useState(null);
@@ -702,10 +858,14 @@ export default function TripDetails({ tripId, onBack, user }) {
                     distanceText = 'Location TBC';
                   }
                 }
-
-                // TODO: Replace with real expense data when the Expense Logging feature is built
-                const mockOwesYou = 0;
-                const mockYouOwe = 0;
+                let oweText = null;
+                let receiveText = null;
+                if (!isMe && trip.settlements && user?.name) {
+                  const toPay = trip.settlements.find(s => s.from === user.name && s.to === p.name);
+                  const toReceive = trip.settlements.find(s => s.from === p.name && s.to === user.name);
+                  if (toPay) oweText = `Pay ₹${toPay.amount.toFixed(0)}`;
+                  if (toReceive) receiveText = `Receive ₹${toReceive.amount.toFixed(0)}`;
+                }
                 
                 let userDistText = '';
                 if (isInProgress && !isMe && myLocation && liveLoc) {
@@ -725,9 +885,8 @@ export default function TripDetails({ tripId, onBack, user }) {
                         {userDistText && <div className="p-dist" style={{marginTop: '2px', color: '#9ca3af'}}>🚗 {userDistText} from you</div>}
                       </div>
                       <div className="p-expenses">
-                        {mockOwesYou > 0 && <span className="text-green">+₹{mockOwesYou}</span>}
-                        {mockYouOwe > 0 && <span className="text-red">-₹{mockYouOwe}</span>}
-                        {mockOwesYou === 0 && mockYouOwe === 0 && !isMe && <span className="text-green">₹0</span>}
+                        {receiveText && <span className="text-green" style={{fontWeight: 'bold'}}>↑ {receiveText}</span>}
+                        {oweText && <span className="text-red" style={{fontWeight: 'bold'}}>↓ {oweText}</span>}
                       </div>
                     </div>
                     
@@ -848,7 +1007,7 @@ export default function TripDetails({ tripId, onBack, user }) {
             {errorMsg && <div className="alert alert-error">{errorMsg}</div>}
             {successMsg && <div className="alert alert-success">{successMsg}</div>}
 
-            <h3 style={{ marginTop: '10px', marginBottom: '20px', fontSize: '1.2rem', textAlign: 'center' }}>What would you like to do?</h3>
+            <h3 className="options-heading" style={{ marginTop: '10px', marginBottom: '20px', fontSize: '1.2rem', textAlign: 'center' }}>What would you like to do?</h3>
             <div className="trip-options-grid">
               <div className="trip-option-card" onClick={() => setActiveTab('detail')}>
                 <div className="opt-icon">🗺️</div>
@@ -981,14 +1140,7 @@ export default function TripDetails({ tripId, onBack, user }) {
 
             {/* ---- TAB: EXPENSES ---- */}
             {activeTab === 'expense' && (
-              <div className="content-inner" style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <h3 style={{ fontSize: '2rem', marginBottom: '10px' }}>💸 Expense Tracker</h3>
-                <p style={{ opacity: 0.7, marginBottom: '20px' }}>Keep track of group expenses and settlements. Coming soon!</p>
-                <div style={{ padding: '30px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', display: 'inline-block' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🛠️</div>
-                  <div style={{ fontSize: '1.2rem' }}>Under Construction</div>
-                </div>
-              </div>
+              <ExpenseTracker tripId={tripId} participants={trip.participants || []} user={user} />
             )}
 
             {/* ---- TAB: MEDIA ---- */}
@@ -1218,7 +1370,35 @@ export default function TripDetails({ tripId, onBack, user }) {
               <div className="content-inner" style={{ maxWidth: '800px', margin: '0 auto' }}>
                 <h3 style={{ fontSize: '1.8rem', marginBottom: '20px' }}>📍 Location & Check-In</h3>
                 
-                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '30px', borderRadius: '20px', marginBottom: '20px' }}>
+                <div className="glass-panel" style={{ padding: '30px', borderRadius: '20px', marginBottom: '20px', border: '1px solid var(--border-color)' }}>
+                  <h4 style={{ margin: '0 0 15px 0', fontSize: '1.4rem' }}>⭐ Favorite Locations</h4>
+                  <p style={{ opacity: 0.7, fontSize: '1rem', marginBottom: '20px' }}>Save your current location as a favorite for future reference. These will be automatically suggested in future AI trip plans!</p>
+                  <button 
+                    onClick={handleSaveLocationClick}
+                    disabled={isSavingLocation}
+                    className="btn-primary" 
+                    style={{ background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', padding: '12px 25px', borderRadius: '25px', fontSize: '1rem', marginBottom: '20px' }}
+                  >
+                    {isSavingLocation ? 'Locating...' : 'Save Current Location'}
+                  </button>
+                  
+                  {savedLocations.length > 0 && (
+                    <div style={{ marginTop: '20px' }}>
+                      <h5 style={{ opacity: 0.8, marginBottom: '10px' }}>Your Saved Locations</h5>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                        {savedLocations.map(loc => (
+                          <div key={loc.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '15px', borderRadius: '10px' }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{loc.name}</div>
+                            {loc.description && <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '5px' }}>{loc.description}</div>}
+                            <div style={{ fontSize: '0.85rem', opacity: 0.6, marginTop: '5px' }}>📍 {loc.city ? `${loc.city}, ` : ''}{loc.state} • {Number(loc.lat).toFixed(4)}, {Number(loc.lon).toFixed(4)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="glass-panel" style={{ padding: '30px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
                   <h4 style={{ margin: '0 0 15px 0', fontSize: '1.4rem' }}>Manual Check-In</h4>
                   <p style={{ opacity: 0.7, fontSize: '1rem', marginBottom: '20px' }}>If automatic check-in fails, manually check into your next checkpoint.</p>
                   <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
@@ -1228,12 +1408,6 @@ export default function TripDetails({ tripId, onBack, user }) {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '30px', borderRadius: '20px' }}>
-                  <h4 style={{ margin: '0 0 15px 0', fontSize: '1.4rem' }}>⭐ Favorite Locations</h4>
-                  <p style={{ opacity: 0.7, fontSize: '1rem', marginBottom: '20px' }}>Save your current location as a favorite for future reference.</p>
-                  <button className="btn-primary" style={{ background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', padding: '12px 25px', borderRadius: '25px', fontSize: '1rem' }}>Save Current Location</button>
                 </div>
               </div>
             )}
@@ -1371,6 +1545,52 @@ export default function TripDetails({ tripId, onBack, user }) {
             >
               ⬇️ Download
             </a>
+          </div>
+        </div>
+      )}
+
+      {/* Save Location Modal */}
+      {showLocationModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+          <div className="glass-panel" style={{ padding: '30px', borderRadius: '20px', width: '90%', maxWidth: '400px', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 20px 0' }}>📍 Save Location</h3>
+            <form onSubmit={handleLocationSubmit}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', opacity: 0.7, marginBottom: '5px' }}>Location Name *</label>
+                <input type="text" value={locationData.name} onChange={e => setLocationData({...locationData, name: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)', boxSizing: 'border-box' }} placeholder="e.g., Hidden Waterfall Cafe" required />
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', opacity: 0.7, marginBottom: '5px' }}>Description (Optional)</label>
+                <input type="text" value={locationData.description} onChange={e => setLocationData({...locationData, description: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)', boxSizing: 'border-box' }} placeholder="Great spot for sunset" />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', opacity: 0.7, marginBottom: '5px' }}>City</label>
+                  <input type="text" value={locationData.city} onChange={e => setLocationData({...locationData, city: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)', boxSizing: 'border-box' }} placeholder="City Name" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', opacity: 0.7, marginBottom: '5px' }}>State</label>
+                  <input type="text" value={locationData.state} onChange={e => setLocationData({...locationData, state: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)', boxSizing: 'border-box' }} placeholder="State" />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', opacity: 0.7, marginBottom: '5px', fontSize: '0.8rem' }}>Latitude</label>
+                  <input type="number" step="any" value={locationData.lat} onChange={e => setLocationData({...locationData, lat: parseFloat(e.target.value) || 0})} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)', fontSize: '0.8rem', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', opacity: 0.7, marginBottom: '5px', fontSize: '0.8rem' }}>Longitude</label>
+                  <input type="number" step="any" value={locationData.lon} onChange={e => setLocationData({...locationData, lon: parseFloat(e.target.value) || 0})} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)', fontSize: '0.8rem', boxSizing: 'border-box' }} />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowLocationModal(false)} style={{ padding: '10px 20px', borderRadius: '25px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-color)', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ padding: '10px 20px', borderRadius: '25px' }}>Save</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -21,6 +21,8 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
   const [activeTab, setActiveTab] = useState('dashboard');
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savedLocations, setSavedLocations] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -39,6 +41,39 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
     };
     fetchTrips();
   }, [user]);
+
+  useEffect(() => {
+    if (activeTab === 'locations') {
+      const fetchLocations = async () => {
+        setLocationsLoading(true);
+        try {
+          const loginId = user?.login_id || 'guest';
+          const res = await fetch(`/api/locations?login_id=${loginId}`);
+          const data = await res.json();
+          if (res.ok && data.locations) {
+            setSavedLocations(data.locations);
+          }
+        } catch (err) {
+          console.error('Failed to fetch locations', err);
+        } finally {
+          setLocationsLoading(false);
+        }
+      };
+      fetchLocations();
+    }
+  }, [activeTab, user]);
+
+  const handleDeleteLocation = async (locId) => {
+    if (!window.confirm('Delete this saved location?')) return;
+    try {
+      const res = await fetch(`/api/locations/${locId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSavedLocations(prev => prev.filter(l => l.id !== locId));
+      }
+    } catch (err) {
+      console.error('Failed to delete location', err);
+    }
+  };
 
   const mapTrip = t => ({
     id: t.id,
@@ -76,6 +111,7 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
         <div className="nav-tabs">
           <button className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>Dashboard</button>
           <button className={`nav-tab ${activeTab === 'mytrips' ? 'active' : ''}`} onClick={() => setActiveTab('mytrips')}>My Trips</button>
+          <button className={`nav-tab ${activeTab === 'locations' ? 'active' : ''}`} onClick={() => setActiveTab('locations')}>📍 Saved Locations</button>
         </div>
         <div className="nav-profile" ref={profileRef}>
           <div 
@@ -248,6 +284,49 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
               </table>
             ) : (
               <p>You have no trips.</p>
+            )}
+          </div>
+        )}
+
+        {/* Saved Locations View */}
+        {activeTab === 'locations' && (
+          <div className="glass-panel" style={{ padding: '25px', borderRadius: '15px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '20px' }}>📍 My Saved Locations</h3>
+            {locationsLoading ? (
+              <p>Loading locations...</p>
+            ) : savedLocations.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+                {savedLocations.map(loc => (
+                  <div key={loc.id} className="glass-panel" style={{ padding: '20px', borderRadius: '15px', position: 'relative', border: '1px solid var(--border-color, rgba(255,255,255,0.1))' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1.15rem' }}>📌 {loc.name}</h4>
+                        {loc.description && <p style={{ margin: '0 0 10px 0', opacity: 0.7, fontSize: '0.9rem' }}>{loc.description}</p>}
+                        <div style={{ fontSize: '0.85rem', opacity: 0.6 }}>
+                          {loc.city && <span>{loc.city}</span>}
+                          {loc.city && loc.state && <span>, </span>}
+                          {loc.state && <span>{loc.state}</span>}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.4, marginTop: '5px' }}>
+                          {Number(loc.lat).toFixed(4)}, {Number(loc.lon).toFixed(4)}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteLocation(loc.id)} 
+                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', padding: '5px', opacity: 0.7 }}
+                        title="Delete Location"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', opacity: 0.7 }}>
+                <p style={{ fontSize: '1.2rem', marginBottom: '10px' }}>No saved locations yet</p>
+                <p style={{ fontSize: '0.9rem' }}>Open a trip and use the "Mark Location" tab to save your favorite spots!</p>
+              </div>
             )}
           </div>
         )}
