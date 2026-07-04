@@ -17,6 +17,10 @@ body {
   min-height: 100vh;
   /* Soft background fallback before image loads */
   background: linear-gradient(to bottom right, #fdfbfb 0%, #ebedee 100%);
+  
+  /* Prevent pinch-to-zoom and pull-to-refresh on mobile devices */
+  touch-action: pan-x pan-y;
+  overscroll-behavior-y: none;
 }
 
 #root {
