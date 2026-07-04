@@ -33,6 +33,16 @@ jobs:
       - name: Add Server to Known Hosts
         run: ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
+      - name: Create Backend .env
+        run: |
+          cat << 'EOF' > backend/.env
+          OCI_ACCESS_KEY=${{ secrets.OCI_ACCESS_KEY }}
+          OCI_SECRET_KEY=${{ secrets.OCI_SECRET_KEY }}
+          OCI_NAMESPACE=${{ secrets.OCI_NAMESPACE }}
+          OCI_REGION=${{ secrets.OCI_REGION }}
+          OCI_BUCKET_NAME=${{ secrets.OCI_BUCKET_NAME }}
+          EOF
+
       - name: Deploy Frontend & Backend to Server
         run: |
           ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /home/ubuntu/TRIP_Planner/frontend"
