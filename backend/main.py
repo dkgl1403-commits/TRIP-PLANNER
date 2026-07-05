@@ -1196,3 +1196,14 @@ def delete_location(location_id: int):
     finally:
         conn.close()
 
+@app.get("/api/server-metrics")
+def get_server_metrics():
+    import subprocess
+    try:
+        free = subprocess.getoutput("free -h")
+        df = subprocess.getoutput("df -h /")
+        top = subprocess.getoutput("top -b -n 1 | head -n 15")
+        uptime = subprocess.getoutput("uptime")
+        return {"free": free, "df": df, "top": top, "uptime": uptime}
+    except Exception as e:
+        return {"error": str(e)}
