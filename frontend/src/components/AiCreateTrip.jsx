@@ -10,7 +10,12 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
   const [destQuery, setDestQuery] = useState('');
   const [destSuggestions, setDestSuggestions] = useState([]);
   
-  const [startDateTime, setStartDateTime] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  const [numberOfDays, setNumberOfDays] = useState(3);
+  const [isRoundTrip, setIsRoundTrip] = useState(false);
   const [feedback, setFeedback] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -60,8 +65,8 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
   const [selectedCheckpoints, setSelectedCheckpoints] = useState({});
 
   const generateTripPlan = async (isFeedback = false) => {
-    if (!sourceQuery || !destQuery || !startDateTime) {
-      setError('Please enter source, destination, and start date/time.');
+    if (!sourceQuery || !destQuery || !startDate) {
+      setError('Please enter source, destination, and start date.');
       return;
     }
     
@@ -79,7 +84,7 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
           const locData = await locRes.json();
           if (locData.locations && locData.locations.length > 0) {
             const favoritesList = locData.locations.map(l => `${l.name} (${l.city || ''}, ${l.state || ''})`).join(', ');
-            favoritesText = `\n9. FAVORITE LOCATIONS: The user has these saved/favorite locations: [${favoritesList}]. If any of these locations naturally fall along or near the route, you MUST include them as checkpoints!`;
+            favoritesText = `\n10. FAVORITE LOCATIONS: The user has these saved/favorite locations: [${favoritesList}]. If any of these locations naturally fall along or near the route, you MUST include them as checkpoints!`;
           }
         }
       }
@@ -87,25 +92,30 @@ export default function AiCreateTrip({ user, onBack, onViewTrip }) {
       console.error("Failed to fetch favorite locations", e);
     }
 
-    let prompt = `You are an expert travel planner. The user wants to travel from ${sourceQuery} to ${destQuery} by road.
-They are starting on ${startDateTime}.
+    let roundTripInstruction = isRoundTrip ? 
+      `\n- The user requested a ROUND TRIP. You MUST ensure the final destination on the last day is back to the original source city: ${sourceQuery}.` : '';
 
-Provide 2 distinct route options. For each route, break the journey down into a day-by-day itinerary (Day 1, Day 2, etc.).
+    let prompt = `You are an expert travel planner. The user wants to travel from ${sourceQuery} to ${destQuery} by road.
+They are starting on ${startDate}. The trip should last for exactly ${numberOfDays} days.${roundTripInstruction}
+
+Provide 2 distinct route options. For each route, break the journey down into a day-by-day itinerary (Day 1 to Day ${numberOfDays}).
 CRITICAL RULES:
 1. Provide checkpoints every 150-200 kms. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.
 2. Give preference to National Highways (NH), then State highways. Ensure routes are passable by a 4-wheeler.
 3. Calculate realistic driving times between checkpoints, factoring in average traffic and rest breaks.
-4. Include the estimated Arrival Time and Departure Time for each checkpoint based on the start time.
-5. If driving time exceeds 8-10 hours in a single day, or if it gets too late, schedule an overnight halt at a major city/checkpoint, and resume the journey on the next Day.
-6. Provide 2-3 suggestive places to visit for each checkpoint and the final destination. Ensure the city is a prominent tourist attraction with good restaurants.
-7. Suggested overnight stays MUST have good 3 to 5-star hotels available.
-8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").${favoritesText}
+4. Include the estimated Arrival Time and Departure Time for each checkpoint.
+5. ALWAYS start the trip from the source city at exactly 08:00 AM in the morning on Day 1. Subsequent days can start as appropriate.
+6. If driving time exceeds 8-10 hours in a single day, or if it gets too late, schedule an overnight halt at a major city/checkpoint, and resume the journey on the next Day.
+7. Plan the itinerary strictly within the ${numberOfDays} days.
+8. Provide 2-3 suggestive places to visit for each checkpoint and the final destination. Ensure the city is a prominent tourist attraction with good restaurants.
+9. Suggested overnight stays MUST have good 3 to 5-star hotels available.
+10. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").${favoritesText}
 
 Return ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
 
 
     if (isFeedback && routes.length > 0) {
-      prompt = `You previously generated this JSON itinerary:\n${JSON.stringify({routes})}\n\nThe user provided this feedback to revise the plan: "${feedback}"\n\nBased on this feedback, completely regenerate the JSON itinerary following all the CRITICAL RULES below, but incorporating the user's feedback.\n\nCRITICAL RULES:\n1. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.\n2. Give preference to National Highways (NH), then State highways. Ensure routes are passable by a 4-wheeler.\n3. Provide checkpoints every 150-200 kms.\n4. Calculate realistic driving times.\n5. If driving time exceeds 8-10 hours in a single day, schedule an overnight halt.\n6. Provide 2-3 suggestive places to visit. Ensure the city is a prominent tourist attraction with good restaurants.\n7. Suggested overnight stays MUST have good 3 to 5-star hotels available.\n8. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country (e.g., "Surat, Gujarat, India").${favoritesText}\n\nReturn ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
+      prompt = `You previously generated this JSON itinerary:\n${JSON.stringify({routes})}\n\nThe user provided this feedback to revise the plan: "${feedback}"\n\nBased on this feedback, completely regenerate the JSON itinerary following all the CRITICAL RULES below, but incorporating the user's feedback.\n\nCRITICAL RULES:\n1. Checkpoints MUST lie directly on or within 10-30 km of the primary highway route.\n2. Give preference to National Highways (NH), then State highways.\n3. Provide checkpoints every 150-200 kms.\n4. Calculate realistic driving times.\n5. ALWAYS start the trip from the source city at exactly 08:00 AM on Day 1.\n6. Plan the itinerary strictly within the ${numberOfDays} days.${roundTripInstruction}\n7. If driving time exceeds 8-10 hours in a single day, schedule an overnight halt.\n8. Provide 2-3 suggestive places to visit.\n9. Suggested overnight stays MUST have good 3 to 5-star hotels available.\n10. VERY IMPORTANT: When naming checkpoints or destinations, provide the fully qualified name including State and Country.${favoritesText}\n\nReturn ONLY a valid JSON object strictly matching this format without any markdown wrappers (like \`\`\`json):`;
     }
 
     const format = `
@@ -263,8 +273,8 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
         };
       }));
 
-      const tripEndDate = route.days.length > 0 ? route.days[route.days.length - 1].date : startDateTime.split('T')[0];
-      const tripStartDate = startDateTime.split('T')[0];
+      const tripEndDate = route.days.length > 0 ? route.days[route.days.length - 1].date : startDate;
+      const tripStartDate = startDate;
 
       const payload = {
         login_id: user.login_id,
@@ -356,13 +366,35 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
               </ul>
             )}
           </div>
-          <div className="ai-form-group">
-            <label>Start Date & Time</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div className="ai-form-group">
+              <label>Start Date</label>
+              <input 
+                type="date" 
+                value={startDate} 
+                onChange={e => setStartDate(e.target.value)} 
+              />
+            </div>
+            <div className="ai-form-group">
+              <label>Duration (Days)</label>
+              <input 
+                type="number" 
+                min="1"
+                max="30"
+                value={numberOfDays} 
+                onChange={e => setNumberOfDays(parseInt(e.target.value) || 1)} 
+              />
+            </div>
+          </div>
+          <div className="ai-form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
             <input 
-              type="datetime-local" 
-              value={startDateTime} 
-              onChange={e => setStartDateTime(e.target.value)} 
+              type="checkbox" 
+              id="roundTripCheck"
+              checked={isRoundTrip}
+              onChange={e => setIsRoundTrip(e.target.checked)}
+              style={{ width: '20px', height: '20px', cursor: 'pointer' }}
             />
+            <label htmlFor="roundTripCheck" style={{ margin: 0, cursor: 'pointer', opacity: 0.9 }}>This is a Round Trip (return to source)</label>
           </div>
           <div className="ai-actions">
             <button className="ai-magic-btn" onClick={generateTripPlan}>

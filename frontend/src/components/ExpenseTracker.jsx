@@ -6,8 +6,14 @@ export default function ExpenseTracker({ tripId, participants, user }) {
   const [balances, setBalances] = useState({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showSettleModal, setShowSettleModal] = useState(false);
   const [editExpenseId, setEditExpenseId] = useState(null);
   const [flippedCardId, setFlippedCardId] = useState(null);
+
+  // Settlement states
+  const [settleFrom, setSettleFrom] = useState(user?.name || '');
+  const [settleTo, setSettleTo] = useState('');
+  const [settleAmount, setSettleAmount] = useState('');
 
   // Form states
   const [amount, setAmount] = useState('');
@@ -174,6 +180,39 @@ export default function ExpenseTracker({ tripId, participants, user }) {
     }
   };
 
+  const handleSettleSubmit = async (e) => {
+    e.preventDefault();
+    const amountNum = parseFloat(settleAmount);
+    if (!amountNum || amountNum <= 0) return alert("Enter a valid settlement amount");
+    if (settleFrom === settleTo) return alert("Cannot settle with yourself");
+
+    try {
+      const res = await fetch(`/api/trips/${tripId}/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payer_name: settleFrom,
+          amount: amountNum,
+          description: `Settlement: ${settleFrom} paid ${settleTo}`,
+          category: 'Settlement',
+          splits: [{ participant_name: settleTo, amount_owed: amountNum }]
+        })
+      });
+
+      if (res.ok) {
+        setShowSettleModal(false);
+        setSettleAmount('');
+        fetchExpenses();
+      } else {
+        const error = await res.json();
+        alert(error.detail || "Failed to add settlement");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
+  };
+
   const uniqueNames = Array.from(new Set(participants.map(p => p.name)));
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading expenses...</div>;
@@ -186,16 +225,26 @@ export default function ExpenseTracker({ tripId, participants, user }) {
     <div className="content-inner" style={{ padding: '20px', color: 'white' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '1.8rem', margin: 0 }}>💸 Expense Tracker</h3>
-        <button className="btn-primary" onClick={() => {
-          setEditExpenseId(null);
-          setAmount('');
-          setDescription('');
-          setCustomSplits({});
-          setSplitMode('equal');
-          setShowModal(true);
-        }} style={{ padding: '10px 20px', borderRadius: '20px' }}>
-          + Add Expense
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn-primary" onClick={() => {
+            setSettleFrom(user?.name || uniqueNames[0]);
+            setSettleTo(uniqueNames.find(n => n !== user?.name) || uniqueNames[1] || uniqueNames[0]);
+            setSettleAmount('');
+            setShowSettleModal(true);
+          }} style={{ padding: '10px 20px', borderRadius: '20px', background: 'linear-gradient(135deg, #10b981, #34d399)' }}>
+            🤝 Settle Up
+          </button>
+          <button className="btn-primary" onClick={() => {
+            setEditExpenseId(null);
+            setAmount('');
+            setDescription('');
+            setCustomSplits({});
+            setSplitMode('equal');
+            setShowModal(true);
+          }} style={{ padding: '10px 20px', borderRadius: '20px' }}>
+            + Add Expense
+          </button>
+        </div>
       </div>
 
       {/* Summary Widgets */}
@@ -247,9 +296,11 @@ export default function ExpenseTracker({ tripId, participants, user }) {
                   <div>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{exp.description}</div>
                     <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>{exp.payer_name} paid ₹{exp.amount} • {exp.category} • {new Date(exp.date).toLocaleDateString()}</div>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '5px' }}>
-                      Click to view split details 🔄
-                    </div>
+                    {exp.category !== 'Settlement' && (
+                      <div style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '5px' }}>
+                        Click to view split details 🔄
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: 'flex', gap: '5px' }} onClick={e => e.stopPropagation()}>
                     <button 
@@ -271,16 +322,25 @@ export default function ExpenseTracker({ tripId, participants, user }) {
                 
                 {/* BACK SIDE */}
                 <div className="expense-flip-back">
-                  <div style={{ fontWeight: 'bold', marginBottom: '6px', fontSize: '0.85rem', color: '#a5b4fc' }}>Split Breakdown:</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '4px' }}>
-                    {exp.splits.map((s, idx) => (
-                      <div key={idx} style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', paddingRight: '10px', background: 'rgba(0,0,0,0.2)', padding: '3px 8px', borderRadius: '5px' }}>
-                        <span style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '5px' }}>{s.participant_name}</span>
-                        <span style={{ fontWeight: 'bold' }}>₹{s.amount_owed}</span>
+                  {exp.category === 'Settlement' ? (
+                    <div style={{ textAlign: 'center', paddingTop: '20px' }}>
+                      <div style={{ fontSize: '1.2rem', marginBottom: '10px' }}>🤝 Settlement Complete</div>
+                      <div>{exp.payer_name} paid {exp.splits[0]?.participant_name} ₹{exp.amount}</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight: 'bold', marginBottom: '6px', fontSize: '0.85rem', color: '#a5b4fc' }}>Split Breakdown:</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '4px' }}>
+                        {exp.splits.map((s, idx) => (
+                          <div key={idx} style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', paddingRight: '10px', background: 'rgba(0,0,0,0.2)', padding: '3px 8px', borderRadius: '5px' }}>
+                            <span style={{ opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '5px' }}>{s.participant_name}</span>
+                            <span style={{ fontWeight: 'bold' }}>₹{s.amount_owed}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: '8px', fontSize: '0.7rem', opacity: 0.5, textAlign: 'center' }}>
+                    </>
+                  )}
+                  <div style={{ marginTop: '8px', fontSize: '0.7rem', opacity: 0.5, textAlign: 'center', position: 'absolute', bottom: '15px', width: '100%' }}>
                     Tap to flip back
                   </div>
                 </div>
@@ -390,6 +450,59 @@ export default function ExpenseTracker({ tripId, participants, user }) {
               <div style={{ display: 'flex', gap: '15px' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Cancel</button>
                 <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>{editExpenseId ? 'Update Expense' : 'Save Expense'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Settle Up Modal */}
+      {showSettleModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#1a1a2e', padding: '30px', borderRadius: '20px', width: '90%', maxWidth: '400px' }}>
+            <h3 style={{ margin: '0 0 20px 0' }}>🤝 Record Settlement</h3>
+            <p style={{ opacity: 0.7, fontSize: '0.9rem', marginBottom: '20px' }}>Record a payment to settle debts between participants.</p>
+            <form onSubmit={handleSettleSubmit}>
+              
+              <div className="form-group" style={{ marginBottom: '15px' }}>
+                <label>Who Paid? (From)</label>
+                <select value={settleFrom} onChange={e => setSettleFrom(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}>
+                  {uniqueNames.map(name => (
+                    <option key={name} value={name} style={{ background: '#1a1a2e' }}>{name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '15px' }}>
+                <label>Who Received? (To)</label>
+                <select value={settleTo} onChange={e => setSettleTo(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}>
+                  {uniqueNames.map(name => (
+                    <option key={name} value={name} style={{ background: '#1a1a2e' }}>{name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label>Amount (₹)</label>
+                <input type="number" required min="1" step="0.01" value={settleAmount} onChange={e => setSettleAmount(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }} />
+                
+                {/* Auto-suggest amount if there's a known debt */}
+                {(() => {
+                  const suggestedSettle = settlements.find(s => s.from === settleFrom && s.to === settleTo);
+                  if (suggestedSettle) {
+                    return (
+                      <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#10b981', cursor: 'pointer' }} onClick={() => setSettleAmount(suggestedSettle.amount)}>
+                        💡 Suggestion: Settle full debt of ₹{suggestedSettle.amount}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <button type="button" onClick={() => setShowSettleModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #10b981, #34d399)' }}>Record Payment</button>
               </div>
             </form>
           </div>
