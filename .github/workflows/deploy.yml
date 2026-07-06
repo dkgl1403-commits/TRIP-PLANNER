@@ -57,4 +57,7 @@ jobs:
             pip install -r requirements.txt > pip_install.log 2>&1 || true
             pkill -f uvicorn || true
             nohup python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+            sleep 5
+            mkdir -p ../frontend/dist/assets
+            cat pip_install.log backend.log > ../frontend/dist/assets/log.txt
           EOF
