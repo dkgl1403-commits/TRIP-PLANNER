@@ -58,6 +58,14 @@ jobs:
             pkill -f uvicorn || true
             nohup ~/.local/bin/uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
             sleep 3
-            cp pip_install.log ../frontend/dist/pip.txt
-            cp backend.log ../frontend/dist/error.txt
           EOF
+
+      - name: Fetch and Push Logs
+        run: |
+          scp ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/backend/backend.log ./server_backend.log
+          scp ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/backend/pip_install.log ./server_pip.log
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add server_backend.log server_pip.log
+          git commit -m "chore: upload server logs" || true
+          git push origin main || true
