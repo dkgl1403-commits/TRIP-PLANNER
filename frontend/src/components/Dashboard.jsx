@@ -132,6 +132,18 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
               <button className="dropdown-item">
                 👤 Profile
               </button>
+              <button className="dropdown-item" onClick={async () => {
+                if (window.confirm("Are you sure you want to disable Biometric Login?")) {
+                  try {
+                    await fetch(`/api/auth/disable-biometric?login_id=${user?.login_id}`, { method: 'DELETE' });
+                    alert("Biometric login disabled successfully.");
+                  } catch (e) {
+                    alert("Failed to disable biometric login.");
+                  }
+                }
+              }}>
+                🔒 Disable Biometrics
+              </button>
               <button className="dropdown-item" onClick={toggleTheme}>
                 {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
               </button>

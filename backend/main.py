@@ -1207,3 +1207,215 @@ def get_server_metrics():
         return {"free": free, "df": df, "top": top, "uptime": uptime}
     except Exception as e:
         return {"error": str(e)}
+
+import json
+import uuid
+import base64
+from fastapi import Request
+from pydantic import BaseModel
+from webauthn import generate_registration_options, verify_registration_response
+from webauthn import generate_authentication_options, verify_authentication_response
+from webauthn.helpers.structs import (
+    AuthenticatorSelectionCriteria,
+    UserVerificationRequirement,
+    ResidentKeyRequirement,
+    RegistrationCredential,
+    AuthenticationCredential,
+    AuthenticatorAttachment
+)
+
+# In-memory challenge store (in production, use Redis or DB)
+CHALLENGES = {}
+
+RP_ID = os.getenv("RP_ID", "80.225.208.24.nip.io")
+RP_NAME = "DKGL Trip Planner"
+ORIGIN = os.getenv("ORIGIN", f"https://{RP_ID}")
+
+class VerifyRegisterRequest(BaseModel):
+    login_id: str
+    credential: dict
+
+class VerifyLoginRequest(BaseModel):
+    auth_session_id: str
+    credential: dict
+
+@app.get("/api/auth/register-biometric/options")
+def register_biometric_options(login_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM users WHERE login_id = :1", [login_id])
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if already registered
+        cursor.execute("SELECT COUNT(*) FROM user_credentials WHERE login_id = :1", [login_id])
+        if cursor.fetchone()[0] > 0:
+            raise HTTPException(status_code=400, detail="Biometric already enabled")
+
+        options = generate_registration_options(
+            rp_id=RP_ID,
+            rp_name=RP_NAME,
+            user_id=login_id.encode("utf-8"),
+            user_name=login_id,
+            user_display_name=user[0],
+            authenticator_selection=AuthenticatorSelectionCriteria(
+                authenticator_attachment=AuthenticatorAttachment.PLATFORM, # Force internal (face/finger)
+                user_verification=UserVerificationRequirement.REQUIRED,
+                resident_key=ResidentKeyRequirement.REQUIRED,
+            ),
+            supported_pub_key_algs=[-7, -257],
+            timeout=60000
+        )
+        
+        CHALLENGES[f"reg_{login_id}"] = options.challenge
+        
+        return json.loads(options.model_dump_json())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.post("/api/auth/register-biometric/verify")
+def register_biometric_verify(req: VerifyRegisterRequest):
+    challenge = CHALLENGES.get(f"reg_{req.login_id}")
+    if not challenge:
+        raise HTTPException(status_code=400, detail="Challenge expired or not found")
+        
+    try:
+        verification = verify_registration_response(
+            credential=req.credential,
+            expected_challenge=challenge,
+            expected_origin=ORIGIN,
+            expected_rp_id=RP_ID,
+            require_user_verification=True
+        )
+        
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            
+            # Webauthn library returns raw bytes, we store as base64
+            cred_id = base64.b64encode(verification.credential_id).decode('utf-8')
+            pub_key = base64.b64encode(verification.credential_public_key).decode('utf-8')
+            
+            cursor.execute(
+                """
+                INSERT INTO user_credentials (login_id, credential_id, public_key, sign_count)
+                VALUES (:1, :2, :3, :4)
+                """,
+                [req.login_id, cred_id, pub_key, verification.sign_count]
+            )
+            conn.commit()
+            
+            if f"reg_{req.login_id}" in CHALLENGES:
+                del CHALLENGES[f"reg_{req.login_id}"]
+            return {"status": "success", "message": "Biometric login enabled!"}
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
+
+@app.get("/api/auth/login-biometric/options")
+def login_biometric_options():
+    try:
+        options = generate_authentication_options(
+            rp_id=RP_ID,
+            user_verification=UserVerificationRequirement.REQUIRED,
+            timeout=60000
+        )
+        
+        session_id = str(uuid.uuid4())
+        CHALLENGES[f"auth_{session_id}"] = options.challenge
+        
+        res = json.loads(options.model_dump_json())
+        res["auth_session_id"] = session_id
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/login-biometric/verify")
+def login_biometric_verify(req: VerifyLoginRequest):
+    challenge = CHALLENGES.get(f"auth_{req.auth_session_id}")
+    if not challenge:
+        raise HTTPException(status_code=400, detail="Challenge expired or not found")
+        
+    # We must find the credential_id in our DB
+    raw_id = req.credential.get("rawId", "")
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        user_handle = req.credential.get("response", {}).get("userHandle")
+        if not user_handle:
+            raise HTTPException(status_code=400, detail="No user handle found. Not a discoverable credential.")
+            
+        login_id = base64.b64decode(user_handle + '==').decode('utf-8')
+        
+        cursor.execute("SELECT credential_id, public_key, sign_count FROM user_credentials WHERE login_id = :1", [login_id])
+        row = cursor.fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="Credential not found in DB")
+            
+        db_cred_id, db_pub_key, db_sign_count = row
+        
+        verification = verify_authentication_response(
+            credential=req.credential,
+            expected_challenge=challenge,
+            expected_origin=ORIGIN,
+            expected_rp_id=RP_ID,
+            credential_public_key=base64.b64decode(db_pub_key),
+            credential_current_sign_count=db_sign_count,
+            require_user_verification=True
+        )
+        
+        # Update sign count
+        cursor.execute("UPDATE user_credentials SET sign_count = :1 WHERE login_id = :2", [verification.new_sign_count, login_id])
+        
+        # Fetch user details
+        cursor.execute("SELECT login_id, name, phone FROM users WHERE login_id = :1", [login_id])
+        user_row = cursor.fetchone()
+        conn.commit()
+        
+        if f"auth_{req.auth_session_id}" in CHALLENGES:
+            del CHALLENGES[f"auth_{req.auth_session_id}"]
+        
+        return {
+            "status": "success",
+            "message": f"Welcome back, {user_row[1]}!",
+            "name": user_row[1],
+            "login_id": user_row[0],
+            "phone": user_row[2]
+        }
+    except Exception as e:
+        conn.rollback()
+        print(f"Login failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Login failed: {str(e)}")
+    finally:
+        conn.close()
+
+@app.get("/api/auth/biometric-status")
+def biometric_status(login_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM user_credentials WHERE login_id = :1", [login_id])
+        count = cursor.fetchone()[0]
+        return {"status": "success", "enabled": count > 0}
+    finally:
+        conn.close()
+
+@app.delete("/api/auth/disable-biometric")
+def disable_biometric(login_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM user_credentials WHERE login_id = :1", [login_id])
+        conn.commit()
+        return {"status": "success", "message": "Biometric login disabled"}
+    finally:
+        conn.close()

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import './Login.css';
 
 export default function Login({ onLoginSuccess }) {
@@ -16,6 +17,8 @@ export default function Login({ onLoginSuccess }) {
   
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [showEnrollmentPrompt, setShowEnrollmentPrompt] = useState(false);
+  const [pendingUserData, setPendingUserData] = useState(null);
 
   useEffect(() => {
     if (window.PublicKeyCredential) {
@@ -52,14 +55,29 @@ export default function Login({ onLoginSuccess }) {
       
       if (response.ok) {
         setMessage({ text: data.message, type: 'success' });
-        if (isLogin && onLoginSuccess) {
-            onLoginSuccess({ 
-              name: data.name || loginId,
-              login_id: data.login_id || loginId,
-              phone: data.phone
-            }); 
+        const userData = { 
+          name: data.name || loginId,
+          login_id: data.login_id || loginId,
+          phone: data.phone
+        };
+
+        if (isLogin) {
+          // Check if biometrics are enabled for this user
+          if (isBiometricAvailable) {
+            try {
+              const statusRes = await fetch(`/api/auth/biometric-status?login_id=${userData.login_id}`);
+              const statusData = await statusRes.json();
+              if (!statusData.enabled) {
+                setPendingUserData(userData);
+                setShowEnrollmentPrompt(true);
+                return;
+              }
+            } catch (err) {
+              console.error("Failed to check biometric status", err);
+            }
+          }
+          onLoginSuccess(userData); 
         } else if (!isLogin) {
-            // Optional: reset form after successful signup
             setName('');
             setGender('');
             setPhone('');
@@ -67,8 +85,6 @@ export default function Login({ onLoginSuccess }) {
             setEmail('');
             setPassword('');
             setConfirmPassword('');
-            // We intentionally do NOT switch back to login tab here so they can see the message with their ID, 
-            // but the form itself is now cleared.
         }
       } else {
         setMessage({ text: data.detail || 'An error occurred', type: 'error' });
@@ -78,30 +94,114 @@ export default function Login({ onLoginSuccess }) {
     }
   };
 
+  const handleBiometricEnrollment = async (accept) => {
+    if (!accept) {
+      onLoginSuccess(pendingUserData);
+      return;
+    }
+
+    try {
+      setMessage({ text: 'Setting up Biometrics...', type: 'success' });
+      
+      const optsResp = await fetch(`/api/auth/register-biometric/options?login_id=${pendingUserData.login_id}`);
+      const options = await optsResp.json();
+      
+      if (optsResp.status !== 200) {
+        throw new Error(options.detail || 'Failed to get registration options');
+      }
+
+      const attResp = await startRegistration({ optionsJSON: options });
+      
+      const verificationResp = await fetch('/api/auth/register-biometric/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login_id: pendingUserData.login_id,
+          credential: attResp,
+        }),
+      });
+
+      const verificationJSON = await verificationResp.json();
+      if (verificationJSON.status === 'success') {
+        setMessage({ text: 'Biometric setup complete!', type: 'success' });
+        setTimeout(() => onLoginSuccess(pendingUserData), 1000);
+      } else {
+        throw new Error(verificationJSON.detail || 'Verification failed');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: err.message || 'Biometric enrollment failed', type: 'error' });
+      setTimeout(() => onLoginSuccess(pendingUserData), 2000);
+    }
+  };
+
   const handleBiometric = async () => {
     try {
       setMessage({ text: 'Prompting for Biometrics...', type: 'success' });
-      const publicKeyCredentialRequestOptions = {
-        challenge: new Uint8Array(32),
-        rpId: window.location.hostname,
-        userVerification: "required",
-      };
+      
+      const optsResp = await fetch('/api/auth/login-biometric/options');
+      const options = await optsResp.json();
+      
+      if (optsResp.status !== 200) {
+        throw new Error(options.detail || 'Failed to get auth options');
+      }
 
-      const credential = await navigator.credentials.get({
-        publicKey: publicKeyCredentialRequestOptions
+      const asseResp = await startAuthentication({ optionsJSON: options });
+
+      const verificationResp = await fetch('/api/auth/login-biometric/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auth_session_id: options.auth_session_id,
+          credential: asseResp,
+        }),
       });
 
-      if (credential) {
+      const verificationJSON = await verificationResp.json();
+      
+      if (verificationJSON.status === 'success') {
         setMessage({ text: 'Biometric Login Successful!', type: 'success' });
         if (onLoginSuccess) {
-          onLoginSuccess({ name: 'Biometric User' });
+          onLoginSuccess({ 
+            name: verificationJSON.name,
+            login_id: verificationJSON.login_id,
+            phone: verificationJSON.phone
+          });
         }
+      } else {
+        throw new Error(verificationJSON.detail || 'Verification failed');
       }
     } catch (error) {
       console.error(error);
       setMessage({ text: 'Biometric authentication failed or cancelled.', type: 'error' });
     }
   };
+
+  if (showEnrollmentPrompt) {
+    return (
+      <div className="login-card glass-panel">
+        <div className="logo-container compact-logo">
+          <h2 className="logo-text">Enable Biometric Login?</h2>
+        </div>
+        <p style={{ textAlign: 'center', marginBottom: '20px', color: 'var(--text-secondary)' }}>
+          Would you like to use your fingerprint or face to log in securely on this device next time?
+        </p>
+        <div className="form-row compact" style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => handleBiometricEnrollment(false)} className="btn-secondary" style={{ flex: 1 }}>
+            Skip
+          </button>
+          <button onClick={() => handleBiometricEnrollment(true)} className="btn-primary" style={{ flex: 1 }}>
+            Enable
+          </button>
+        </div>
+        {message.text && (
+          <div className={`message ${message.type}`} style={{ marginTop: '15px' }}>
+            {message.text}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="login-card glass-panel">
@@ -256,7 +356,7 @@ export default function Login({ onLoginSuccess }) {
               <path d="M12 21c-3.15 0-5.69-1.87-6.28-4.66-.06-.27.11-.53.38-.59.27-.06.53.11.59.38.48 2.29 2.56 3.87 5.31 3.87 2.2 0 4.19-1.03 5.3-2.76.15-.23.46-.3.69-.15.23.15.3.46.15.69-1.3 1.95-3.57 3.22-6.14 3.22z" />
               <path d="M12.01 17.75c-.17 0-.33-.09-.41-.24-.72-1.36-1.12-2.98-1.12-4.51v-.5c0-1.94 1.58-3.53 3.53-3.53 1.94 0 3.53 1.58 3.53 3.53v1c0 .28-.22.5-.5.5s-.5-.22-.5-.5v-1c0-1.39-1.13-2.53-2.53-2.53-1.39 0-2.53 1.13-2.53 2.53v.5c0 1.34.35 2.77.99 3.96.13.24.04.55-.2.68-.08.04-.17.06-.26.06z" />
             </svg>
-            Sign in with Fingerprint
+            Biometric login
           </button>
         </>
       )}
