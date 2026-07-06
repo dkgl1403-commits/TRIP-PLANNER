@@ -3,3 +3,5 @@ uvicorn
 oracledb
 webauthn
 pydantic
+boto3
+python-dotenv
