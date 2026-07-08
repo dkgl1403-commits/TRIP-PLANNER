@@ -1213,7 +1213,7 @@ import uuid
 import base64
 from fastapi import Request
 from pydantic import BaseModel
-from webauthn import generate_registration_options, verify_registration_response
+from webauthn import generate_registration_options, options_to_json, verify_registration_response
 from webauthn import generate_authentication_options, verify_authentication_response
 from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
@@ -1271,7 +1271,7 @@ def register_biometric_options(login_id: str):
         
         CHALLENGES[f"reg_{login_id}"] = options.challenge
         
-        return json.loads(options.model_dump_json())
+        return json.loads(options_to_json(options))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -1330,7 +1330,7 @@ def login_biometric_options():
         session_id = str(uuid.uuid4())
         CHALLENGES[f"auth_{session_id}"] = options.challenge
         
-        res = json.loads(options.model_dump_json())
+        res = json.loads(options_to_json(options))
         res["auth_session_id"] = session_id
         return res
     except Exception as e:
