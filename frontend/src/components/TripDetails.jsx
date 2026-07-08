@@ -702,6 +702,29 @@ export default function TripDetails({ tripId, onBack, user }) {
     setParticipantToRemove(participantName);
   };
 
+  const handleSelectContact = async () => {
+    try {
+      const supported = ('contacts' in navigator && 'ContactsManager' in window);
+      if (!supported) {
+        alert("Contact Picker API is not supported on this device/browser.");
+        return;
+      }
+      
+      const props = ['name', 'tel', 'email'];
+      const opts = { multiple: false };
+      
+      const contacts = await navigator.contacts.select(props, opts);
+      if (contacts && contacts.length > 0) {
+        const c = contacts[0];
+        if (c.name && c.name.length > 0) setNewParticipantName(c.name[0]);
+        if (c.tel && c.tel.length > 0) setNewParticipantMobile(c.tel[0]);
+        if (c.email && c.email.length > 0) setNewParticipantEmail(c.email[0]);
+      }
+    } catch (err) {
+      console.error("Failed to select contact", err);
+    }
+  };
+
   const confirmRemoveParticipant = async () => {
     if (!participantToRemove) return;
     setIsRemoving(true);
@@ -1287,14 +1310,14 @@ export default function TripDetails({ tripId, onBack, user }) {
                     const isEditing = !!editingParticipants[p.name];
                     const editState = editingParticipants[p.name] || { name: p.name, mobile: p.mobile || '', email: p.email || '' };
                     return (
-                    <div key={idx} className="participant-row" style={{ padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '10px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '15px', alignItems: 'center' }}>
+                    <div key={idx} className="participant-row" style={{ padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
                       <input 
                         type="text" 
                         placeholder="Name" 
                         value={isEditing ? editState.name : (p.name + (isMe ? ' (Own)' : ''))}  
                         disabled={!isEditing}
                         onChange={e => setEditingParticipants({...editingParticipants, [p.name]: {...editState, name: e.target.value}})}
-                        style={{ background: isEditing ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
+                        style={{ flex: '1 1 150px', minWidth: '150px', background: isEditing ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
                       />
                       <input 
                         type="text" 
@@ -1302,7 +1325,7 @@ export default function TripDetails({ tripId, onBack, user }) {
                         value={isEditing ? editState.mobile : p.mobile} 
                         disabled={!isEditing}
                         onChange={e => setEditingParticipants({...editingParticipants, [p.name]: {...editState, mobile: e.target.value}})}
-                        style={{ background: isEditing ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
+                        style={{ flex: '1 1 150px', minWidth: '150px', background: isEditing ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
                       />
                       <input 
                         type="email" 
@@ -1310,15 +1333,15 @@ export default function TripDetails({ tripId, onBack, user }) {
                         value={isEditing ? editState.email : p.email} 
                         disabled={!isEditing}
                         onChange={e => setEditingParticipants({...editingParticipants, [p.name]: {...editState, email: e.target.value}})}
-                        style={{ background: isEditing ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
+                        style={{ flex: '1 1 150px', minWidth: '150px', background: isEditing ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
                       />
                       {isEditing ? (
-                        <div style={{display: 'flex', gap: '5px'}}>
+                        <div style={{display: 'flex', gap: '5px', flex: '1 1 auto', justifyContent: 'flex-end'}}>
                           <button onClick={() => handleEditParticipant(p.name, editState)} className="btn-primary" style={{padding: '5px 10px', borderRadius: '6px', fontSize: '0.85rem', background: '#10b981'}}>Save</button>
                           <button onClick={() => { const next = {...editingParticipants}; delete next[p.name]; setEditingParticipants(next); }} className="btn-primary" style={{padding: '5px 10px', borderRadius: '6px', fontSize: '0.85rem', background: '#ef4444'}}>Cancel</button>
                         </div>
                       ) : (
-                        <div style={{display: 'flex', gap: '5px'}}>
+                        <div style={{display: 'flex', gap: '5px', flex: '1 1 auto', justifyContent: 'flex-end'}}>
                           <button onClick={() => setEditingParticipants({...editingParticipants, [p.name]: {name: p.name, mobile: p.mobile || '', email: p.email || ''}})} className="btn-primary" style={{padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem'}}>✏️ Edit</button>
                           <button onClick={() => handleRemoveParticipantClick(p.name)} className="btn-primary" style={{padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid #ef4444'}}>🗑️</button>
                         </div>
@@ -1328,34 +1351,45 @@ export default function TripDetails({ tripId, onBack, user }) {
                 </div>
                 
                 <div style={{ marginTop: '30px', background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '12px' }}>
-                  <h4 style={{ margin: '0 0 15px 0' }}>Add New Participant</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '10px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h4 style={{ margin: '0' }}>Add New Participant</h4>
+                    {('contacts' in navigator && 'ContactsManager' in window) && (
+                      <button 
+                        onClick={handleSelectContact}
+                        className="btn-primary" 
+                        style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)', border: 'none' }}
+                      >
+                        📱 Select from Contacts
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
                     <input 
                       type="text" 
                       placeholder="Name" 
                       value={newParticipantName} 
                       onChange={(e) => setNewParticipantName(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
+                      style={{ flex: '1 1 150px', minWidth: '150px', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
                     />
                     <input 
                       type="text" 
                       placeholder="Mobile (optional)" 
                       value={newParticipantMobile} 
                       onChange={(e) => setNewParticipantMobile(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
+                      style={{ flex: '1 1 150px', minWidth: '150px', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
                     />
                     <input 
                       type="email" 
                       placeholder="Email (optional)" 
                       value={newParticipantEmail} 
                       onChange={(e) => setNewParticipantEmail(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
+                      style={{ flex: '1 1 150px', minWidth: '150px', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
                     />
                     <button 
                       onClick={handleAddParticipant} 
                       disabled={isAddingParticipant}
                       className="btn-primary" 
-                      style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #10b981, #34d399)' }}
+                      style={{ flex: '1 1 auto', padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #10b981, #34d399)' }}
                     >
                       {isAddingParticipant ? '...' : 'Add'}
                     </button>
