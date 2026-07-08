@@ -1363,6 +1363,10 @@ def login_biometric_verify(req: VerifyLoginRequest):
             
         db_cred_id, db_pub_key, db_sign_count = row
         
+        # If public_key is a LOB object, we must read it
+        if hasattr(db_pub_key, "read"):
+            db_pub_key = db_pub_key.read()
+        
         verification = verify_authentication_response(
             credential=req.credential,
             expected_challenge=challenge,
