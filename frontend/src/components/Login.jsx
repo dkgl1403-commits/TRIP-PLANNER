@@ -137,6 +137,17 @@ export default function Login({ onLoginSuccess }) {
 
   const handleBiometric = async () => {
     try {
+      if (loginId) {
+        const statusRes = await fetch(`/api/auth/biometric-status?login_id=${loginId}`);
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          if (!statusData.enabled) {
+            setMessage({ text: 'Biometric login is not enabled for this user.', type: 'error' });
+            return;
+          }
+        }
+      }
+
       setMessage({ text: 'Prompting for Biometrics...', type: 'success' });
       
       const optsResp = await fetch('/api/auth/login-biometric/options');

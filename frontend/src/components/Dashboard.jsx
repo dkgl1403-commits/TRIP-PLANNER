@@ -23,6 +23,16 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
   const [loading, setLoading] = useState(true);
   const [savedLocations, setSavedLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+
+  useEffect(() => {
+    if (user?.login_id) {
+      fetch(`/api/auth/biometric-status?login_id=${user.login_id}`)
+        .then(res => res.json())
+        .then(data => setIsBiometricEnabled(data.enabled))
+        .catch(err => console.error("Failed to fetch biometric status", err));
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -132,18 +142,21 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
               <button className="dropdown-item">
                 👤 Profile
               </button>
-              <button className="dropdown-item" onClick={async () => {
-                if (window.confirm("Are you sure you want to disable Biometric Login?")) {
-                  try {
-                    await fetch(`/api/auth/disable-biometric?login_id=${user?.login_id}`, { method: 'DELETE' });
-                    alert("Biometric login disabled successfully.");
-                  } catch (e) {
-                    alert("Failed to disable biometric login.");
+              {isBiometricEnabled && (
+                <button className="dropdown-item" onClick={async () => {
+                  if (window.confirm("Are you sure you want to disable Biometric Login?")) {
+                    try {
+                      await fetch(`/api/auth/disable-biometric?login_id=${user?.login_id}`, { method: 'DELETE' });
+                      setIsBiometricEnabled(false);
+                      alert("Biometric login disabled successfully.");
+                    } catch (e) {
+                      alert("Failed to disable biometric login.");
+                    }
                   }
-                }
-              }}>
-                🔒 Disable Biometrics
-              </button>
+                }}>
+                  🔒 Disable Biometrics
+                </button>
+              )}
               <button className="dropdown-item" onClick={toggleTheme}>
                 {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
               </button>
