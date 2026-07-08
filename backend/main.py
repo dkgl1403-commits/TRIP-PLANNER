@@ -1419,3 +1419,12 @@ def disable_biometric(login_id: str):
         return {"status": "success", "message": "Biometric login disabled"}
     finally:
         conn.close()
+
+@app.get("/api/dev/logs")
+def get_logs():
+    import subprocess
+    try:
+        logs = subprocess.getoutput("tail -n 100 backend.log")
+        return {"logs": logs}
+    except Exception as e:
+        return {"error": str(e)}
