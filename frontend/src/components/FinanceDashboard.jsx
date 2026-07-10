@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Typography, Alert, Spin, Tag, Card, Row, Col, Statistic } from 'antd';
 import { EnvironmentOutlined, BankOutlined, GlobalOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
-import { AdvancedRealTimeChart } from "react-ts-tradingview-widgets";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 const { Title, Text } = Typography;
 
@@ -9,6 +9,7 @@ const FinanceDashboard = ({ onBack }) => {
     const [factors, setFactors] = useState([]);
     const [prediction, setPrediction] = useState(null);
     const [indices, setIndices] = useState(null);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -36,6 +37,12 @@ const FinanceDashboard = ({ onBack }) => {
                 if (!indRes.ok) throw new Error("Failed to fetch indices");
                 const indData = await indRes.json();
                 setIndices(indData);
+                
+                // Fetch History
+                const histRes = await fetch('/api/finance/history');
+                if (!histRes.ok) throw new Error("Failed to fetch history");
+                const histData = await histRes.json();
+                setHistory(histData);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -132,7 +139,22 @@ const FinanceDashboard = ({ onBack }) => {
                         }}
                     >
                         <div style={{ height: '350px', width: '100%' }}>
-                            <AdvancedRealTimeChart symbol="BSE:SENSEX" interval="D" autosize hide_top_toolbar style="2" />
+                            {history.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={history} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="date" tick={{fontSize: 12}} minTickGap={30} />
+                                        <YAxis domain={['auto', 'auto']} tick={{fontSize: 12}} width={60} />
+                                        <RechartsTooltip 
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                        />
+                                        <Line type="monotone" dataKey="sensex_close" name="Close Price" stroke="#1677ff" strokeWidth={3} dot={false} activeDot={{r: 6}} />
+                                        <Line type="monotone" dataKey="sensex_open" name="Open Price" stroke="#d9d9d9" strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <Spin style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }} />
+                            )}
                         </div>
                         {prediction && indices && indices.sensex ? (
                             <div style={{ marginTop: '16px', padding: '16px', background: '#f8f9fa', borderRadius: '8px' }}>
@@ -174,7 +196,22 @@ const FinanceDashboard = ({ onBack }) => {
                         }}
                     >
                         <div style={{ height: '350px', width: '100%' }}>
-                            <AdvancedRealTimeChart symbol="BSE:SENSEX50" interval="D" autosize hide_top_toolbar style="2" />
+                            {history.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={history} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="date" tick={{fontSize: 12}} minTickGap={30} />
+                                        <YAxis domain={['auto', 'auto']} tick={{fontSize: 12}} width={60} />
+                                        <RechartsTooltip 
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                        />
+                                        <Line type="monotone" dataKey="nifty_close" name="Close Price" stroke="#52c41a" strokeWidth={3} dot={false} activeDot={{r: 6}} />
+                                        <Line type="monotone" dataKey="nifty_open" name="Open Price" stroke="#d9d9d9" strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <Spin style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }} />
+                            )}
                         </div>
                         {prediction && indices && indices.nifty50 ? (
                             <div style={{ marginTop: '16px', padding: '16px', background: '#f8f9fa', borderRadius: '8px' }}>

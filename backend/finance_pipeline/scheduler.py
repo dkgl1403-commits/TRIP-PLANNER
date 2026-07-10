@@ -194,16 +194,48 @@ def historical_backfill_job():
     except Exception as e:
         print(f"Historical Backfill Job Failed: {e}")
 
-def cleanup_old_predictions():
-    print("[Finance Pipeline] Running Cleanup Job for old predictions...")
+def daily_cleanup_and_history_job():
+    print("[Finance Pipeline] Running Daily Cleanup and Market History Update...")
     db = SessionLocal()
     try:
+        from finance_pipeline.db import MarketIndexHistory
+        import yfinance as yf
+        
+        # 1. Fetch today's market history (EOD)
+        try:
+            today_date = datetime.now().date()
+            nifty = yf.Ticker("^NSEI")
+            nifty_data = nifty.history(period="1d")
+            if not nifty_data.empty:
+                record = MarketIndexHistory(
+                    date=today_date, index_name='NIFTY50',
+                    open_price=float(nifty_data['Open'].iloc[-1]),
+                    close_price=float(nifty_data['Close'].iloc[-1])
+                )
+                db.add(record)
+                
+            sensex = yf.Ticker("^BSESN")
+            sensex_data = sensex.history(period="1d")
+            if not sensex_data.empty:
+                record = MarketIndexHistory(
+                    date=today_date, index_name='SENSEX',
+                    open_price=float(sensex_data['Open'].iloc[-1]),
+                    close_price=float(sensex_data['Close'].iloc[-1])
+                )
+                db.add(record)
+        except Exception as market_err:
+            print(f"Failed to fetch today's market history: {market_err}")
+            
+        # 2. Prune old records (> 90 days)
         cutoff_date = datetime.now().date() - timedelta(days=90)
-        deleted = db.query(FinancePrediction).filter(FinancePrediction.date < cutoff_date).delete()
+        
+        del_preds = db.query(FinancePrediction).filter(FinancePrediction.date < cutoff_date).delete()
+        del_hist = db.query(MarketIndexHistory).filter(MarketIndexHistory.date < cutoff_date).delete()
+        
         db.commit()
-        print(f"Deleted {deleted} old predictions.")
+        print(f"Cleanup complete. Deleted {del_preds} old predictions, {del_hist} old history records. Added today's market EOD.")
     except Exception as e:
-        print(f"Cleanup Job Failed: {e}")
+        print(f"Cleanup & History Job Failed: {e}")
         db.rollback()
     finally:
         db.close()
@@ -214,6 +246,6 @@ def start_scheduler():
     scheduler.add_job(historical_backfill_job, 'cron', minute=30)
     scheduler.add_job(daily_prediction_job, 'cron', hour=8, minute=0)
     scheduler.add_job(feedback_job, 'cron', hour=16, minute=30)
-    scheduler.add_job(cleanup_old_predictions, 'cron', hour=1, minute=0)
+    scheduler.add_job(daily_cleanup_and_history_job, 'cron', hour=17, minute=0) # Run at 5 PM after market closes
     scheduler.start()
     print("Finance Background Scheduler started.")

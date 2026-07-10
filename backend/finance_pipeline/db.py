@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime
-from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Text
+from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Text, Integer
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 
@@ -60,6 +60,15 @@ class HistoricalBackfillStatus(Base):
     date = Column(Date, primary_key=True)
     status = Column(String) # 'COMPLETED', 'FAILED'
     processed_at = Column(DateTime, default=datetime.utcnow)
+
+class MarketIndexHistory(Base):
+    __tablename__ = "market_index_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, index=True)
+    index_name = Column(String, index=True) # 'SENSEX' or 'NIFTY50'
+    open_price = Column(Float)
+    close_price = Column(Float)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

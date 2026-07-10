@@ -1555,3 +1555,24 @@ def get_current_indices():
         }
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/api/finance/history")
+def get_market_history(db: Session = Depends(get_finance_db)):
+    try:
+        from finance_pipeline.db import MarketIndexHistory
+        records = db.query(MarketIndexHistory).order_by(MarketIndexHistory.date.asc()).all()
+        history = {}
+        for r in records:
+            date_str = r.date.strftime("%Y-%m-%d")
+            if date_str not in history:
+                history[date_str] = {"date": date_str}
+            if r.index_name == 'NIFTY50':
+                history[date_str]['nifty_open'] = r.open_price
+                history[date_str]['nifty_close'] = r.close_price
+            elif r.index_name == 'SENSEX':
+                history[date_str]['sensex_open'] = r.open_price
+                history[date_str]['sensex_close'] = r.close_price
+        
+        return sorted(list(history.values()), key=lambda x: x['date'])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
