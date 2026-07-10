@@ -1,0 +1,29 @@
+name: Setup PostgreSQL on Server
+
+on:
+  push:
+    branches:
+      - feature/finance-module-rbac
+
+jobs:
+  setup-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+          
+      - name: Add Server to Known Hosts
+        run: ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy Script to Server
+        run: |
+          scp setup_postgres.sh ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/setup_postgres.sh
+          
+      - name: Execute Setup Script
+        run: |
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "chmod +x /home/ubuntu/setup_postgres.sh && /home/ubuntu/setup_postgres.sh"

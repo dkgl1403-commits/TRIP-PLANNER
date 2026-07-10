@@ -58,7 +58,8 @@ export default function Login({ onLoginSuccess }) {
         const userData = { 
           name: data.name || loginId,
           login_id: data.login_id || loginId,
-          phone: data.phone
+          phone: data.phone,
+          role: data.role
         };
 
         if (isLogin) {
@@ -176,7 +177,8 @@ export default function Login({ onLoginSuccess }) {
           onLoginSuccess({ 
             name: verificationJSON.name,
             login_id: verificationJSON.login_id,
-            phone: verificationJSON.phone
+            phone: verificationJSON.phone,
+            role: verificationJSON.role
           });
         }
       } else {

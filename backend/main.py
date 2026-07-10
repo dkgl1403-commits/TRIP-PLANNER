@@ -1434,48 +1434,47 @@ def get_logs():
         return {"logs": logs}
     except Exception as e:
         return {"error": str(e)}
- 
-  
- c l a s s   R o l e U p d a t e R e q u e s t ( B a s e M o d e l ) :  
-         r o l e :   s t r  
-  
- @ a p p . g e t ( " / a p i / a d m i n / u s e r s " )  
- d e f   g e t _ a l l _ u s e r s ( r e q u e s t e r _ i d :   s t r ) :  
-         c o n n   =   g e t _ d b _ c o n n e c t i o n ( )  
-         t r y :  
-                 c u r s o r   =   c o n n . c u r s o r ( )  
-                 c u r s o r . e x e c u t e ( " S E L E C T   r o l e   F R O M   u s e r s   W H E R E   l o g i n _ i d   =   : 1 " ,   [ r e q u e s t e r _ i d ] )  
-                 r o w   =   c u r s o r . f e t c h o n e ( )  
-                 i f   n o t   r o w   o r   r o w [ 0 ]   ! =   ' A D M I N ' :  
-                         r a i s e   H T T P E x c e p t i o n ( s t a t u s _ c o d e = 4 0 3 ,   d e t a i l = " U n a u t h o r i z e d " )  
-                          
-                 c u r s o r . e x e c u t e ( " S E L E C T   l o g i n _ i d ,   n a m e ,   e m a i l ,   p h o n e ,   r o l e   F R O M   u s e r s " )  
-                 u s e r s   =   [ ]  
-                 f o r   r   i n   c u r s o r . f e t c h a l l ( ) :  
-                         u s e r s . a p p e n d ( {  
-                                 " l o g i n _ i d " :   r [ 0 ] ,  
-                                 " n a m e " :   r [ 1 ] ,  
-                                 " e m a i l " :   r [ 2 ] ,  
-                                 " p h o n e " :   r [ 3 ] ,  
-                                 " r o l e " :   r [ 4 ]  
-                         } )  
-                 r e t u r n   u s e r s  
-         f i n a l l y :  
-                 c o n n . c l o s e ( )  
-  
- @ a p p . p u t ( " / a p i / a d m i n / u s e r s / { t a r g e t _ l o g i n _ i d } / r o l e " )  
- d e f   u p d a t e _ u s e r _ r o l e ( t a r g e t _ l o g i n _ i d :   s t r ,   r e q u e s t e r _ i d :   s t r ,   r e q u e s t :   R o l e U p d a t e R e q u e s t ) :  
-         c o n n   =   g e t _ d b _ c o n n e c t i o n ( )  
-         t r y :  
-                 c u r s o r   =   c o n n . c u r s o r ( )  
-                 c u r s o r . e x e c u t e ( " S E L E C T   r o l e   F R O M   u s e r s   W H E R E   l o g i n _ i d   =   : 1 " ,   [ r e q u e s t e r _ i d ] )  
-                 r o w   =   c u r s o r . f e t c h o n e ( )  
-                 i f   n o t   r o w   o r   r o w [ 0 ]   ! =   ' A D M I N ' :  
-                         r a i s e   H T T P E x c e p t i o n ( s t a t u s _ c o d e = 4 0 3 ,   d e t a i l = " U n a u t h o r i z e d " )  
-                          
-                 c u r s o r . e x e c u t e ( " U P D A T E   u s e r s   S E T   r o l e   =   : 1   W H E R E   l o g i n _ i d   =   : 2 " ,   [ r e q u e s t . r o l e ,   t a r g e t _ l o g i n _ i d ] )  
-                 c o n n . c o m m i t ( )  
-                 r e t u r n   { " s t a t u s " :   " s u c c e s s " }  
-         f i n a l l y :  
-                 c o n n . c l o s e ( )  
- 
+
+
+class RoleUpdateRequest(BaseModel):
+    role: str
+
+@app.get("/api/admin/users")
+def get_all_users(requester_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT role FROM users WHERE login_id = :1", [requester_id])
+        row = cursor.fetchone()
+        if not row or row[0] != 'ADMIN':
+            raise HTTPException(status_code=403, detail="Unauthorized")
+            
+        cursor.execute("SELECT login_id, name, email, phone, role FROM users")
+        users = []
+        for r in cursor.fetchall():
+            users.append({
+                "login_id": r[0],
+                "name": r[1],
+                "email": r[2],
+                "phone": r[3],
+                "role": r[4]
+            })
+        return users
+    finally:
+        conn.close()
+
+@app.put("/api/admin/users/{target_login_id}/role")
+def update_user_role(target_login_id: str, requester_id: str, request: RoleUpdateRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT role FROM users WHERE login_id = :1", [requester_id])
+        row = cursor.fetchone()
+        if not row or row[0] != 'ADMIN':
+            raise HTTPException(status_code=403, detail="Unauthorized")
+            
+        cursor.execute("UPDATE users SET role = :1 WHERE login_id = :2", [request.role, target_login_id])
+        conn.commit()
+        return {"status": "success"}
+    finally:
+        conn.close()
