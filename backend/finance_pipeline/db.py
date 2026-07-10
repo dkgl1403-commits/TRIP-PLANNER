@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime
 from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
@@ -23,9 +24,12 @@ class FinanceFactor(Base):
     __tablename__ = "finance_factors"
     
     id = Column(String(36), primary_key=True, default=get_uuid)
-    category = Column(String, index=True)
-    sub_category = Column(String, index=True)
-    factor_name = Column(String)
+    domain = Column(String, index=True) # Domestic, International, Global
+    geography = Column(String, index=True) # USA, China, India, Eurozone, Middle East, etc.
+    event_category = Column(String, index=True) # Geopolitics, Monetary Policy, Corporate, etc.
+    sector_impacted = Column(String, index=True) # IT, Banking, Auto, Energy, Broad Market, etc.
+    company_size = Column(String) # Large Cap, Mid Cap, Small Cap, None
+    factor_name = Column(String) # Human-readable specific identifier
     impact_weight = Column(Float, default=0.0)
     confidence_score = Column(Float, default=0.0)
 
@@ -45,6 +49,17 @@ class FinancePrediction(Base):
     actual_percent = Column(Float, nullable=True)
     reasoning = Column(Text)
     learning_feedback = Column(Text, nullable=True)
+    sensex_current = Column(Float, nullable=True)
+    nifty_current = Column(Float, nullable=True)
+    sensex_predicted = Column(Float, nullable=True)
+    nifty_predicted = Column(Float, nullable=True)
+
+class HistoricalBackfillStatus(Base):
+    __tablename__ = "historical_backfill_status"
+    
+    date = Column(Date, primary_key=True)
+    status = Column(String) # 'COMPLETED', 'FAILED'
+    processed_at = Column(DateTime, default=datetime.utcnow)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

@@ -14,6 +14,17 @@ load_dotenv(dotenv_path="../.env", override=False)
 
 app = FastAPI(title="Event Planner API")
 
+@app.on_event("startup")
+def startup_event():
+    try:
+        from backend.finance_pipeline.db import init_db
+        init_db()
+        
+        from backend.finance_pipeline.scheduler import start_scheduler
+        start_scheduler()
+    except Exception as e:
+        print(f"Failed to start finance scheduler: {e}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -141,6 +152,17 @@ def login(request: LoginRequest):
         }
     finally:
         conn.close()
+
+from fastapi import BackgroundTasks
+
+@app.post("/api/admin/trigger-news-fetch")
+def trigger_news_fetch(background_tasks: BackgroundTasks):
+    try:
+        from backend.finance_pipeline.scheduler import fetch_financial_news
+        background_tasks.add_task(fetch_financial_news)
+        return {"status": "success", "message": "News fetcher triggered in background"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 from typing import List, Optional
 import boto3
@@ -1478,3 +1500,58 @@ def update_user_role(target_login_id: str, requester_id: str, request: RoleUpdat
         return {"status": "success"}
     finally:
         conn.close()
+
+# --- Finance Analytics Routes ---
+
+@app.get("/api/finance/factors")
+def get_finance_factors():
+    try:
+        from finance_pipeline.db import SessionLocal, FinanceFactor
+        db = SessionLocal()
+        factors = db.query(FinanceFactor).order_by(FinanceFactor.impact_weight.desc()).limit(50).all()
+        return [
+            {
+                "id": f.id,
+                "domain": f.domain,
+                "geography": f.geography,
+                "event_category": f.event_category,
+                "sector_impacted": f.sector_impacted,
+                "company_size": f.company_size,
+                "factor_name": f.factor_name,
+                "impact_weight": f.impact_weight,
+                "confidence_score": f.confidence_score
+            } for f in factors
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
+@app.get("/api/finance/predictions")
+def get_finance_predictions():
+    try:
+        from finance_pipeline.db import SessionLocal, FinancePrediction
+        db = SessionLocal()
+        predictions = db.query(FinancePrediction).order_by(FinancePrediction.date.desc()).limit(7).all()
+        return [
+            {
+                "date": p.date.strftime("%Y-%m-%d") if p.date else None,
+                "predicted_percent": p.predicted_percent,
+                "actual_percent": p.actual_percent,
+                "reasoning": p.reasoning,
+                "learning_feedback": p.learning_feedback
+            } for p in predictions
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/finance/indices")
+def get_current_indices():
+    try:
+        import yfinance as yf
+        nifty = yf.Ticker("^NSEI").history(period="1d")
+        sensex = yf.Ticker("^BSESN").history(period="1d")
+        return {
+            "nifty50": round(nifty["Close"].iloc[-1], 2) if not nifty.empty else None,
+            "sensex": round(sensex["Close"].iloc[-1], 2) if not sensex.empty else None
+        }
+    except Exception as e:
+        return {"error": str(e)}

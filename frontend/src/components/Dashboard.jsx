@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Dashboard.css';
 
-function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanTrip, onViewTrip, onAdminDashboard }) {
+function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanTrip, onViewTrip, onAdminDashboard, onFinanceDashboard }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -145,6 +145,11 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
               {user?.role === 'ADMIN' && (
                 <button className="dropdown-item" onClick={onAdminDashboard}>
                   🛡️ Admin Dashboard
+                </button>
+              )}
+              {(user?.role === 'ADMIN' || user?.role === 'FINANCE_USER') && (
+                <button className="dropdown-item" onClick={onFinanceDashboard}>
+                  📈 Finance Dashboard
                 </button>
               )}
               {isBiometricEnabled && (

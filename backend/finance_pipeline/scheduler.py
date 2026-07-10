@@ -1,0 +1,219 @@
+import os
+import requests
+import json
+from datetime import datetime, timedelta
+import google.generativeai as genai
+from apscheduler.schedulers.background import BackgroundScheduler
+from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction
+import time
+
+genai.configure(api_key=os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY")))
+model = genai.GenerativeModel('gemini-3.5-flash')
+
+def get_ontology():
+    return """
+1. Domestic Macroeconomic Factors (India)
+- dom_rbi_rate_hike, dom_rbi_rate_cut, dom_inflation_surge, dom_inflation_drop, dom_gdp_growth_beat, dom_gdp_growth_miss, dom_monsoon_surplus, dom_monsoon_deficit, dom_gst_collection_record, dom_rupee_depreciation, dom_rupee_appreciation, dom_fpi_inflow, dom_fpi_outflow
+2. International Macroeconomic Factors
+- intl_us_fed_rate_hike, intl_us_fed_rate_cut, intl_us_inflation_data, intl_china_slowdown, intl_china_stimulus, intl_ecb_rate_change, intl_boj_rate_change
+3. Geopolitics & Commodities
+- geo_middle_east_conflict, geo_russia_ukraine_escalation, geo_us_china_trade_war, geo_india_border_tension, com_crude_oil_surge, com_crude_oil_crash, com_gold_price_surge, com_metal_price_surge
+4. Sector-Specific Corporate Events
+- sec_it_earnings_beat, sec_it_guidance_cut, sec_bank_npa_rise, sec_bank_credit_growth, sec_auto_sales_jump, sec_fmcg_margin_squeeze, sec_pharma_fda_approval, sec_pharma_fda_warning
+5. Regulatory & Political
+- pol_stable_govt_mandate, pol_hung_assembly, reg_sebi_tightening, reg_govt_capex_boost, reg_fdi_limit_increase
+"""
+
+def fetch_financial_news():
+    print("[Finance Pipeline] Running Hourly News Fetcher...")
+    api_key = os.environ.get("NEWS_API_KEY")
+    if not api_key:
+        print("NEWS_API_KEY not found.")
+        return
+
+    url = f"https://newsapi.org/v2/everything?q=finance OR economy OR market AND India&language=en&sortBy=publishedAt&apiKey={api_key}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        print(f"Failed to fetch news: {response.status_code}")
+        return
+        
+    data = response.json()
+    articles = data.get("articles", [])
+    if not articles:
+        print("No new articles found.")
+        return
+        
+    print(f"Found {len(articles)} articles. Processing...")
+    
+    # Process up to 10 articles max for a test run
+    for i, article in enumerate(articles[:10]):
+        process_news_chunk([article])
+        time.sleep(4)  # 15 RPM limit = 1 request every 4 seconds
+
+def process_news_chunk(articles):
+    db = SessionLocal()
+    try:
+        for article in articles:
+            existing = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.headline == article['title']).first()
+            if existing:
+                continue
+
+            prompt = f"""
+            Analyze the following financial news headline and description.
+            Headline: {article['title']}
+            Description: {article.get('description', '')}
+            
+            Using the following exact ontology of macroeconomic factors:
+            {get_ontology()}
+            
+            Return a JSON object where the keys are ONLY the exact factor names from the ontology above, and the value is 1 if the event is reported/active today, and 0 otherwise. Include a key for every single factor.
+            Example: {{"dom_rbi_rate_hike": 1, "com_crude_oil_surge": 0, ...}}
+            """
+            
+            try:
+                response = model.generate_content(prompt)
+                response_text = response.text.strip().replace('```json', '').replace('```', '')
+                factors = json.loads(response_text)
+                
+                # Check if any factor is actually active (1)
+                has_active_factors = any(value == 1 for value in factors.values())
+                
+                if has_active_factors:
+                    news_event = FinanceNewsEvent(
+                        published_at=datetime.strptime(article['publishedAt'], "%Y-%m-%dT%H:%M:%SZ"),
+                        headline=article['title'],
+                        extracted_factors=factors
+                    )
+                    db.add(news_event)
+                    db.commit()
+                    print(f"Processed and stored active event: {article['title']}")
+                else:
+                    print(f"Ignored noise: {article['title']}")
+                
+            except Exception as e:
+                print(f"AI Processing error for article: {e}")
+                db.rollback()
+                if "429" in str(e):
+                    print("Hit Rate Limit. Sleeping for 5 minutes...")
+                    time.sleep(300)
+    finally:
+        db.close()
+
+def daily_prediction_job():
+    print("[Finance Pipeline] Running Daily Prediction Job...")
+    db = SessionLocal()
+    try:
+        # Get factors from the last 24 hours
+        yesterday = datetime.now() - timedelta(days=1)
+        events = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.published_at >= yesterday).all()
+        
+        active_factors_today = set()
+        for event in events:
+            factors = event.extracted_factors if event.extracted_factors else {}
+            for factor_name, is_active in factors.items():
+                if is_active == 1:
+                    active_factors_today.add(factor_name)
+                    
+        # Calculate exact mathematical prediction using db weights
+        total_predicted_percent = 0.0
+        db_factors = db.query(FinanceFactor).all()
+        factor_weight_map = {f.factor_name: f.impact_weight for f in db_factors}
+        
+        contributing_factors = []
+        for factor_name in active_factors_today:
+            weight = factor_weight_map.get(factor_name, 0.0)
+            total_predicted_percent += weight
+            contributing_factors.append(f"{factor_name} (Impact: {weight:.2f}%)")
+
+        # Use Gemini for reasoning generation only
+        prompt = f"""
+        You are a financial analyst. The Causal ML Engine has calculated a mathematical market prediction of {total_predicted_percent:.2f}% for the NIFTY 50 today.
+        
+        The active mathematical factors driving this prediction are:
+        {', '.join(contributing_factors) if contributing_factors else 'None'}
+        
+        Write a short 2-3 sentence reasoning explaining this prediction to a user in plain English based on the active factors.
+        Return a JSON object with one key: 'reasoning' (string). Do NOT return anything else.
+        """
+        
+        reasoning = "No significant macroeconomic drivers today. Expecting flat to minor technical movements."
+        if active_factors_today:
+            response = model.generate_content(prompt)
+            response_text = response.text.strip().replace('```json', '').replace('```', '')
+            try:
+                reasoning = json.loads(response_text).get('reasoning', reasoning)
+            except Exception as e:
+                print("Failed to parse reasoning from AI.", e)
+        
+        # Fetch current indices
+        import yfinance as yf
+        sensex_current, nifty_current = None, None
+        try:
+            sensex_data = yf.Ticker("^BSESN").history(period="1d")
+            if not sensex_data.empty: sensex_current = float(sensex_data['Close'].iloc[-1])
+            nifty_data = yf.Ticker("^NSEI").history(period="1d")
+            if not nifty_data.empty: nifty_current = float(nifty_data['Close'].iloc[-1])
+        except Exception as e:
+            print(f"Failed to fetch indices: {e}")
+            
+        sensex_predicted = (sensex_current * (1 + total_predicted_percent / 100)) if sensex_current else None
+        nifty_predicted = (nifty_current * (1 + total_predicted_percent / 100)) if nifty_current else None
+        
+        prediction = FinancePrediction(
+            date=datetime.now().date(),
+            predicted_percent=total_predicted_percent,
+            reasoning=reasoning,
+            sensex_current=sensex_current,
+            nifty_current=nifty_current,
+            sensex_predicted=sensex_predicted,
+            nifty_predicted=nifty_predicted
+        )
+        db.add(prediction)
+        db.commit()
+        print(f"Daily Prediction Saved: {total_predicted_percent:.2f}%")
+    except Exception as e:
+        print(f"Prediction Job Failed: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+def feedback_job():
+    print("[Finance Pipeline] Running Feedback Job (ML Retraining)...")
+    try:
+        from finance_pipeline.ml_model import train_causal_model
+        train_causal_model()
+    except Exception as e:
+        print(f"Feedback/Retraining Job Failed: {e}")
+
+def historical_backfill_job():
+    print("[Finance Pipeline] Running Hourly Historical Backfill Job...")
+    try:
+        from finance_pipeline.backfill_historical_data import run_backfill
+        # Process 10 historical days every hour
+        run_backfill(num_days=10)
+    except Exception as e:
+        print(f"Historical Backfill Job Failed: {e}")
+
+def cleanup_old_predictions():
+    print("[Finance Pipeline] Running Cleanup Job for old predictions...")
+    db = SessionLocal()
+    try:
+        cutoff_date = datetime.now().date() - timedelta(days=90)
+        deleted = db.query(FinancePrediction).filter(FinancePrediction.date < cutoff_date).delete()
+        db.commit()
+        print(f"Deleted {deleted} old predictions.")
+    except Exception as e:
+        print(f"Cleanup Job Failed: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(fetch_financial_news, 'cron', minute=0)
+    scheduler.add_job(historical_backfill_job, 'cron', minute=30)
+    scheduler.add_job(daily_prediction_job, 'cron', hour=8, minute=0)
+    scheduler.add_job(feedback_job, 'cron', hour=16, minute=30)
+    scheduler.add_job(cleanup_old_predictions, 'cron', hour=1, minute=0)
+    scheduler.start()
+    print("Finance Background Scheduler started.")
