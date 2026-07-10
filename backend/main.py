@@ -122,7 +122,7 @@ def login(request: LoginRequest):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT login_id, name, password_hash, phone FROM users WHERE login_id = :1 OR phone = :2", [request.login_id, request.login_id])
+        cursor.execute("SELECT login_id, name, password_hash, phone, role FROM users WHERE login_id = :1 OR phone = :2", [request.login_id, request.login_id])
         row = cursor.fetchone()
         
         if not row:
@@ -136,7 +136,8 @@ def login(request: LoginRequest):
             "message": f"Welcome back, {row[1]}!",
             "name": row[1],
             "login_id": row[0],
-            "phone": row[3]
+            "phone": row[3],
+            "role": row[4]
         }
     finally:
         conn.close()
@@ -1381,7 +1382,7 @@ def login_biometric_verify(req: VerifyLoginRequest):
         cursor.execute("UPDATE user_credentials SET sign_count = :1 WHERE login_id = :2", [verification.new_sign_count, login_id])
         
         # Fetch user details
-        cursor.execute("SELECT login_id, name, phone FROM users WHERE login_id = :1", [login_id])
+        cursor.execute("SELECT login_id, name, phone, role FROM users WHERE login_id = :1", [login_id])
         user_row = cursor.fetchone()
         conn.commit()
         
@@ -1393,7 +1394,8 @@ def login_biometric_verify(req: VerifyLoginRequest):
             "message": f"Welcome back, {user_row[1]}!",
             "name": user_row[1],
             "login_id": user_row[0],
-            "phone": user_row[2]
+            "phone": user_row[2],
+            "role": user_row[3]
         }
     except Exception as e:
         conn.rollback()
@@ -1432,3 +1434,48 @@ def get_logs():
         return {"logs": logs}
     except Exception as e:
         return {"error": str(e)}
+ 
+  
+ c l a s s   R o l e U p d a t e R e q u e s t ( B a s e M o d e l ) :  
+         r o l e :   s t r  
+  
+ @ a p p . g e t ( " / a p i / a d m i n / u s e r s " )  
+ d e f   g e t _ a l l _ u s e r s ( r e q u e s t e r _ i d :   s t r ) :  
+         c o n n   =   g e t _ d b _ c o n n e c t i o n ( )  
+         t r y :  
+                 c u r s o r   =   c o n n . c u r s o r ( )  
+                 c u r s o r . e x e c u t e ( " S E L E C T   r o l e   F R O M   u s e r s   W H E R E   l o g i n _ i d   =   : 1 " ,   [ r e q u e s t e r _ i d ] )  
+                 r o w   =   c u r s o r . f e t c h o n e ( )  
+                 i f   n o t   r o w   o r   r o w [ 0 ]   ! =   ' A D M I N ' :  
+                         r a i s e   H T T P E x c e p t i o n ( s t a t u s _ c o d e = 4 0 3 ,   d e t a i l = " U n a u t h o r i z e d " )  
+                          
+                 c u r s o r . e x e c u t e ( " S E L E C T   l o g i n _ i d ,   n a m e ,   e m a i l ,   p h o n e ,   r o l e   F R O M   u s e r s " )  
+                 u s e r s   =   [ ]  
+                 f o r   r   i n   c u r s o r . f e t c h a l l ( ) :  
+                         u s e r s . a p p e n d ( {  
+                                 " l o g i n _ i d " :   r [ 0 ] ,  
+                                 " n a m e " :   r [ 1 ] ,  
+                                 " e m a i l " :   r [ 2 ] ,  
+                                 " p h o n e " :   r [ 3 ] ,  
+                                 " r o l e " :   r [ 4 ]  
+                         } )  
+                 r e t u r n   u s e r s  
+         f i n a l l y :  
+                 c o n n . c l o s e ( )  
+  
+ @ a p p . p u t ( " / a p i / a d m i n / u s e r s / { t a r g e t _ l o g i n _ i d } / r o l e " )  
+ d e f   u p d a t e _ u s e r _ r o l e ( t a r g e t _ l o g i n _ i d :   s t r ,   r e q u e s t e r _ i d :   s t r ,   r e q u e s t :   R o l e U p d a t e R e q u e s t ) :  
+         c o n n   =   g e t _ d b _ c o n n e c t i o n ( )  
+         t r y :  
+                 c u r s o r   =   c o n n . c u r s o r ( )  
+                 c u r s o r . e x e c u t e ( " S E L E C T   r o l e   F R O M   u s e r s   W H E R E   l o g i n _ i d   =   : 1 " ,   [ r e q u e s t e r _ i d ] )  
+                 r o w   =   c u r s o r . f e t c h o n e ( )  
+                 i f   n o t   r o w   o r   r o w [ 0 ]   ! =   ' A D M I N ' :  
+                         r a i s e   H T T P E x c e p t i o n ( s t a t u s _ c o d e = 4 0 3 ,   d e t a i l = " U n a u t h o r i z e d " )  
+                          
+                 c u r s o r . e x e c u t e ( " U P D A T E   u s e r s   S E T   r o l e   =   : 1   W H E R E   l o g i n _ i d   =   : 2 " ,   [ r e q u e s t . r o l e ,   t a r g e t _ l o g i n _ i d ] )  
+                 c o n n . c o m m i t ( )  
+                 r e t u r n   { " s t a t u s " :   " s u c c e s s " }  
+         f i n a l l y :  
+                 c o n n . c l o s e ( )  
+ 

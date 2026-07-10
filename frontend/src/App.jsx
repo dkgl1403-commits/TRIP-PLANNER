@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard'
 import CreateTrip from './components/CreateTrip'
 import TripDetails from './components/TripDetails'
 import AiCreateTrip from './components/AiCreateTrip'
+import AdminDashboard from './components/AdminDashboard'
 import { ToastProvider } from './components/Toast'
 
 function App() {
@@ -109,7 +110,11 @@ function App() {
             onCreateTrip={() => setCurrentView('create_trip')}
             onAiPlanTrip={() => setCurrentView('ai_create_trip')}
             onViewTrip={handleViewTrip}
+            onAdminDashboard={() => setCurrentView('admin_dashboard')}
           />
+        )}
+        {currentView === 'admin_dashboard' && (
+          <AdminDashboard user={user} onBack={() => window.history.back()} />
         )}
         {currentView === 'create_trip' && (
           <CreateTrip user={user} onBack={() => window.history.back()} />
