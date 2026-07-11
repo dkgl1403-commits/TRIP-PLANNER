@@ -4,7 +4,6 @@ import time
 import pandas as pd
 from datetime import datetime
 import google.generativeai as genai
-import yfinance as yf
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

@@ -49,9 +49,10 @@ jobs:
 
       - name: Deploy Frontend & Backend to Server
         run: |
-          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /home/ubuntu/TRIP_Planner/frontend"
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /home/ubuntu/TRIP_Planner/frontend /home/ubuntu/TRIP_Planner/Data"
           scp -r frontend/dist ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/frontend/
           scp -r backend ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
+          scp Data/IndianFinancialNews.csv ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/Data/
 
       - name: Restart Backend & Fix Permissions
         run: |
