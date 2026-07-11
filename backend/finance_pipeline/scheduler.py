@@ -310,7 +310,7 @@ def start_scheduler():
     db.commit()
     db.close()
 
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
     scheduler.add_job(fetch_financial_news, 'cron', minute=0)
     scheduler.add_job(historical_backfill_job, 'cron', minute=30)
     scheduler.add_job(daily_prediction_job, 'cron', hour=8, minute=0)
