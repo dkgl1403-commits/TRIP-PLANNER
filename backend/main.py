@@ -1580,3 +1580,59 @@ def get_market_history():
         return sorted(list(history.values()), key=lambda x: x['date'])
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+import psutil
+import time
+
+BOOT_TIME = time.time()
+
+@app.get("/api/system/health")
+def system_health():
+    try:
+        from finance_pipeline.db import SessionLocal, SystemJobStatus
+        db = SessionLocal()
+        
+        # Ping DB
+        db_status = "Online"
+        try:
+            from sqlalchemy import text
+            db.execute(text("SELECT 1"))
+        except Exception as e:
+            db_status = f"Offline: {e}"
+        
+        # Get Job Statuses
+        jobs = db.query(SystemJobStatus).all()
+        job_data = []
+        for j in jobs:
+            job_data.append({
+                "job_name": j.job_name,
+                "status": j.status,
+                "last_run_at": j.last_run_at.isoformat() if j.last_run_at else None,
+                "error_message": j.error_message,
+                "next_run_at": j.next_run_at.isoformat() if j.next_run_at else None
+            })
+            
+        db.close()
+        
+        # System Metrics
+        cpu_usage = psutil.cpu_percent(interval=0.1)
+        ram = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        uptime_seconds = int(time.time() - BOOT_TIME)
+        
+        return {
+            "server": {
+                "cpu_usage_percent": cpu_usage,
+                "ram_usage_percent": ram.percent,
+                "ram_total_gb": round(ram.total / (1024**3), 2),
+                "disk_usage_percent": disk.percent,
+                "uptime_seconds": uptime_seconds
+            },
+            "database": {
+                "status": db_status
+            },
+            "jobs": job_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

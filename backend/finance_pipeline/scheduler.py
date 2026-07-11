@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 import google.generativeai as genai
 from apscheduler.schedulers.background import BackgroundScheduler
-from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction
+from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction, SystemJobStatus
 import time
 
 genai.configure(api_key=os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY")))
@@ -24,6 +24,7 @@ def get_ontology():
 - pol_stable_govt_mandate, pol_hung_assembly, reg_sebi_tightening, reg_govt_capex_boost, reg_fdi_limit_increase
 """
 
+@track_job("Fetch Financial News")
 def fetch_financial_news():
     print("[Finance Pipeline] Running Hourly News Fetcher...")
     api_key = os.environ.get("NEWS_API_KEY")
@@ -99,6 +100,7 @@ def process_news_chunk(articles):
     finally:
         db.close()
 
+@track_job("Daily Prediction Job")
 def daily_prediction_job():
     print("[Finance Pipeline] Running Daily Prediction Job...")
     db = SessionLocal()
@@ -176,6 +178,7 @@ def daily_prediction_job():
     finally:
         db.close()
 
+@track_job("Feedback Job")
 def feedback_job():
     print("[Finance Pipeline] Running Feedback Job (ML Retraining)...")
     try:
@@ -184,6 +187,7 @@ def feedback_job():
     except Exception as e:
         print(f"Feedback/Retraining Job Failed: {e}")
 
+@track_job("Historical Backfill Job")
 def historical_backfill_job():
     print("[Finance Pipeline] Running Hourly Historical Backfill Job...")
     try:
@@ -193,6 +197,7 @@ def historical_backfill_job():
     except Exception as e:
         print(f"Historical Backfill Job Failed: {e}")
 
+@track_job("Daily Cleanup and History Job")
 def daily_cleanup_and_history_job():
     print("[Finance Pipeline] Running Daily Cleanup and Market History Update...")
     db = SessionLocal()

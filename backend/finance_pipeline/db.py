@@ -70,6 +70,15 @@ class MarketIndexHistory(Base):
     open_price = Column(Float)
     close_price = Column(Float)
 
+class SystemJobStatus(Base):
+    __tablename__ = "system_job_status"
+    
+    job_name = Column(String, primary_key=True)
+    status = Column(String) # 'RUNNING', 'SUCCESS', 'FAILED'
+    last_run_at = Column(DateTime)
+    error_message = Column(Text, nullable=True)
+    next_run_at = Column(DateTime, nullable=True)
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 
