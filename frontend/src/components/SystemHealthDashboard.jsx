@@ -111,6 +111,7 @@ const SystemHealthDashboard = ({ onBack }) => {
                             <Card>
                                 <Statistic title="CPU Usage" value={healthData.server.cpu_usage_percent} suffix="%" prefix={<DesktopOutlined />} />
                                 <Progress percent={healthData.server.cpu_usage_percent} showInfo={false} status={healthData.server.cpu_usage_percent > 80 ? 'exception' : 'active'} />
+                                <Text type="secondary" style={{ fontSize: '12px' }}>Total: {healthData.server.cpu_cores} Cores</Text>
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
@@ -124,19 +125,41 @@ const SystemHealthDashboard = ({ onBack }) => {
                             <Card>
                                 <Statistic title="Disk Usage" value={healthData.server.disk_usage_percent} suffix="%" />
                                 <Progress percent={healthData.server.disk_usage_percent} showInfo={false} />
+                                <Text type="secondary" style={{ fontSize: '12px' }}>Total: {healthData.server.disk_total_gb} GB</Text>
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
                             <Card>
                                 <Statistic title="Server Uptime" value={formatUptime(healthData.server.uptime_seconds)} prefix={<ClockCircleOutlined />} />
                                 <div style={{ marginTop: '10px' }}>
-                                    <Tag color={healthData.database.status.startsWith('Online') ? 'success' : 'error'}>
-                                        DB Status: {healthData.database.status}
+                                    <Tag color={healthData.server.db_status.startsWith('Online') ? 'success' : 'error'}>
+                                        DB Status: {healthData.server.db_status}
                                     </Tag>
                                 </div>
                             </Card>
                         </Col>
                     </Row>
+
+                    <Card title={<><DatabaseOutlined /> Database Metrics</>} style={{ marginBottom: '24px' }}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} md={6}>
+                                <Statistic title="Total DB Size" value={healthData.database.size_gb} suffix="GB" />
+                            </Col>
+                            <Col xs={24} md={18}>
+                                <Text strong>Top 5 Largest Tables</Text>
+                                <Table 
+                                    dataSource={healthData.database.top_tables} 
+                                    columns={[
+                                        { title: 'Table Name', dataIndex: 'name', key: 'name' },
+                                        { title: 'Size (MB)', dataIndex: 'size_mb', key: 'size_mb' }
+                                    ]} 
+                                    rowKey="name"
+                                    pagination={false}
+                                    size="small"
+                                />
+                            </Col>
+                        </Row>
+                    </Card>
 
                     <Card title="Background Jobs Status">
                         <Table 

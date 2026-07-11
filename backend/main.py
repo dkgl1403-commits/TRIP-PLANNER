@@ -1592,11 +1592,29 @@ def system_health():
         from finance_pipeline.db import SessionLocal, SystemJobStatus
         db = SessionLocal()
         
-        # Ping DB
+        # Ping DB & Get Metrics
         db_status = "Online"
+        db_size_gb = 0.0
+        top_tables = []
         try:
             from sqlalchemy import text
             db.execute(text("SELECT 1"))
+            
+            # DB Size
+            db_size_res = db.execute(text("SELECT pg_database_size(current_database())")).fetchone()
+            if db_size_res:
+                db_size_gb = round(db_size_res[0] / (1024**3), 2)
+                
+            # Top Tables
+            tables_query = text("""
+                SELECT relname as table_name, pg_total_relation_size(relid) as size_bytes
+                FROM pg_catalog.pg_statio_user_tables
+                ORDER BY pg_total_relation_size(relid) DESC
+                LIMIT 5;
+            """)
+            tables_res = db.execute(tables_query).fetchall()
+            top_tables = [{"name": row[0], "size_mb": round(row[1] / (1024**2), 2)} for row in tables_res]
+            
         except Exception as e:
             db_status = f"Offline: {e}"
         
@@ -1616,6 +1634,7 @@ def system_health():
         
         # System Metrics
         cpu_usage = psutil.cpu_percent(interval=0.1)
+        cpu_cores = psutil.cpu_count(logical=True)
         ram = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         
@@ -1624,13 +1643,17 @@ def system_health():
         return {
             "server": {
                 "cpu_usage_percent": cpu_usage,
+                "cpu_cores": cpu_cores,
                 "ram_usage_percent": ram.percent,
                 "ram_total_gb": round(ram.total / (1024**3), 2),
                 "disk_usage_percent": disk.percent,
-                "uptime_seconds": uptime_seconds
+                "disk_total_gb": round(disk.total / (1024**3), 2),
+                "uptime_seconds": uptime_seconds,
+                "db_status": db_status
             },
             "database": {
-                "status": db_status
+                "size_gb": db_size_gb,
+                "top_tables": top_tables
             },
             "jobs": job_data
         }
