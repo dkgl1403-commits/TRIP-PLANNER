@@ -335,6 +335,9 @@ def start_scheduler():
         if not record:
             record = SystemJobStatus(job_name=job_name, status="SCHEDULED")
             db.add(record)
+        elif record.status == "RUNNING":
+            record.status = "FAILED"
+            record.error_message = "Process killed due to server restart."
     db.commit()
     db.close()
 
