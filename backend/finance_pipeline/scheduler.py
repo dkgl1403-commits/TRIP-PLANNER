@@ -2,13 +2,29 @@ import os
 import requests
 import json
 from datetime import datetime, timedelta
-import google.generativeai as genai
 from apscheduler.schedulers.background import BackgroundScheduler
 from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction, SystemJobStatus
 import time
 
-genai.configure(api_key=os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY")))
-model = genai.GenerativeModel('gemini-3.5-flash')
+
+import requests
+def generate_content(prompt):
+    api_key = os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.1}
+    }
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+    result = response.json()
+    try:
+        return result['candidates'][0]['content']['parts'][0]['text']
+    except (KeyError, IndexError) as e:
+        print(f"Error parsing Gemini response: {result}")
+        raise e
+
 
 def get_ontology():
     return """

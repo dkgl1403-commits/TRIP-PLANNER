@@ -3,7 +3,6 @@ import json
 import time
 import pandas as pd
 from datetime import datetime
-import google.generativeai as genai
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -13,8 +12,25 @@ from db import FinanceNewsEvent, HistoricalBackfillStatus, FinancePrediction
 load_dotenv('../.env')
 
 # Setup Gemini
-genai.configure(api_key=os.environ.get('GEMINI_API_KEY_FINANCE', os.environ.get('GEMINI_API_KEY')))
-model = genai.GenerativeModel('gemini-3.5-flash')
+
+import requests
+def generate_content(prompt):
+    api_key = os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.1}
+    }
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+    result = response.json()
+    try:
+        return result['candidates'][0]['content']['parts'][0]['text']
+    except (KeyError, IndexError) as e:
+        print(f"Error parsing Gemini response: {result}")
+        raise e
+
 
 # Setup Database
 DATABASE_URL = os.environ.get('FINANCE_DATABASE_URL', 'sqlite:///./finance_local.db')
@@ -63,8 +79,7 @@ def process_single_day(target_date, articles):
         Example: {{"dom_rbi_rate_hike": 1, "com_crude_oil_surge": 0, ...}}
         """
         
-        response = model.generate_content(prompt)
-        response_text = response.text.strip().replace('```json', '').replace('```', '')
+        response_text = generate_content(prompt).strip().replace('```json', '').replace('```', '')
         factors = json.loads(response_text)
         
         # Check if any factor is actually active (1)

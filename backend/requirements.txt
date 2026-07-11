@@ -13,5 +13,5 @@ pandas
 scikit-learn
 apscheduler
 requests
-google-generativeai
+
 psutil
