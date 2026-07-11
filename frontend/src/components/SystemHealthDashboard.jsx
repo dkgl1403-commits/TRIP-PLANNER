@@ -37,12 +37,28 @@ const SystemHealthDashboard = ({ onBack }) => {
         return `${d}d ${h}h ${m}m`;
     };
 
+    const getFrequency = (jobName) => {
+        const frequencies = {
+            "Fetch Financial News": "Hourly (at :00)",
+            "Historical Backfill Job": "Hourly (at :30)",
+            "Daily Prediction Job": "Daily (08:00 AM)",
+            "Feedback Job": "Daily (04:30 PM)",
+            "Daily Cleanup and History Job": "Daily (05:00 PM)"
+        };
+        return frequencies[jobName] || "Unknown";
+    };
+
     const columns = [
         {
             title: 'Job Name',
             dataIndex: 'job_name',
             key: 'job_name',
             render: (text) => <Text strong>{text}</Text>
+        },
+        {
+            title: 'Frequency',
+            key: 'frequency',
+            render: (_, record) => <Text type="secondary">{getFrequency(record.job_name)}</Text>
         },
         {
             title: 'Status',
@@ -61,13 +77,13 @@ const SystemHealthDashboard = ({ onBack }) => {
             title: 'Last Run',
             dataIndex: 'last_run_at',
             key: 'last_run_at',
-            render: (date) => date ? new Date(date).toLocaleString() : 'Never'
+            render: (date) => date ? new Date(date).toLocaleString() : <Text type="secondary" italic>Has not run since boot</Text>
         },
         {
             title: 'Next Run',
             dataIndex: 'next_run_at',
             key: 'next_run_at',
-            render: (date) => date ? new Date(date).toLocaleString() : 'N/A'
+            render: (date, record) => date ? new Date(date).toLocaleString() : <Text type="secondary" italic>See Frequency</Text>
         },
         {
             title: 'Error Message',
