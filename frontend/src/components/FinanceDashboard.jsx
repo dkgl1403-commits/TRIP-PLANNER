@@ -52,12 +52,25 @@ const FinanceDashboard = ({ onBack }) => {
         fetchData();
     }, []);
 
+    const formatFactorName = (text) => {
+        if (!text) return text;
+        const prefixes = ['dom_', 'intl_', 'geo_', 'com_', 'sec_', 'pol_', 'reg_'];
+        let formatted = text;
+        for (const prefix of prefixes) {
+            if (formatted.startsWith(prefix)) {
+                formatted = formatted.substring(prefix.length);
+                break;
+            }
+        }
+        return formatted.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
     const columns = [
         { 
             title: 'Factor (Event)', 
             dataIndex: 'factor_name', 
             key: 'factor_name',
-            render: (text) => <Text strong>{text}</Text>
+            render: (text) => <Text strong>{formatFactorName(text)}</Text>
         },
         { 
             title: 'Geography', 
