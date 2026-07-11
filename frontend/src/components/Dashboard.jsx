@@ -143,9 +143,14 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
                 👤 Profile
               </button>
               {user?.role === 'ADMIN' && (
-                <button className="dropdown-item" onClick={onAdminDashboard}>
-                  🛡️ Admin Dashboard
-                </button>
+                <>
+                  <button className="dropdown-item" onClick={onSystemHealth}>
+                    🏥 System Health
+                  </button>
+                  <button className="dropdown-item" onClick={onAdminDashboard}>
+                    🛡️ Admin Dashboard
+                  </button>
+                </>
               )}
               {(user?.role === 'ADMIN' || user?.role === 'FINANCE_USER') && (
                 <button className="dropdown-item" onClick={onFinanceDashboard}>
