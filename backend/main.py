@@ -1546,12 +1546,14 @@ def get_finance_predictions():
 @app.get("/api/finance/indices")
 def get_current_indices():
     try:
-        import yfinance as yf
-        nifty = yf.Ticker("^NSEI").history(period="1d")
-        sensex = yf.Ticker("^BSESN").history(period="1d")
+        import requests
+        def get_yahoo(t):
+            res = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{t}", headers={'User-Agent': 'Mozilla/5.0'}).json()
+            return res['chart']['result'][0]['meta']['regularMarketPrice']
+        
         return {
-            "nifty50": float(round(nifty["Close"].iloc[-1], 2)) if not nifty.empty else None,
-            "sensex": float(round(sensex["Close"].iloc[-1], 2)) if not sensex.empty else None
+            "nifty50": float(round(get_yahoo("^NSEI"), 2)),
+            "sensex": float(round(get_yahoo("^BSESN"), 2))
         }
     except Exception as e:
         return {"error": str(e)}

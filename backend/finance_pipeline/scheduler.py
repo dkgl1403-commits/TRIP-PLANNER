@@ -146,13 +146,12 @@ def daily_prediction_job():
                 print("Failed to parse reasoning from AI.", e)
         
         # Fetch current indices
-        import yfinance as yf
+        import requests
         sensex_current, nifty_current = None, None
         try:
-            sensex_data = yf.Ticker("^BSESN").history(period="1d")
-            if not sensex_data.empty: sensex_current = float(sensex_data['Close'].iloc[-1])
-            nifty_data = yf.Ticker("^NSEI").history(period="1d")
-            if not nifty_data.empty: nifty_current = float(nifty_data['Close'].iloc[-1])
+            def get_y_close(t): return requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{t}", headers={'User-Agent': 'Mozilla/5.0'}).json()['chart']['result'][0]['meta']['regularMarketPrice']
+            sensex_current = float(get_y_close("^BSESN"))
+            nifty_current = float(get_y_close("^NSEI"))
         except Exception as e:
             print(f"Failed to fetch indices: {e}")
             
@@ -199,28 +198,30 @@ def daily_cleanup_and_history_job():
     db = SessionLocal()
     try:
         from finance_pipeline.db import MarketIndexHistory
-        import yfinance as yf
+        import requests
         
         # 1. Fetch today's market history (EOD)
         try:
             today_date = datetime.now().date()
-            nifty = yf.Ticker("^NSEI")
-            nifty_data = nifty.history(period="1d")
-            if not nifty_data.empty:
+            def get_y_data(t): 
+                res = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{t}", headers={'User-Agent': 'Mozilla/5.0'}).json()['chart']['result'][0]
+                return res['indicators']['quote'][0]['open'][0], res['indicators']['quote'][0]['close'][0]
+            
+            n_open, n_close = get_y_data("^NSEI")
+            if n_open and n_close:
                 record = MarketIndexHistory(
                     date=today_date, index_name='NIFTY50',
-                    open_price=float(nifty_data['Open'].iloc[-1]),
-                    close_price=float(nifty_data['Close'].iloc[-1])
+                    open_price=float(n_open),
+                    close_price=float(n_close)
                 )
                 db.add(record)
                 
-            sensex = yf.Ticker("^BSESN")
-            sensex_data = sensex.history(period="1d")
-            if not sensex_data.empty:
+            s_open, s_close = get_y_data("^BSESN")
+            if s_open and s_close:
                 record = MarketIndexHistory(
                     date=today_date, index_name='SENSEX',
-                    open_price=float(sensex_data['Open'].iloc[-1]),
-                    close_price=float(sensex_data['Close'].iloc[-1])
+                    open_price=float(s_open),
+                    close_price=float(s_close)
                 )
                 db.add(record)
         except Exception as market_err:
