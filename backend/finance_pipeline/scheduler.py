@@ -40,6 +40,40 @@ def get_ontology():
 - pol_stable_govt_mandate, pol_hung_assembly, reg_sebi_tightening, reg_govt_capex_boost, reg_fdi_limit_increase
 """
 
+from functools import wraps
+
+def track_job(job_name):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            db = SessionLocal()
+            try:
+                record = db.query(SystemJobStatus).filter(SystemJobStatus.job_name == job_name).first()
+                if not record:
+                    record = SystemJobStatus(job_name=job_name)
+                    db.add(record)
+                record.status = "RUNNING"
+                record.last_run = datetime.utcnow()
+                db.commit()
+                
+                result = func(*args, **kwargs)
+                
+                record.status = "SUCCESS"
+                record.error_message = None
+                db.commit()
+                return result
+            except Exception as e:
+                record = db.query(SystemJobStatus).filter(SystemJobStatus.job_name == job_name).first()
+                if record:
+                    record.status = "FAILED"
+                    record.error_message = str(e)
+                    db.commit()
+                raise e
+            finally:
+                db.close()
+        return wrapper
+    return decorator
+
 @track_job("Fetch Financial News")
 def fetch_financial_news():
     print("[Finance Pipeline] Running Hourly News Fetcher...")
