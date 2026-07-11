@@ -79,6 +79,7 @@ class SystemJobStatus(Base):
     last_run_at = Column(DateTime)
     error_message = Column(Text, nullable=True)
     next_run_at = Column(DateTime, nullable=True)
+    last_run_summary = Column(String, nullable=True)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

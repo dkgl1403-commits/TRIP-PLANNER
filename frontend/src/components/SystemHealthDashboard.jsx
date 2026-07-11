@@ -89,7 +89,13 @@ const SystemHealthDashboard = ({ onBack }) => {
             title: 'Error Message',
             dataIndex: 'error_message',
             key: 'error_message',
-            render: (msg) => msg ? <Text type="danger">{msg}</Text> : '-'
+            render: (text) => text ? <Text type="danger">{text}</Text> : <Text type="success">None</Text>
+        },
+        {
+            title: 'Last Run Summary',
+            dataIndex: 'last_run_summary',
+            key: 'last_run_summary',
+            render: (text) => text ? <Text type="success">{text}</Text> : <Text type="secondary" italic>N/A</Text>
         }
     ];
 

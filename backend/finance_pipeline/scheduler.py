@@ -61,6 +61,8 @@ def track_job(job_name):
                 
                 record.status = "SUCCESS"
                 record.error_message = None
+                if isinstance(result, str):
+                    record.last_run_summary = result
                 db.commit()
                 return result
             except Exception as e:
@@ -97,13 +99,21 @@ def fetch_financial_news():
         
     print(f"Found {len(articles)} articles. Processing...")
     
+    total_created = 0
+    total_ignored = 0
     # Process up to 10 articles max for a test run
     for i, article in enumerate(articles[:10]):
-        process_news_chunk([article])
+        created, ignored = process_news_chunk([article])
+        total_created += created
+        total_ignored += ignored
         time.sleep(4)  # 15 RPM limit = 1 request every 4 seconds
+        
+    return f"{total_created} created / {total_ignored} ignored"
 
 def process_news_chunk(articles):
     db = SessionLocal()
+    created = 0
+    ignored = 0
     try:
         for article in articles:
             existing = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.headline == article['title']).first()
@@ -138,11 +148,14 @@ def process_news_chunk(articles):
                     )
                     db.add(news_event)
                     db.commit()
+                    created += 1
                     print(f"Processed and stored active event: {article['title']}")
                 else:
+                    ignored += 1
                     print(f"Ignored noise: {article['title']}")
                 
             except Exception as e:
+                ignored += 1
                 print(f"AI Processing error for article: {e}")
                 db.rollback()
                 if "429" in str(e):
@@ -150,6 +163,7 @@ def process_news_chunk(articles):
                     time.sleep(300)
     finally:
         db.close()
+    return created, ignored
 
 @track_job("Daily Prediction Job")
 def daily_prediction_job():
@@ -223,6 +237,7 @@ def daily_prediction_job():
         db.add(prediction)
         db.commit()
         print(f"Daily Prediction Saved: {total_predicted_percent:.2f}%")
+        return f"1 created (Predicted: {total_predicted_percent:.2f}%) / 0 updated"
     except Exception as e:
         print(f"Prediction Job Failed: {e}")
         db.rollback()
@@ -234,9 +249,13 @@ def feedback_job():
     print("[Finance Pipeline] Running Feedback Job (ML Retraining)...")
     try:
         from finance_pipeline.ml_model import train_causal_model
-        train_causal_model()
+        metrics = train_causal_model()
+        if metrics:
+            return f"Model Retrained (MSE: {metrics.get('mse', 0):.4f})"
+        return "Model Retrained"
     except Exception as e:
         print(f"Feedback/Retraining Job Failed: {e}")
+        raise e
 
 @track_job("Historical Backfill Job")
 def historical_backfill_job():
@@ -244,9 +263,13 @@ def historical_backfill_job():
     try:
         from finance_pipeline.backfill_historical_data import run_backfill
         # Process 10 historical days every hour
-        run_backfill(num_days=10)
+        processed = run_backfill(num_days=10)
+        if processed:
+            return f"{processed} historical days backfilled"
+        return "No create/update (Already up to date)"
     except Exception as e:
         print(f"Historical Backfill Job Failed: {e}")
+        raise e
 
 @track_job("Daily Cleanup and History Job")
 def daily_cleanup_and_history_job():
@@ -286,6 +309,11 @@ def daily_cleanup_and_history_job():
         # 2. Automated Pruning Disabled per user request
         db.commit()
         print(f"Archived today's market EOD. Automated pruning is disabled.")
+        
+        created = 0
+        if n_open and n_close: created += 1
+        if s_open and s_close: created += 1
+        return f"{created} created (EOD Prices) / 0 updated"
     except Exception as e:
         print(f"Cleanup & History Job Failed: {e}")
         db.rollback()
