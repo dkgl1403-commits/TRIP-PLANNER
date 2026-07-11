@@ -53,6 +53,7 @@ jobs:
           scp -r frontend/dist ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/frontend/
           scp -r backend ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
           scp Data/IndianFinancialNews.csv ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/Data/
+          scp keep_alive.py ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
 
       - name: Restart Backend & Fix Permissions
         run: |
@@ -62,7 +63,9 @@ jobs:
             python3 -m pip install --upgrade pip
             pip install -r requirements.txt > pip_install.log 2>&1 || true
             pkill -f uvicorn || true
+            pkill -f keep_alive.py || true
             nohup python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
+            nohup python3 ../keep_alive.py > ../keep_alive.log 2>&1 &
             sleep 5
             mkdir -p ../frontend/dist/assets
             cat pip_install.log backend.log > ../frontend/dist/assets/log.txt
