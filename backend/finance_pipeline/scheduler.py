@@ -283,14 +283,9 @@ def daily_cleanup_and_history_job():
         except Exception as market_err:
             print(f"Failed to fetch today's market history: {market_err}")
             
-        # 2. Prune old records (> 90 days)
-        cutoff_date = get_ist_now().date() - timedelta(days=90)
-        
-        del_preds = db.query(FinancePrediction).filter(FinancePrediction.date < cutoff_date).delete()
-        del_hist = db.query(MarketIndexHistory).filter(MarketIndexHistory.date < cutoff_date).delete()
-        
+        # 2. Automated Pruning Disabled per user request
         db.commit()
-        print(f"Cleanup complete. Deleted {del_preds} old predictions, {del_hist} old history records. Added today's market EOD.")
+        print(f"Archived today's market EOD. Automated pruning is disabled.")
     except Exception as e:
         print(f"Cleanup & History Job Failed: {e}")
         db.rollback()
