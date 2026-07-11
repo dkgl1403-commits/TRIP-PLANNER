@@ -6,14 +6,13 @@ import yfinance as yf
 from sklearn.linear_model import Ridge
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db import FinanceNewsEvent, FinanceFactor
+from finance_pipeline.db import FinanceNewsEvent, FinanceFactor, SessionLocal, FinancePrediction
 from dotenv import load_dotenv
 
 load_dotenv('../.env')
 
 DATABASE_URL = os.environ.get('FINANCE_DATABASE_URL', 'sqlite:///./finance_local.db')
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def train_causal_model():
     print("[ML Engine] Starting Causal ML Training...")
@@ -31,8 +30,13 @@ def train_causal_model():
             row = {'date': event.published_at.date()}
             # Flatten factors into columns
             factors = event.extracted_factors if event.extracted_factors else {}
-            for k, v in factors.items():
-                row[k] = float(v)
+            if isinstance(factors, list):
+                for f in factors:
+                    if 'factor_name' in f and 'confidence_score' in f:
+                        row[f['factor_name']] = float(f['confidence_score'])
+            elif isinstance(factors, dict):
+                for k, v in factors.items():
+                    row[k] = float(v)
             records.append(row)
             
         df_x = pd.DataFrame(records)
