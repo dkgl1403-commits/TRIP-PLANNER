@@ -53,7 +53,7 @@ def track_job(job_name):
                     record = SystemJobStatus(job_name=job_name)
                     db.add(record)
                 record.status = "RUNNING"
-                record.last_run = datetime.utcnow()
+                record.last_run_at = datetime.utcnow()
                 db.commit()
                 
                 result = func(*args, **kwargs)
