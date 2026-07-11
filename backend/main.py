@@ -1550,8 +1550,8 @@ def get_current_indices():
         nifty = yf.Ticker("^NSEI").history(period="1d")
         sensex = yf.Ticker("^BSESN").history(period="1d")
         return {
-            "nifty50": round(nifty["Close"].iloc[-1], 2) if not nifty.empty else None,
-            "sensex": round(sensex["Close"].iloc[-1], 2) if not sensex.empty else None
+            "nifty50": float(round(nifty["Close"].iloc[-1], 2)) if not nifty.empty else None,
+            "sensex": float(round(sensex["Close"].iloc[-1], 2)) if not sensex.empty else None
         }
     except Exception as e:
         return {"error": str(e)}
