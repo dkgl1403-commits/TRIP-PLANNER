@@ -77,13 +77,13 @@ const SystemHealthDashboard = ({ onBack }) => {
             title: 'Last Run',
             dataIndex: 'last_run_at',
             key: 'last_run_at',
-            render: (date) => date ? new Date(date).toLocaleString() : <Text type="secondary" italic>Has not run since boot</Text>
+            render: (date) => date ? `${new Date(date).toLocaleString()} IST` : <Text type="secondary" italic>Has not run since boot</Text>
         },
         {
             title: 'Next Run',
             dataIndex: 'next_run_at',
             key: 'next_run_at',
-            render: (date, record) => date ? new Date(date).toLocaleString() : <Text type="secondary" italic>See Frequency</Text>
+            render: (date, record) => date ? `${new Date(date).toLocaleString()} IST` : <Text type="secondary" italic>See Frequency</Text>
         },
         {
             title: 'Error Message',

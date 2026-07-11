@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime
+from finance_pipeline.utils import get_ist_now
 from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Text, Integer
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
@@ -59,7 +60,7 @@ class HistoricalBackfillStatus(Base):
     
     date = Column(Date, primary_key=True)
     status = Column(String) # 'COMPLETED', 'FAILED'
-    processed_at = Column(DateTime, default=datetime.utcnow)
+    processed_at = Column(DateTime, default=get_ist_now)
 
 class MarketIndexHistory(Base):
     __tablename__ = "market_index_history"

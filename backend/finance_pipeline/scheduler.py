@@ -2,6 +2,7 @@ import os
 import requests
 import json
 from datetime import datetime, timedelta
+from finance_pipeline.utils import get_ist_now
 from apscheduler.schedulers.background import BackgroundScheduler
 from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction, SystemJobStatus
 import time
@@ -53,7 +54,7 @@ def track_job(job_name):
                     record = SystemJobStatus(job_name=job_name)
                     db.add(record)
                 record.status = "RUNNING"
-                record.last_run_at = datetime.utcnow()
+                record.last_run_at = get_ist_now()
                 db.commit()
                 
                 result = func(*args, **kwargs)
@@ -156,7 +157,7 @@ def daily_prediction_job():
     db = SessionLocal()
     try:
         # Get factors from the last 24 hours
-        yesterday = datetime.now() - timedelta(days=1)
+        yesterday = get_ist_now() - timedelta(days=1)
         events = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.published_at >= yesterday).all()
         
         active_factors_today = set()
@@ -211,7 +212,7 @@ def daily_prediction_job():
         nifty_predicted = (nifty_current * (1 + total_predicted_percent / 100)) if nifty_current else None
         
         prediction = FinancePrediction(
-            date=datetime.now().date(),
+            date=get_ist_now().date(),
             predicted_percent=total_predicted_percent,
             reasoning=reasoning,
             sensex_current=sensex_current,
@@ -257,7 +258,7 @@ def daily_cleanup_and_history_job():
         
         # 1. Fetch today's market history (EOD)
         try:
-            today_date = datetime.now().date()
+            today_date = get_ist_now().date()
             def get_y_data(t): 
                 res = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{t}", headers={'User-Agent': 'Mozilla/5.0'}).json()['chart']['result'][0]
                 return res['indicators']['quote'][0]['open'][0], res['indicators']['quote'][0]['close'][0]
@@ -283,7 +284,7 @@ def daily_cleanup_and_history_job():
             print(f"Failed to fetch today's market history: {market_err}")
             
         # 2. Prune old records (> 90 days)
-        cutoff_date = datetime.now().date() - timedelta(days=90)
+        cutoff_date = get_ist_now().date() - timedelta(days=90)
         
         del_preds = db.query(FinancePrediction).filter(FinancePrediction.date < cutoff_date).delete()
         del_hist = db.query(MarketIndexHistory).filter(MarketIndexHistory.date < cutoff_date).delete()

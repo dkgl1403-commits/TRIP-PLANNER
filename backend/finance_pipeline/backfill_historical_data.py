@@ -3,6 +3,7 @@ import json
 import time
 import pandas as pd
 from datetime import datetime
+from finance_pipeline.utils import get_ist_now
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -101,7 +102,7 @@ def process_single_day(target_date, articles):
         new_status = HistoricalBackfillStatus(date=datetime.strptime(target_date, "%Y-%m-%d").date(), status='COMPLETED')
         if status:
             status.status = 'COMPLETED'
-            status.processed_at = datetime.utcnow()
+            status.processed_at = get_ist_now()
         else:
             db.add(new_status)
             
