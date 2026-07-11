@@ -1619,7 +1619,7 @@ def system_health():
         ram = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         
-        uptime_seconds = int(time.time() - BOOT_TIME)
+        uptime_seconds = int(time.time() - psutil.boot_time())
         
         return {
             "server": {

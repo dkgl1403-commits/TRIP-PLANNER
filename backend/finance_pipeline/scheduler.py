@@ -247,6 +247,23 @@ def daily_cleanup_and_history_job():
         db.close()
 
 def start_scheduler():
+    # Pre-populate SystemJobStatus
+    db = SessionLocal()
+    jobs = [
+        "Fetch Financial News",
+        "Historical Backfill Job",
+        "Daily Prediction Job",
+        "Feedback Job",
+        "Daily Cleanup and History Job"
+    ]
+    for job_name in jobs:
+        record = db.query(SystemJobStatus).filter(SystemJobStatus.job_name == job_name).first()
+        if not record:
+            record = SystemJobStatus(job_name=job_name, status="SCHEDULED")
+            db.add(record)
+    db.commit()
+    db.close()
+
     scheduler = BackgroundScheduler()
     scheduler.add_job(fetch_financial_news, 'cron', minute=0)
     scheduler.add_job(historical_backfill_job, 'cron', minute=30)
