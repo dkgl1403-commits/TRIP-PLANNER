@@ -11,5 +11,6 @@ psycopg2-binary
  
 pandas
 scikit-learn
-
+apscheduler
+requests
 google-generativeai

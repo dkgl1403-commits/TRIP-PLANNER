@@ -17,10 +17,10 @@ app = FastAPI(title="Event Planner API")
 @app.on_event("startup")
 def startup_event():
     try:
-        from backend.finance_pipeline.db import init_db
+        from finance_pipeline.db import init_db
         init_db()
         
-        from backend.finance_pipeline.scheduler import start_scheduler
+        from finance_pipeline.scheduler import start_scheduler
         start_scheduler()
     except Exception as e:
         print(f"Failed to start finance scheduler: {e}")
