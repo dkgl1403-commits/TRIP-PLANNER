@@ -1557,9 +1557,10 @@ def get_current_indices():
         return {"error": str(e)}
 
 @app.get("/api/finance/history")
-def get_market_history(db: Session = Depends(get_finance_db)):
+def get_market_history():
     try:
-        from finance_pipeline.db import MarketIndexHistory
+        from finance_pipeline.db import SessionLocal, MarketIndexHistory
+        db = SessionLocal()
         records = db.query(MarketIndexHistory).order_by(MarketIndexHistory.date.asc()).all()
         history = {}
         for r in records:
