@@ -17,13 +17,17 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [currentView, setCurrentViewRaw] = useState(() => {
-    return localStorage.getItem('tripPlannerUser') ? 'dashboard' : 'login';
+    const savedView = sessionStorage.getItem('tripPlannerCurrentView');
+    return savedView ? savedView : (localStorage.getItem('tripPlannerUser') ? 'dashboard' : 'login');
   });
-  const [selectedTripId, setSelectedTripId] = useState(null);
+  const [selectedTripId, setSelectedTripId] = useState(() => {
+    return sessionStorage.getItem('tripPlannerCurrentTrip') || null;
+  });
 
-  // Wrap setCurrentView to push browser history
+  // Wrap setCurrentView to push browser history and save to session
   const setCurrentView = useCallback((view, pushHistory = true) => {
     setCurrentViewRaw(view);
+    sessionStorage.setItem('tripPlannerCurrentView', view);
     if (pushHistory && view !== 'login') {
       window.history.pushState({ view }, '', '');
     }
