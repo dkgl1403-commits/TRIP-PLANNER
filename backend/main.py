@@ -1563,7 +1563,8 @@ def get_market_history():
     try:
         from finance_pipeline.db import SessionLocal, MarketIndexHistory
         db = SessionLocal()
-        records = db.query(MarketIndexHistory).order_by(MarketIndexHistory.date.asc()).all()
+        records = db.query(MarketIndexHistory).order_by(MarketIndexHistory.date.desc()).limit(180).all()
+        records.reverse()
         history = {}
         for r in records:
             date_str = r.date.strftime("%Y-%m-%d")
