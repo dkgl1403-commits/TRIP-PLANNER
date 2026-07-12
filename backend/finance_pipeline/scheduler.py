@@ -10,7 +10,7 @@ import time
 
 import requests
 def generate_content(prompt):
-    api_key = os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
+    api_key = os.environ.get("GEMINI_API_KEY_FINANCE", os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", "")))
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
     data = {
