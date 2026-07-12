@@ -30,13 +30,13 @@ def generate_content(prompt):
 def get_ontology():
     return """
 1. Domestic Macroeconomic Factors (India)
-- dom_rbi_rate_hike, dom_rbi_rate_cut, dom_inflation_surge, dom_inflation_drop, dom_gdp_growth_beat, dom_gdp_growth_miss, dom_monsoon_surplus, dom_monsoon_deficit, dom_gst_collection_record, dom_rupee_depreciation, dom_rupee_appreciation, dom_fpi_inflow, dom_fpi_outflow
+- dom_rbi_rate_hike, dom_rbi_rate_cut, dom_inflation_surge, dom_inflation_drop, dom_gdp_growth_beat, dom_gdp_growth_miss, dom_monsoon_surplus, dom_monsoon_deficit, dom_gst_collection_record, dom_rupee_depreciation, dom_rupee_appreciation, dom_fpi_inflow, dom_fpi_outflow, dom_union_budget_announcement, dom_black_swan_health_crisis, dom_ipo_boom_liquidity, dom_mega_merger_acquisition, dom_corporate_default_scandal
 2. International Macroeconomic Factors
 - intl_us_fed_rate_hike, intl_us_fed_rate_cut, intl_us_inflation_data, intl_china_slowdown, intl_china_stimulus, intl_ecb_rate_change, intl_boj_rate_change
 3. Geopolitics & Commodities
-- geo_middle_east_conflict, geo_russia_ukraine_escalation, geo_us_china_trade_war, geo_india_border_tension, com_crude_oil_surge, com_crude_oil_crash, com_gold_price_surge, com_metal_price_surge
+- geo_middle_east_conflict, geo_russia_ukraine_escalation, geo_us_china_trade_war, geo_india_border_tension, geo_exogenous_shock, com_crude_oil_surge, com_crude_oil_crash, com_gold_price_surge, com_metal_price_surge
 4. Sector-Specific Corporate Events
-- sec_it_earnings_beat, sec_it_guidance_cut, sec_bank_npa_rise, sec_bank_credit_growth, sec_auto_sales_jump, sec_fmcg_margin_squeeze, sec_pharma_fda_approval, sec_pharma_fda_warning
+- sec_it_earnings_beat, sec_it_guidance_cut, sec_bank_npa_rise, sec_bank_credit_growth, sec_auto_sales_jump, sec_fmcg_margin_squeeze, sec_pharma_fda_approval, sec_pharma_fda_warning, sec_infra_real_estate_boom, sec_energy_power_surge
 5. Regulatory & Political
 - pol_stable_govt_mandate, pol_hung_assembly, reg_sebi_tightening, reg_govt_capex_boost, reg_fdi_limit_increase
 """
@@ -161,10 +161,10 @@ def process_news_chunk(articles):
                 active_list = json.loads(response_text)
                 
                 ontology_keys = [
-                    "dom_rbi_rate_hike", "dom_rbi_rate_cut", "dom_inflation_surge", "dom_inflation_drop", "dom_gdp_growth_beat", "dom_gdp_growth_miss", "dom_monsoon_surplus", "dom_monsoon_deficit", "dom_gst_collection_record", "dom_rupee_depreciation", "dom_rupee_appreciation", "dom_fpi_inflow", "dom_fpi_outflow",
+                    "dom_rbi_rate_hike", "dom_rbi_rate_cut", "dom_inflation_surge", "dom_inflation_drop", "dom_gdp_growth_beat", "dom_gdp_growth_miss", "dom_monsoon_surplus", "dom_monsoon_deficit", "dom_gst_collection_record", "dom_rupee_depreciation", "dom_rupee_appreciation", "dom_fpi_inflow", "dom_fpi_outflow", "dom_union_budget_announcement", "dom_black_swan_health_crisis", "dom_ipo_boom_liquidity", "dom_mega_merger_acquisition", "dom_corporate_default_scandal",
                     "intl_us_fed_rate_hike", "intl_us_fed_rate_cut", "intl_us_inflation_data", "intl_china_slowdown", "intl_china_stimulus", "intl_ecb_rate_change", "intl_boj_rate_change",
-                    "geo_middle_east_conflict", "geo_russia_ukraine_escalation", "geo_us_china_trade_war", "geo_india_border_tension", "com_crude_oil_surge", "com_crude_oil_crash", "com_gold_price_surge", "com_metal_price_surge",
-                    "sec_it_earnings_beat", "sec_it_guidance_cut", "sec_bank_npa_rise", "sec_bank_credit_growth", "sec_auto_sales_jump", "sec_fmcg_margin_squeeze", "sec_pharma_fda_approval", "sec_pharma_fda_warning",
+                    "geo_middle_east_conflict", "geo_russia_ukraine_escalation", "geo_us_china_trade_war", "geo_india_border_tension", "geo_exogenous_shock", "com_crude_oil_surge", "com_crude_oil_crash", "com_gold_price_surge", "com_metal_price_surge",
+                    "sec_it_earnings_beat", "sec_it_guidance_cut", "sec_bank_npa_rise", "sec_bank_credit_growth", "sec_auto_sales_jump", "sec_fmcg_margin_squeeze", "sec_pharma_fda_approval", "sec_pharma_fda_warning", "sec_infra_real_estate_boom", "sec_energy_power_surge",
                     "pol_stable_govt_mandate", "pol_hung_assembly", "reg_sebi_tightening", "reg_govt_capex_boost", "reg_fdi_limit_increase"
                 ]
                 
