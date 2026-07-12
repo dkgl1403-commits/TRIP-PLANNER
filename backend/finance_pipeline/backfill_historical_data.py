@@ -161,6 +161,8 @@ def run_backfill(num_days=1):
         # Rate limiting pause if processing multiple days
         if processed_count < num_days:
             time.sleep(5)
+            
+    return processed_count
 
 if __name__ == "__main__":
     print("Starting Historical Backfill Test (1 Day)...")
