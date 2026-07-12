@@ -80,10 +80,20 @@ const SystemHealthDashboard = ({ onBack }) => {
             render: (date) => date ? `${new Date(date).toLocaleString()} IST` : <Text type="secondary" italic>Has not run since boot</Text>
         },
         {
-            title: 'Next Run',
-            dataIndex: 'next_run_at',
-            key: 'next_run_at',
-            render: (date, record) => date ? `${new Date(date).toLocaleString()} IST` : <Text type="secondary" italic>See Frequency</Text>
+            title: 'End Time',
+            dataIndex: 'last_finished_at',
+            key: 'last_finished_at',
+            render: (date, record) => {
+                if (!date) return <Text type="secondary" italic>Running / Unknown</Text>;
+                const end = new Date(date);
+                const duration = record.last_run_at ? Math.round((end - new Date(record.last_run_at)) / 1000) : 0;
+                return (
+                    <div>
+                        <div>{end.toLocaleString()} IST</div>
+                        {duration > 0 && <Text type="secondary" style={{fontSize: '12px'}}>Took {duration}s</Text>}
+                    </div>
+                );
+            }
         },
         {
             title: 'Error Message',

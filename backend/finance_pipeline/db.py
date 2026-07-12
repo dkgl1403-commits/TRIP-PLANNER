@@ -78,7 +78,7 @@ class SystemJobStatus(Base):
     status = Column(String) # 'RUNNING', 'SUCCESS', 'FAILED'
     last_run_at = Column(DateTime)
     error_message = Column(Text, nullable=True)
-    next_run_at = Column(DateTime, nullable=True)
+    last_finished_at = Column(DateTime, nullable=True)
     last_run_summary = Column(String, nullable=True)
 
 def init_db():

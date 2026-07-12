@@ -60,6 +60,7 @@ def track_job(job_name):
                 result = func(*args, **kwargs)
                 
                 record.status = "SUCCESS"
+                record.last_finished_at = get_ist_now()
                 record.error_message = None
                 if isinstance(result, str):
                     record.last_run_summary = result
@@ -69,6 +70,7 @@ def track_job(job_name):
                 record = db.query(SystemJobStatus).filter(SystemJobStatus.job_name == job_name).first()
                 if record:
                     record.status = "FAILED"
+                    record.last_finished_at = get_ist_now()
                     record.error_message = str(e)
                     db.commit()
                 raise e
