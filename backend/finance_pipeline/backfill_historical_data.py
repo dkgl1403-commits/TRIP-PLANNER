@@ -80,15 +80,35 @@ def process_single_day(target_date, articles):
         Using the following exact ontology of macroeconomic factors:
         {get_ontology()}
         
-        Return a JSON object where the keys are ONLY the exact factor names from the ontology above, and the value is 1 if the event is reported/active today, and 0 otherwise. Include a key for every single factor.
-        Example: {{"dom_rbi_rate_hike": 1, "com_crude_oil_surge": 0, ...}}
+        Return a JSON array of strings containing ONLY the exact factor names from the ontology above that are reported/active today.
+        Example: ["dom_rbi_rate_hike", "com_crude_oil_surge"]
         """
         
         response_text = generate_content(prompt).strip().replace('```json', '').replace('```', '')
-        factors = json.loads(response_text)
+        active_list = json.loads(response_text)
         
-        # Check if any factor is actually active (1)
-        has_active_factors = any(value == 1 for value in factors.values())
+        ontology_keys = [
+            "dom_rbi_rate_hike", "dom_rbi_rate_cut", "dom_inflation_surge", "dom_inflation_drop", "dom_gdp_growth_beat", "dom_gdp_growth_miss", "dom_monsoon_surplus", "dom_monsoon_deficit", "dom_gst_collection_record", "dom_rupee_depreciation", "dom_rupee_appreciation", "dom_fpi_inflow", "dom_fpi_outflow",
+            "intl_us_fed_rate_hike", "intl_us_fed_rate_cut", "intl_us_inflation_data", "intl_china_slowdown", "intl_china_stimulus", "intl_ecb_rate_change", "intl_boj_rate_change",
+            "geo_middle_east_conflict", "geo_russia_ukraine_escalation", "geo_us_china_trade_war", "geo_india_border_tension", "com_crude_oil_surge", "com_crude_oil_crash", "com_gold_price_surge", "com_metal_price_surge",
+            "sec_it_earnings_beat", "sec_it_guidance_cut", "sec_bank_npa_rise", "sec_bank_credit_growth", "sec_auto_sales_jump", "sec_fmcg_margin_squeeze", "sec_pharma_fda_approval", "sec_pharma_fda_warning",
+            "pol_stable_govt_mandate", "pol_hung_assembly", "reg_sebi_tightening", "reg_govt_capex_boost", "reg_fdi_limit_increase"
+        ]
+        
+        factors = {k: 0 for k in ontology_keys}
+        has_active_factors = False
+        
+        if isinstance(active_list, list):
+            for k in active_list:
+                if k in factors:
+                    factors[k] = 1
+                    has_active_factors = True
+        elif isinstance(active_list, dict):
+            # Fallback if AI still outputs dictionary
+            for k, v in active_list.items():
+                if k in factors and v == 1:
+                    factors[k] = 1
+                    has_active_factors = True
         
         if has_active_factors:
             # Save to FinanceNewsEvent
@@ -161,9 +181,7 @@ def run_backfill(num_days=1):
         else:
             raise Exception(f"Ollama local API Error encountered for date {target_date}. Aborting batch.")
         
-        # Rate limiting pause if processing multiple days
-        if processed_count < num_days:
-            time.sleep(5)
+        # Removed rate limiting pause since we run local Ollama
             
     if processed_count > 0:
         print("Historical backfill processed new records. Triggering ML Model retraining...")
