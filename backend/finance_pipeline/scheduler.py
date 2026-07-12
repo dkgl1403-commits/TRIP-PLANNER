@@ -108,15 +108,30 @@ def fetch_financial_news():
         print("No new articles found.")
         return
         
-    print(f"Found {len(articles)} articles. Processing...")
+    print(f"Found {len(articles)} articles. Processing in batches of 10...")
     
     total_created = 0
     total_ignored = 0
-    # Process up to 100 articles max per run
-    for i, article in enumerate(articles[:100]):
-        created, ignored = process_news_chunk([article])
-        total_created += created
-        total_ignored += ignored
+    batch_size = 10
+    max_batches = 10  # 10 batches × 10 articles = 100 total
+    
+    for batch_num in range(max_batches):
+        start = batch_num * batch_size
+        end = start + batch_size
+        batch = articles[start:end]
+        if not batch:
+            break
+            
+        print(f"Processing batch {batch_num + 1}/{max_batches} ({len(batch)} articles)...")
+        for article in batch:
+            created, ignored = process_news_chunk([article])
+            total_created += created
+            total_ignored += ignored
+        
+        # Pause between batches so Ollama can free memory
+        if batch_num < max_batches - 1 and end < len(articles):
+            print(f"Batch {batch_num + 1} done. Pausing 5s before next batch...")
+            time.sleep(5)
         
     return f"{total_created} created / {total_ignored} ignored"
 
