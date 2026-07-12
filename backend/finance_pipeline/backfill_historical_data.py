@@ -7,7 +7,7 @@ from finance_pipeline.utils import get_ist_now
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db import FinanceNewsEvent, HistoricalBackfillStatus, FinancePrediction
+from finance_pipeline.db import FinanceNewsEvent, HistoricalBackfillStatus, FinancePrediction
 
 # Load environment variables
 load_dotenv('../.env')
