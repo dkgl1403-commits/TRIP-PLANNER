@@ -82,6 +82,15 @@ def track_job(job_name):
 @track_job("Fetch Financial News")
 def fetch_financial_news():
     print("[Finance Pipeline] Running Hourly News Fetcher...")
+    
+    # Skip if Ollama is unavailable
+    try:
+        ollama_check = requests.get("http://localhost:11434/api/tags", timeout=5)
+        ollama_check.raise_for_status()
+    except Exception as e:
+        print(f"Ollama is not available. Skipping Fetch Financial News job: {e}")
+        return "SKIPPED: Ollama unavailable"
+    
     api_key = os.environ.get("NEWS_API_KEY")
     if not api_key:
         print("NEWS_API_KEY not found.")
@@ -108,7 +117,6 @@ def fetch_financial_news():
         created, ignored = process_news_chunk([article])
         total_created += created
         total_ignored += ignored
-        # Removed rate limit sleep since we use local Ollama
         
     return f"{total_created} created / {total_ignored} ignored"
 
@@ -198,8 +206,9 @@ def process_news_chunk(articles):
                 
             except Exception as e:
                 db.rollback()
-                print(f"AI Processing error for article. Throwing exception to mark job as FAILED. Error: {e}")
-                raise e
+                print(f"AI Processing error for article '{article.get('title', '?')}': {e}. Skipping article.")
+                ignored += 1
+                continue
     finally:
         db.close()
     return created, ignored
