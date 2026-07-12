@@ -158,7 +158,7 @@ from fastapi import BackgroundTasks
 @app.post("/api/admin/trigger-news-fetch")
 def trigger_news_fetch(background_tasks: BackgroundTasks):
     try:
-        from backend.finance_pipeline.scheduler import fetch_financial_news
+        from finance_pipeline.scheduler import fetch_financial_news
         background_tasks.add_task(fetch_financial_news)
         return {"status": "success", "message": "News fetcher triggered in background"}
     except Exception as e:
