@@ -183,7 +183,7 @@ def daily_prediction_job():
                     
         # Calculate exact mathematical prediction using db weights
         total_predicted_percent = 0.0
-        db_factors = db.query(FinanceFactor).all()
+        db_factors = db.query(FinanceFactor).filter(FinanceFactor.event_category != 'Macroeconomic Data').all()
         factor_weight_map = {f.factor_name: f.impact_weight for f in db_factors}
         
         contributing_factors = []
