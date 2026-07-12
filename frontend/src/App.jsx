@@ -53,10 +53,11 @@ function App() {
           }
         }
       } else {
-        // No state means we're at the beginning — go to dashboard if logged in
+        // No state means we're at the beginning — go to saved view or dashboard if logged in
         if (localStorage.getItem('tripPlannerUser')) {
-          setCurrentViewRaw('dashboard');
-          window.history.replaceState({ view: 'dashboard' }, '', '');
+          const savedView = sessionStorage.getItem('tripPlannerCurrentView') || 'dashboard';
+          setCurrentViewRaw(savedView);
+          window.history.replaceState({ view: savedView }, '', '');
         } else {
           setCurrentViewRaw('login');
         }
