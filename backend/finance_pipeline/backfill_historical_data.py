@@ -155,8 +155,7 @@ def run_backfill(num_days=1):
             if processed_count >= num_days:
                 break
         else:
-            print(f"Failed to process {target_date}, stopping backfill batch to prevent rate limit looping.")
-            break
+            raise Exception(f"Gemini API Error/Rate Limit encountered for date {target_date}. Aborting batch.")
         
         # Rate limiting pause if processing multiple days
         if processed_count < num_days:
