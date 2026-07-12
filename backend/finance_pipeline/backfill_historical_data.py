@@ -165,6 +165,15 @@ def run_backfill(num_days=1):
         if processed_count < num_days:
             time.sleep(5)
             
+    if processed_count > 0:
+        print("Historical backfill processed new records. Triggering ML Model retraining...")
+        try:
+            from finance_pipeline.ml_model import train_causal_model
+            train_causal_model()
+            print("ML Model retraining completed successfully.")
+        except Exception as e:
+            print(f"Failed to retrain ML model after backfill: {e}")
+            
     return processed_count
 
 if __name__ == "__main__":
