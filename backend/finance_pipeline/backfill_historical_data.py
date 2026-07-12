@@ -154,6 +154,9 @@ def run_backfill(num_days=1):
             processed_count += 1
             if processed_count >= num_days:
                 break
+        else:
+            print(f"Failed to process {target_date}, stopping backfill batch to prevent rate limit looping.")
+            break
         
         # Rate limiting pause if processing multiple days
         if processed_count < num_days:
