@@ -103,8 +103,8 @@ def fetch_financial_news():
     
     total_created = 0
     total_ignored = 0
-    # Process up to 10 articles max for a test run
-    for i, article in enumerate(articles[:10]):
+    # Process up to 100 articles max per run
+    for i, article in enumerate(articles[:100]):
         created, ignored = process_news_chunk([article])
         total_created += created
         total_ignored += ignored
