@@ -1627,7 +1627,8 @@ def system_health():
                 "status": j.status,
                 "last_run_at": j.last_run_at.isoformat() if j.last_run_at else None,
                 "error_message": j.error_message,
-                "next_run_at": j.next_run_at.isoformat() if j.next_run_at else None
+                "next_run_at": j.next_run_at.isoformat() if j.next_run_at else None,
+                "last_run_summary": j.last_run_summary
             })
             
         db.close()
