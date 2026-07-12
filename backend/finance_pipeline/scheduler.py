@@ -1,34 +1,13 @@
 import os
 import requests
 import json
-from datetime import datetime, timedelta, time as dtime
+from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import Session
 from finance_pipeline.utils import get_ist_now
 from apscheduler.schedulers.background import BackgroundScheduler
 from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction, SystemJobStatus
+from finance_pipeline.llm_router import generate_content
 import time
-
-
-import requests
-def generate_content_gemini(prompt, model_name="gemini-flash-latest"):
-    api_key = os.environ.get("GEMINI_API_KEY_FINANCE", os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", "")))
-    if not api_key:
-        raise ValueError("No Gemini API Key found in environment.")
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.1}
-    }
-    response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
-    result = response.json()
-    try:
-        return result['candidates'][0]['content']['parts'][0]['text']
-    except (KeyError, IndexError) as e:
-        print(f"Error parsing Gemini response: {result}")
-        raise e
-
 
 # Module-level constants — built once, reused everywhere
 ONTOLOGY_KEYS = [
@@ -161,40 +140,7 @@ def fetch_financial_news():
         
     return f"{created} created / {ignored} ignored"
 
-def generate_content_ollama(prompt):
-    import requests
-    url = "http://localhost:11434/api/generate"
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "model": "phi3",
-        "prompt": prompt,
-        "format": "json",
-        "stream": False,
-        "options": {
-            "temperature": 0.1
-        }
-    }
-    # 90s safety timeout — fires only if Ollama truly hangs, not for slow-but-working responses
-    response = requests.post(url, headers=headers, json=data, timeout=90)
-    response.raise_for_status()
-    result = response.json()
-    try:
-        return result['response']
-    except (KeyError, IndexError) as e:
-        print(f"Error parsing Ollama response: {result}")
-        raise e
-
-def generate_content(prompt):
-    """Try Gemini 3.5, then 2.5, then fall back to Ollama."""
-    try:
-        return generate_content_gemini(prompt, "gemini-3.5-flash")
-    except Exception as e1:
-        print(f"Gemini 3.5 failed ({e1}), trying Gemini 2.5...")
-        try:
-            return generate_content_gemini(prompt, "gemini-2.5-flash")
-        except Exception as e2:
-            print(f"Gemini 2.5 failed ({e2}), falling back to Ollama...")
-            return generate_content_ollama(prompt)
+# Logic moved to llm_router.py
 
 def process_news_chunk(articles):
     db = SessionLocal()

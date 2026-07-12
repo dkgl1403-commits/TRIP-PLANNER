@@ -12,30 +12,7 @@ from finance_pipeline.db import FinanceNewsEvent, HistoricalBackfillStatus, Fina
 # Load environment variables
 load_dotenv('../.env')
 
-# Setup Gemini
-
-import requests
-def generate_content(prompt):
-    url = "http://localhost:11434/api/generate"
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "model": "phi3",
-        "prompt": prompt,
-        "format": "json",
-        "stream": False,
-        "options": {
-            "temperature": 0.1
-        }
-    }
-    response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
-    result = response.json()
-    try:
-        return result['response']
-    except (KeyError, IndexError) as e:
-        print(f"Error parsing Ollama response: {result}")
-        raise e
-
+from finance_pipeline.llm_router import generate_content
 
 # Setup Database
 DATABASE_URL = os.environ.get('FINANCE_DATABASE_URL', 'sqlite:///./finance_local.db')
