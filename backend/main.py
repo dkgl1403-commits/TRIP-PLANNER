@@ -1506,23 +1506,53 @@ def update_user_role(target_login_id: str, requester_id: str, request: RoleUpdat
 @app.get("/api/finance/factors")
 def get_finance_factors():
     try:
-        from finance_pipeline.db import SessionLocal, FinanceFactor
+        from finance_pipeline.db import SessionLocal, FinanceNewsEvent
+        import json
         db = SessionLocal()
-        factors = db.query(FinanceFactor).order_by(FinanceFactor.impact_weight.desc()).limit(50).all()
-        return [
-            {
-                "id": f.id,
-                "domain": f.domain,
-                "geography": f.geography,
-                "event_category": f.event_category,
-                "sector_impacted": f.sector_impacted,
-                "company_size": f.company_size,
-                "factor_name": f.factor_name,
-                "impact_weight": f.impact_weight,
-                "confidence_score": f.confidence_score
-            } for f in factors
-        ]
+        
+        # Get the most recent news event that has extracted_factors
+        latest_event = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.extracted_factors != None).order_by(FinanceNewsEvent.published_at.desc()).first()
+        
+        results = []
+        if latest_event and latest_event.extracted_factors:
+            factors_dict = latest_event.extracted_factors
+            if isinstance(factors_dict, str):
+                try:
+                    factors_dict = json.loads(factors_dict)
+                except:
+                    factors_dict = {}
+                    
+            for key, val in factors_dict.items():
+                if val == 1:
+                    # Assign metadata based on prefix
+                    if key.startswith('dom_'):
+                        domain, geo = 'Domestic', 'India'
+                    elif key.startswith('intl_'):
+                        domain, geo = 'International', 'Global'
+                    elif key.startswith('geo_'):
+                        domain, geo = 'International', 'Geopolitics'
+                    elif key.startswith('com_'):
+                        domain, geo = 'International', 'Commodities'
+                    elif key.startswith('sec_'):
+                        domain, geo = 'Sectoral', 'India'
+                    elif key.startswith('pol_') or key.startswith('reg_'):
+                        domain, geo = 'Domestic', 'India'
+                    else:
+                        domain, geo = 'Other', 'Other'
+
+                    results.append({
+                        "id": key,
+                        "domain": domain,
+                        "geography": geo,
+                        "event_category": "Macroeconomic",
+                        "sector_impacted": "Broad Market",
+                        "company_size": "All",
+                        "factor_name": key,
+                        "impact_weight": 0.05
+                    })
+        return results
     except Exception as e:
+        print("Error fetching factors:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
         
 @app.get("/api/finance/predictions")
