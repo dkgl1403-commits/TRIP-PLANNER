@@ -16,20 +16,24 @@ load_dotenv('../.env')
 
 import requests
 def generate_content(prompt):
-    api_key = os.environ.get("GEMINI_API_KEY_FINANCE", os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", "")))
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = "http://localhost:11434/api/generate"
     headers = {"Content-Type": "application/json"}
     data = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.1}
+        "model": "phi3",
+        "prompt": prompt,
+        "format": "json",
+        "stream": False,
+        "options": {
+            "temperature": 0.1
+        }
     }
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()
     result = response.json()
     try:
-        return result['candidates'][0]['content']['parts'][0]['text']
+        return result['response']
     except (KeyError, IndexError) as e:
-        print(f"Error parsing Gemini response: {result}")
+        print(f"Error parsing Ollama response: {result}")
         raise e
 
 
@@ -155,7 +159,7 @@ def run_backfill(num_days=1):
             if processed_count >= num_days:
                 break
         else:
-            raise Exception(f"Gemini API Error/Rate Limit encountered for date {target_date}. Aborting batch.")
+            raise Exception(f"Ollama local API Error encountered for date {target_date}. Aborting batch.")
         
         # Rate limiting pause if processing multiple days
         if processed_count < num_days:
