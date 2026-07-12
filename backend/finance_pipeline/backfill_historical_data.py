@@ -59,6 +59,12 @@ def get_ontology():
 def process_single_day(target_date, articles):
     db = SessionLocal()
     try:
+        # Check if already processed by the API backfill
+        status = db.query(HistoricalBackfillStatus).filter(HistoricalBackfillStatus.date == datetime.strptime(target_date, "%Y-%m-%d").date()).first()
+        if status and status.status == 'COMPLETED':
+            print(f"Date {target_date} already processed by EODHD API backfill.")
+            return True
+
         print(f"Processing {len(articles)} articles for {target_date}...")
         
         prompt = f"""
