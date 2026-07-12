@@ -59,12 +59,6 @@ def get_ontology():
 def process_single_day(target_date, articles):
     db = SessionLocal()
     try:
-        # Check if already processed
-        status = db.query(HistoricalBackfillStatus).filter(HistoricalBackfillStatus.date == datetime.strptime(target_date, "%Y-%m-%d").date()).first()
-        if status and status.status == 'COMPLETED':
-            print(f"Date {target_date} already processed.")
-            return True
-
         print(f"Processing {len(articles)} articles for {target_date}...")
         
         prompt = f"""
@@ -111,13 +105,28 @@ def process_single_day(target_date, articles):
                     has_active_factors = True
         
         if has_active_factors:
-            # Save to FinanceNewsEvent
-            news_event = FinanceNewsEvent(
-                published_at=datetime.strptime(target_date, "%Y-%m-%d"),
-                headline=f"Historical Batch for {target_date}",
-                extracted_factors=factors
-            )
-            db.add(news_event)
+            # Check if event already exists for this date
+            existing_event = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.published_at == datetime.strptime(target_date, "%Y-%m-%d")).first()
+            if existing_event:
+                # Merge factors
+                merged = existing_event.extracted_factors or {k: 0 for k in ontology_keys}
+                for k, v in factors.items():
+                    if v == 1:
+                        merged[k] = 1
+                for k in ontology_keys:
+                    if k not in merged:
+                        merged[k] = 0
+                existing_event.extracted_factors = merged
+                existing_event.headline = existing_event.headline + " + AI Backfill"
+                print(f"Merged AI factors into existing record for {target_date}")
+            else:
+                # Save new FinanceNewsEvent
+                news_event = FinanceNewsEvent(
+                    published_at=datetime.strptime(target_date, "%Y-%m-%d"),
+                    headline=f"Historical Batch for {target_date}",
+                    extracted_factors=factors
+                )
+                db.add(news_event)
             print(f"Active factors found for {target_date}. Event stored.")
         else:
             print(f"No active macro factors for {target_date}. Skipping storage.")
