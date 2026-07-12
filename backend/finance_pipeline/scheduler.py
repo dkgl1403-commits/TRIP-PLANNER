@@ -119,28 +119,44 @@ def fetch_financial_news():
         print("No new articles found.")
         return
         
-    print(f"Found {len(articles)} articles. Processing in batches of 10...")
+    print(f"Found {len(articles)} articles from API. Filtering...")
     
-    total_created = 0
-    total_ignored = 0
-    batch_size = 10
-    max_batches = 10  # 10 batches × 10 articles = 100 total
+    FINANCE_KEYWORDS = [
+        'rbi', 'inflation', 'gdp', 'monsoon', 'gst', 'rupee', 'fpi', 'budget', 'ipo', 
+        'fed', 'china', 'ecb', 'boj', 'middle east', 'russia', 'ukraine', 'trade war', 
+        'crude oil', 'gold', 'metal', 'earnings', 'npa', 'credit', 'sales', 'margin', 
+        'fda', 'infra', 'real estate', 'energy', 'sebi', 'capex', 'fdi', 'market', 
+        'stock', 'share', 'economy', 'financial', 'bank', 'nifty', 'sensex'
+    ]
     
-    for batch_num in range(max_batches):
-        start = batch_num * batch_size
-        end = start + batch_size
-        batch = articles[start:end]
-        if not batch:
-            break
-            
-        print(f"Processing batch {batch_num + 1}/{max_batches} ({len(batch)} articles)...")
-        for article in batch:
-            created, ignored = process_news_chunk([article])
-            total_created += created
-            total_ignored += ignored
-        # No inter-batch sleep — Ollama manages its own memory sequentially
+    db = SessionLocal()
+    new_relevant_articles = []
+    try:
+        for article in articles:
+            # Check if it already exists in DB
+            existing = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.headline == article['title']).first()
+            if existing:
+                continue
+                
+            # Pre-filter by checking if headline contains any finance keyword
+            headline_lower = article['title'].lower()
+            if any(keyword in headline_lower for keyword in FINANCE_KEYWORDS):
+                new_relevant_articles.append(article)
+                
+            if len(new_relevant_articles) >= 10:
+                break
+    finally:
+        db.close()
+    
+    if not new_relevant_articles:
+        print("No new relevant articles found to process.")
+        return "0 created / 0 ignored"
         
-    return f"{total_created} created / {total_ignored} ignored"
+    print(f"Processing 1 batch of {len(new_relevant_articles)} new relevant articles...")
+    
+    created, ignored = process_news_chunk(new_relevant_articles)
+        
+    return f"{created} created / {ignored} ignored"
 
 def generate_content(prompt):
     import requests
@@ -171,6 +187,7 @@ def process_news_chunk(articles):
     ignored = 0
     try:
         for article in articles:
+            # DB existence check is now done in the outer loop, but kept here for safety
             existing = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.headline == article['title']).first()
             if existing:
                 continue
