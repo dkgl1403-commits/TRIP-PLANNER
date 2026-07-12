@@ -6,7 +6,7 @@ import time
 # List of all available text generation models to round-robin
 API_MODELS = [
     "gemini-3.5-flash",
-    "gemini-3-flash",
+    "gemini-3-flash-preview",
     "gemini-2.5-flash",
     "gemini-3.1-flash-lite",
     "gemini-2.5-flash-lite",
