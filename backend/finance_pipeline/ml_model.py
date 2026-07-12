@@ -14,20 +14,54 @@ load_dotenv('../.env')
 DATABASE_URL = os.environ.get('FINANCE_DATABASE_URL', 'sqlite:///./finance_local.db')
 engine = create_engine(DATABASE_URL)
 
+from datetime import datetime, time, timedelta
+
+def get_effective_trading_date(published_at, trading_dates):
+    # If published after 15:30, it affects the NEXT day
+    target_date = published_at.date()
+    if published_at.time() > time(15, 30):
+        target_date += timedelta(days=1)
+        
+    # Find the first trading date that is >= target_date
+    for t_date in trading_dates:
+        if t_date >= target_date:
+            return t_date
+            
+    # If no future trading date exists (e.g. today after 15:30), return None
+    return None
+
 def train_causal_model():
     print("[ML Engine] Starting Causal ML Training...")
     db = SessionLocal()
     try:
-        # 1. Fetch all historical tagged events
+        # 1. Fetch Historical Market Data (Y) from DB FIRST to know valid trading days
+        history_records = db.query(MarketIndexHistory).filter(MarketIndexHistory.index_name == 'NIFTY50').order_by(MarketIndexHistory.date.asc()).all()
+        
+        if not history_records:
+            print("Failed to fetch market data from DB.")
+            return
+            
+        market_data = pd.DataFrame([{
+            'date': r.date,
+            'Close': r.close_price
+        } for r in history_records])
+        
+        trading_dates = [r.date for r in history_records]
+
+        # 2. Fetch all historical tagged events
         events = db.query(FinanceNewsEvent).all()
         if not events:
             print("No historical events found. Skipping training.")
             return
 
-        # 2. Build the Matrix (X)
+        # 3. Build the Matrix (X) mapping events to effective trading dates
         records = []
         for event in events:
-            row = {'date': event.published_at.date()}
+            effective_date = get_effective_trading_date(event.published_at, trading_dates)
+            if not effective_date:
+                continue
+                
+            row = {'date': effective_date}
             # Flatten factors into columns
             factors = event.extracted_factors if event.extracted_factors else {}
             if isinstance(factors, list):
@@ -46,18 +80,6 @@ def train_causal_model():
             
         # Group by date in case of multiple batches per day, taking max to preserve 1s
         df_x = df_x.groupby('date').max().reset_index()
-        
-        # 3. Fetch Historical Market Data (Y) from DB
-        history_records = db.query(MarketIndexHistory).filter(MarketIndexHistory.index_name == 'NIFTY50').order_by(MarketIndexHistory.date.asc()).all()
-        
-        if not history_records:
-            print("Failed to fetch market data from DB.")
-            return
-            
-        market_data = pd.DataFrame([{
-            'date': r.date,
-            'Close': r.close_price
-        } for r in history_records])
         
         # Calculate daily percentage change
         market_data['pct_change'] = market_data['Close'].pct_change() * 100

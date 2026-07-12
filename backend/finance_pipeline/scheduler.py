@@ -1,7 +1,7 @@
 import os
 import requests
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time as dtime
 from finance_pipeline.utils import get_ist_now
 from apscheduler.schedulers.background import BackgroundScheduler
 from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction, SystemJobStatus
@@ -209,9 +209,23 @@ def daily_prediction_job():
     print("[Finance Pipeline] Running Daily Prediction Job...")
     db = SessionLocal()
     try:
-        # Get factors from the last 24 hours
-        yesterday = get_ist_now() - timedelta(days=1)
-        events = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.published_at >= yesterday).all()
+        # Get factors from the last market close to now
+        now = get_ist_now()
+        if now.weekday() == 5: # Saturday
+            last_close_date = now.date() - timedelta(days=1)
+        elif now.weekday() == 6: # Sunday
+            last_close_date = now.date() - timedelta(days=2)
+        elif now.weekday() == 0 and now.time() < dtime(15, 30): # Mon before 3:30 PM
+            last_close_date = now.date() - timedelta(days=3)
+        elif now.time() < dtime(15, 30): # Tue-Fri before 3:30 PM
+            last_close_date = now.date() - timedelta(days=1)
+        else: # Mon-Fri after 3:30 PM
+            last_close_date = now.date()
+            
+        last_close = datetime.combine(last_close_date, dtime(15, 30))
+        
+        print(f"Fetching events since last market close: {last_close}")
+        events = db.query(FinanceNewsEvent).filter(FinanceNewsEvent.published_at >= last_close).all()
         
         active_factors_today = set()
         for event in events:
