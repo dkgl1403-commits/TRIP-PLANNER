@@ -106,9 +106,31 @@ def fetch_financial_news():
         created, ignored = process_news_chunk([article])
         total_created += created
         total_ignored += ignored
-        time.sleep(4)  # 15 RPM limit = 1 request every 4 seconds
+        # Removed rate limit sleep since we use local Ollama
         
     return f"{total_created} created / {total_ignored} ignored"
+
+def generate_content(prompt):
+    import requests
+    url = "http://localhost:11434/api/generate"
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "model": "phi3",
+        "prompt": prompt,
+        "format": "json",
+        "stream": False,
+        "options": {
+            "temperature": 0.1
+        }
+    }
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+    result = response.json()
+    try:
+        return result['response']
+    except (KeyError, IndexError) as e:
+        print(f"Error parsing Ollama response: {result}")
+        raise e
 
 def process_news_chunk(articles):
     db = SessionLocal()
@@ -128,17 +150,35 @@ def process_news_chunk(articles):
             Using the following exact ontology of macroeconomic factors:
             {get_ontology()}
             
-            Return a JSON object where the keys are ONLY the exact factor names from the ontology above, and the value is 1 if the event is reported/active today, and 0 otherwise. Include a key for every single factor.
-            Example: {{"dom_rbi_rate_hike": 1, "com_crude_oil_surge": 0, ...}}
+            Return a JSON array of strings containing ONLY the exact factor names from the ontology above that are reported/active today.
+            Example: ["dom_rbi_rate_hike", "com_crude_oil_surge"]
             """
             
             try:
-                response = model.generate_content(prompt)
-                response_text = response.text.strip().replace('```json', '').replace('```', '')
-                factors = json.loads(response_text)
+                response_text = generate_content(prompt).strip().replace('```json', '').replace('```', '')
+                active_list = json.loads(response_text)
                 
-                # Check if any factor is actually active (1)
-                has_active_factors = any(value == 1 for value in factors.values())
+                ontology_keys = [
+                    "dom_rbi_rate_hike", "dom_rbi_rate_cut", "dom_inflation_surge", "dom_inflation_drop", "dom_gdp_growth_beat", "dom_gdp_growth_miss", "dom_monsoon_surplus", "dom_monsoon_deficit", "dom_gst_collection_record", "dom_rupee_depreciation", "dom_rupee_appreciation", "dom_fpi_inflow", "dom_fpi_outflow",
+                    "intl_us_fed_rate_hike", "intl_us_fed_rate_cut", "intl_us_inflation_data", "intl_china_slowdown", "intl_china_stimulus", "intl_ecb_rate_change", "intl_boj_rate_change",
+                    "geo_middle_east_conflict", "geo_russia_ukraine_escalation", "geo_us_china_trade_war", "geo_india_border_tension", "com_crude_oil_surge", "com_crude_oil_crash", "com_gold_price_surge", "com_metal_price_surge",
+                    "sec_it_earnings_beat", "sec_it_guidance_cut", "sec_bank_npa_rise", "sec_bank_credit_growth", "sec_auto_sales_jump", "sec_fmcg_margin_squeeze", "sec_pharma_fda_approval", "sec_pharma_fda_warning",
+                    "pol_stable_govt_mandate", "pol_hung_assembly", "reg_sebi_tightening", "reg_govt_capex_boost", "reg_fdi_limit_increase"
+                ]
+                
+                factors = {k: 0 for k in ontology_keys}
+                has_active_factors = False
+                
+                if isinstance(active_list, list):
+                    for k in active_list:
+                        if k in factors:
+                            factors[k] = 1
+                            has_active_factors = True
+                elif isinstance(active_list, dict):
+                    for k, v in active_list.items():
+                        if k in factors and v == 1:
+                            factors[k] = 1
+                            has_active_factors = True
                 
                 if has_active_factors:
                     news_event = FinanceNewsEvent(
@@ -155,12 +195,9 @@ def process_news_chunk(articles):
                     print(f"Ignored noise: {article['title']}")
                 
             except Exception as e:
-                ignored += 1
-                print(f"AI Processing error for article: {e}")
                 db.rollback()
-                if "429" in str(e):
-                    print("Hit Rate Limit. Sleeping for 5 minutes...")
-                    time.sleep(300)
+                print(f"AI Processing error for article. Throwing exception to mark job as FAILED. Error: {e}")
+                raise e
     finally:
         db.close()
     return created, ignored
