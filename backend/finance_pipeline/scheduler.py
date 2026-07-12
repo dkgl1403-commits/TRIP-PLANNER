@@ -27,19 +27,30 @@ def generate_content(prompt):
         raise e
 
 
+# Module-level constants — built once, reused everywhere
+ONTOLOGY_KEYS = [
+    "dom_rbi_rate_hike", "dom_rbi_rate_cut", "dom_inflation_surge", "dom_inflation_drop",
+    "dom_gdp_growth_beat", "dom_gdp_growth_miss", "dom_monsoon_surplus", "dom_monsoon_deficit",
+    "dom_gst_collection_record", "dom_rupee_depreciation", "dom_rupee_appreciation",
+    "dom_fpi_inflow", "dom_fpi_outflow", "dom_union_budget_announcement",
+    "dom_black_swan_health_crisis", "dom_ipo_boom_liquidity", "dom_mega_merger_acquisition",
+    "dom_corporate_default_scandal",
+    "intl_us_fed_rate_hike", "intl_us_fed_rate_cut", "intl_us_inflation_data",
+    "intl_china_slowdown", "intl_china_stimulus", "intl_ecb_rate_change", "intl_boj_rate_change",
+    "geo_middle_east_conflict", "geo_russia_ukraine_escalation", "geo_us_china_trade_war",
+    "geo_india_border_tension", "geo_exogenous_shock",
+    "com_crude_oil_surge", "com_crude_oil_crash", "com_gold_price_surge", "com_metal_price_surge",
+    "sec_it_earnings_beat", "sec_it_guidance_cut", "sec_bank_npa_rise", "sec_bank_credit_growth",
+    "sec_auto_sales_jump", "sec_fmcg_margin_squeeze", "sec_pharma_fda_approval",
+    "sec_pharma_fda_warning", "sec_infra_real_estate_boom", "sec_energy_power_surge",
+    "pol_stable_govt_mandate", "pol_hung_assembly", "reg_sebi_tightening",
+    "reg_govt_capex_boost", "reg_fdi_limit_increase"
+]
+# Compact comma-separated string for prompt — much shorter than full ontology text
+ONTOLOGY_NAMES = ", ".join(ONTOLOGY_KEYS)
+
 def get_ontology():
-    return """
-1. Domestic Macroeconomic Factors (India)
-- dom_rbi_rate_hike, dom_rbi_rate_cut, dom_inflation_surge, dom_inflation_drop, dom_gdp_growth_beat, dom_gdp_growth_miss, dom_monsoon_surplus, dom_monsoon_deficit, dom_gst_collection_record, dom_rupee_depreciation, dom_rupee_appreciation, dom_fpi_inflow, dom_fpi_outflow, dom_union_budget_announcement, dom_black_swan_health_crisis, dom_ipo_boom_liquidity, dom_mega_merger_acquisition, dom_corporate_default_scandal
-2. International Macroeconomic Factors
-- intl_us_fed_rate_hike, intl_us_fed_rate_cut, intl_us_inflation_data, intl_china_slowdown, intl_china_stimulus, intl_ecb_rate_change, intl_boj_rate_change
-3. Geopolitics & Commodities
-- geo_middle_east_conflict, geo_russia_ukraine_escalation, geo_us_china_trade_war, geo_india_border_tension, geo_exogenous_shock, com_crude_oil_surge, com_crude_oil_crash, com_gold_price_surge, com_metal_price_surge
-4. Sector-Specific Corporate Events
-- sec_it_earnings_beat, sec_it_guidance_cut, sec_bank_npa_rise, sec_bank_credit_growth, sec_auto_sales_jump, sec_fmcg_margin_squeeze, sec_pharma_fda_approval, sec_pharma_fda_warning, sec_infra_real_estate_boom, sec_energy_power_surge
-5. Regulatory & Political
-- pol_stable_govt_mandate, pol_hung_assembly, reg_sebi_tightening, reg_govt_capex_boost, reg_fdi_limit_increase
-"""
+    return ONTOLOGY_NAMES
 
 from functools import wraps
 
@@ -127,11 +138,7 @@ def fetch_financial_news():
             created, ignored = process_news_chunk([article])
             total_created += created
             total_ignored += ignored
-        
-        # Pause between batches so Ollama can free memory
-        if batch_num < max_batches - 1 and end < len(articles):
-            print(f"Batch {batch_num + 1} done. Pausing 5s before next batch...")
-            time.sleep(5)
+        # No inter-batch sleep — Ollama manages its own memory sequentially
         
     return f"{total_created} created / {total_ignored} ignored"
 
@@ -148,7 +155,8 @@ def generate_content(prompt):
             "temperature": 0.1
         }
     }
-    response = requests.post(url, headers=headers, json=data)
+    # 90s safety timeout — fires only if Ollama truly hangs, not for slow-but-working responses
+    response = requests.post(url, headers=headers, json=data, timeout=90)
     response.raise_for_status()
     result = response.json()
     try:
@@ -167,29 +175,29 @@ def process_news_chunk(articles):
             if existing:
                 continue
 
-            prompt = f"""
-            Analyze the following financial news headline and description.
-            Headline: {article['title']}
-            Description: {article.get('description', '')}
-            
-            Using the following exact ontology of macroeconomic factors:
-            {get_ontology()}
-            
-            Return a JSON array of strings containing ONLY the exact factor names from the ontology above that are reported/active today.
-            Example: ["dom_rbi_rate_hike", "com_crude_oil_surge"]
-            """
+            # Skip articles with no useful description — avoids wasting Phi-3 time on blanks
+            desc = (article.get('description') or '').strip()
+            if not desc or desc == '[Removed]':
+                print(f"Skipping article with no description: {article.get('title', '?')}")
+                ignored += 1
+                continue
+
+            # Use compact factor names only (not full verbose ontology text)
+            prompt = f"""Analyze this financial news and identify active macroeconomic factors.
+Headline: {article['title']}
+Description: {desc}
+
+Return a JSON array of ONLY the matching factor names from this list:
+{ONTOLOGY_NAMES}
+
+Example: ["dom_rbi_rate_hike", "com_crude_oil_surge"]
+If nothing matches, return: []"""
             
             try:
                 response_text = generate_content(prompt).strip().replace('```json', '').replace('```', '')
                 active_list = json.loads(response_text)
                 
-                ontology_keys = [
-                    "dom_rbi_rate_hike", "dom_rbi_rate_cut", "dom_inflation_surge", "dom_inflation_drop", "dom_gdp_growth_beat", "dom_gdp_growth_miss", "dom_monsoon_surplus", "dom_monsoon_deficit", "dom_gst_collection_record", "dom_rupee_depreciation", "dom_rupee_appreciation", "dom_fpi_inflow", "dom_fpi_outflow", "dom_union_budget_announcement", "dom_black_swan_health_crisis", "dom_ipo_boom_liquidity", "dom_mega_merger_acquisition", "dom_corporate_default_scandal",
-                    "intl_us_fed_rate_hike", "intl_us_fed_rate_cut", "intl_us_inflation_data", "intl_china_slowdown", "intl_china_stimulus", "intl_ecb_rate_change", "intl_boj_rate_change",
-                    "geo_middle_east_conflict", "geo_russia_ukraine_escalation", "geo_us_china_trade_war", "geo_india_border_tension", "geo_exogenous_shock", "com_crude_oil_surge", "com_crude_oil_crash", "com_gold_price_surge", "com_metal_price_surge",
-                    "sec_it_earnings_beat", "sec_it_guidance_cut", "sec_bank_npa_rise", "sec_bank_credit_growth", "sec_auto_sales_jump", "sec_fmcg_margin_squeeze", "sec_pharma_fda_approval", "sec_pharma_fda_warning", "sec_infra_real_estate_boom", "sec_energy_power_surge",
-                    "pol_stable_govt_mandate", "pol_hung_assembly", "reg_sebi_tightening", "reg_govt_capex_boost", "reg_fdi_limit_increase"
-                ]
+                ontology_keys = ONTOLOGY_KEYS  # Use the module-level constant
                 
                 factors = {k: 0 for k in ontology_keys}
                 has_active_factors = False
