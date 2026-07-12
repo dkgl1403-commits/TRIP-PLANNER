@@ -125,7 +125,7 @@ def fetch_financial_news():
             if any(keyword in headline_lower for keyword in FINANCE_KEYWORDS):
                 new_relevant_articles.append(article)
                 
-            if len(new_relevant_articles) >= 10:
+            if len(new_relevant_articles) >= 50:
                 break
     finally:
         db.close()
