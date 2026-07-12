@@ -9,12 +9,12 @@ import time
 
 
 import requests
-def generate_content_gemini(prompt):
+def generate_content_gemini(prompt, model_name="gemini-flash-latest"):
     api_key = os.environ.get("GEMINI_API_KEY_FINANCE", os.environ.get("FINANCE_GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", "")))
     if not api_key:
         raise ValueError("No Gemini API Key found in environment.")
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
     data = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -185,12 +185,16 @@ def generate_content_ollama(prompt):
         raise e
 
 def generate_content(prompt):
-    """Try Gemini first. Fall back to Ollama if Gemini fails."""
+    """Try Gemini 3.5, then 2.5, then fall back to Ollama."""
     try:
-        return generate_content_gemini(prompt)
-    except Exception as e:
-        print(f"Gemini failed ({e}), falling back to Ollama...")
-        return generate_content_ollama(prompt)
+        return generate_content_gemini(prompt, "gemini-3.5-flash")
+    except Exception as e1:
+        print(f"Gemini 3.5 failed ({e1}), trying Gemini 2.5...")
+        try:
+            return generate_content_gemini(prompt, "gemini-2.5-flash")
+        except Exception as e2:
+            print(f"Gemini 2.5 failed ({e2}), falling back to Ollama...")
+            return generate_content_ollama(prompt)
 
 def process_news_chunk(articles):
     db = SessionLocal()
