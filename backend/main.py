@@ -1572,23 +1572,24 @@ def get_current_indices():
 @app.get("/api/finance/history")
 def get_market_history():
     try:
-        from finance_pipeline.db import SessionLocal, MarketIndexHistory
+        from finance_pipeline.db import SessionLocal, RawMarketDataV2
         db = SessionLocal()
-        records = db.query(MarketIndexHistory).order_by(MarketIndexHistory.date.desc()).limit(180).all()
+        records = db.query(RawMarketDataV2).order_by(RawMarketDataV2.date.desc()).limit(360).all()
+        # Since it's two tickers, we limit to 360 to get ~180 days of history
         records.reverse()
         history = {}
         for r in records:
             date_str = r.date.strftime("%Y-%m-%d")
             if date_str not in history:
                 history[date_str] = {"date": date_str}
-            if r.index_name == 'NIFTY50':
+            if r.ticker == '^NSEI':
                 history[date_str]['nifty_open'] = r.open_price
                 history[date_str]['nifty_close'] = r.close_price
-            elif r.index_name == 'SENSEX':
+            elif r.ticker == '^BSESN' or r.ticker == '^GSPC':
                 history[date_str]['sensex_open'] = r.open_price
                 history[date_str]['sensex_close'] = r.close_price
         
-        return sorted(list(history.values()), key=lambda x: x['date'])
+        return list(history.values())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
