@@ -133,29 +133,30 @@ def set_backoff():
 
 
 # ══════════════════════════════════════════════════════════════
-#  GEMINI AI HELPER
+#  OLLAMA LOCAL AI HELPER (qwen2.5-coder:7b)
 # ══════════════════════════════════════════════════════════════
 
+OLLAMA_URL  = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
+
 def ask_gemini(prompt):
-    """Send a prompt to Gemini and return the text response using raw HTTP request.
-    Raises TokenLimitError if the API quota is exhausted.
+    """Send a prompt to the local Ollama model and return the text response.
+    Runs fully locally on the server — no API key or rate limits required.
+    Still named ask_gemini for backward compatibility with the rest of the script.
     """
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key={GEMINI_API_KEY}"
+    url = f"{OLLAMA_URL}/api/generate"
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False
     }
     try:
-        resp = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
-        if resp.status_code == 429:
-            raise TokenLimitError("Token limit or rate limit exceeded")
+        resp = requests.post(url, json=payload, timeout=300)
         resp.raise_for_status()
         data = resp.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except requests.exceptions.HTTPError as e:
-        err_str = str(e).lower()
-        if "429" in err_str or "quota" in err_str:
-            raise TokenLimitError(str(e))
-        raise
+        return data["response"]
+    except requests.exceptions.ConnectionError:
+        raise Exception("Ollama service is not running. Start it with: sudo systemctl start ollama")
     except Exception as e:
         raise
 
