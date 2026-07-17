@@ -17,7 +17,7 @@ jobs:
         with:
           host: 80.225.208.24
           username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd /home/ubuntu/TRIP_Planner
             git checkout main
@@ -36,7 +36,7 @@ jobs:
         with:
           host: 80.225.208.24
           username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd /home/ubuntu/TRIP_Planner_UAT
             git checkout uat
