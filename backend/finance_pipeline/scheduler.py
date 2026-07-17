@@ -7,6 +7,10 @@ from finance_pipeline.utils import get_ist_now
 from apscheduler.schedulers.background import BackgroundScheduler
 from finance_pipeline.db import SessionLocal, FinanceFactor, FinanceNewsEvent, FinancePrediction, SystemJobStatus
 from finance_pipeline.llm_router import generate_content
+from finance_pipeline.daily_ingestion import run_daily_ingestion
+from finance_pipeline.feature_pipeline import run_feature_pipeline
+from finance_pipeline.eod_predictor import run_eod_predictor
+from finance_pipeline.monthly_trainer import run_monthly_training
 import time
 
 # Module-level constants — built once, reused everywhere
@@ -383,6 +387,26 @@ def daily_cleanup_and_history_job():
     finally:
         db.close()
 
+@track_job("V2 EOD Ingestion")
+def v2_daily_ingestion():
+    run_daily_ingestion()
+    return "V2 Ingestion Complete"
+
+@track_job("V2 Feature Pipeline")
+def v2_feature_pipeline():
+    run_feature_pipeline()
+    return "V2 Features Engineered"
+
+@track_job("V2 EOD Predictor")
+def v2_eod_predictor():
+    run_eod_predictor()
+    return "V2 Prediction Complete"
+
+@track_job("V2 Monthly Retraining")
+def v2_monthly_retraining():
+    run_monthly_training()
+    return "V2 XGBoost Retrained"
+
 def start_scheduler():
     # Pre-populate SystemJobStatus
     db = SessionLocal()
@@ -391,7 +415,11 @@ def start_scheduler():
         "Historical Backfill Job",
         "Daily Prediction Job",
         "Feedback Job",
-        "Daily Cleanup and History Job"
+        "Daily Cleanup and History Job",
+        "V2 EOD Ingestion",
+        "V2 Feature Pipeline",
+        "V2 EOD Predictor",
+        "V2 Monthly Retraining"
     ]
     for job_name in jobs:
         record = db.query(SystemJobStatus).filter(SystemJobStatus.job_name == job_name).first()
@@ -410,5 +438,12 @@ def start_scheduler():
     scheduler.add_job(daily_prediction_job, 'cron', hour=8, minute=0)
     scheduler.add_job(feedback_job, 'cron', hour=16, minute=30)
     scheduler.add_job(daily_cleanup_and_history_job, 'cron', hour=17, minute=0) # Run at 5 PM after market closes
+    
+    # V2 Jobs
+    scheduler.add_job(v2_daily_ingestion, 'cron', hour=16, minute=0)
+    scheduler.add_job(v2_feature_pipeline, 'cron', hour=16, minute=15)
+    scheduler.add_job(v2_eod_predictor, 'cron', hour=16, minute=30)
+    scheduler.add_job(v2_monthly_retraining, 'cron', day=1, hour=0, minute=0)
+    
     scheduler.start()
     print("Finance Background Scheduler started.")
