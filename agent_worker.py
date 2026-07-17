@@ -133,32 +133,90 @@ def set_backoff():
 
 
 # ══════════════════════════════════════════════════════════════
-#  OLLAMA LOCAL AI HELPER (qwen2.5-coder:7b)
+#  MULTI-MODEL FALLBACK AI ROUTER
 # ══════════════════════════════════════════════════════════════
 
-OLLAMA_URL  = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_URL   = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-def ask_gemini(prompt):
-    """Send a prompt to the local Ollama model and return the text response.
-    Runs fully locally on the server — no API key or rate limits required.
-    Still named ask_gemini for backward compatibility with the rest of the script.
-    """
+GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-3-flash",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite"
+]
+
+def ask_gemini_api(model_name, prompt):
+    """Call a specific Gemini model via Google Developer API."""
+    if not GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY env var not set")
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [
+            {"parts": [{"text": prompt}]}
+        ]
+    }
+    
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    if resp.status_code == 429:
+        raise TokenLimitError(f"Rate limited on model {model_name}")
+        
+    resp.raise_for_status()
+    data = resp.json()
+    
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        raise ValueError(f"Unexpected response structure from Gemini API: {data}")
+
+def ask_ollama(prompt, context_length=4096):
+    """Call local Ollama model."""
     url = f"{OLLAMA_URL}/api/generate"
     payload = {
         "model": OLLAMA_MODEL,
         "prompt": prompt,
-        "stream": False
+        "stream": False,
+        "options": {
+            "num_ctx": context_length
+        }
     }
     try:
         resp = requests.post(url, json=payload, timeout=300)
         resp.raise_for_status()
-        data = resp.json()
-        return data["response"]
+        return resp.json()["response"]
     except requests.exceptions.ConnectionError:
         raise Exception("Ollama service is not running. Start it with: sudo systemctl start ollama")
-    except Exception as e:
-        raise
+
+def ask_ai_with_fallback(prompt, force_ollama=False, context_length=4096):
+    """Tries Gemini Cloud models sequentially, falling back to Ollama if all fail."""
+    if force_ollama or not GEMINI_API_KEY:
+        log.info(f"[ROUTER] Route directly to local Ollama (force={force_ollama}, api_key_set={bool(GEMINI_API_KEY)})")
+        return ask_ollama(prompt, context_length=context_length)
+        
+    for model in GEMINI_MODELS:
+        try:
+            log.info(f"[ROUTER] Attempting Gemini API: {model}")
+            result = ask_gemini_api(model, prompt)
+            log.info(f"[ROUTER] Success with {model}")
+            return result
+        except TokenLimitError as e:
+            log.warning(f"[ROUTER] Rate limit/quota exceeded on {model}: {e}. Retrying next model...")
+        except Exception as e:
+            log.error(f"[ROUTER] Error on {model}: {e}. Retrying next model...")
+            
+    # All Gemini models failed or rate limited -> fallback to Ollama
+    log.warning("[ROUTER] All Gemini Cloud models failed. Falling back to local Ollama.")
+    return ask_ollama(prompt, context_length=context_length)
+
+def ask_gemini(prompt):
+    """Fallback ask_gemini implementation for backward compatibility."""
+    return ask_ai_with_fallback(prompt)
+
+
 
 
 # ══════════════════════════════════════════════════════════════
@@ -420,8 +478,19 @@ the ticket without any further clarification.
 #  PHASE 3: IMPLEMENT THE TICKET
 # ══════════════════════════════════════════════════════════════
 
+def read_context_file():
+    """Read the codebase context file."""
+    context_path = os.path.join(WORKSPACE, "CODEBASE_CONTEXT.md")
+    if os.path.exists(context_path):
+        try:
+            with open(context_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            log.warning(f"Could not read codebase context: {e}")
+    return ""
+
 def implement_ticket(ticket_id, summary, description):
-    """Use the agent to implement code changes and create a PR."""
+    """Use the fallback AI router to implement code changes and create a PR."""
     log.info(f"[IMPLEMENTING] {ticket_id}: {summary}")
 
     # Prepare git branch
@@ -434,77 +503,164 @@ def implement_ticket(ticket_id, summary, description):
     subprocess.run(["git", "branch", "-D", branch], capture_output=True)
     subprocess.run(["git", "checkout", "-b", branch], check=True, capture_output=True)
 
-    # Get relevant source files
-    file_tree = get_project_tree()
+    # ────────────────────────────────────────────────────────
+    # Step 3A: File Discovery
+    # ────────────────────────────────────────────────────────
+    context_content = read_context_file()
+    
+    discovery_prompt = f"""
+You are a senior developer analyzing the codebase map to decide which files need to be created, modified, or deleted for a Jira ticket.
 
-    # Read key files for context (limit to avoid token overflow)
-    key_files_content = read_key_files()
+**Codebase Context:**
+{context_content}
 
-    prompt = f"""
-You are an expert developer working on the TRIP Planner project.
-The codebase is at: {WORKSPACE}
+**Jira Ticket:**
+- ID: {ticket_id}
+- Title: {summary}
+- Description: {description}
 
-**Tech Stack:**
-- Frontend: React 18 + Vite + Ant Design, located in frontend/src/
-- Backend: FastAPI + Python, located in backend/
-- Database: PostgreSQL with SQLAlchemy ORM, models in backend/finance_pipeline/db.py
-- Deployed on Oracle Cloud (Ubuntu), served by Nginx
+**Your Task:**
+Identify the exact file paths relative to the repository root that must be created, modified, or deleted to fully implement this ticket.
 
-**Project Structure:**
-{file_tree}
-
-**Key Files Content:**
-{key_files_content}
-
-**Jira Ticket {ticket_id}:**
-Title: {summary}
-Description:
-{description}
-
-**Instructions:**
-1. Read any additional files you need using the file paths above.
-2. Implement ALL the changes required by this ticket.
-3. Follow the existing code patterns and style.
-4. After making changes, stage all modified files with `git add -A`.
-5. Commit with message: "{ticket_id}: {summary}"
-6. List every file you changed and what you did.
-
-Output your response as JSON:
+Respond in this EXACT JSON format:
 {{
-    "changes": [
-        {{"file": "path/to/file", "action": "modified|created|deleted", "summary": "what changed"}}
-    ],
-    "commit_message": "{ticket_id}: brief description",
-    "notes": "Any notes about the implementation"
+    "files_to_edit": [
+        {{
+            "path": "relative/path/to/file",
+            "action": "modify"  // "modify", "create", or "delete"
+        }}
+    ]
 }}
+Do not write anything else besides this JSON block.
 """
     try:
-        ai_response = ask_gemini(prompt)
-    except TokenLimitError as e:
-        log.error(f"[TOKEN LIMIT] on {ticket_id}: {e}")
-        jira_add_comment(ticket_id, "🤖 *AI Agent — Token Limit Reached*\n\nI am currently rate-limited by the Gemini API. I will not move the status of this ticket and will try again in an hour.")
-        set_backoff()
-        # Ensure we switch back and clean up
+        discovery_response = ask_ai_with_fallback(discovery_prompt)
+        log.info(f"Discovery response: {discovery_response}")
+        
+        # Parse discovery response JSON
+        json_str = discovery_response
+        if "```json" in json_str:
+            json_str = json_str.split("```json")[1].split("```")[0]
+        elif "```" in json_str:
+            json_str = json_str.split("```")[1].split("```")[0]
+        discovery_data = json.loads(json_str.strip())
+        files_to_edit = discovery_data.get("files_to_edit", [])
+    except Exception as e:
+        log.error(f"Failed during discovery phase: {e}")
+        # Clean up git branch and exit
         subprocess.run(["git", "checkout", "uat"], cwd=WORKSPACE, capture_output=True)
         subprocess.run(["git", "branch", "-D", branch], cwd=WORKSPACE, capture_output=True)
         raise
 
-    try:
-        log.info(f"Agent response for {ticket_id}: {ai_response[:500]}")
+    if not files_to_edit:
+        log.info(f"No files to edit discovered for {ticket_id}")
+        jira_add_comment(ticket_id, "🤖 *AI Agent — No Changes Discovered*\n\nBased on the project context, I could not identify any files needing changes. Please verify.")
+        jira_transition(ticket_id, "Done")
+        subprocess.run(["git", "checkout", "uat"], cwd=WORKSPACE)
+        return
 
-        # Stage, commit, push
+    # ────────────────────────────────────────────────────────
+    # Step 3B: Code Generation and Modification
+    # ────────────────────────────────────────────────────────
+    changes_made = []
+    
+    for file_info in files_to_edit:
+        rel_path = file_info["path"]
+        action = file_info["action"]
+        full_path = os.path.join(WORKSPACE, rel_path)
+        
+        log.info(f"Applying action '{action}' on: {rel_path}")
+        
+        if action == "delete":
+            if os.path.exists(full_path):
+                os.remove(full_path)
+                changes_made.append({"file": rel_path, "action": "deleted", "summary": "File deleted"})
+            continue
+            
+        existing_content = ""
+        if action == "modify" and os.path.exists(full_path):
+            with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+                existing_content = f.read()
+
+        # Prompt AI to write/edit code
+        edit_prompt = f"""
+You are an expert developer implementing a feature/fix for the TRIP Planner project.
+
+**Jira Ticket:**
+- ID: {ticket_id}
+- Title: {summary}
+- Description: {description}
+
+**File to {action.upper()}:**
+`{rel_path}`
+
+"""
+        if action == "modify":
+            edit_prompt += f"""
+**Existing File Content:**
+```
+{existing_content}
+```
+
+**Instructions:**
+Output the COMPLETE, FULLY REWRITTEN file content containing the implemented changes. Do not use placeholders or omit existing code that is unchanged. Preserve all functionality.
+"""
+        else:
+            edit_prompt += """
+**Instructions:**
+Generate the COMPLETE content for this new file.
+"""
+
+        edit_prompt += """
+**Response Format:**
+Respond ONLY with the complete content of the file. Do not wrap it in markdown code blocks unless the file itself is markdown. Do not add any conversational text.
+"""
+        
+        try:
+            # Pass 8k context length for potential Ollama fallback
+            new_content = ask_ai_with_fallback(edit_prompt, context_length=8192)
+            
+            cleaned_content = new_content
+            if cleaned_content.startswith("```"):
+                lines = cleaned_content.splitlines()
+                if len(lines) > 2:
+                    if lines[0].startswith("```"):
+                        lines = lines[1:]
+                    if lines[-1].strip() == "```":
+                        lines = lines[:-1]
+                    cleaned_content = "\n".join(lines)
+            
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            
+            with open(full_path, "w", encoding="utf-8") as f:
+                f.write(cleaned_content)
+                
+            changes_made.append({
+                "file": rel_path,
+                "action": "created" if action == "create" else "modified",
+                "summary": f"Updated by AI agent for {ticket_id}"
+            })
+            
+        except Exception as e:
+            log.error(f"Failed to implement changes for file {rel_path}: {e}")
+            # Clean up git branch and bubble up
+            subprocess.run(["git", "checkout", "uat"], cwd=WORKSPACE, capture_output=True)
+            subprocess.run(["git", "branch", "-D", branch], cwd=WORKSPACE, capture_output=True)
+            raise
+
+    # ────────────────────────────────────────────────────────
+    # Step 3C: Commit, Push and PR
+    # ────────────────────────────────────────────────────────
+    try:
         subprocess.run(["git", "add", "-A"], cwd=WORKSPACE, check=True)
 
-        # Check if there are actual changes
         status = subprocess.run(["git", "status", "--porcelain"],
                                 cwd=WORKSPACE, capture_output=True, text=True)
         if not status.stdout.strip():
             comment = (
-                f"🤖 *AI Agent — No Changes Needed*\n\n"
-                f"After analyzing the codebase, I determined that no code changes "
-                f"are required for this ticket. The current implementation already "
-                f"satisfies the requirements.\n\n"
-                f"_Please verify and close this ticket if you agree._"
+                f"🤖 *AI Agent — No Changes Generated*\n\n"
+                f"I processed the files but no actual diff was created on git. "
+                f"Please verify if any code changes are needed."
             )
             jira_add_comment(ticket_id, comment)
             jira_transition(ticket_id, "Done")
@@ -516,36 +672,22 @@ Output your response as JSON:
         subprocess.run(["git", "push", "origin", branch],
                         cwd=WORKSPACE, check=True)
 
-        # Create Pull Request
         pr_url = create_pull_request(branch, ticket_id, summary, description)
 
-        # Parse changes for the comment
-        changes_summary = "See PR for details."
-        try:
-            json_str = ai_response
-            if "```json" in json_str:
-                json_str = json_str.split("```json")[1].split("```")[0]
-            result = json.loads(json_str.strip())
-            if result.get("changes"):
-                rows = "\n".join(
-                    f"| {c['file']} | {c['action']} | {c['summary']} |"
-                    for c in result["changes"]
-                )
-                changes_summary = (
-                    f"|| File || Action || Summary ||\n{rows}"
-                )
-        except Exception:
-            pass
+        rows = "\n".join(
+            f"| {c['file']} | {c['action']} | {c['summary']} |"
+            for c in changes_made
+        )
+        changes_summary = f"|| File || Action || Summary ||\n{rows}"
 
         comment = (
             f"🤖 *AI Agent — Implementation Complete* ✅\n\n"
-            f"I've implemented the changes for this ticket.\n\n"
+            f"I've successfully implemented the changes on branch `{branch}` and created a PR.\n\n"
             f"*Changes Made:*\n"
             f"{changes_summary}\n\n"
             f"*Pull Request:* {pr_url if pr_url else 'Branch pushed — PR creation pending'}\n\n"
             f"---\n"
-            f"_Please review the PR and merge when ready. "
-            f"Your GitHub Actions pipeline will handle deployment._"
+            f"_Please review and merge the PR when ready. Your GitHub Actions pipeline will handle UAT deployment._"
         )
         jira_add_comment(ticket_id, comment)
         jira_transition(ticket_id, "Done")
@@ -555,13 +697,13 @@ Output your response as JSON:
         log.error(f"[FAILED] {ticket_id}: {e}")
         comment = (
             f"🤖 *AI Agent — Implementation Failed* ❌\n\n"
-            f"I encountered an error while implementing this ticket:\n\n"
+            f"I encountered an error during code checkin / PR creation:\n\n"
             f"{{code}}{str(e)}{{code}}\n\n"
             f"_This ticket needs manual attention._"
         )
         jira_add_comment(ticket_id, comment)
+    finally:
         subprocess.run(["git", "checkout", "uat"], cwd=WORKSPACE, capture_output=True)
-        subprocess.run(["git", "branch", "-D", branch], cwd=WORKSPACE, capture_output=True)
 
 
 # ══════════════════════════════════════════════════════════════
