@@ -411,11 +411,6 @@ def start_scheduler():
     # Pre-populate SystemJobStatus
     db = SessionLocal()
     jobs = [
-        "Fetch Financial News",
-        "Historical Backfill Job",
-        "Daily Prediction Job",
-        "Feedback Job",
-        "Daily Cleanup and History Job",
         "V2 EOD Ingestion",
         "V2 Feature Pipeline",
         "V2 EOD Predictor",
@@ -433,11 +428,6 @@ def start_scheduler():
     db.close()
 
     scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
-    scheduler.add_job(fetch_financial_news, 'cron', minute=0)
-    scheduler.add_job(historical_backfill_job, 'cron', minute=30)
-    scheduler.add_job(daily_prediction_job, 'cron', hour=8, minute=0)
-    scheduler.add_job(feedback_job, 'cron', hour=16, minute=30)
-    scheduler.add_job(daily_cleanup_and_history_job, 'cron', hour=17, minute=0) # Run at 5 PM after market closes
     
     # V2 Jobs
     scheduler.add_job(v2_daily_ingestion, 'cron', hour=16, minute=0)
