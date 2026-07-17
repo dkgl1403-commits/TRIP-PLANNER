@@ -129,7 +129,7 @@ function App() {
           <SystemHealthDashboard onBack={() => window.history.back()} />
         )}
         {currentView === 'finance_dashboard' && (
-          <FinanceDashboard onBack={() => window.history.back()} />
+          <FinanceDashboard onBack={() => setCurrentView('dashboard')} />
         )}
         {currentView === 'create_trip' && (
           <CreateTrip user={user} onBack={() => window.history.back()} />

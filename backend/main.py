@@ -1506,21 +1506,26 @@ def update_user_role(target_login_id: str, requester_id: str, request: RoleUpdat
 @app.get("/api/finance/factors")
 def get_finance_factors():
     try:
-        from finance_pipeline.db import SessionLocal, FinanceFactor
-        db = SessionLocal()
-        factors = db.query(FinanceFactor).filter(FinanceFactor.event_category != 'Macroeconomic Data').order_by(FinanceFactor.impact_weight.desc()).limit(50).all()
+        import joblib
+        import os
+        model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'finance_pipeline/active_xgb_model.joblib'))
+        if not os.path.exists(model_path):
+            return []
+            
+        model = joblib.load(model_path)
+        importances = model.feature_importances_
+        if hasattr(model, 'feature_names_in_'):
+            feature_names = model.feature_names_in_
+        else:
+            feature_names = [f"Factor {i}" for i in range(len(importances))]
+            
+        factors = sorted(zip(feature_names, importances), key=lambda x: x[1], reverse=True)[:10]
+        
         return [
             {
-                "id": f.id,
-                "domain": f.domain,
-                "geography": f.geography,
-                "event_category": f.event_category,
-                "sector_impacted": f.sector_impacted,
-                "company_size": f.company_size,
-                "factor_name": f.factor_name,
-                "impact_weight": f.impact_weight,
-                "confidence_score": f.confidence_score
-            } for f in factors
+                "factor_name": name,
+                "impact_weight": float(imp * 100) # percentage
+            } for name, imp in factors
         ]
     except Exception as e:
         print(f"Error fetching factors: {e}")
@@ -1529,16 +1534,18 @@ def get_finance_factors():
 @app.get("/api/finance/predictions")
 def get_finance_predictions():
     try:
-        from finance_pipeline.db import SessionLocal, FinancePrediction
+        from finance_pipeline.db import SessionLocal, V2Prediction
         db = SessionLocal()
-        predictions = db.query(FinancePrediction).order_by(FinancePrediction.date.desc()).limit(7).all()
+        predictions = db.query(V2Prediction).order_by(V2Prediction.date.desc()).limit(7).all()
         return [
             {
                 "date": p.date.strftime("%Y-%m-%d") if p.date else None,
-                "predicted_percent": p.predicted_percent,
-                "actual_percent": p.actual_percent,
-                "reasoning": p.reasoning,
-                "learning_feedback": p.learning_feedback
+                "prob_crash": p.prob_crash,
+                "prob_down": p.prob_down,
+                "prob_up": p.prob_up,
+                "prob_boom": p.prob_boom,
+                "signal": p.signal,
+                "confidence": p.confidence
             } for p in predictions
         ]
     except Exception as e:
@@ -1547,14 +1554,17 @@ def get_finance_predictions():
 @app.get("/api/finance/indices")
 def get_current_indices():
     try:
-        import requests
-        def get_yahoo(t):
-            res = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{t}", headers={'User-Agent': 'Mozilla/5.0'}).json()
-            return res['chart']['result'][0]['meta']['regularMarketPrice']
+        from finance_pipeline.db import SessionLocal, RawMarketDataV2
+        db = SessionLocal()
+        nifty = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^NSEI').order_by(RawMarketDataV2.date.desc()).first()
+        sensex = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^GSPC').order_by(RawMarketDataV2.date.desc()).first() # Just use GSPC for testing or another proxy
+        
+        n_close = nifty.close_price if nifty else 0.0
+        s_close = sensex.close_price if sensex else 0.0
         
         return {
-            "nifty50": float(round(get_yahoo("^NSEI"), 2)),
-            "sensex": float(round(get_yahoo("^BSESN"), 2))
+            "nifty50": float(round(n_close, 2)),
+            "sensex": float(round(s_close, 2))
         }
     except Exception as e:
         return {"error": str(e)}

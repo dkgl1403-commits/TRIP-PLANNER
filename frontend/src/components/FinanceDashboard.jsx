@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Typography, Alert, Spin, Tag, Card, Row, Col, Statistic } from 'antd';
-import { EnvironmentOutlined, BankOutlined, GlobalOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { Typography, Alert, Spin, Card, Row, Col, Statistic, Progress } from 'antd';
+import { RiseOutlined, FallOutlined, WarningOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 const { Title, Text } = Typography;
 
@@ -17,7 +17,7 @@ const FinanceDashboard = ({ onBack }) => {
         const fetchData = async () => {
             setError(null);
             try {
-                // Fetch Factors
+                // Fetch Factors (Now Feature Importances)
                 const factorRes = await fetch('/api/finance/factors');
                 if (!factorRes.ok) throw new Error("Failed to fetch factors");
                 const factorData = await factorRes.json();
@@ -49,67 +49,27 @@ const FinanceDashboard = ({ onBack }) => {
                 setLoading(false);
             }
         };
+
         fetchData();
+        const interval = setInterval(fetchData, 300000); // 5 mins
+        return () => clearInterval(interval);
     }, []);
 
-    const formatFactorName = (text) => {
-        if (!text) return text;
-        const prefixes = ['dom_', 'intl_', 'geo_', 'com_', 'sec_', 'pol_', 'reg_'];
-        let formatted = text;
-        for (const prefix of prefixes) {
-            if (formatted.startsWith(prefix)) {
-                formatted = formatted.substring(prefix.length);
-                break;
-            }
-        }
-        return formatted.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    const getSignalColor = (signal) => {
+        if (!signal) return '#8c8c8c';
+        if (signal.includes('CRASH')) return '#cf1322';
+        if (signal.includes('DOWN') || signal.includes('MILD') && signal.includes('SELL')) return '#faad14';
+        if (signal.includes('BOOM')) return '#3f8600';
+        return '#52c41a'; // BUY_MILD
     };
 
-    const columns = [
-        { 
-            title: 'Factor (Event)', 
-            dataIndex: 'factor_name', 
-            key: 'factor_name',
-            render: (text) => <Text strong>{formatFactorName(text)}</Text>
-        },
-        { 
-            title: 'Geography', 
-            dataIndex: 'geography', 
-            key: 'geography',
-            render: (geo) => <Tag icon={<EnvironmentOutlined />} color="blue">{geo}</Tag>
-        },
-        { 
-            title: 'Event Category', 
-            dataIndex: 'event_category', 
-            key: 'event_category',
-            render: (cat) => <Tag color="purple">{cat}</Tag>
-        },
-        { 
-            title: 'Sector Impacted', 
-            dataIndex: 'sector_impacted', 
-            key: 'sector_impacted',
-            render: (sec) => <Tag icon={<BankOutlined />} color="cyan">{sec}</Tag>
-        },
-        { 
-            title: 'Domain', 
-            dataIndex: 'domain', 
-            key: 'domain',
-            render: (dom) => <Tag icon={<GlobalOutlined />}>{dom}</Tag>
-        },
-        { 
-            title: 'Impact Weight', 
-            dataIndex: 'impact_weight', 
-            key: 'impact_weight', 
-            sorter: (a, b) => a.impact_weight - b.impact_weight,
-            defaultSortOrder: 'descend',
-            render: val => {
-                const weight = parseFloat(val).toFixed(2);
-                if (weight > 0) return <Text type="success">+{weight}</Text>;
-                if (weight < 0) return <Text type="danger">{weight}</Text>;
-                return <Text type="secondary">{weight}</Text>;
-            } 
-        },
-    ];
+    const getSignalIcon = (signal) => {
+        if (!signal) return null;
+        if (signal.includes('CRASH')) return <WarningOutlined />;
+        if (signal.includes('DOWN') || signal.includes('SELL')) return <FallOutlined />;
+        if (signal.includes('BOOM')) return <ThunderboltOutlined />;
+        return <RiseOutlined />;
+    };
 
     if (loading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
 
@@ -133,7 +93,7 @@ const FinanceDashboard = ({ onBack }) => {
                 >
                     ← Back to App
                 </button>
-                <Title level={2} style={{ margin: 0 }}>AI Finance Engine</Title>
+                <Title level={2} style={{ margin: 0 }}>XGBoost EOD Engine (V2)</Title>
             </div>
 
             {error && <Alert type="error" message={error} style={{ marginBottom: 24 }} />}
@@ -141,7 +101,7 @@ const FinanceDashboard = ({ onBack }) => {
             <Row gutter={24} style={{ marginBottom: '24px' }}>
                 <Col span={24} md={12}>
                     <Card 
-                        title="BSE SENSEX Prediction" 
+                        title="BSE SENSEX V2 Proxy" 
                         bordered={false}
                         style={{ 
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
@@ -151,7 +111,7 @@ const FinanceDashboard = ({ onBack }) => {
                             flexDirection: 'column'
                         }}
                     >
-                        <div style={{ height: '350px', width: '100%' }}>
+                        <div style={{ height: '250px', width: '100%' }}>
                             {history.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={history} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
@@ -162,7 +122,6 @@ const FinanceDashboard = ({ onBack }) => {
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                         />
                                         <Line type="monotone" dataKey="sensex_close" name="Close Price" stroke="#1677ff" strokeWidth={3} dot={false} activeDot={{r: 6}} />
-                                        <Line type="monotone" dataKey="sensex_open" name="Open Price" stroke="#d9d9d9" strokeWidth={2} dot={false} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -172,33 +131,31 @@ const FinanceDashboard = ({ onBack }) => {
                         {prediction && indices && indices.sensex ? (
                             <div style={{ marginTop: '16px', padding: '16px', background: '#f8f9fa', borderRadius: '8px' }}>
                                 <Statistic
-                                    title="Predicted Market Change"
-                                    value={prediction.predicted_percent || 0}
-                                    precision={2}
-                                    valueStyle={{ color: prediction.predicted_percent >= 0 ? '#3f8600' : '#cf1322' }}
-                                    prefix={prediction.predicted_percent >= 0 ? <RiseOutlined /> : <FallOutlined />}
-                                    suffix="%"
+                                    title="AI EOD Signal"
+                                    value={prediction.signal}
+                                    valueStyle={{ color: getSignalColor(prediction.signal), fontWeight: 'bold' }}
+                                    prefix={getSignalIcon(prediction.signal)}
                                 />
                                 <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #eee', paddingTop: '12px' }}>
                                     <div>
-                                        <Text type="secondary">Current Close</Text><br/>
+                                        <Text type="secondary">EOD Close</Text><br/>
                                         <Text strong>{indices.sensex.toFixed(2)}</Text>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <Text type="secondary">Predicted Close</Text><br/>
-                                        <Text strong type={prediction.predicted_percent >= 0 ? "success" : "danger"}>
-                                            {(indices.sensex * (1 + (prediction.predicted_percent / 100))).toFixed(2)}
+                                        <Text type="secondary">Signal Confidence</Text><br/>
+                                        <Text strong type="secondary">
+                                            {(prediction.confidence * 100).toFixed(1)}%
                                         </Text>
                                     </div>
                                 </div>
                             </div>
-                        ) : <Text type="secondary">Loading index data...</Text>}
+                        ) : <Text type="secondary">Loading prediction data...</Text>}
                     </Card>
                 </Col>
 
                 <Col span={24} md={12}>
                     <Card 
-                        title="NSE NIFTY 50 Prediction" 
+                        title="NSE NIFTY 50 V2 Target" 
                         bordered={false}
                         style={{ 
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
@@ -208,7 +165,7 @@ const FinanceDashboard = ({ onBack }) => {
                             flexDirection: 'column'
                         }}
                     >
-                        <div style={{ height: '350px', width: '100%' }}>
+                        <div style={{ height: '250px', width: '100%' }}>
                             {history.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={history} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
@@ -219,7 +176,6 @@ const FinanceDashboard = ({ onBack }) => {
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                         />
                                         <Line type="monotone" dataKey="nifty_close" name="Close Price" stroke="#52c41a" strokeWidth={3} dot={false} activeDot={{r: 6}} />
-                                        <Line type="monotone" dataKey="nifty_open" name="Open Price" stroke="#d9d9d9" strokeWidth={2} dot={false} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -229,83 +185,65 @@ const FinanceDashboard = ({ onBack }) => {
                         {prediction && indices && indices.nifty50 ? (
                             <div style={{ marginTop: '16px', padding: '16px', background: '#f8f9fa', borderRadius: '8px' }}>
                                 <Statistic
-                                    title="Predicted Market Change"
-                                    value={prediction.predicted_percent || 0}
-                                    precision={2}
-                                    valueStyle={{ color: prediction.predicted_percent >= 0 ? '#3f8600' : '#cf1322' }}
-                                    prefix={prediction.predicted_percent >= 0 ? <RiseOutlined /> : <FallOutlined />}
-                                    suffix="%"
+                                    title="AI EOD Signal"
+                                    value={prediction.signal}
+                                    valueStyle={{ color: getSignalColor(prediction.signal), fontWeight: 'bold' }}
+                                    prefix={getSignalIcon(prediction.signal)}
                                 />
                                 <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #eee', paddingTop: '12px' }}>
                                     <div>
-                                        <Text type="secondary">Current Close</Text><br/>
+                                        <Text type="secondary">EOD Close</Text><br/>
                                         <Text strong>{indices.nifty50.toFixed(2)}</Text>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <Text type="secondary">Predicted Close</Text><br/>
-                                        <Text strong type={prediction.predicted_percent >= 0 ? "success" : "danger"}>
-                                            {(indices.nifty50 * (1 + (prediction.predicted_percent / 100))).toFixed(2)}
+                                        <Text type="secondary">Signal Confidence</Text><br/>
+                                        <Text strong type="secondary">
+                                            {(prediction.confidence * 100).toFixed(1)}%
                                         </Text>
                                     </div>
                                 </div>
                             </div>
-                        ) : <Text type="secondary">Loading index data...</Text>}
+                        ) : <Text type="secondary">Loading prediction data...</Text>}
                     </Card>
                 </Col>
             </Row>
 
             <Row gutter={24} style={{ marginBottom: '24px' }}>
-                <Col span={24} md={12}>
+                <Col span={24}>
                     <Card 
-                        title="AI Reasoning" 
+                        title="XGBoost EOD Probability Matrix (Softmax Distribution)" 
                         bordered={false}
                         style={{ 
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
                             borderRadius: '12px',
-                            height: '100%'
                         }}
                     >
                         {prediction ? (
-                            <Text>{prediction.reasoning}</Text>
+                            <Row gutter={24}>
+                                <Col span={6}>
+                                    <Text type="secondary">Crash (&lt;-1%)</Text>
+                                    <Progress percent={parseFloat((prediction.prob_crash * 100).toFixed(1))} strokeColor="#cf1322" />
+                                </Col>
+                                <Col span={6}>
+                                    <Text type="secondary">Down (-1% to 0%)</Text>
+                                    <Progress percent={parseFloat((prediction.prob_down * 100).toFixed(1))} strokeColor="#faad14" />
+                                </Col>
+                                <Col span={6}>
+                                    <Text type="secondary">Up (0% to +1%)</Text>
+                                    <Progress percent={parseFloat((prediction.prob_up * 100).toFixed(1))} strokeColor="#52c41a" />
+                                </Col>
+                                <Col span={6}>
+                                    <Text type="secondary">Boom (&gt;+1%)</Text>
+                                    <Progress percent={parseFloat((prediction.prob_boom * 100).toFixed(1))} strokeColor="#3f8600" />
+                                </Col>
+                            </Row>
                         ) : <Text type="secondary">No predictions available for today.</Text>}
-                    </Card>
-                </Col>
-
-                <Col span={24} md={12}>
-                    <Card 
-                        title="Yesterday's Reality Check & Learning" 
-                        bordered={false}
-                        style={{ 
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
-                            borderRadius: '12px',
-                            height: '100%',
-                            background: 'linear-gradient(135deg, #f6f8fd 0%, #f1f5f9 100%)'
-                        }}
-                    >
-                        {prediction && prediction.actual_percent !== null ? (
-                            <>
-                                <Statistic
-                                    title="Actual Market Close"
-                                    value={prediction.actual_percent}
-                                    precision={2}
-                                    valueStyle={{ color: prediction.actual_percent >= 0 ? '#3f8600' : '#cf1322' }}
-                                    prefix={prediction.actual_percent >= 0 ? <RiseOutlined /> : <FallOutlined />}
-                                    suffix="%"
-                                />
-                                <div style={{ marginTop: '16px' }}>
-                                    <Text strong>AI Post-Mortem Feedback: </Text>
-                                    <Text>{prediction.learning_feedback}</Text>
-                                </div>
-                            </>
-                        ) : (
-                            <Text type="secondary">Waiting for market to close (4:00 PM) to generate feedback loop.</Text>
-                        )}
                     </Card>
                 </Col>
             </Row>
 
             <Card 
-                title="Active Macro & Micro Market Drivers" 
+                title="Top 10 Feature Importances (Walk-Forward Retraining)" 
                 bordered={false}
                 style={{ 
                     boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
@@ -314,15 +252,27 @@ const FinanceDashboard = ({ onBack }) => {
                 }}
             >
                 <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
-                    This table ranks all distinct global and domestic events extracted from recent news based on their calculated Impact Weight (a combination of media buzz and historical feedback adjustments).
+                    This bar chart represents the internal decision nodes of the `.joblib` XGBoost model. It highlights which of the 36 engineered factors (including FinBERT Sentiment and Nifty Technicals) the model relies on most heavily.
                 </Text>
-                <Table 
-                    dataSource={factors} 
-                    columns={columns} 
-                    rowKey="id" 
-                    pagination={{ pageSize: 10 }}
-                    scroll={{ x: true }}
-                />
+                
+                <div style={{ height: '400px', width: '100%' }}>
+                    {factors.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={factors} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" tickFormatter={(v) => `${v}%`} />
+                                <YAxis dataKey="factor_name" type="category" width={100} tick={{fontSize: 12}} />
+                                <RechartsTooltip 
+                                    formatter={(value) => [`${value.toFixed(2)}%`, 'Importance']}
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                />
+                                <Bar dataKey="impact_weight" fill="#1677ff" radius={[0, 4, 4, 0]} barSize={20} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <Text type="secondary">Loading feature importances...</Text>
+                    )}
+                </div>
             </Card>
         </div>
     );
