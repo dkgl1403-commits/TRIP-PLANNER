@@ -43,7 +43,7 @@ jobs:
             git pull origin uat
             cd backend
             pip3 install -r requirements.txt 2>/dev/null || true
-            bash restart_backend.sh
+            bash restart_backend_uat.sh
             cd ../frontend
             npm install && npm run build
             sudo chmod -R 755 dist/
