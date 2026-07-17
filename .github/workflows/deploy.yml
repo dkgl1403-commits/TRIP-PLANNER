@@ -1,70 +1,49 @@
-name: Deploy to Server
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, uat]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      
+      # DEPLOY TO PRODUCTION
+      - name: Deploy Production
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@v1
         with:
-          node-version: '20'
+          host: 80.225.208.24
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/TRIP_Planner
+            git checkout main
+            git pull origin main
+            cd backend
+            pip3 install -r requirements.txt 2>/dev/null || true
+            bash restart_backend.sh
+            cd ../frontend
+            npm install && npm run build
+            sudo chmod -R 755 dist/
 
-      - name: Install Dependencies & Build Frontend
-        working-directory: ./frontend
-        env:
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
-        run: |
-          npm install
-          npm run build
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      # DEPLOY TO UAT
+      - name: Deploy UAT
+        if: github.ref == 'refs/heads/uat'
+        uses: appleboy/ssh-action@v1
         with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
-          
-      - name: Add Server to Known Hosts
-        run: ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
-      - name: Create Backend .env
-        run: |
-          cat << 'EOF' > backend/.env
-          OCI_ACCESS_KEY=${{ secrets.OCI_ACCESS_KEY }}
-          OCI_SECRET_KEY=${{ secrets.OCI_SECRET_KEY }}
-          OCI_NAMESPACE=${{ secrets.OCI_NAMESPACE }}
-          OCI_REGION=${{ secrets.OCI_REGION }}
-          OCI_BUCKET_NAME=${{ secrets.OCI_BUCKET_NAME }}
-          FINANCE_DATABASE_URL=${{ secrets.FINANCE_DATABASE_URL }}
-          NEWS_API_KEY=${{ secrets.NEWS_API_KEY }}
-          GEMINI_API_KEY_FINANCE=${{ secrets.GEMINI_API_KEY_FINANCE }}
-            NEWS_API_KEY=${{ secrets.NEWS_API_KEY }}
-          EOF
-
-      - name: Deploy Frontend & Backend to Server
-        run: |
-          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p /home/ubuntu/TRIP_Planner/frontend /home/ubuntu/TRIP_Planner/Data"
-          scp -r frontend/dist ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/frontend/
-          scp -r backend ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/
-          scp Data/IndianFinancialNews.csv ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/TRIP_Planner/Data/
-
-      - name: Restart Backend & Fix Permissions
-        run: |
-          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
-            sudo chmod -R 755 /home/ubuntu/TRIP_Planner/frontend/dist
-            cd /home/ubuntu/TRIP_Planner/backend
-            python3 -m pip install --upgrade pip
-            pip install -r requirements.txt > pip_install.log 2>&1 || true
-            pkill -f uvicorn || true
-            pkill -f keep_alive.py || true
-            nohup python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
-            sleep 5
-            mkdir -p ../frontend/dist/assets
-            cat pip_install.log backend.log > ../frontend/dist/assets/log.txt
-          EOF
+          host: 80.225.208.24
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/TRIP_Planner_UAT
+            git checkout uat
+            git pull origin uat
+            cd backend
+            pip3 install -r requirements.txt 2>/dev/null || true
+            bash restart_backend.sh
+            cd ../frontend
+            npm install && npm run build
+            sudo chmod -R 755 dist/
