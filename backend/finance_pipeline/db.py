@@ -81,6 +81,36 @@ class SystemJobStatus(Base):
     last_finished_at = Column(DateTime, nullable=True)
     last_run_summary = Column(String, nullable=True)
 
+class RawMarketDataV2(Base):
+    __tablename__ = "raw_market_data_v2"
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, index=True)
+    ticker = Column(String, index=True)
+    open_price = Column(Float)
+    high_price = Column(Float)
+    low_price = Column(Float)
+    close_price = Column(Float)
+    volume = Column(Integer)
+
+class EngineeredFeaturesV2(Base):
+    __tablename__ = "engineered_features_v2"
+    date = Column(Date, primary_key=True, index=True)
+    target_ticker = Column(String, default="^NSEI")
+    features_json = Column(Text) # Storing 36 features as JSON 
+    sentiment_score = Column(Float)
+    target_label = Column(Integer)
+
+class V2Prediction(Base):
+    __tablename__ = "v2_prediction"
+    date = Column(Date, primary_key=True, index=True)
+    target_ticker = Column(String, default="^NSEI")
+    prob_crash = Column(Float)
+    prob_down = Column(Float)
+    prob_up = Column(Float)
+    prob_boom = Column(Float)
+    signal = Column(String)
+    confidence = Column(Float)
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 
