@@ -1557,14 +1557,13 @@ def get_current_indices():
         from finance_pipeline.db import SessionLocal, RawMarketDataV2
         db = SessionLocal()
         nifty = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^NSEI').order_by(RawMarketDataV2.date.desc()).first()
-        sensex = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^GSPC').order_by(RawMarketDataV2.date.desc()).first() # Just use GSPC for testing or another proxy
-        
-        n_close = nifty.close_price if nifty else 0.0
-        s_close = sensex.close_price if sensex else 0.0
+        sensex = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^BSESN').order_by(RawMarketDataV2.date.desc()).first()
         
         return {
-            "nifty50": float(round(n_close, 2)),
-            "sensex": float(round(s_close, 2))
+            "nifty50": float(round(nifty.close_price, 2)) if nifty else 0.0,
+            "nifty50_open": float(round(nifty.open_price, 2)) if nifty else 0.0,
+            "sensex": float(round(sensex.close_price, 2)) if sensex else 0.0,
+            "sensex_open": float(round(sensex.open_price, 2)) if sensex else 0.0
         }
     except Exception as e:
         return {"error": str(e)}
@@ -1585,7 +1584,7 @@ def get_market_history():
             if r.ticker == '^NSEI':
                 history[date_str]['nifty_open'] = r.open_price
                 history[date_str]['nifty_close'] = r.close_price
-            elif r.ticker == '^BSESN' or r.ticker == '^GSPC':
+            elif r.ticker == '^BSESN':
                 history[date_str]['sensex_open'] = r.open_price
                 history[date_str]['sensex_close'] = r.close_price
         
@@ -1653,6 +1652,30 @@ def system_health():
         
         uptime_seconds = int(time.time() - psutil.boot_time())
         
+        # Top processes by CPU and Memory
+        top_processes = []
+        try:
+            procs = []
+            for p in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'memory_info']):
+                try:
+                    info = p.info
+                    procs.append(info)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            # Sort by memory usage (more stable than cpu_percent on single snapshot)
+            procs.sort(key=lambda x: x.get('memory_percent', 0) or 0, reverse=True)
+            for proc in procs[:8]:
+                mem_mb = round((proc.get('memory_info').rss if proc.get('memory_info') else 0) / (1024**2), 1)
+                top_processes.append({
+                    "name": proc.get('name', 'Unknown'),
+                    "pid": proc.get('pid', 0),
+                    "cpu_percent": round(proc.get('cpu_percent', 0) or 0, 1),
+                    "memory_percent": round(proc.get('memory_percent', 0) or 0, 1),
+                    "memory_mb": mem_mb
+                })
+        except Exception:
+            pass
+        
         return {
             "server": {
                 "cpu_usage_percent": cpu_usage,
@@ -1668,7 +1691,8 @@ def system_health():
                 "size_gb": db_size_gb,
                 "top_tables": top_tables
             },
-            "jobs": job_data
+            "jobs": job_data,
+            "top_processes": top_processes
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

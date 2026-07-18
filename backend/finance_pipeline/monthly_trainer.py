@@ -7,13 +7,13 @@ import joblib
 from datetime import datetime
 from sklearn.model_selection import TimeSeriesSplit
 from xgboost import XGBClassifier
-from backend.finance_pipeline.db import EngineeredFeaturesV2, engine
+from finance_pipeline.db import EngineeredFeaturesV2, engine
 from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=engine)
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = "backend/finance_pipeline/active_xgb_model.joblib"
+MODEL_PATH = "finance_pipeline/active_xgb_model.joblib"
 
 def run_monthly_training():
     db_session = SessionLocal()

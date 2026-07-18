@@ -1,7 +1,7 @@
 import os
 import yfinance as yf
 from datetime import datetime, timedelta
-from backend.finance_pipeline.db import RawMarketDataV2, EngineeredFeaturesV2, engine
+from finance_pipeline.db import RawMarketDataV2, EngineeredFeaturesV2, engine
 from sqlalchemy.orm import sessionmaker
 import logging
 
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 PROXY_TICKERS = {
     "^NSEI": "Nifty 50",
+    "^BSESN": "BSE Sensex",
     "RELIANCE.NS": "Reliance",
     "HDFCBANK.NS": "HDFC Bank",
     "ICICIBANK.NS": "ICICI Bank",

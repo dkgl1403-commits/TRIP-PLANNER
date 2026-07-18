@@ -39,13 +39,12 @@ const SystemHealthDashboard = ({ onBack }) => {
 
     const getFrequency = (jobName) => {
         const frequencies = {
-            "Fetch Financial News": "Hourly (at :00)",
-            "Historical Backfill Job": "Hourly (at :30)",
-            "Daily Prediction Job": "Daily (08:00 AM)",
-            "Feedback Job": "Daily (04:30 PM)",
-            "Daily Cleanup and History Job": "Daily (05:00 PM)"
+            "V2 EOD Ingestion": "Daily (04:00 PM IST)",
+            "V2 Feature Pipeline": "Daily (04:15 PM IST)",
+            "V2 EOD Predictor": "Daily (04:30 PM IST)",
+            "V2 Monthly Retraining": "Monthly (1st, 02:00 AM)"
         };
-        return frequencies[jobName] || "Unknown";
+        return frequencies[jobName] || "—";
     };
 
     const columns = [
@@ -77,7 +76,7 @@ const SystemHealthDashboard = ({ onBack }) => {
             title: 'Last Run',
             dataIndex: 'last_run_at',
             key: 'last_run_at',
-            render: (date) => date ? `${new Date(date).toLocaleString()} IST` : <Text type="secondary" italic>Has not run since boot</Text>
+            render: (date) => date ? `${new Date(date).toLocaleString()} IST` : <Text type="secondary" italic>Not run yet</Text>
         },
         {
             title: 'End Time',
@@ -107,6 +106,14 @@ const SystemHealthDashboard = ({ onBack }) => {
             key: 'last_run_summary',
             render: (text) => text ? <Text type="success">{text}</Text> : <Text type="secondary" italic>N/A</Text>
         }
+    ];
+
+    const processColumns = [
+        { title: 'Process', dataIndex: 'name', key: 'name', render: (t) => <Text strong>{t}</Text> },
+        { title: 'PID', dataIndex: 'pid', key: 'pid', render: (t) => <Text type="secondary">{t}</Text> },
+        { title: 'CPU %', dataIndex: 'cpu_percent', key: 'cpu_percent', render: (v) => <Tag color={v > 50 ? 'red' : v > 10 ? 'orange' : 'green'}>{v}%</Tag> },
+        { title: 'RAM %', dataIndex: 'memory_percent', key: 'memory_percent', render: (v) => <Tag color={v > 50 ? 'red' : v > 10 ? 'orange' : 'blue'}>{v}%</Tag> },
+        { title: 'RAM (MB)', dataIndex: 'memory_mb', key: 'memory_mb', render: (v) => `${v} MB` }
     ];
 
     return (
@@ -155,6 +162,18 @@ const SystemHealthDashboard = ({ onBack }) => {
                             </Card>
                         </Col>
                     </Row>
+
+                    {healthData.top_processes && healthData.top_processes.length > 0 && (
+                        <Card title={<><DesktopOutlined /> Top Processes (by Memory)</>} style={{ marginBottom: '24px' }}>
+                            <Table
+                                dataSource={healthData.top_processes}
+                                columns={processColumns}
+                                rowKey="pid"
+                                pagination={false}
+                                size="small"
+                            />
+                        </Card>
+                    )}
 
                     <Card title={<><DatabaseOutlined /> Database Metrics</>} style={{ marginBottom: '24px' }}>
                         <Row gutter={[16, 16]}>

@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime
 from finance_pipeline.utils import get_ist_now
-from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Text, Integer
+from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Text, Integer, BigInteger
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 
@@ -90,7 +90,7 @@ class RawMarketDataV2(Base):
     high_price = Column(Float)
     low_price = Column(Float)
     close_price = Column(Float)
-    volume = Column(Integer)
+    volume = Column(BigInteger)
 
 class EngineeredFeaturesV2(Base):
     __tablename__ = "engineered_features_v2"

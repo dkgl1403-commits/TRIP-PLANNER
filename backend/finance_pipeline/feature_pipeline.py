@@ -4,7 +4,7 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from backend.finance_pipeline.db import RawMarketDataV2, EngineeredFeaturesV2, engine
+from finance_pipeline.db import RawMarketDataV2, EngineeredFeaturesV2, engine
 from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=engine)
@@ -58,6 +58,8 @@ def run_feature_pipeline():
     # We query all historical data to properly compute rolling technicals
     query = "SELECT * FROM raw_market_data_v2 ORDER BY date ASC"
     df_raw = pd.read_sql(query, con=engine)
+    if not df_raw.empty:
+        df_raw['date'] = df_raw['date'].astype(str)
     
     if df_raw.empty:
         logger.warning("No raw market data available.")

@@ -5,13 +5,13 @@ import joblib
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from backend.finance_pipeline.db import EngineeredFeaturesV2, V2Prediction, engine
+from finance_pipeline.db import EngineeredFeaturesV2, V2Prediction, engine
 from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=engine)
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = "backend/finance_pipeline/active_xgb_model.joblib"
+MODEL_PATH = "finance_pipeline/active_xgb_model.joblib"
 
 def run_eod_predictor():
     target_date = datetime.now().date()
@@ -43,6 +43,10 @@ def run_eod_predictor():
     
     # Ensure columns match training (XGBoost requires consistent feature names)
     try:
+        # Reorder features_df to match the model's expected feature names
+        if hasattr(model, 'feature_names_in_'):
+            features_df = features_df[model.feature_names_in_]
+            
         # 3. Predict Probability
         # output is array of shape (1, 4): [prob_crash, prob_down, prob_up, prob_boom]
         probs = model.predict_proba(features_df)[0]
