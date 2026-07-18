@@ -155,9 +155,11 @@ const FinanceDashboard = ({ onBack }) => {
                                 <LineChart data={history}>
                                     <CartesianGrid stroke={borderColor} strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="date" stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} />
-                                    <YAxis stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} width={50} />
+                                    {/* Dynamic Y-Axis scale to prevent flat lines. 5% padding is applied on min/max to ensure ideal range. Width adjusted to prevent text truncation. */}
+                                    <YAxis stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} width={65} domain={['dataMin - 5%', 'dataMax + 5%']} />
                                     <RechartsTooltip contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor }} />
-                                    <Line type="monotone" dataKey="sensex_close" stroke={accentColor} strokeWidth={2} dot={false} />
+                                    {/* Added connectNulls={true} to flawlessly bridge any missing/discontinuous data points in the trend line */}
+                                    <Line type="monotone" dataKey="sensex_close" stroke={accentColor} strokeWidth={2} dot={false} connectNulls={true} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -185,9 +187,11 @@ const FinanceDashboard = ({ onBack }) => {
                                 <LineChart data={history}>
                                     <CartesianGrid stroke={borderColor} strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="date" stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} />
-                                    <YAxis stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} width={50} />
+                                    {/* Dynamic Y-Axis scale to prevent flat lines. 5% padding is applied on min/max to ensure ideal range. Width adjusted to prevent text truncation. */}
+                                    <YAxis stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} width={65} domain={['dataMin - 5%', 'dataMax + 5%']} />
                                     <RechartsTooltip contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor }} />
-                                    <Line type="monotone" dataKey="nifty_close" stroke="#3fb950" strokeWidth={2} dot={false} />
+                                    {/* Added connectNulls={true} to flawlessly bridge any missing/discontinuous data points in the trend line */}
+                                    <Line type="monotone" dataKey="nifty_close" stroke="#3fb950" strokeWidth={2} dot={false} connectNulls={true} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
