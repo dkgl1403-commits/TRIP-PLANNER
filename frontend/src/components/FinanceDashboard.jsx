@@ -209,32 +209,41 @@ const FinanceDashboard = ({ onBack }) => {
             </Row>
 
             <Card 
-                title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>XGBoost EOD Probability Matrix</span>} 
+                title={<span style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>XGBoost EOD Probability Matrix</span>} 
                 bordered={false}
-                style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}`, marginBottom: '24px' }}
-                headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
+                /* FIN-10: Make background color 20% lighter than #0d1117 (adjusted from 7% lightness to 27% lightness: #314256) */
+                style={{ backgroundColor: '#314256', borderRadius: '8px', border: `1px solid ${borderColor}`, marginBottom: '24px' }}
+                headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: '#fff' }}
             >
                 {/* RESTORED: Explicit labels for brackets (e.g. <-1%) and removed size="small" to match original UI layout */}
                 {prediction ? (
                     <Row gutter={24}>
                         <Col span={6}>
-                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Crash (&lt;-1%)</Text>
-                            <Progress percent={parseFloat((prediction.prob_crash * 100).toFixed(1))} strokeColor="#f85149" trailColor={borderColor} />
+                            {/* FIN-10: Change all label colors to white for readability/contrast */}
+                            <Text style={{ color: '#fff', fontSize: '12px' }}>Crash (&lt;-1%)</Text>
+                            {/* FIN-10: Force the percentage text to be white using the format prop */}
+                            <Progress percent={parseFloat((prediction.prob_crash * 100).toFixed(1))} strokeColor="#f85149" trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
                         </Col>
                         <Col span={6}>
-                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Down (-1% to 0%)</Text>
-                            <Progress percent={parseFloat((prediction.prob_down * 100).toFixed(1))} strokeColor="#d29922" trailColor={borderColor} />
+                            {/* FIN-10: Change all label colors to white for readability/contrast */}
+                            <Text style={{ color: '#fff', fontSize: '12px' }}>Down (-1% to 0%)</Text>
+                            {/* FIN-10: Force the percentage text to be white using the format prop */}
+                            <Progress percent={parseFloat((prediction.prob_down * 100).toFixed(1))} strokeColor="#d29922" trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
                         </Col>
                         <Col span={6}>
-                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Up (0% to +1%)</Text>
-                            <Progress percent={parseFloat((prediction.prob_up * 100).toFixed(1))} strokeColor="#3fb950" trailColor={borderColor} />
+                            {/* FIN-10: Change all label colors to white for readability/contrast */}
+                            <Text style={{ color: '#fff', fontSize: '12px' }}>Up (0% to +1%)</Text>
+                            {/* FIN-10: Force the percentage text to be white using the format prop */}
+                            <Progress percent={parseFloat((prediction.prob_up * 100).toFixed(1))} strokeColor="#3fb950" trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
                         </Col>
                         <Col span={6}>
-                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Boom (&gt;+1%)</Text>
-                            <Progress percent={parseFloat((prediction.prob_boom * 100).toFixed(1))} strokeColor={accentColor} trailColor={borderColor} />
+                            {/* FIN-10: Change all label colors to white for readability/contrast */}
+                            <Text style={{ color: '#fff', fontSize: '12px' }}>Boom (&gt;+1%)</Text>
+                            {/* FIN-10: Force the percentage text to be white using the format prop */}
+                            <Progress percent={parseFloat((prediction.prob_boom * 100).toFixed(1))} strokeColor={accentColor} trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
                         </Col>
                     </Row>
-                ) : <Text style={{ color: secondaryTextColor }}>No predictions available.</Text>}
+                ) : <Text style={{ color: '#fff' }}>No predictions available.</Text>}
             </Card>
 
             <Card 
