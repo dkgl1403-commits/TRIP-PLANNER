@@ -89,44 +89,46 @@ def run_daily_ingestion():
     target_date = datetime.now()
     db_session = SessionLocal()
     
-    logger.info(f"Starting EOD ingestion for {target_date.date()}...")
-    fetch_market_data(db_session, target_date)
-    
-    # Fetch some news for Core Heavyweights to compute sentiment
-    core_tickers = ["^NSEI", "RELIANCE.NS", "HDFCBANK.NS"]
-    all_headlines = []
-    
-    for ticker in core_tickers:
-        try:
-            t = yf.Ticker(ticker)
-            news = t.news
-            for item in news:
-                title = item.get('title', '')
-                if title:
-                    all_headlines.append(title)
-        except Exception as e:
-            logger.error(f"Failed to fetch news for {ticker}: {e}")
-            
-    # Calculate mathematically strict sentiment
-    sentiment_score = get_sentiment_score(all_headlines)
-    logger.info(f"Calculated FinBERT sentiment: {sentiment_score:.4f} from {len(all_headlines)} headlines.")
-    
-    # Store sentiment score placeholder in engineered features
-    # Feature pipeline will fill the rest later
     try:
-        feat = EngineeredFeaturesV2(
-            date=target_date.date(),
-            sentiment_score=sentiment_score
-        )
-        # using merge to handle if it already exists
-        db_session.merge(feat)
-        db_session.commit()
-    except Exception as e:
-        logger.error(f"Error saving sentiment feature: {e}")
-        db_session.rollback()
+        logger.info(f"Starting EOD ingestion for {target_date.date()}...")
+        fetch_market_data(db_session, target_date)
         
-    db_session.close()
-    logger.info("Daily Ingestion Complete.")
+        # Fetch some news for Core Heavyweights to compute sentiment
+        core_tickers = ["^NSEI", "RELIANCE.NS", "HDFCBANK.NS"]
+        all_headlines = []
+        
+        for ticker in core_tickers:
+            try:
+                t = yf.Ticker(ticker)
+                news = t.news
+                for item in news:
+                    title = item.get('title', '')
+                    if title:
+                        all_headlines.append(title)
+            except Exception as e:
+                logger.error(f"Failed to fetch news for {ticker}: {e}")
+                
+        # Calculate mathematically strict sentiment
+        sentiment_score = get_sentiment_score(all_headlines)
+        logger.info(f"Calculated FinBERT sentiment: {sentiment_score:.4f} from {len(all_headlines)} headlines.")
+        
+        # Store sentiment score placeholder in engineered features
+        # Feature pipeline will fill the rest later
+        try:
+            feat = EngineeredFeaturesV2(
+                date=target_date.date(),
+                sentiment_score=sentiment_score
+            )
+            # using merge to handle if it already exists
+            db_session.merge(feat)
+            db_session.commit()
+        except Exception as e:
+            logger.error(f"Error saving sentiment feature: {e}")
+            db_session.rollback()
+            
+        logger.info("Daily Ingestion Complete.")
+    finally:
+        db_session.close()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
