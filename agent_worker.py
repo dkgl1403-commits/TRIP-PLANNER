@@ -603,30 +603,62 @@ You are an expert developer implementing a feature/fix for the TRIP Planner proj
 ```
 
 **Instructions:**
-Output the COMPLETE, FULLY REWRITTEN file content containing the implemented changes. Do not use placeholders or omit existing code that is unchanged. Preserve all functionality.
+You must provide your code edits in a search-and-replace block format, specifically focusing ONLY on the lines you want to change.
+Do NOT rewrite the entire file. Never override existing code unless absolutely necessary. Add comments to every change you make explaining why code was added or removed.
+
+Use the following format for your changes:
+<<<<
+[exact lines to replace, exactly as they appear in the existing file, including indentation]
+====
+[new lines to replace them with, including your proper comments explaining the change]
+>>>>
+
+You can provide multiple <<<< ==== >>>> blocks if you need to modify different parts of the file.
 """
         else:
             edit_prompt += """
 **Instructions:**
 Generate the COMPLETE content for this new file.
+Never override existing code unless absolutely necessary. Add comments to every change you make explaining why code was added or removed.
 """
 
         edit_prompt += """
 **Response Format:**
-Respond ONLY with the complete content of the file. Do not wrap it in markdown code blocks unless the file itself is markdown. Do not add any conversational text.
+Respond ONLY with the replacement blocks (for modify) or complete content (for create). Do not wrap your entire response in markdown code blocks, but you can use markdown within the replacement blocks if needed. Do not add any conversational text.
 """
         
         try:
             # Pass 8k context length for potential Ollama fallback
             new_content = ask_ai_with_fallback(edit_prompt, context_length=8192)
             
-            cleaned_content = new_content
-            if cleaned_content.startswith("```"):
-                lines = cleaned_content.splitlines()
-                if len(lines) > 2:
-                    if lines[0].startswith("```"):
+            if action == "modify":
+                import re
+                blocks = re.findall(r'<<<<\s*(.*?)\s*====\s*(.*?)\s*>>>>', new_content, re.DOTALL)
+                if not blocks:
+                    if "<<<<" in new_content or "====" in new_content:
+                        raise ValueError("Malformed search-and-replace blocks in AI response.")
+                    # Fallback to whole file replacement
+                    cleaned_content = new_content
+                    if cleaned_content.startswith("```"):
+                        lines = cleaned_content.splitlines()
+                        if len(lines) > 2 and lines[0].startswith("```"):
+                            lines = lines[1:]
+                        if lines and lines[-1].strip() == "```":
+                            lines = lines[:-1]
+                        cleaned_content = "\n".join(lines)
+                else:
+                    cleaned_content = existing_content
+                    for target, replacement in blocks:
+                        if target not in cleaned_content:
+                            raise ValueError(f"Could not find target block to replace. Target snippet: {target[:100]}")
+                        cleaned_content = cleaned_content.replace(target, replacement)
+            else:
+                cleaned_content = new_content
+                if cleaned_content.startswith("```"):
+                    lines = cleaned_content.splitlines()
+                    if len(lines) > 2 and lines[0].startswith("```"):
                         lines = lines[1:]
-                    if lines[-1].strip() == "```":
+                    if lines and lines[-1].strip() == "```":
                         lines = lines[:-1]
                     cleaned_content = "\n".join(lines)
             

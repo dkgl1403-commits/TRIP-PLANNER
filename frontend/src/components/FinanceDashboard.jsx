@@ -169,14 +169,25 @@ const FinanceDashboard = ({ onBack }) => {
                 style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}`, marginBottom: '24px' }}
                 headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
             >
+                {/* RESTORED: Explicit labels for brackets (e.g. <-1%) and removed size="small" to match original UI layout */}
                 {prediction ? (
                     <Row gutter={24}>
-                        {[ {label: 'Crash', val: 'prob_crash', color: '#f85149'}, {label: 'Down', val: 'prob_down', color: '#d29922'}, {label: 'Up', val: 'prob_up', color: '#3fb950'}, {label: 'Boom', val: 'prob_boom', color: accentColor} ].map(item => (
-                            <Col span={6} key={item.label}>
-                                <Text style={{ color: secondaryTextColor, fontSize: '12px', marginBottom: '8px', display: 'block' }}>{item.label}</Text>
-                                <Progress percent={parseFloat((prediction[item.val] * 100).toFixed(1))} strokeColor={item.color} trailColor={borderColor} size="small" />
-                            </Col>
-                        ))}
+                        <Col span={6}>
+                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Crash (&lt;-1%)</Text>
+                            <Progress percent={parseFloat((prediction.prob_crash * 100).toFixed(1))} strokeColor="#f85149" trailColor={borderColor} />
+                        </Col>
+                        <Col span={6}>
+                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Down (-1% to 0%)</Text>
+                            <Progress percent={parseFloat((prediction.prob_down * 100).toFixed(1))} strokeColor="#d29922" trailColor={borderColor} />
+                        </Col>
+                        <Col span={6}>
+                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Up (0% to +1%)</Text>
+                            <Progress percent={parseFloat((prediction.prob_up * 100).toFixed(1))} strokeColor="#3fb950" trailColor={borderColor} />
+                        </Col>
+                        <Col span={6}>
+                            <Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Boom (&gt;+1%)</Text>
+                            <Progress percent={parseFloat((prediction.prob_boom * 100).toFixed(1))} strokeColor={accentColor} trailColor={borderColor} />
+                        </Col>
                     </Row>
                 ) : <Text style={{ color: secondaryTextColor }}>No predictions available.</Text>}
             </Card>
@@ -189,15 +200,23 @@ const FinanceDashboard = ({ onBack }) => {
             >
                 <Text style={{ display: 'block', marginBottom: '16px', color: secondaryTextColor, fontSize: '13px' }}>Internal decision nodes of the XGBoost model.</Text>
                 <div style={{ height: '400px', width: '100%' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={factors} layout="vertical">
-                            <CartesianGrid stroke={borderColor} horizontal={false} />
-                            <XAxis type="number" stroke={secondaryTextColor} tick={{fontSize: 12}} tickFormatter={(v) => `${v}%`} />
-                            <YAxis dataKey="factor_name" type="category" stroke={secondaryTextColor} width={120} tick={{fontSize: 12, fill: secondaryTextColor}} />
-                            <RechartsTooltip contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor }} />
-                            <Bar dataKey="impact_weight" fill={accentColor} radius={[0, 4, 4, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {/* RESTORED: Added factors.length check, RechartsTooltip formatter, barSize, and chart margins */}
+                    {factors.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={factors} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                                <CartesianGrid stroke={borderColor} horizontal={false} />
+                                <XAxis type="number" stroke={secondaryTextColor} tick={{fontSize: 12}} tickFormatter={(v) => `${v}%`} />
+                                <YAxis dataKey="factor_name" type="category" stroke={secondaryTextColor} width={120} tick={{fontSize: 12, fill: secondaryTextColor}} />
+                                <RechartsTooltip 
+                                    formatter={(value) => [`${value.toFixed(2)}%`, 'Importance']}
+                                    contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor, borderRadius: '8px' }} 
+                                />
+                                <Bar dataKey="impact_weight" fill={accentColor} radius={[0, 4, 4, 0]} barSize={20} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <Text style={{ color: secondaryTextColor }}>Loading feature importances...</Text>
+                    )}
                 </div>
             </Card>
         </div>
