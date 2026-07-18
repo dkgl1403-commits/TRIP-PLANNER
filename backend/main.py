@@ -1559,11 +1559,14 @@ def get_current_indices():
         nifty = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^NSEI').order_by(RawMarketDataV2.date.desc()).first()
         sensex = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^BSESN').order_by(RawMarketDataV2.date.desc()).first()
         
+        # Return nifty and sensex open and close prices, along with the date of the market record formatted as 'YYYY-MM-DD'
         return {
             "nifty50": float(round(nifty.close_price, 2)) if nifty else 0.0,
             "nifty50_open": float(round(nifty.open_price, 2)) if nifty else 0.0,
+            "nifty50_date": nifty.date.strftime("%Y-%m-%d") if nifty and nifty.date else None,
             "sensex": float(round(sensex.close_price, 2)) if sensex else 0.0,
-            "sensex_open": float(round(sensex.open_price, 2)) if sensex else 0.0
+            "sensex_open": float(round(sensex.open_price, 2)) if sensex else 0.0,
+            "sensex_date": sensex.date.strftime("%Y-%m-%d") if sensex and sensex.date else None
         }
     except Exception as e:
         return {"error": str(e)}
