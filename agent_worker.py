@@ -404,22 +404,14 @@ The developer has now updated the description with their answers.
 {comment_history}
 
 **Your Task:**
-Review the updated description in context of your previous questions.
-Determine if you now have enough information to implement this ticket.
+Review the updated description and the comment history. 
+You must now proceed to implementation. There is a strict rule that you cannot ask any further clarifying questions, no matter how vague the answers are.
 
 Respond in this EXACT JSON format:
 {{
-    "ready_to_implement": true/false,
-    "follow_up_questions": [
-        "Any remaining question?",
-        ...
-    ],
     "final_understanding": "Your complete understanding of what needs to be built.",
     "implementation_plan": "Detailed step-by-step plan of files to create/modify."
 }}
-
-Set "ready_to_implement" to true ONLY if you are 100% confident you can implement
-the ticket without any further clarification.
 """
         try:
             ai_response = ask_gemini(prompt)
@@ -440,38 +432,21 @@ the ticket without any further clarification.
             log.error(f"Failed to parse AI response for {ticket_id}")
             continue
 
-        if result.get("ready_to_implement", False):
-            # ✅ Ready — start implementing
-            comment = (
-                f"🤖 *AI Agent — Requirements Confirmed*\n\n"
-                f"Thank you for the clarifications. I now have everything I need.\n\n"
-                f"*Final Understanding:*\n"
-                f"_{result.get('final_understanding', 'N/A')}_\n\n"
-                f"*Implementation Plan:*\n"
-                f"{result.get('implementation_plan', 'N/A')}\n\n"
-                f"---\n"
-                f"_Starting implementation now..._"
-            )
-            jira_add_comment(ticket_id, comment)
-            implement_ticket(ticket_id, summary, description)
-        else:
-            # ❓ More questions — move back to In Review
-            questions = result.get("follow_up_questions", [])
-            questions_text = "\n".join(
-                f"  {i+1}. {q}" for i, q in enumerate(questions)
-            )
-            comment = (
-                f"🤖 *AI Agent — Follow-up Questions*\n\n"
-                f"Thank you for the updates. I've reviewed the changes, "
-                f"but I still have a few questions:\n\n"
-                f"{questions_text}\n\n"
-                f"---\n"
-                f"_Please update the description and move back to *Review Done*._"
-            )
-            jira_add_comment(ticket_id, comment)
-            jira_transition(ticket_id, "In Review")
-            log.info(f"[REVIEW DONE → IN REVIEW] {ticket_id}: "
-                     f"Asked {len(questions)} follow-up questions")
+        # ✅ Ready — start implementing (No more questions allowed)
+        comment = (
+            f"🤖 *AI Agent — Requirements Confirmed*\n\n"
+            f"Thank you for the clarifications. I will proceed with implementation as strictly instructed.\n\n"
+            f"*Final Understanding:*\n"
+            f"_{result.get('final_understanding', 'N/A')}_\n\n"
+            f"*Implementation Plan:*\n"
+            f"{result.get('implementation_plan', 'N/A')}\n\n"
+            f"---\n"
+            f"_Starting implementation now..._"
+        )
+        jira_add_comment(ticket_id, comment)
+        
+        full_description = f"{description}\n\n=== Q&A Context ===\n{comment_history}"
+        implement_ticket(ticket_id, summary, full_description)
 
 
 # ══════════════════════════════════════════════════════════════
