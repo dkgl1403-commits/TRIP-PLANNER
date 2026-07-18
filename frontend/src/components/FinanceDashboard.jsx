@@ -21,6 +21,47 @@ const FinanceDashboard = ({ onBack }) => {
     const secondaryTextColor = '#8b949e';
     const accentColor = '#58a6ff';
 
+    const formatFactorName = (text) => {
+        if (!text) return text;
+        const mapping = {
+            'log_ret_^NSEI': 'Nifty 50',
+            'log_ret_^BSESN': 'Sensex',
+            'log_ret_RELIANCE.NS': 'Reliance Ind.',
+            'log_ret_HDFCBANK.NS': 'HDFC Bank',
+            'log_ret_ICICIBANK.NS': 'ICICI Bank',
+            'log_ret_INFY.NS': 'Infosys',
+            'log_ret_^INDIAVIX': 'India VIX',
+            'log_ret_^GSPC': 'S&P 500',
+            'log_ret_^NSEBANK': 'Nifty Bank',
+            'log_ret_^CNXIT': 'Nifty IT',
+            'log_ret_^CNXAUTO': 'Nifty Auto',
+            'log_ret_^CNXMETAL': 'Nifty Metal',
+            'log_ret_^TNX': 'US 10Y Yield',
+            'log_ret_DX-Y.NYB': 'US Dollar Index',
+            'log_ret_CL=F': 'Crude Oil',
+            'log_ret_HG=F': 'Copper',
+            'log_ret_GC=F': 'Gold',
+            'rsi_14': 'RSI (14)',
+            'macd_hist': 'MACD Histogram',
+            'atr_14': 'ATR (14)',
+            'bb_width': 'Bollinger Band Width',
+            'dist_200sma': 'Dist. from 200 SMA',
+            'sentiment_score': 'FinBERT Sentiment'
+        };
+        if (mapping[text]) return mapping[text];
+        
+        // Fallback for LLM v1 legacy tags
+        const prefixes = ['dom_', 'intl_', 'geo_', 'com_', 'sec_', 'pol_', 'reg_'];
+        let formatted = text;
+        for (const prefix of prefixes) {
+            if (formatted.startsWith(prefix)) {
+                formatted = formatted.substring(prefix.length);
+                break;
+            }
+        }
+        return formatted.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             setError(null);
@@ -206,9 +247,10 @@ const FinanceDashboard = ({ onBack }) => {
                             <BarChart data={factors} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
                                 <CartesianGrid stroke={borderColor} horizontal={false} />
                                 <XAxis type="number" stroke={secondaryTextColor} tick={{fontSize: 12}} tickFormatter={(v) => `${v}%`} />
-                                <YAxis dataKey="factor_name" type="category" stroke={secondaryTextColor} width={120} tick={{fontSize: 12, fill: secondaryTextColor}} />
+                                <YAxis dataKey="factor_name" type="category" stroke={secondaryTextColor} width={120} tick={{fontSize: 12, fill: secondaryTextColor}} tickFormatter={formatFactorName} />
                                 <RechartsTooltip 
                                     formatter={(value) => [`${value.toFixed(2)}%`, 'Importance']}
+                                    labelFormatter={(label) => formatFactorName(label)}
                                     contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor, borderRadius: '8px' }} 
                                 />
                                 <Bar dataKey="impact_weight" fill={accentColor} radius={[0, 4, 4, 0]} barSize={20} />
