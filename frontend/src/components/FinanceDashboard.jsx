@@ -15,7 +15,8 @@ const FinanceDashboard = ({ onBack }) => {
 
     // Refined Dark Professional Financial Palette
     const darkNavy = '#010409'; 
-    const cardBg = '#0d1117';   
+    // FIN-11: Updated cardBg to '#314256' (20% lighter lightness) to match the XGBoost Probability Matrix card color
+    const cardBg = '#314256';   
     const borderColor = '#30363d';
     const textColor = '#e6edf3';
     const secondaryTextColor = '#8b949e';
