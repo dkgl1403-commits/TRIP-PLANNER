@@ -1,0 +1,4 @@
+agent_worker.py merge=ours
+install_and_run_agent.py merge=ours
+check_agent_result.py merge=ours
+test_jira_issue.py merge=ours
