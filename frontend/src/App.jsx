@@ -8,6 +8,7 @@ import AiCreateTrip from './components/AiCreateTrip'
 import AdminDashboard from './components/AdminDashboard'
 import FinanceDashboard from './components/FinanceDashboard'
 import SystemHealthDashboard from './components/SystemHealthDashboard'
+import GlobalExpenseDashboard from './components/GlobalExpenseDashboard'
 import Header from './components/Header'
 import { ToastProvider } from './components/Toast'
 
@@ -134,6 +135,10 @@ function App() {
             onCreateTrip={() => setCurrentView('create_trip')}
             onAiPlanTrip={() => setCurrentView('ai_create_trip')}
             onViewTrip={handleViewTrip}
+            onOpenGlobalExpenses={() => {
+              setCurrentViewRaw('global-expenses');
+              window.history.pushState({ view: 'global-expenses' }, '', '');
+            }}
           />
         )}
         {currentView === 'admin_dashboard' && (
@@ -153,6 +158,9 @@ function App() {
         )}
         {currentView === 'view_trip' && (
           <TripDetails tripId={selectedTripId} onBack={() => window.history.back()} user={user} />
+        )}
+        {currentView === 'global-expenses' && (
+          <GlobalExpenseDashboard user={user} onBack={() => window.history.back()} />
         )}
         {currentView === 'login' && (
           <Login theme={theme} onLoginSuccess={handleLoginSuccess} />

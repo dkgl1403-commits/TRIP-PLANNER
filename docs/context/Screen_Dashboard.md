@@ -10,12 +10,17 @@ This document covers the main dashboard view, trips summary, saved locations, an
   Props:    `user`, `onLogout`, `activeTab`, `onNavigateTab`, `onAdminDashboard`, `onSystemHealth`, `onFinanceDashboard`
 
 ### Dashboard.jsx (17 KB) & Dashboard.css
-  Purpose:  Home screen — trip cards, saved locations, user profile tab
+  Purpose:  Home screen — trip cards, saved locations, user profile tab, and split welcome card.
   Location: `frontend/src/components/Dashboard.jsx`, `frontend/src/components/Dashboard.css`
   State:    `trips[]`, `savedLocations[]`
-  Props:    `user`, `activeTab` (controlled by `App.jsx` state), `onCreateTrip`, `onAiPlanTrip`, `onViewTrip`
-  Change:   Modify trip card layout -> Dashboard.jsx render + Dashboard.css `.trip-card`
-  Change:   Dashboard background -> Dashboard.css `.dashboard-container` or App.css `.bg-overlay`
+  Props:    `user`, `activeTab` (controlled by `App.jsx` state), `onCreateTrip`, `onAiPlanTrip`, `onViewTrip`, `onOpenGlobalExpenses`
+  Notes:    The Hero section is split into two portions: Trip Management and Expense Management.
+
+### GlobalExpenseDashboard.jsx
+  Purpose:  Global dashboard for managing expenses unlinked to specific trips. Displays user's net balances across all trips.
+  Location: `frontend/src/components/GlobalExpenseDashboard.jsx`
+  Props:    `user`, `onBack`
+  API:      `GET /api/expenses/global`, `POST /api/expenses/global`, `PUT /api/trips/:id/expenses/:exp_id`, `DELETE /api/trips/:id/expenses/:exp_id`
 
 ## 2. API Endpoints (backend/main.py)
 

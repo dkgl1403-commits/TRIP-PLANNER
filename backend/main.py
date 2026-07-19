@@ -1095,6 +1095,169 @@ def get_expenses(trip_id: int):
         conn.close()
 
 
+
+
+@app.get("/api/expenses/global")
+def get_global_expenses(login_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Fetch all expenses where trip_id belongs to user
+        cursor.execute(
+            '''
+            SELECT e.id, e.payer_name, e.amount, e.description, e.category, e.expense_date, e.trip_id
+            FROM trip_expenses e
+            JOIN trips t ON e.trip_id = t.id
+            WHERE t.login_id = :1 
+            OR t.id IN (SELECT trip_id FROM trip_participants WHERE login_id = :1 OR name = :1)
+            OR e.payer_name = :1
+            GROUP BY e.id, e.payer_name, e.amount, e.description, e.category, e.expense_date, e.trip_id
+            ORDER BY e.expense_date DESC
+            ''',
+            [login_id]
+        )
+        expenses_data = cursor.fetchall()
+        
+        expenses = []
+        balances = {} # name -> net_balance
+        
+        for exp in expenses_data:
+            exp_id = exp[0]
+            payer = exp[1]
+            amount = exp[2]
+            trip_id = exp[6]
+            
+            # Payer gets positive balance (they paid, so they should get it back)
+            balances[payer] = balances.get(payer, 0) + amount
+            
+            # Fetch splits for this expense
+            cursor.execute("SELECT participant_name, amount_owed FROM trip_expense_splits WHERE expense_id = :1", [exp_id])
+            splits = cursor.fetchall()
+            
+            split_details = []
+            for split in splits:
+                participant = split[0]
+                amount_owed = split[1]
+                
+                # Participant gets negative balance (they owe money)
+                balances[participant] = balances.get(participant, 0) - amount_owed
+                
+                split_details.append({
+                    "participant_name": participant,
+                    "amount_owed": amount_owed
+                })
+                
+            expenses.append({
+                "id": exp_id,
+                "payer_name": payer,
+                "amount": amount,
+                "description": exp[3],
+                "category": exp[4],
+                "date": exp[5],
+                "trip_id": trip_id,
+                "splits": split_details
+            })
+            
+        # 2. Calculate Settlements
+        debtors = []
+        creditors = []
+        
+        for name, balance in balances.items():
+            balance = round(balance, 2)
+            if balance < 0:
+                debtors.append({"name": name, "amount": -balance})
+            elif balance > 0:
+                creditors.append({"name": name, "amount": balance})
+                
+        debtors.sort(key=lambda x: x["amount"], reverse=True)
+        creditors.sort(key=lambda x: x["amount"], reverse=True)
+        
+        settlements = []
+        
+        i, j = 0, 0
+        while i < len(debtors) and j < len(creditors):
+            debtor = debtors[i]
+            creditor = creditors[j]
+            
+            settle_amount = min(debtor["amount"], creditor["amount"])
+            
+            if settle_amount > 0.01:
+                settlements.append({
+                    "from": debtor["name"],
+                    "to": creditor["name"],
+                    "amount": round(settle_amount, 2)
+                })
+                
+            debtor["amount"] -= settle_amount
+            creditor["amount"] -= settle_amount
+            
+            if debtor["amount"] < 0.01: i += 1
+            if creditor["amount"] < 0.01: j += 1
+            
+        return {
+            "status": "success",
+            "expenses": expenses,
+            "settlements": settlements,
+            "balances": balances
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.post("/api/expenses/global")
+def add_global_expense(login_id: str, request: ExpenseRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Find or create a global trip for this user
+        global_trip_title = f"__GLOBAL_EXPENSES_{login_id}__"
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [global_trip_title, login_id])
+        global_trip_res = cursor.fetchone()
+        
+        if not global_trip_res:
+            out_val = cursor.var(int)
+            cursor.execute('''
+                INSERT INTO trips (login_id, title, status)
+                VALUES (:1, :2, 'Completed') RETURNING id INTO :3
+            ''', [login_id, global_trip_title, out_val])
+            trip_id = out_val.getvalue()[0]
+        else:
+            trip_id = global_trip_res[0]
+            
+        # Also ensure the payer is in the participants table for this trip
+        cursor.execute("SELECT id FROM trip_participants WHERE trip_id = :1 AND name = :2", [trip_id, request.payer_name])
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO trip_participants (trip_id, name) VALUES (:1, :2)", [trip_id, request.payer_name])
+            
+        # Ensure all split targets are participants
+        for s in request.splits:
+            cursor.execute("SELECT id FROM trip_participants WHERE trip_id = :1 AND name = :2", [trip_id, s.participant_name])
+            if not cursor.fetchone():
+                cursor.execute("INSERT INTO trip_participants (trip_id, name) VALUES (:1, :2)", [trip_id, s.participant_name])
+                
+        # Now insert the expense
+        out_val_exp = cursor.var(int)
+        cursor.execute('''
+            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category) 
+            VALUES (:1, :2, :3, :4, :5) RETURNING id INTO :6
+        ''', [trip_id, request.payer_name, request.amount, request.description, request.category, out_val_exp])
+        
+        expense_id = out_val_exp.getvalue()[0]
+        
+        split_data = [(expense_id, s.participant_name, s.amount_owed) for s in request.splits]
+        cursor.executemany("INSERT INTO trip_expense_splits (expense_id, participant_name, amount_owed) VALUES (:1, :2, :3)", split_data)
+        
+        conn.commit()
+        return {"status": "success", "message": "Global expense added", "expense_id": expense_id, "trip_id": trip_id}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
 @app.put("/api/trips/{trip_id}/expenses/{expense_id}")
 def update_expense(trip_id: int, expense_id: int, request: ExpenseRequest):
     conn = get_db_connection()

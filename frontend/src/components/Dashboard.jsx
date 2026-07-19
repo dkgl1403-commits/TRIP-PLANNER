@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip }) {
+function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, onOpenGlobalExpenses }) {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savedLocations, setSavedLocations] = useState([]);
@@ -84,22 +84,39 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip }) 
       <main className="w-full max-w-5xl mx-auto flex flex-col gap-8 pb-12">
         {/* Hero Section */}
         {activeTab === 'dashboard' && (
-          <div className="w-full p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl text-center flex flex-col items-center justify-center">
-            <h2 className="font-display-lg text-4xl sm:text-5xl font-bold mb-4">Welcome back, <span className="text-neon-coral">{user?.name?.split(' ')[0] || 'Explorer'}</span>!</h2>
-            <p className="font-body-lg text-on-surface-variant mb-8 text-lg">Ready for your next adventure?</p>
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <button 
-                className="px-8 py-4 rounded-xl bg-surface-container-high text-on-surface font-title-md font-bold hover:bg-surface-variant border border-glass-stroke shadow-lg transition-all flex items-center justify-center gap-2"
-                onClick={onCreateTrip}
-              >
-                <span className="material-symbols-outlined">edit_square</span> Plan manually
-              </button>
-              <button 
-                className="px-8 py-4 rounded-xl bg-gradient-to-r from-neon-coral to-[#E05236] text-surface font-title-md font-bold hover:shadow-[0_4px_20px_rgba(255,107,74,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
-                onClick={onAiPlanTrip}
-              >
-                <span className="material-symbols-outlined">auto_awesome</span> Let AI plan your trip
-              </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            {/* Trip Management Portion */}
+            <div className="p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl flex flex-col items-center justify-center text-center">
+              <h2 className="font-display-lg text-3xl font-bold mb-4">Trip Management</h2>
+              <p className="font-body-lg text-on-surface-variant mb-8 text-lg">Plan and manage your upcoming adventures</p>
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                <button 
+                  className="px-6 py-4 rounded-xl bg-gradient-to-r from-neon-coral to-[#E05236] text-surface font-title-md font-bold hover:shadow-[0_4px_20px_rgba(255,107,74,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
+                  onClick={onAiPlanTrip}
+                >
+                  <span className="material-symbols-outlined">smart_toy</span> Plan with AI
+                </button>
+                <button 
+                  className="px-6 py-4 rounded-xl bg-surface-container-high text-on-surface font-title-md font-bold hover:bg-surface-variant border border-glass-stroke shadow-lg transition-all flex items-center justify-center gap-2"
+                  onClick={onCreateTrip}
+                >
+                  <span className="material-symbols-outlined">edit_square</span> Plan manually
+                </button>
+              </div>
+            </div>
+
+            {/* Expense Management Portion */}
+            <div className="p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl flex flex-col items-center justify-center text-center">
+              <h2 className="font-display-lg text-3xl font-bold mb-4">Expense Management</h2>
+              <p className="font-body-lg text-on-surface-variant mb-8 text-lg">Track global balances and settle debts</p>
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center h-[56px]">
+                <button 
+                  className="px-8 py-4 rounded-xl bg-surface-container-high text-on-surface font-title-md font-bold hover:bg-surface-variant border border-glass-stroke shadow-lg transition-all flex items-center justify-center gap-2 w-full max-w-[300px]"
+                  onClick={onOpenGlobalExpenses}
+                >
+                  <span className="material-symbols-outlined">account_balance_wallet</span> Open Global Expenses
+                </button>
+              </div>
             </div>
           </div>
         )}
