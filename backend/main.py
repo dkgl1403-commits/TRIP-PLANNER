@@ -1614,23 +1614,39 @@ def system_health():
             from sqlalchemy import text
             db.execute(text("SELECT 1"))
             
-            # DB Size
-            db_size_res = db.execute(text("SELECT pg_database_size(current_database())")).fetchone()
-            if db_size_res:
-                db_size_gb = round(db_size_res[0] / (1024**3), 2)
+            dialect = db.bind.dialect.name
+            if dialect == 'postgresql':
+                # DB Size
+                db_size_res = db.execute(text("SELECT pg_database_size(current_database())")).fetchone()
+                if db_size_res:
+                    db_size_gb = round(db_size_res[0] / (1024**3), 2)
+                    
+                # Top Tables
+                tables_query = text("""
+                    SELECT relname as table_name, pg_total_relation_size(relid) as size_bytes
+                    FROM pg_catalog.pg_statio_user_tables
+                    ORDER BY pg_total_relation_size(relid) DESC
+                    LIMIT 5;
+                """)
+                tables_res = db.execute(tables_query).fetchall()
+                top_tables = [{"name": row[0], "size_mb": round(row[1] / (1024**2), 2)} for row in tables_res]
+            
+            elif dialect == 'sqlite':
+                import os
+                db_path = str(db.bind.url).replace('sqlite:///', '')
+                # handle relative path sqlite:///./finance.db
+                if db_path.startswith('./'):
+                    db_path = db_path[2:]
                 
-            # Top Tables
-            tables_query = text("""
-                SELECT relname as table_name, pg_total_relation_size(relid) as size_bytes
-                FROM pg_catalog.pg_statio_user_tables
-                ORDER BY pg_total_relation_size(relid) DESC
-                LIMIT 5;
-            """)
-            tables_res = db.execute(tables_query).fetchall()
-            top_tables = [{"name": row[0], "size_mb": round(row[1] / (1024**2), 2)} for row in tables_res]
+                if os.path.exists(db_path):
+                    db_size_gb = round(os.path.getsize(db_path) / (1024**3), 4)
+                
+                tables_query = text("SELECT name FROM sqlite_master WHERE type='table';")
+                tables_res = db.execute(tables_query).fetchall()
+                top_tables = [{"name": row[0], "size_mb": 0.0} for row in tables_res[:5]]
             
         except Exception as e:
-            db_status = f"Offline: {e}"
+            db_status = f"Offline: ({type(e).__name__}) {str(e)}"
         
         # Get Job Statuses
         jobs = db.query(SystemJobStatus).all()
