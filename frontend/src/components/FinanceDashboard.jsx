@@ -8,12 +8,49 @@ const FinanceDashboard = ({ onBack }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // FIN-14: Added states to track interaction for the 3D 'Back to App' button press and hover effects
+    const [btnPressed, setBtnPressed] = useState(false);
+    const [btnHovered, setBtnHovered] = useState(false);
 
     const darkNavy = 'transparent'; 
     const borderColor = 'var(--glass-stroke)';
     const textColor = 'var(--on-surface)';
     const secondaryTextColor = 'var(--on-surface-variant)';
     const accentColor = '#FF6B4A';
+
+    // FIN-13: Helper function to safely extract open, close, and date values for indices with robust fallbacks
+    const getIndexData = (key) => {
+        if (!indices) return { open: 0, close: 0, date: '' };
+        const val = indices[key];
+        let open = null;
+        let close = null;
+        let date = null;
+
+        if (val && typeof val === 'object') {
+            open = val.open;
+            close = val.close;
+            date = val.date;
+        }
+
+        if (open === null || open === undefined) {
+            open = indices[`${key}_open`] !== undefined ? indices[`${key}_open`] : (indices[`${key}Open`] !== undefined ? indices[`${key}Open`] : val);
+        }
+        if (close === null || close === undefined) {
+            close = indices[`${key}_close`] !== undefined ? indices[`${key}_close`] : (indices[`${key}Close`] !== undefined ? indices[`${key}Close`] : val);
+        }
+        if (date === null || date === undefined) {
+            date = indices[`${key}_date`] || indices[`${key}Date`] || indices.date || '';
+        }
+
+        const numOpen = typeof open === 'number' ? open : parseFloat(open);
+        const numClose = typeof close === 'number' ? close : parseFloat(close);
+
+        return {
+            open: isNaN(numOpen) ? 0 : numOpen,
+            close: isNaN(numClose) ? 0 : numClose,
+            date: date || ''
+        };
+    };
 
     const formatFactorName = (text) => {
         if (!text) return text;
