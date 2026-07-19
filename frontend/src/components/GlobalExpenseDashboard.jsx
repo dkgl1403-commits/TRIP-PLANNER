@@ -65,6 +65,9 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
                 if (s.participant_name) names.add(s.participant_name);
             });
         });
+        if (data.global_participants) {
+            data.global_participants.forEach(name => names.add(name));
+        }
         const parts = Array.from(names).filter(Boolean).map(name => ({name}));
         setParticipants(parts);
         if (!selectedParticipants.length) {
@@ -79,6 +82,22 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
   };
 
   
+  const addGlobalParticipant = async (name) => {
+    if (!name.trim()) return;
+    try {
+      const res = await fetch(`/api/expenses/global/participants?login_id=${user.login_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() })
+      });
+      if (res.ok) {
+        setNewPersonName('');
+        fetchExpenses();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const handleEdit = (exp) => {
     setEditExpenseId(exp.id);
     setEditTripId(exp.trip_id);
@@ -274,6 +293,30 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
         </div>
       </div>
 
+      {/* Global Friends / Participants */}
+      <div style={{ marginBottom: '30px', background: 'rgba(255,255,255,0.05)', borderRadius: '15px', padding: '20px' }}>
+        <h4 style={{ margin: '0 0 15px 0' }}>👥 People you split with</h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          {participants.map(p => (
+            <span key={p.name} style={{ background: 'rgba(255,255,255,0.1)', padding: '5px 15px', borderRadius: '20px', fontSize: '0.9rem' }}>
+              {p.name}
+            </span>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '15px', maxWidth: '400px' }}>
+          <input 
+            type="text" 
+            placeholder="Add new person..." 
+            className="form-input" 
+            value={newPersonName} 
+            onChange={e => setNewPersonName(e.target.value)} 
+            onKeyDown={e => e.key === 'Enter' && addGlobalParticipant(newPersonName)}
+            style={{ flex: 1 }}
+          />
+          <button type="button" className="btn-secondary" onClick={() => addGlobalParticipant(newPersonName)}>Add Person</button>
+        </div>
+      </div>
+      
       {/* Summary Widgets */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '30px' }}>
         <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '15px' }}>

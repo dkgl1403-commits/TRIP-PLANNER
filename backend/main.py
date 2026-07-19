@@ -1083,11 +1083,21 @@ def get_expenses(trip_id: int):
             if debtor["amount"] < 0.01: i += 1
             if creditor["amount"] < 0.01: j += 1
             
+
+        # Fetch global participants
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
+        global_trip = cursor.fetchone()
+        global_participants = []
+        if global_trip:
+            cursor.execute("SELECT name FROM trip_participants WHERE trip_id = :1", [global_trip[0]])
+            global_participants = [row[0] for row in cursor.fetchall()]
+            
         return {
             "status": "success",
             "expenses": expenses,
             "settlements": settlements,
-            "balances": balances
+            "balances": balances,
+            "global_participants": global_participants
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1195,11 +1205,21 @@ def get_global_expenses(login_id: str):
             if debtor["amount"] < 0.01: i += 1
             if creditor["amount"] < 0.01: j += 1
             
+
+        # Fetch global participants
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
+        global_trip = cursor.fetchone()
+        global_participants = []
+        if global_trip:
+            cursor.execute("SELECT name FROM trip_participants WHERE trip_id = :1", [global_trip[0]])
+            global_participants = [row[0] for row in cursor.fetchall()]
+            
         return {
             "status": "success",
             "expenses": expenses,
             "settlements": settlements,
-            "balances": balances
+            "balances": balances,
+            "global_participants": global_participants
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1252,6 +1272,41 @@ def add_global_expense(login_id: str, request: ExpenseRequest):
         
         conn.commit()
         return {"status": "success", "message": "Global expense added", "expense_id": expense_id, "trip_id": trip_id}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.post("/api/expenses/global/participants")
+def add_global_participant(login_id: str, participant: Participant):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Find or create global trip
+        global_trip_title = f"__GLOBAL_EXPENSES_{login_id}__"
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [global_trip_title, login_id])
+        global_trip_res = cursor.fetchone()
+        
+        if not global_trip_res:
+            out_val = cursor.var(int)
+            cursor.execute('''
+                INSERT INTO trips (login_id, title, status)
+                VALUES (:1, :2, 'Completed') RETURNING id INTO :3
+            ''', [login_id, global_trip_title, out_val])
+            trip_id = out_val.getvalue()[0]
+        else:
+            trip_id = global_trip_res[0]
+            
+        # Insert participant if not exists
+        cursor.execute("SELECT id FROM trip_participants WHERE trip_id = :1 AND name = :2", [trip_id, participant.name])
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO trip_participants (trip_id, name) VALUES (:1, :2)", [trip_id, participant.name])
+            
+        conn.commit()
+        return {"status": "success", "message": "Participant added"}
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
