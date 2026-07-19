@@ -12,6 +12,9 @@ const FinanceDashboard = ({ onBack }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // FIN-14: Added states to track interaction for the 3D 'Back to App' button press and hover effects
+    const [btnPressed, setBtnPressed] = useState(false);
+    const [btnHovered, setBtnHovered] = useState(false);
 
     // Refined Dark Professional Financial Palette
     const darkNavy = '#010409'; 
@@ -156,23 +159,35 @@ const FinanceDashboard = ({ onBack }) => {
     return (
         <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', backgroundColor: darkNavy, minHeight: '100vh', color: textColor, fontFamily: "'Inter', -apple-system, sans-serif" }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+                {/* FIN-14: Re-designed 'Back to App' button with 3D shadow depth, color lightness of 20% (hsl background), and dynamic press transition */}
                 <button 
-                    onClick={onBack} 
+                    onClick={onBack}
+                    onMouseDown={() => setBtnPressed(true)}
+                    onMouseUp={() => setBtnPressed(false)}
+                    onMouseEnter={() => setBtnHovered(true)}
+                    onMouseLeave={() => { setBtnPressed(false); setBtnHovered(false); }}
                     style={{ 
                         marginRight: '16px', 
                         cursor: 'pointer', 
-                        background: 'transparent', 
-                        border: `1px solid ${borderColor}`, 
+                        background: btnHovered ? 'hsl(212, 100%, 25%)' : 'hsl(212, 100%, 20%)', 
+                        border: 'none', 
                         borderRadius: '6px',
                         padding: '8px 16px',
                         fontSize: '14px',
-                        color: secondaryTextColor,
-                        transition: 'none'
+                        fontWeight: '600',
+                        color: '#ffffff',
+                        boxShadow: btnPressed ? '0 0px 0 hsl(212, 100%, 10%)' : '0 4px 0 hsl(212, 100%, 10%)',
+                        transform: btnPressed ? 'translateY(4px)' : 'translateY(0)',
+                        transition: 'all 0.1s ease',
+                        outline: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center'
                     }}
                 >
                     ← Back to App
                 </button>
-                <Title level={2} style={{ margin: 0, color: textColor, fontWeight: 600, fontSize: '22px' }}>XGBoost EOD Engine (V2)</Title>
+                {/* FIN-14: Cleaned up title name by removing the 'V2' suffix */}
+                <Title level={2} style={{ margin: 0, color: textColor, fontWeight: 600, fontSize: '22px' }}>XGBoost EOD Engine</Title>
             </div>
 
             {error && <Alert type="error" message={error} style={{ marginBottom: 24, backgroundColor: '#3d1616', borderColor: '#f85149', color: '#ffa198' }} />}
@@ -180,7 +195,8 @@ const FinanceDashboard = ({ onBack }) => {
             <Row gutter={24} style={{ marginBottom: '24px' }}>
                 <Col span={24} md={12}>
                     <Card 
-                        title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>BSE SENSEX V2 Proxy</span>}
+                        /* FIN-14: Cleaned up title name by removing the 'V2' suffix */
+                        title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>BSE SENSEX Proxy</span>}
                         bordered={false}
                         style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}` }}
                         headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
@@ -222,7 +238,8 @@ const FinanceDashboard = ({ onBack }) => {
 
                 <Col span={24} md={12}>
                     <Card 
-                        title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>NSE NIFTY 50 V2 Target</span>}
+                        /* FIN-14: Cleaned up title name by removing the 'V2' suffix */
+                        title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>NSE NIFTY 50 Target</span>}
                         bordered={false}
                         style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}` }}
                         headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
