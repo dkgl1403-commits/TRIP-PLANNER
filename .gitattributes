@@ -1,0 +1,62 @@
+# =============================================================================
+# .gitattributes — Merge isolation for TRIP Planner project
+#
+# PURPOSE:
+#   Files marked with `merge=ours` will NEVER overwrite the main-branch version
+#   when merging from UAT. Git will silently keep the main branch copy.
+#   This ensures AI/Jira agent code stays isolated in UAT only.
+#
+# HOW IT WORKS:
+#   When you run `git merge uat` on main:
+#     - App code (frontend, backend API) → merges normally ✅
+#     - AI/Jira scripts below → main branch version is preserved ✅
+#
+# REQUIREMENT: The `merge.ours` driver must be configured locally (one-time):
+#   git config merge.ours.driver true
+# =============================================================================
+
+# ── AI Agent & Jira Integration ───────────────────────────────────────────────
+agent_worker.py                         merge=ours
+final_upload_agent.py                   merge=ours
+upload_agent.py                         merge=ours
+clone_and_run_agent.py                  merge=ours
+remote_agent_check.py                   merge=ours
+
+# ── Jira Test & Utility Scripts ───────────────────────────────────────────────
+test_jira.py                            merge=ours
+test_jira_endpoints.py                  merge=ours
+test_jira_issue.py                      merge=ours
+test_ollama_agent.py                    merge=ours
+get_ticket_details.py                   merge=ours
+move_to_review_done.py                  merge=ours
+trigger.py                              merge=ours
+trigger2.py                             merge=ours
+trigger3.py                             merge=ours
+write_trigger.py                        merge=ours
+write_trigger2.py                       merge=ours
+trigger_ml.py                           merge=ours
+
+# ── Jira Legacy (kept for backward compat) ───────────────────────────────────
+install_and_run_agent.py                merge=ours
+check_agent_result.py                   merge=ours
+
+# ── Environment / Agent Setup Scripts ────────────────────────────────────────
+setup_agent_env.sh                      merge=ours
+setup_cron.sh                           merge=ours
+restart_bot.sh                          merge=ours
+keep_alive.py                           merge=ours
+
+# ── Ollama / LLM Related ──────────────────────────────────────────────────────
+install_ollama.py                       merge=ours
+check_ollama_progress.py                merge=ours
+list_models.py                          merge=ours
+
+# ── UAT-only Diagnostics & Remote Scripts ────────────────────────────────────
+check_server_activity.py                merge=ours
+check_server_specs.py                   merge=ours
+check_uat_build.py                      merge=ours
+remote_setup.sh                         merge=ours
+remote_setup_part2.sh                   merge=ours
+remote_setup_part3.sh                   merge=ours
+backend/restart_backend_uat.sh          merge=ours
+backend/create_uat_db.sh                merge=ours
