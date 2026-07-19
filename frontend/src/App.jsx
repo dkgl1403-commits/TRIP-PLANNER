@@ -8,6 +8,7 @@ import AiCreateTrip from './components/AiCreateTrip'
 import AdminDashboard from './components/AdminDashboard'
 import FinanceDashboard from './components/FinanceDashboard'
 import SystemHealthDashboard from './components/SystemHealthDashboard'
+import Header from './components/Header'
 import { ToastProvider } from './components/Toast'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
   const [selectedTripId, setSelectedTripId] = useState(() => {
     return sessionStorage.getItem('tripPlannerCurrentTrip') || null;
   });
+  const [dashboardTab, setDashboardTab] = useState('dashboard');
 
   // Wrap setCurrentView to push browser history and save to session
   const setCurrentView = useCallback((view, pushHistory = true) => {
@@ -96,6 +98,11 @@ function App() {
     window.history.pushState({ view: 'view_trip', tripId }, '', '');
   };
 
+  const handleNavigateTab = (tab) => {
+    setDashboardTab(tab);
+    setCurrentView('dashboard');
+  };
+
   return (
     <ToastProvider>
     <div className={`app-container ${theme} ${isLoggedIn ? 'dashboard-active' : ''}`}>
@@ -107,19 +114,26 @@ function App() {
         </button>
       )}
 
+      {isLoggedIn && (
+        <Header 
+          user={user}
+          onLogout={handleLogout}
+          onAdminDashboard={() => setCurrentView('admin_dashboard')}
+          onSystemHealth={() => setCurrentView('systemHealth')}
+          onFinanceDashboard={() => setCurrentView('finance_dashboard')}
+          onNavigateTab={handleNavigateTab}
+          activeTab={currentView === 'dashboard' ? dashboardTab : ''}
+        />
+      )}
+
       <div className={`content-wrapper ${isLoggedIn ? 'dashboard-mode' : 'login-mode'}`}>
         {currentView === 'dashboard' && (
           <Dashboard 
-            user={user} 
-            onLogout={handleLogout} 
-            theme={theme} 
-            toggleTheme={toggleTheme} 
+            user={user}
+            activeTab={dashboardTab}
             onCreateTrip={() => setCurrentView('create_trip')}
             onAiPlanTrip={() => setCurrentView('ai_create_trip')}
             onViewTrip={handleViewTrip}
-            onAdminDashboard={() => setCurrentView('admin_dashboard')}
-            onSystemHealth={() => setCurrentView('systemHealth')}
-            onFinanceDashboard={() => setCurrentView('finance_dashboard')}
           />
         )}
         {currentView === 'admin_dashboard' && (
