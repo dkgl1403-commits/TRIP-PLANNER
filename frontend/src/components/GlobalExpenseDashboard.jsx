@@ -9,6 +9,10 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
   const [showSettleModal, setShowSettleModal] = useState(false);
   const [editExpenseId, setEditExpenseId] = useState(null);
   const [flippedCardId, setFlippedCardId] = useState(null);
+  
+  const [participants, setParticipants] = useState([]);
+  const [editTripId, setEditTripId] = useState(null);
+  const [newPersonName, setNewPersonName] = useState('');
 
   // Settlement states
   const [settleFrom, setSettleFrom] = useState(user?.name || '');
@@ -42,9 +46,6 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     }
   }, [participants]);
 
-  const [participants, setParticipants] = useState([]);
-  const [editTripId, setEditTripId] = useState(null);
-  const [newPersonName, setNewPersonName] = useState('');
 
   const fetchExpenses = async () => {
     if (!user) return;
