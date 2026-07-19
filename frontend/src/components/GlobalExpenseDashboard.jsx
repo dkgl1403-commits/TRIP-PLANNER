@@ -244,31 +244,31 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
   const myNetBalance = balances[user?.name] || 0;
 
   return (
-    <div className="content-inner" style={{ padding: '20px', color: 'white' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--neon-coral)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '5px' }}>
+    <div className="w-full min-h-screen pt-24 px-4 sm:px-8 max-w-container-max mx-auto text-on-surface font-body-md">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h3 style={{ fontSize: '1.8rem', margin: 0 }}>🌍 Global Expenses</h3>
+          <h3 className="text-2xl sm:text-3xl m-0 font-bold text-white">🌍 Global Expenses</h3>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-primary" onClick={() => {
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+          <button className="btn-primary flex-1 sm:flex-none justify-center px-4 py-3 sm:px-6 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 font-bold" onClick={() => {
             setSettleFrom(user?.name || uniqueNames[0]);
             setSettleTo(uniqueNames.find(n => n !== user?.name) || uniqueNames[1] || uniqueNames[0]);
             setSettleAmount('');
             setShowSettleModal(true);
-          }} style={{ padding: '10px 20px', borderRadius: '20px', background: 'linear-gradient(135deg, #10b981, #34d399)' }}>
+          }}>
             🤝 Settle Up
           </button>
-          <button className="btn-primary" onClick={() => {
+          <button className="btn-primary flex-1 sm:flex-none justify-center px-4 py-3 sm:px-6 rounded-full font-bold" onClick={() => {
             setEditExpenseId(null);
             setAmount('');
             setDescription('');
             setCustomSplits({});
             setSplitMode('equal');
             setShowModal(true);
-          }} style={{ padding: '10px 20px', borderRadius: '20px' }}>
+          }}>
             + Add Expense
           </button>
         </div>
