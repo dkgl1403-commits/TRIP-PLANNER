@@ -133,3 +133,4 @@
 * {
   box-sizing: border-box;
 }
+.custom-table .ant-table { background: transparent; } .custom-table .ant-table-thead  { background: rgba(255, 255, 255, 0.05); color: var(--on-surface-variant); border-bottom: 1px solid var(--glass-stroke); } .custom-table .ant-table-tbody  { border-bottom: 1px solid var(--glass-stroke); color: var(--on-surface); } .custom-table .ant-table-tbody  { background: rgba(255, 255, 255, 0.05); } 
