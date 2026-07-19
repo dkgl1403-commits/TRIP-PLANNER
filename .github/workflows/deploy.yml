@@ -28,6 +28,7 @@ jobs:
             cd ../frontend
             npm install && npm run build
             sudo chmod -R 755 dist/
+            sudo nginx -s reload
 
       # DEPLOY TO UAT
       - name: Deploy UAT
@@ -47,3 +48,4 @@ jobs:
             cd ../frontend
             npm install && npm run build
             sudo chmod -R 755 dist/
+            sudo nginx -s reload
