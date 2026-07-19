@@ -1,30 +1,133 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/* ── Custom Design Tokens (Tailwind v4 @theme) ─────────────────────────── */
+@theme {
+  /* Colors */
+  --color-surface:                  #111316;
+  --color-surface-dim:              #111316;
+  --color-surface-bright:           #37393d;
+  --color-surface-container-lowest: #0c0e11;
+  --color-surface-container-low:    #1a1c1f;
+  --color-surface-container:        #1e2023;
+  --color-surface-container-high:   #282a2d;
+  --color-surface-container-highest:#333538;
+  --color-surface-variant:          #333538;
+  --color-surface-tint:             #ffb4a3;
+  --color-on-surface:               #e2e2e6;
+  --color-on-surface-variant:       #e1bfb8;
+  --color-inverse-surface:          #e2e2e6;
+  --color-inverse-on-surface:       #2f3034;
+  --color-background:               #111316;
+  --color-on-background:            #e2e2e6;
+
+  --color-primary:                  #ffb4a3;
+  --color-primary-container:        #ff6b4a;
+  --color-primary-fixed:            #ffdad2;
+  --color-primary-fixed-dim:        #ffb4a3;
+  --color-on-primary:               #630f00;
+  --color-on-primary-container:     #661000;
+  --color-on-primary-fixed:         #3d0600;
+  --color-on-primary-fixed-variant: #8c1900;
+  --color-inverse-primary:          #ae3115;
+
+  --color-secondary:                #bdf4ff;
+  --color-secondary-container:      #00e3fd;
+  --color-secondary-fixed:          #9cf0ff;
+  --color-secondary-fixed-dim:      #00daf3;
+  --color-on-secondary:             #00363d;
+  --color-on-secondary-container:   #00616d;
+  --color-on-secondary-fixed:       #001f24;
+  --color-on-secondary-fixed-variant:#004f58;
+
+  --color-tertiary:                 #56d9d8;
+  --color-tertiary-container:       #00acab;
+  --color-tertiary-fixed:           #76f6f4;
+  --color-tertiary-fixed-dim:       #56d9d8;
+  --color-on-tertiary:              #003736;
+  --color-on-tertiary-container:    #003939;
+  --color-on-tertiary-fixed:        #002020;
+  --color-on-tertiary-fixed-variant:#00504f;
+
+  --color-error:                    #ffb4ab;
+  --color-error-container:          #93000a;
+  --color-on-error:                 #690005;
+  --color-on-error-container:       #ffdad6;
+
+  --color-outline:                  #a88a83;
+  --color-outline-variant:          #59413c;
+
+  /* Brand / Accent */
+  --color-neon-coral:               #FF6B4A;
+  --color-electric-blue:            #00E5FF;
+  --color-deep-navy:                #0A0C10;
+
+  /* Glassmorphism */
+  --color-glass-fill:               rgba(255, 255, 255, 0.05);
+  --color-glass-stroke:             rgba(255, 255, 255, 0.12);
+
+  /* Typography - Font Families */
+  --font-display-lg:   "Plus Jakarta Sans", sans-serif;
+  --font-headline-lg:  "Plus Jakarta Sans", sans-serif;
+  --font-title-md:     "Plus Jakarta Sans", sans-serif;
+  --font-body-md:      "Manrope", sans-serif;
+  --font-body-lg:      "Manrope", sans-serif;
+  --font-label-sm:     "JetBrains Mono", monospace;
+
+  /* Typography - Font Sizes */
+  --text-display-lg:   48px;
+  --text-headline-lg:  32px;
+  --text-title-md:     20px;
+  --text-body-lg:      18px;
+  --text-body-md:      16px;
+  --text-label-sm:     12px;
+
+  /* Border Radius */
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg:      0.5rem;
+  --radius-xl:      0.75rem;
+  --radius-2xl:     1rem;
+  --radius-full:    9999px;
+}
+
+/* ── CSS Variable Aliases (for non-Tailwind CSS files) ─────────────────── */
+:root {
+  --glass-fill:              rgba(255, 255, 255, 0.05);
+  --glass-stroke:            rgba(255, 255, 255, 0.12);
+  --surface:                 #111316;
+  --surface-container:       #1e2023;
+  --surface-container-high:  #282a2d;
+  --surface-variant:         #333538;
+  --on-surface:              #e2e2e6;
+  --on-surface-variant:      #e1bfb8;
+  --neon-coral:              #FF6B4A;
+  --electric-blue:           #00E5FF;
+  --error:                   #ffb4ab;
+}
+
+/* ── Global Base ────────────────────────────────────────────────────────── */
 @layer base {
   body {
-    /* Prevent pinch-to-zoom and pull-to-refresh on mobile devices */
     touch-action: pan-x pan-y;
     overscroll-behavior-y: none;
+    background-color: #111316;
+    color: #e2e2e6;
+    font-family: "Manrope", sans-serif;
   }
-  
-  /* Custom input autofill styles for dark mode to prevent default browser white backgrounds */
+
   input:-webkit-autofill,
-  input:-webkit-autofill:hover, 
-  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-      -webkit-box-shadow: 0 0 0 30px #1a1c1f inset !important; /* matches surface-container-low */
-      -webkit-text-fill-color: #e2e2e6 !important; /* matches on-surface */
-      transition: background-color 5000s ease-in-out 0s;
+    -webkit-box-shadow: 0 0 0 30px #1a1c1f inset !important;
+    -webkit-text-fill-color: #e2e2e6 !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
 
 #root {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0 auto;
-  text-align: center;
 }
 
 * {
