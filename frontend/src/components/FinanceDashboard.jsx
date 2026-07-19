@@ -22,6 +22,40 @@ const FinanceDashboard = ({ onBack }) => {
     const secondaryTextColor = '#8b949e';
     const accentColor = '#58a6ff';
 
+    // FIN-13: Helper function to safely extract open, close, and date values for indices with robust fallbacks
+    const getIndexData = (key) => {
+        if (!indices) return { open: 0, close: 0, date: '' };
+        const val = indices[key];
+        let open = null;
+        let close = null;
+        let date = null;
+
+        if (val && typeof val === 'object') {
+            open = val.open;
+            close = val.close;
+            date = val.date;
+        }
+
+        if (open === null || open === undefined) {
+            open = indices[`${key}_open`] !== undefined ? indices[`${key}_open`] : (indices[`${key}Open`] !== undefined ? indices[`${key}Open`] : val);
+        }
+        if (close === null || close === undefined) {
+            close = indices[`${key}_close`] !== undefined ? indices[`${key}_close`] : (indices[`${key}Close`] !== undefined ? indices[`${key}Close`] : val);
+        }
+        if (date === null || date === undefined) {
+            date = indices[`${key}_date`] || indices[`${key}Date`] || indices.date || '';
+        }
+
+        const numOpen = typeof open === 'number' ? open : parseFloat(open);
+        const numClose = typeof close === 'number' ? close : parseFloat(close);
+
+        return {
+            open: isNaN(numOpen) ? 0 : numOpen,
+            close: isNaN(numClose) ? 0 : numClose,
+            date: date || ''
+        };
+    };
+
     const formatFactorName = (text) => {
         if (!text) return text;
         const mapping = {
@@ -164,15 +198,25 @@ const FinanceDashboard = ({ onBack }) => {
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
-                        {prediction && indices ? (
-                            <div style={{ marginTop: '16px', padding: '16px', background: darkNavy, borderRadius: '6px', border: `1px solid ${borderColor}` }}>
-                                <Statistic title={<span style={{ color: secondaryTextColor, fontSize: '13px' }}>AI EOD Signal</span>} value={prediction.signal} valueStyle={{ color: getSignalColor(prediction.signal), fontSize: '20px', fontWeight: 700 }} prefix={getSignalIcon(prediction.signal)} />
-                                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${borderColor}`, paddingTop: '12px' }}>
-                                    <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>EOD Close</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{indices.sensex.toFixed(2)}</Text></div>
-                                    <div style={{ textAlign: 'right' }}><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Confidence</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{(prediction.confidence * 100).toFixed(1)}%</Text></div>
+                        {prediction && indices ? (() => {
+                            // FIN-13: Fetch and display BSE SENSEX today's open and close rates and date instead of EOD Close
+                            const sensexData = getIndexData('sensex');
+                            return (
+                                <div style={{ marginTop: '16px', padding: '16px', background: darkNavy, borderRadius: '6px', border: `1px solid ${borderColor}` }}>
+                                    <Statistic title={<span style={{ color: secondaryTextColor, fontSize: '13px' }}>AI EOD Signal</span>} value={prediction.signal} valueStyle={{ color: getSignalColor(prediction.signal), fontSize: '20px', fontWeight: 700 }} prefix={getSignalIcon(prediction.signal)} />
+                                    <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${borderColor}`, paddingTop: '12px' }}>
+                                        <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Today's Open</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{sensexData.open.toFixed(2)}</Text></div>
+                                        <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Today's Close</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{sensexData.close.toFixed(2)}</Text></div>
+                                        <div style={{ textAlign: 'right' }}><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Confidence</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{(prediction.confidence * 100).toFixed(1)}%</Text></div>
+                                    </div>
+                                    {sensexData.date && (
+                                        <div style={{ marginTop: '8px', fontSize: '10px', color: secondaryTextColor, textAlign: 'left' }}>
+                                            Date: {sensexData.date}
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ) : <Text style={{ color: secondaryTextColor }}>Loading prediction data...</Text>}
+                            );
+                        })() : <Text style={{ color: secondaryTextColor }}>Loading prediction data...</Text>}
                     </Card>
                 </Col>
 
@@ -196,15 +240,25 @@ const FinanceDashboard = ({ onBack }) => {
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
-                        {prediction && indices ? (
-                            <div style={{ marginTop: '16px', padding: '16px', background: darkNavy, borderRadius: '6px', border: `1px solid ${borderColor}` }}>
-                                <Statistic title={<span style={{ color: secondaryTextColor, fontSize: '13px' }}>AI EOD Signal</span>} value={prediction.signal} valueStyle={{ color: getSignalColor(prediction.signal), fontSize: '20px', fontWeight: 700 }} prefix={getSignalIcon(prediction.signal)} />
-                                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${borderColor}`, paddingTop: '12px' }}>
-                                    <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>EOD Close</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{indices.nifty50.toFixed(2)}</Text></div>
-                                    <div style={{ textAlign: 'right' }}><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Confidence</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{(prediction.confidence * 100).toFixed(1)}%</Text></div>
+                        {prediction && indices ? (() => {
+                            // FIN-13: Fetch and display NSE NIFTY 50 today's open and close rates and date instead of EOD Close
+                            const niftyData = getIndexData('nifty50');
+                            return (
+                                <div style={{ marginTop: '16px', padding: '16px', background: darkNavy, borderRadius: '6px', border: `1px solid ${borderColor}` }}>
+                                    <Statistic title={<span style={{ color: secondaryTextColor, fontSize: '13px' }}>AI EOD Signal</span>} value={prediction.signal} valueStyle={{ color: getSignalColor(prediction.signal), fontSize: '20px', fontWeight: 700 }} prefix={getSignalIcon(prediction.signal)} />
+                                    <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${borderColor}`, paddingTop: '12px' }}>
+                                        <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Today's Open</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{niftyData.open.toFixed(2)}</Text></div>
+                                        <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Today's Close</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{niftyData.close.toFixed(2)}</Text></div>
+                                        <div style={{ textAlign: 'right' }}><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Confidence</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{(prediction.confidence * 100).toFixed(1)}%</Text></div>
+                                    </div>
+                                    {niftyData.date && (
+                                        <div style={{ marginTop: '8px', fontSize: '10px', color: secondaryTextColor, textAlign: 'left' }}>
+                                            Date: {niftyData.date}
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ) : <Text style={{ color: secondaryTextColor }}>Loading prediction data...</Text>}
+                            );
+                        })() : <Text style={{ color: secondaryTextColor }}>Loading prediction data...</Text>}
                     </Card>
                 </Col>
             </Row>
