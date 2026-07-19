@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './Dashboard.css';
 
 function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanTrip, onViewTrip, onAdminDashboard, onFinanceDashboard, onSystemHealth }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -98,13 +96,8 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
   });
 
   const currentLoginId = user?.login_id || 'guest';
-  
-  // Dashboard: All trips that are not cancelled or completed
   const dashboardTripsRaw = trips.filter(t => t.status !== 'Cancelled' && t.status !== 'Completed');
-  
-  // My Trips: All trips (or we could filter just to completed/cancelled, but user said "all the trip date wise")
   const myTripsRaw = [...trips].sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
-
   const activeTripsRaw = activeTab === 'dashboard' ? dashboardTripsRaw : (activeTab === 'mytrips' ? myTripsRaw : []);
   
   const nextTrip = activeTripsRaw.length > 0 ? mapTrip(activeTripsRaw[0]) : null;
@@ -112,260 +105,274 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
   const allMappedTrips = activeTripsRaw.map(mapTrip);
 
   return (
-    <div className="dashboard-container">
+    <div className="w-full min-h-screen flex flex-col pt-24 px-4 sm:px-8 max-w-container-max mx-auto text-on-surface font-body-md">
       {/* Navigation Bar */}
-      <nav className="dashboard-nav glass-panel">
-        <div className="nav-logo">
-          <span className="logo-text">DKGL</span>
+      <nav className="fixed top-0 left-0 right-0 h-20 px-8 flex items-center justify-between bg-glass-fill backdrop-blur-[24px] border-b border-glass-stroke z-50">
+        <div className="flex items-center">
+          <span className="font-display-lg text-3xl font-bold text-neon-coral tracking-tighter uppercase">DKGL</span>
         </div>
-        <div className="nav-tabs">
-          <button className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>Dashboard</button>
-          <button className={`nav-tab ${activeTab === 'mytrips' ? 'active' : ''}`} onClick={() => setActiveTab('mytrips')}>My Trips</button>
-          <button className={`nav-tab ${activeTab === 'locations' ? 'active' : ''}`} onClick={() => setActiveTab('locations')}>📍 Saved Locations</button>
+        
+        <div className="hidden md:flex h-full items-center gap-8">
+          <button 
+            className={`font-title-md text-lg h-full border-b-2 transition-colors ${activeTab === 'dashboard' ? 'border-neon-coral text-neon-coral' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`} 
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button 
+            className={`font-title-md text-lg h-full border-b-2 transition-colors ${activeTab === 'mytrips' ? 'border-neon-coral text-neon-coral' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`} 
+            onClick={() => setActiveTab('mytrips')}
+          >
+            My Trips
+          </button>
+          <button 
+            className={`font-title-md text-lg h-full border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'locations' ? 'border-neon-coral text-neon-coral' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`} 
+            onClick={() => setActiveTab('locations')}
+          >
+            <span className="material-symbols-outlined text-[20px]">location_on</span>
+            Saved Locations
+          </button>
         </div>
-        <div className="nav-profile" ref={profileRef}>
+
+        <div className="relative" ref={profileRef}>
           <div 
-            className="avatar" 
+            className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-coral to-[#E05236] text-surface flex items-center justify-center font-title-md font-bold cursor-pointer shadow-lg hover:shadow-neon-coral/30 transition-all"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            style={{ cursor: 'pointer' }}
           >
             {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
           
           {isProfileOpen && (
-            <div className="profile-dropdown glass-panel">
-              <div className="dropdown-header">
-                <strong>{user?.name || 'User'}</strong>
-                <span className="dropdown-id">ID: {user?.login_id || 'guest'}</span>
+            <div className="absolute top-14 right-0 w-64 bg-surface-container-high border border-glass-stroke rounded-xl shadow-2xl py-2 z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-glass-stroke">
+                <div className="font-title-md font-bold text-on-surface">{user?.name || 'User'}</div>
+                <div className="font-label-sm text-on-surface-variant mt-1">ID: {user?.login_id || 'guest'}</div>
               </div>
-              <div className="dropdown-divider"></div>
-              <button className="dropdown-item">
-                👤 Profile
-              </button>
-              {user?.role === 'ADMIN' && (
-                <>
-                  <button className="dropdown-item" onClick={onSystemHealth}>
-                    🏥 System Health
-                  </button>
-                  <button className="dropdown-item" onClick={onAdminDashboard}>
-                    🛡️ Admin Dashboard
-                  </button>
-                </>
-              )}
-              {(user?.role === 'ADMIN' || user?.role === 'FINANCE_USER') && (
-                <button className="dropdown-item" onClick={onFinanceDashboard}>
-                  📈 Finance Dashboard
+              
+              <div className="py-2">
+                <button className="w-full px-4 py-2 text-left flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors">
+                  <span className="material-symbols-outlined text-[20px]">person</span> Profile
                 </button>
-              )}
-              {isBiometricEnabled && (
-                <button className="dropdown-item" onClick={async () => {
-                  if (window.confirm("Are you sure you want to disable Biometric Login?")) {
-                    try {
-                      await fetch(`/api/auth/disable-biometric?login_id=${user?.login_id}`, { method: 'DELETE' });
-                      setIsBiometricEnabled(false);
-                      alert("Biometric login disabled successfully.");
-                    } catch (e) {
-                      alert("Failed to disable biometric login.");
+                {user?.role === 'ADMIN' && (
+                  <>
+                    <button className="w-full px-4 py-2 text-left flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors" onClick={onSystemHealth}>
+                      <span className="material-symbols-outlined text-[20px]">health_and_safety</span> System Health
+                    </button>
+                    <button className="w-full px-4 py-2 text-left flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors" onClick={onAdminDashboard}>
+                      <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span> Admin Dashboard
+                    </button>
+                  </>
+                )}
+                {(user?.role === 'ADMIN' || user?.role === 'FINANCE_USER') && (
+                  <button className="w-full px-4 py-2 text-left flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors" onClick={onFinanceDashboard}>
+                    <span className="material-symbols-outlined text-[20px]">monitoring</span> Finance Dashboard
+                  </button>
+                )}
+                {isBiometricEnabled && (
+                  <button className="w-full px-4 py-2 text-left flex items-center gap-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors" onClick={async () => {
+                    if (window.confirm("Are you sure you want to disable Biometric Login?")) {
+                      try {
+                        await fetch(`/api/auth/disable-biometric?login_id=${user?.login_id}`, { method: 'DELETE' });
+                        setIsBiometricEnabled(false);
+                        alert("Biometric login disabled successfully.");
+                      } catch (e) {
+                        alert("Failed to disable biometric login.");
+                      }
                     }
-                  }
-                }}>
-                  🔒 Disable Biometrics
+                  }}>
+                    <span className="material-symbols-outlined text-[20px]">fingerprint</span> Disable Biometrics
+                  </button>
+                )}
+              </div>
+              
+              <div className="border-t border-glass-stroke py-2">
+                <button className="w-full px-4 py-2 text-left flex items-center gap-3 text-error hover:bg-error/10 transition-colors" onClick={onLogout}>
+                  <span className="material-symbols-outlined text-[20px]">logout</span> Logout
                 </button>
-              )}
-              <button className="dropdown-item" onClick={toggleTheme}>
-                {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
-              </button>
-              <button className="dropdown-item text-danger" onClick={onLogout}>
-                🚪 Logout
-              </button>
+              </div>
             </div>
           )}
         </div>
       </nav>
 
       {/* Main Content Area */}
-      <main className="dashboard-main">
-        {/* Hero Section (Only show on dashboard) */}
+      <main className="w-full max-w-5xl mx-auto flex flex-col gap-8 pb-12">
+        {/* Hero Section */}
         {activeTab === 'dashboard' && (
-          <div className="hero-section glass-panel">
-            <div className="hero-content">
-              <h2>Welcome back, {user?.name?.split(' ')[0] || 'Explorer'}!</h2>
-              <p>Ready for your next adventure?</p>
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '15px' }}>
-                <button className="btn-primary create-trip-btn" onClick={onCreateTrip} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  ✍️ Plan your trip
-                </button>
-                <button className="btn-primary create-trip-btn ai-magic-btn" onClick={onAiPlanTrip} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', border: 'none', boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)' }}>
-                  ✨ Let AI plan your trip
-                </button>
-              </div>
+          <div className="w-full p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl text-center flex flex-col items-center justify-center">
+            <h2 className="font-display-lg text-4xl sm:text-5xl font-bold mb-4">Welcome back, <span className="text-neon-coral">{user?.name?.split(' ')[0] || 'Explorer'}</span>!</h2>
+            <p className="font-body-lg text-on-surface-variant mb-8 text-lg">Ready for your next adventure?</p>
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <button 
+                className="px-8 py-4 rounded-xl bg-surface-container-high text-on-surface font-title-md font-bold hover:bg-surface-variant border border-glass-stroke shadow-lg transition-all flex items-center justify-center gap-2"
+                onClick={onCreateTrip}
+              >
+                <span className="material-symbols-outlined">edit_square</span> Plan manually
+              </button>
+              <button 
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-neon-coral to-[#E05236] text-surface font-title-md font-bold hover:shadow-[0_4px_20px_rgba(255,107,74,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
+                onClick={onAiPlanTrip}
+              >
+                <span className="material-symbols-outlined">auto_awesome</span> Let AI plan your trip
+              </button>
             </div>
           </div>
         )}
 
         {/* Dashboard View */}
         {activeTab === 'dashboard' && (
-          <>
-            <div className="section-header">
-              <h3>Your Next Adventure</h3>
-            </div>
+          <div className="flex flex-col gap-6">
+            <h3 className="font-headline-lg text-3xl font-bold border-b border-glass-stroke pb-2">Your Next Adventure</h3>
+            
             {loading ? (
-              <p style={{padding: '20px'}}>Loading trips...</p>
+              <p className="text-on-surface-variant p-4">Loading trips...</p>
             ) : nextTrip ? (
               <div 
-                className="next-trip-card glass-panel" 
-                style={{ backgroundImage: `url(${nextTrip.image})`, cursor: 'pointer' }}
+                className="group relative w-full h-80 rounded-2xl overflow-hidden cursor-pointer shadow-xl border border-glass-stroke transition-transform hover:scale-[1.01]"
                 onClick={() => onViewTrip(nextTrip.id)}
               >
-                <div className="card-overlay">
-                  <div className="card-content">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <h4 style={{ margin: 0 }}>{nextTrip.title}</h4>
-                      {nextTrip.status && nextTrip.status !== 'Planned' && (
-                        <span style={{
-                          background: nextTrip.status === 'In Progress' ? 'green' : (nextTrip.status === 'Cancelled' ? 'gray' : '#3b82f6'), 
-                          color: 'white', padding: '3px 8px', borderRadius: '12px', fontSize: '12px'
-                        }}>
-                          {nextTrip.status}
-                        </span>
-                      )}
-                    </div>
-                    <p className="trip-location">📍 {nextTrip.source_name} ➔ {nextTrip.location}</p>
-                    <div className="trip-meta" style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '10px' }}>
-                      <span className="trip-date">📅 Planned: {nextTrip.date}</span>
-                      {nextTrip.actual_start_time && (
-                        <span className="trip-date" style={{ color: '#4ade80' }}>
-                          🚀 Started: {new Date(nextTrip.actual_start_time).toLocaleString()}
-                        </span>
-                      )}
-                      <span className="trip-countdown">👥 Participants: {nextTrip.participant_count || 1}</span>
-                    </div>
+                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${nextTrip.image})` }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent" />
+                
+                <div className="absolute inset-x-0 bottom-0 p-8 flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <h4 className="font-display-lg text-3xl font-bold text-white m-0 leading-none">{nextTrip.title}</h4>
+                    {nextTrip.status && nextTrip.status !== 'Planned' && (
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${nextTrip.status === 'In Progress' ? 'bg-green-500/20 text-green-400' : (nextTrip.status === 'Cancelled' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400')}`}>
+                        {nextTrip.status}
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-title-md text-on-surface-variant flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[20px] text-neon-coral">location_on</span>
+                    {nextTrip.source_name} ➔ {nextTrip.location}
+                  </p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 font-label-sm uppercase tracking-wider text-on-surface-variant">
+                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">calendar_today</span> {nextTrip.date}</span>
+                    {nextTrip.actual_start_time && (
+                      <span className="flex items-center gap-1 text-green-400"><span className="material-symbols-outlined text-[16px]">rocket_launch</span> {new Date(nextTrip.actual_start_time).toLocaleString()}</span>
+                    )}
+                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">group</span> {nextTrip.participant_count || 1}</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="glass-panel" style={{padding: '30px', textAlign: 'center'}}>
-                <p>No trips found in this category.</p>
+              <div className="p-8 rounded-2xl bg-glass-fill border border-glass-stroke text-center text-on-surface-variant">
+                <p>No upcoming trips found.</p>
               </div>
             )}
 
             {upcomingTrips.length > 0 && (
-              <>
-                <div className="section-header">
-                  <h3>Upcoming Trips</h3>
-                </div>
-                <div className="trips-grid">
+              <div className="mt-8 flex flex-col gap-6">
+                <h3 className="font-headline-lg text-2xl font-bold border-b border-glass-stroke pb-2">Upcoming Trips</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {upcomingTrips.map(trip => (
-                    <div key={trip.id} className="trip-grid-card glass-panel" onClick={() => onViewTrip(trip.id)}>
-                      <div className="card-image" style={{backgroundImage: `url(${trip.image})`}}>
-                        <div className="card-overlay">
-                          <h4 style={{margin: 0}}>{trip.title}</h4>
+                    <div key={trip.id} className="group rounded-xl overflow-hidden cursor-pointer bg-surface-container border border-glass-stroke hover:border-neon-coral/50 transition-colors flex flex-col shadow-lg" onClick={() => onViewTrip(trip.id)}>
+                      <div className="relative h-48 w-full overflow-hidden">
+                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{backgroundImage: `url(${trip.image})`}} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                          <h4 className="font-title-md font-bold text-white leading-tight">{trip.title}</h4>
                           {trip.status && trip.status !== 'Planned' && (
-                            <span style={{background: trip.status === 'In Progress' ? 'green' : (trip.status === 'Cancelled' ? 'gray' : '#3b82f6'), color: 'white', padding: '2px 6px', borderRadius: '8px', fontSize: '10px', marginLeft: '5px'}}>
+                            <span className={`px-2 py-1 rounded text-[10px] font-bold ${trip.status === 'In Progress' ? 'bg-green-500/20 text-green-400' : (trip.status === 'Cancelled' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400')}`}>
                               {trip.status}
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="card-content" style={{ padding: '15px' }}>
-                        <p className="trip-location" style={{ fontSize: '0.9em', marginBottom: '8px' }}>📍 {trip.source_name} ➔ {trip.location}</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85em', color: '#ccc' }}>
-                          <span>📅 Planned: {trip.date}</span>
-                          {trip.actual_start_time && (
-                            <span style={{ color: '#4ade80' }}>🚀 Started: {new Date(trip.actual_start_time).toLocaleString()}</span>
-                          )}
-                          <span>👥 Participants: {trip.participant_count || 1}</span>
+                      <div className="p-5 flex flex-col gap-3 flex-1 bg-glass-fill backdrop-blur-md">
+                        <p className="font-body-md text-sm text-on-surface-variant flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-neon-coral">route</span> {trip.source_name} ➔ {trip.location}</p>
+                        <div className="flex flex-col gap-1 font-label-sm text-on-surface-variant opacity-80 mt-auto pt-4 border-t border-glass-stroke">
+                          <span className="flex items-center gap-2"><span className="material-symbols-outlined text-[14px]">calendar_month</span> {trip.date}</span>
+                          <span className="flex items-center gap-2"><span className="material-symbols-outlined text-[14px]">group</span> {trip.participant_count || 1} people</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
             )}
-          </>
+          </div>
         )}
 
         {/* My Trips (Table View) */}
         {activeTab === 'mytrips' && (
-          <div className="glass-panel" style={{ overflowX: 'auto', padding: '20px', borderRadius: '15px' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '20px' }}>All My Trips</h3>
+          <div className="w-full p-6 sm:p-8 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col">
+            <h3 className="font-headline-lg text-3xl font-bold border-b border-glass-stroke pb-4 mb-6">All My Trips</h3>
+            
             {loading ? (
-              <p>Loading trips...</p>
+              <p className="text-on-surface-variant">Loading trips...</p>
             ) : allMappedTrips.length > 0 ? (
-              <table className="trips-table">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Route</th>
-                    <th>Dates</th>
-                    <th>Status</th>
-                    <th>Participants</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allMappedTrips.map(trip => (
-                    <tr key={trip.id} onClick={() => onViewTrip(trip.id)} className="trip-table-row">
-                      <td style={{ fontWeight: 'bold' }}>{trip.title}</td>
-                      <td>{trip.source_name} ➔ {trip.location}</td>
-                      <td>{trip.date}</td>
-                      <td>
-                        <span style={{
-                          background: trip.status === 'In Progress' ? 'rgba(34, 197, 94, 0.2)' : (trip.status === 'Cancelled' ? 'rgba(156, 163, 175, 0.2)' : 'rgba(59, 130, 246, 0.2)'),
-                          color: trip.status === 'In Progress' ? '#4ade80' : (trip.status === 'Cancelled' ? '#9ca3af' : '#60a5fa'),
-                          padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold'
-                        }}>
-                          {trip.status || 'Planned'}
-                        </span>
-                      </td>
-                      <td>{trip.participant_count || 1}</td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-glass-stroke">
+                      <th className="py-4 px-4 font-label-sm uppercase tracking-widest text-on-surface-variant">Title</th>
+                      <th className="py-4 px-4 font-label-sm uppercase tracking-widest text-on-surface-variant">Route</th>
+                      <th className="py-4 px-4 font-label-sm uppercase tracking-widest text-on-surface-variant">Dates</th>
+                      <th className="py-4 px-4 font-label-sm uppercase tracking-widest text-on-surface-variant">Status</th>
+                      <th className="py-4 px-4 font-label-sm uppercase tracking-widest text-on-surface-variant">Participants</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {allMappedTrips.map(trip => (
+                      <tr key={trip.id} onClick={() => onViewTrip(trip.id)} className="border-b border-glass-stroke/50 hover:bg-surface-variant/50 cursor-pointer transition-colors group">
+                        <td className="py-4 px-4 font-title-md font-bold group-hover:text-neon-coral transition-colors">{trip.title}</td>
+                        <td className="py-4 px-4 font-body-md text-on-surface-variant flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">route</span> {trip.source_name} ➔ {trip.location}</td>
+                        <td className="py-4 px-4 font-label-sm text-on-surface-variant">{trip.date}</td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${trip.status === 'In Progress' ? 'bg-green-500/20 text-green-400' : (trip.status === 'Cancelled' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400')}`}>
+                            {trip.status || 'Planned'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 font-body-md text-on-surface-variant">{trip.participant_count || 1}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
-              <p>You have no trips.</p>
+              <p className="text-on-surface-variant">You have no trips.</p>
             )}
           </div>
         )}
 
         {/* Saved Locations View */}
         {activeTab === 'locations' && (
-          <div className="glass-panel" style={{ padding: '25px', borderRadius: '15px' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '20px' }}>📍 My Saved Locations</h3>
+          <div className="w-full p-6 sm:p-8 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col">
+            <h3 className="font-headline-lg text-3xl font-bold border-b border-glass-stroke pb-4 mb-6 flex items-center gap-3">
+              <span className="material-symbols-outlined text-[32px] text-neon-coral">location_on</span> My Saved Locations
+            </h3>
+            
             {locationsLoading ? (
-              <p>Loading locations...</p>
+              <p className="text-on-surface-variant">Loading locations...</p>
             ) : savedLocations.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedLocations.map(loc => (
-                  <div key={loc.id} className="glass-panel" style={{ padding: '20px', borderRadius: '15px', position: 'relative', border: '1px solid var(--border-color, rgba(255,255,255,0.1))' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1.15rem' }}>📌 {loc.name}</h4>
-                        {loc.description && <p style={{ margin: '0 0 10px 0', opacity: 0.7, fontSize: '0.9rem' }}>{loc.description}</p>}
-                        <div style={{ fontSize: '0.85rem', opacity: 0.6 }}>
-                          {loc.city && <span>{loc.city}</span>}
-                          {loc.city && loc.state && <span>, </span>}
-                          {loc.state && <span>{loc.state}</span>}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.4, marginTop: '5px' }}>
-                          {Number(loc.lat).toFixed(4)}, {Number(loc.lon).toFixed(4)}
-                        </div>
-                      </div>
+                  <div key={loc.id} className="p-6 rounded-xl bg-surface-container border border-glass-stroke shadow-lg relative flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="font-title-md font-bold flex-1 pr-4">{loc.name}</h4>
                       <button 
                         onClick={() => handleDeleteLocation(loc.id)} 
-                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', padding: '5px', opacity: 0.7 }}
+                        className="text-error hover:text-red-400 transition-colors p-1 rounded-full hover:bg-error/10"
                         title="Delete Location"
                       >
-                        🗑️
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
                       </button>
+                    </div>
+                    {loc.description && <p className="font-body-md text-on-surface-variant mb-4 flex-1">{loc.description}</p>}
+                    <div className="mt-auto pt-4 border-t border-glass-stroke flex flex-col gap-1 font-label-sm text-on-surface-variant opacity-70">
+                      <span>{(loc.city || loc.state) ? `${loc.city || ''}${loc.city && loc.state ? ', ' : ''}${loc.state || ''}` : 'Location details unknown'}</span>
+                      <span className="font-mono text-xs">{Number(loc.lat).toFixed(4)}, {Number(loc.lon).toFixed(4)}</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '40px', opacity: 0.7 }}>
-                <p style={{ fontSize: '1.2rem', marginBottom: '10px' }}>No saved locations yet</p>
-                <p style={{ fontSize: '0.9rem' }}>Open a trip and use the "Mark Location" tab to save your favorite spots!</p>
+              <div className="text-center py-12 px-4 rounded-xl border border-dashed border-glass-stroke bg-surface-container-low/50">
+                <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-4">location_off</span>
+                <p className="font-title-md font-bold mb-2">No saved locations yet</p>
+                <p className="font-body-md text-on-surface-variant">Open a trip and use the "Mark Location" tab to save your favorite spots!</p>
               </div>
             )}
           </div>
@@ -376,3 +383,4 @@ function Dashboard({ user, onLogout, theme, toggleTheme, onCreateTrip, onAiPlanT
 }
 
 export default Dashboard;
+

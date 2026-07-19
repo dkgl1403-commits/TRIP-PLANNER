@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './AiCreateTrip.css';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -311,204 +310,291 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
   };
 
   return (
-    <div className="ai-trip-container">
-      <div className="ai-trip-header">
-        <button className="round-icon-btn" onClick={step === 1 ? onBack : () => setStep(step - 1)}>⬅</button>
-        <h2>✨ AI Trip Planner</h2>
+    <div className="w-full min-h-screen flex flex-col pt-24 px-4 sm:px-8 max-w-4xl mx-auto text-on-surface font-body-md pb-12">
+      <div className="flex items-center gap-4 mb-8">
+        <button 
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-glass-stroke text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors"
+          onClick={step === 1 ? onBack : () => setStep(step - 1)}
+        >
+          <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+          Back
+        </button>
+        <h2 className="font-display-lg text-3xl font-bold m-0 flex items-center gap-3">
+          <span className="text-neon-coral material-symbols-outlined text-[32px]">auto_awesome</span>
+          AI Trip Planner
+        </h2>
       </div>
 
-      {error && <div className="ai-error">{error}</div>}
+      {error && (
+        <div className="mb-6 p-4 rounded-xl bg-error/10 border border-error/20 text-error flex items-center gap-3">
+          <span className="material-symbols-outlined">error</span>
+          {error}
+        </div>
+      )}
 
       {loading && (
-        <div className="ai-loading-container">
-          <div className="ai-spinner">✨</div>
-          <h3>Consulting the AI Oracles...</h3>
-          <p>Designing your perfect road trip!</p>
+        <div className="flex flex-col items-center justify-center p-12 bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl shadow-xl min-h-[400px]">
+          <div className="w-16 h-16 border-4 border-neon-coral border-t-transparent rounded-full animate-spin mb-6"></div>
+          <h3 className="font-headline-lg text-2xl font-bold mb-2">Consulting the AI Oracles...</h3>
+          <p className="font-body-md text-on-surface-variant">Designing your perfect road trip!</p>
         </div>
       )}
 
       {!loading && step === 1 && (
-        <div className="glass-panel" style={{ padding: '30px' }}>
-          <h3>Where do you want to go?</h3>
-          <div className="ai-form-group relative">
-            <label>Source City</label>
+        <div className="p-8 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col gap-6">
+          <h3 className="font-headline-lg text-2xl font-bold border-b border-glass-stroke pb-4 m-0">Where do you want to go?</h3>
+          
+          <div className="flex flex-col gap-2 relative">
+            <label className="font-label-md text-on-surface-variant uppercase tracking-wider">Source City</label>
             <input 
               type="text" 
+              className="w-full px-4 py-3 rounded-xl bg-surface-container border border-glass-stroke focus:border-neon-coral focus:ring-1 focus:ring-neon-coral outline-none transition-all font-body-lg text-on-surface"
               placeholder="e.g. Pune" 
               value={sourceQuery} 
               onChange={e => { setSourceQuery(e.target.value); searchLocation(e.target.value, setSourceSuggestions); }} 
             />
             {sourceSuggestions.length > 0 && (
-              <ul className="autocomplete-dropdown glass-panel" style={{position: 'absolute', zIndex: 10, width: '100%', listStyle: 'none', padding: 0, margin: '5px 0 0 0', maxHeight: '200px', overflowY: 'auto'}}>
+              <ul className="absolute top-[100%] left-0 w-full mt-2 bg-surface-container-high border border-glass-stroke rounded-xl shadow-2xl max-h-[200px] overflow-y-auto z-50 p-2">
                 {sourceSuggestions.map((loc, i) => (
-                  <li key={i} style={{padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.1)'}} onClick={() => { setSourceQuery(loc.name); setSourceSuggestions([]); }}>
+                  <li 
+                    key={i} 
+                    className="px-4 py-3 rounded-lg hover:bg-surface-variant cursor-pointer text-on-surface font-body-md transition-colors"
+                    onClick={() => { setSourceQuery(loc.name); setSourceSuggestions([]); }}
+                  >
                     {loc.name}
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <div className="ai-form-group relative">
-            <label>Destination City</label>
+          
+          <div className="flex flex-col gap-2 relative">
+            <label className="font-label-md text-on-surface-variant uppercase tracking-wider">Destination City</label>
             <input 
               type="text" 
+              className="w-full px-4 py-3 rounded-xl bg-surface-container border border-glass-stroke focus:border-neon-coral focus:ring-1 focus:ring-neon-coral outline-none transition-all font-body-lg text-on-surface"
               placeholder="e.g. Jaipur" 
               value={destQuery} 
               onChange={e => { setDestQuery(e.target.value); searchLocation(e.target.value, setDestSuggestions); }} 
             />
             {destSuggestions.length > 0 && (
-              <ul className="autocomplete-dropdown glass-panel" style={{position: 'absolute', zIndex: 10, width: '100%', listStyle: 'none', padding: 0, margin: '5px 0 0 0', maxHeight: '200px', overflowY: 'auto'}}>
+              <ul className="absolute top-[100%] left-0 w-full mt-2 bg-surface-container-high border border-glass-stroke rounded-xl shadow-2xl max-h-[200px] overflow-y-auto z-50 p-2">
                 {destSuggestions.map((loc, i) => (
-                  <li key={i} style={{padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.1)'}} onClick={() => { setDestQuery(loc.name); setDestSuggestions([]); }}>
+                  <li 
+                    key={i} 
+                    className="px-4 py-3 rounded-lg hover:bg-surface-variant cursor-pointer text-on-surface font-body-md transition-colors"
+                    onClick={() => { setDestQuery(loc.name); setDestSuggestions([]); }}
+                  >
                     {loc.name}
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div className="ai-form-group">
-              <label>Start Date</label>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="font-label-md text-on-surface-variant uppercase tracking-wider">Start Date</label>
               <input 
                 type="date" 
+                className="w-full px-4 py-3 rounded-xl bg-surface-container border border-glass-stroke focus:border-neon-coral focus:ring-1 focus:ring-neon-coral outline-none transition-all font-body-lg text-on-surface"
                 value={startDate} 
                 onChange={e => setStartDate(e.target.value)} 
               />
             </div>
-            <div className="ai-form-group">
-              <label>Duration (Days)</label>
+            <div className="flex flex-col gap-2">
+              <label className="font-label-md text-on-surface-variant uppercase tracking-wider">Duration (Days)</label>
               <input 
                 type="number" 
                 min="1"
                 max="30"
+                className="w-full px-4 py-3 rounded-xl bg-surface-container border border-glass-stroke focus:border-neon-coral focus:ring-1 focus:ring-neon-coral outline-none transition-all font-body-lg text-on-surface"
                 value={numberOfDays} 
                 onChange={e => setNumberOfDays(parseInt(e.target.value) || 1)} 
               />
             </div>
           </div>
-          <div className="ai-form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+          
+          <div className="flex items-center gap-3 mt-2 p-4 rounded-xl bg-surface-container border border-glass-stroke">
             <input 
               type="checkbox" 
               id="roundTripCheck"
               checked={isRoundTrip}
               onChange={e => setIsRoundTrip(e.target.checked)}
-              style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+              className="w-5 h-5 rounded border-glass-stroke text-neon-coral focus:ring-neon-coral focus:ring-offset-surface bg-surface"
             />
-            <label htmlFor="roundTripCheck" style={{ margin: 0, cursor: 'pointer', opacity: 0.9 }}>This is a Round Trip (return to source)</label>
+            <label htmlFor="roundTripCheck" className="cursor-pointer font-title-md select-none text-on-surface-variant">
+              This is a Round Trip (return to source)
+            </label>
           </div>
-          <div className="ai-actions">
-            <button className="ai-magic-btn" onClick={generateTripPlan}>
-              🪄 Generate Routes
+          
+          <div className="mt-4 flex justify-end">
+            <button 
+              className="w-full md:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-neon-coral to-[#E05236] text-surface font-title-md font-bold hover:shadow-[0_4px_20px_rgba(255,107,74,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
+              onClick={generateTripPlan}
+            >
+              <span className="material-symbols-outlined">auto_awesome</span> 
+              Generate Routes
             </button>
           </div>
         </div>
       )}
 
       {!loading && step === 2 && (
-        <div className="glass-panel" style={{ padding: '30px' }}>
-          <h3>Select a Route</h3>
-          <p>I found a few ways to get to {destQuery}. Which one sounds best?</p>
-          
-          <div style={{ marginTop: '20px' }}>
-            {routes.map((route, idx) => (
-              <div 
-                key={idx} 
-                className={`ai-route-option ${selectedRouteIdx === idx ? 'selected' : ''}`}
-                onClick={() => handleRouteSelect(idx)}
-              >
-                <h4 className="ai-route-title">{route.title}</h4>
-                <p style={{ margin: '0 0 10px 0', opacity: 0.8 }}>{route.description}</p>
-                <div className="ai-checkpoint-list">
-                  {route.days.map((day, didx) => (
-                    <React.Fragment key={didx}>
-                      <span style={{ fontSize: '0.8rem', opacity: 0.6, alignSelf: 'center', margin: '0 5px' }}>{day.day}</span>
-                      {day.checkpoints.map((cp, cidx) => (
-                        <span key={`${didx}-${cidx}`} className="ai-checkpoint-tag" style={{ border: cp.isOvernightHalt ? '1px solid #ec4899' : 'none' }}>
-                          {cp.name} {cp.isOvernightHalt && '🛏️'}
-                        </span>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                  <span style={{ fontSize: '0.8rem', opacity: 0.6, alignSelf: 'center', margin: '0 5px' }}>➔</span>
-                  <span className="ai-checkpoint-tag" style={{ background: 'rgba(168, 85, 247, 0.2)' }}>{destQuery}</span>
+        <div className="flex flex-col gap-8">
+          <div className="p-8 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col gap-6">
+            <div>
+              <h3 className="font-headline-lg text-2xl font-bold m-0">Select a Route</h3>
+              <p className="font-body-md text-on-surface-variant mt-2">I found a few ways to get to {destQuery}. Which one sounds best?</p>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              {routes.map((route, idx) => (
+                <div 
+                  key={idx} 
+                  className={`p-6 rounded-xl border-2 transition-all cursor-pointer shadow-lg flex flex-col gap-4
+                    ${selectedRouteIdx === idx ? 'border-neon-coral bg-neon-coral/5' : 'border-glass-stroke bg-surface-container hover:border-neon-coral/50'}`}
+                  onClick={() => handleRouteSelect(idx)}
+                >
+                  <div>
+                    <h4 className="font-title-lg font-bold text-on-surface">{route.title}</h4>
+                    <p className="font-body-md text-on-surface-variant mt-1">{route.description}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    {route.days.map((day, didx) => (
+                      <React.Fragment key={didx}>
+                        <span className="font-label-sm text-on-surface-variant uppercase tracking-wider">{day.day}</span>
+                        {day.checkpoints.map((cp, cidx) => (
+                          <span key={`${didx}-${cidx}`} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1 ${cp.isOvernightHalt ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' : 'bg-surface-variant text-on-surface-variant border border-glass-stroke'}`}>
+                            {cp.name} {cp.isOvernightHalt && <span className="material-symbols-outlined text-[14px]">bed</span>}
+                          </span>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                    <span className="material-symbols-outlined text-[16px] text-on-surface-variant mx-1">arrow_forward</span>
+                    <span className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      {destQuery}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div style={{ marginTop: '30px', padding: '20px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
-            <h4 style={{ margin: '0 0 10px 0' }}>Not quite right? Give feedback!</h4>
+          <div className="p-8 rounded-2xl bg-surface-container border border-glass-stroke shadow-xl flex flex-col gap-4">
+            <h4 className="font-title-md font-bold m-0 flex items-center gap-2">
+              <span className="material-symbols-outlined text-neon-coral">chat</span>
+              Not quite right? Give feedback!
+            </h4>
             <textarea 
-              className="ai-form-group"
-              style={{ width: '100%', minHeight: '80px', padding: '10px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              className="w-full min-h-[100px] p-4 rounded-xl bg-glass-fill border border-glass-stroke focus:border-neon-coral focus:ring-1 focus:ring-neon-coral outline-none transition-all font-body-md text-on-surface resize-y"
               placeholder="e.g. Add a stop in Mumbai, I prefer driving less per day, change the hotel stop..."
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
             />
-            <button className="ai-magic-btn" style={{ marginTop: '10px', fontSize: '0.9rem', padding: '8px 16px' }} onClick={() => generateTripPlan(true)}>
-              🔄 Revise Plan
-            </button>
+            <div className="flex justify-end mt-2">
+              <button 
+                className="px-6 py-3 rounded-xl bg-surface-container-high text-on-surface font-title-sm font-bold border border-glass-stroke hover:bg-surface-variant transition-colors flex items-center gap-2"
+                onClick={() => generateTripPlan(true)}
+              >
+                <span className="material-symbols-outlined text-[18px]">refresh</span>
+                Revise Plan
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {!loading && step === 3 && (
-        <div className="glass-panel" style={{ padding: '30px' }}>
-          <h3>Customize Your Journey</h3>
-          <p>Uncheck any stops you want to skip. We've included some must-see places at each stop!</p>
+        <div className="p-8 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col gap-8">
+          <div className="border-b border-glass-stroke pb-6">
+            <h3 className="font-headline-lg text-2xl font-bold m-0">Customize Your Journey</h3>
+            <p className="font-body-md text-on-surface-variant mt-2">Uncheck any stops you want to skip. We've included some must-see places at each stop!</p>
+          </div>
           
-          <div style={{ marginTop: '20px' }}>
+          <div className="flex flex-col gap-8">
             {(() => {
               const route = routes[selectedRouteIdx];
               let globalCpIndex = 0;
               return route.days.map((day, didx) => (
-                <div key={didx} style={{ marginBottom: '20px' }}>
-                  <h4 style={{ color: '#ec4899', margin: '0 0 15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '5px' }}>
-                    📅 {day.day} ({day.date})
+                <div key={didx} className="flex flex-col gap-4">
+                  <h4 className="font-title-md font-bold text-pink-400 m-0 flex items-center gap-2">
+                    <span className="material-symbols-outlined">calendar_month</span>
+                    {day.day} <span className="font-body-sm opacity-70">({day.date})</span>
                   </h4>
-                  {day.checkpoints.map((cp, cidx) => {
-                    const currentIdx = globalCpIndex++;
-                    return (
-                      <div key={currentIdx} className="ai-checkpoint-item" style={{ opacity: selectedCheckpoints[currentIdx] ? 1 : 0.5 }}>
-                        <input 
-                          type="checkbox" 
-                          className="ai-checkpoint-checkbox"
-                          checked={selectedCheckpoints[currentIdx]} 
-                          onChange={() => toggleCheckpoint(currentIdx)} 
-                        />
-                        <div className="ai-checkpoint-content" style={{ width: '100%' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <h4 style={{ margin: '0 0 5px 0' }}>{cp.name} {cp.isOvernightHalt && <span title="Overnight Halt">🛏️</span>}</h4>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.8, textAlign: 'right', background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
-                              ↓ {cp.arrivalTime} <br/> ↑ {cp.departureTime}
+                  
+                  <div className="flex flex-col gap-3">
+                    {day.checkpoints.map((cp, cidx) => {
+                      const currentIdx = globalCpIndex++;
+                      const isSelected = selectedCheckpoints[currentIdx];
+                      return (
+                        <div 
+                          key={currentIdx} 
+                          className={`flex gap-4 p-4 rounded-xl border transition-all ${isSelected ? 'bg-surface-container border-glass-stroke' : 'bg-surface/50 border-transparent opacity-50 grayscale'}`}
+                        >
+                          <input 
+                            type="checkbox" 
+                            className="mt-1 w-5 h-5 rounded border-glass-stroke text-neon-coral focus:ring-neon-coral cursor-pointer"
+                            checked={isSelected} 
+                            onChange={() => toggleCheckpoint(currentIdx)} 
+                          />
+                          <div className="flex-1 flex flex-col gap-2">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-title-md font-bold m-0 flex items-center gap-2">
+                                {cp.name} 
+                                {cp.isOvernightHalt && <span className="text-pink-400 flex items-center gap-1 text-sm bg-pink-500/10 px-2 py-0.5 rounded"><span className="material-symbols-outlined text-[16px]">bed</span> Overnight</span>}
+                              </h4>
+                              <div className="flex flex-col items-end text-xs font-mono text-on-surface-variant bg-surface-container-high px-3 py-1.5 rounded-lg border border-glass-stroke">
+                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">flight_land</span> {cp.arrivalTime}</span>
+                                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">flight_takeoff</span> {cp.departureTime}</span>
+                              </div>
+                            </div>
+                            <div className="font-body-sm text-on-surface-variant flex items-start gap-2 bg-surface-container-low p-3 rounded-lg border border-glass-stroke/50">
+                              <span className="material-symbols-outlined text-[16px] text-yellow-400 mt-0.5">star</span> 
+                              <span><strong className="text-on-surface">Visit:</strong> {cp.placesToVisit}</span>
                             </div>
                           </div>
-                          <div className="ai-places">✨ Visit: {cp.placesToVisit}</div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               ));
             })()}
             
-            <div className="ai-checkpoint-item" style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
-              <div style={{ width: '18px' }}>📍</div>
-              <div className="ai-checkpoint-content" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h4 style={{ margin: '0 0 5px 0' }}>{destQuery} (Destination)</h4>
-                  <div style={{ fontSize: '0.75rem', opacity: 0.8, textAlign: 'right', background: 'rgba(168, 85, 247, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>
-                    ↓ {routes[selectedRouteIdx].destinationArrivalTime}
+            {/* Destination Node */}
+            <div className="flex flex-col gap-4 mt-4 pt-6 border-t border-glass-stroke">
+              <h4 className="font-title-md font-bold text-purple-400 m-0 flex items-center gap-2">
+                <span className="material-symbols-outlined">flag</span>
+                Final Destination
+              </h4>
+              <div className="flex gap-4 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
+                <div className="w-5 flex justify-center mt-1">
+                  <span className="material-symbols-outlined text-purple-400">location_on</span>
+                </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-title-md font-bold m-0">{destQuery}</h4>
+                    <div className="flex flex-col items-end text-xs font-mono text-purple-300 bg-purple-900/40 px-3 py-1.5 rounded-lg">
+                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">flight_land</span> {routes[selectedRouteIdx].destinationArrivalTime}</span>
+                    </div>
+                  </div>
+                  <div className="font-body-sm text-purple-200/80 flex items-start gap-2 bg-purple-900/20 p-3 rounded-lg border border-purple-500/20">
+                    <span className="material-symbols-outlined text-[16px] text-yellow-400 mt-0.5">star</span> 
+                    <span><strong className="text-purple-100">Visit:</strong> {routes[selectedRouteIdx].destinationPlacesToVisit}</span>
                   </div>
                 </div>
-                <div className="ai-places">✨ Visit: {routes[selectedRouteIdx].destinationPlacesToVisit}</div>
               </div>
             </div>
           </div>
 
-          <div className="ai-actions">
-            <button className="ai-magic-btn" onClick={createTrip}>
-              🚀 Create Trip Automatically
+          <div className="mt-8 pt-6 border-t border-glass-stroke flex justify-end">
+            <button 
+              className="w-full md:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-neon-coral to-[#E05236] text-surface font-title-md font-bold hover:shadow-[0_4px_20px_rgba(255,107,74,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
+              onClick={createTrip}
+            >
+              <span className="material-symbols-outlined">rocket_launch</span> 
+              Create Trip Automatically
             </button>
           </div>
         </div>
