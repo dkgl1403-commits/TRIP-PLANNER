@@ -1045,44 +1045,30 @@ def get_expenses(trip_id: int):
             })
             
         # 2. Calculate Settlements
-        # Separate into debtors (who owe) and creditors (who are owed)
-        debtors = []
-        creditors = []
-        
-        for name, balance in balances.items():
-            # rounding to avoid floating point issues
-            balance = round(balance, 2)
-            if balance < 0:
-                debtors.append({"name": name, "amount": -balance})
-            elif balance > 0:
-                creditors.append({"name": name, "amount": balance})
-                
-        # Sort so largest debts/credits are processed first
-        debtors.sort(key=lambda x: x["amount"], reverse=True)
-        creditors.sort(key=lambda x: x["amount"], reverse=True)
-        
+        # We use a pairwise exact settlement algorithm instead of simplified debts
+        # so users see exactly who owes whom for individual transactions.
+        pairwise = {}
+        for exp in expenses:
+            payer = exp["payer_name"]
+            for s in exp["splits"]:
+                debtor = s["participant_name"]
+                amount_owed = s["amount_owed"]
+                if debtor != payer:
+                    pair = tuple(sorted([payer, debtor]))
+                    if pair not in pairwise: pairwise[pair] = 0
+                    if debtor == pair[0]:
+                        pairwise[pair] -= amount_owed
+                    else:
+                        pairwise[pair] += amount_owed
+                        
         settlements = []
-        
-        i, j = 0, 0
-        while i < len(debtors) and j < len(creditors):
-            debtor = debtors[i]
-            creditor = creditors[j]
-            
-            settle_amount = min(debtor["amount"], creditor["amount"])
-            
-            if settle_amount > 0.01: # ignore tiny fractions
-                settlements.append({
-                    "from": debtor["name"],
-                    "to": creditor["name"],
-                    "amount": round(settle_amount, 2)
-                })
-                
-            debtor["amount"] -= settle_amount
-            creditor["amount"] -= settle_amount
-            
-            if debtor["amount"] < 0.01: i += 1
-            if creditor["amount"] < 0.01: j += 1
-            
+        for (p1, p2), net in pairwise.items():
+            net = round(net, 2)
+            if net < -0.01:
+                settlements.append({"from": p1, "to": p2, "amount": -net})
+            elif net > 0.01:
+                settlements.append({"from": p2, "to": p1, "amount": net})
+
 
         # Fetch global participants
         cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
@@ -1170,41 +1156,30 @@ def get_global_expenses(login_id: str):
             })
             
         # 2. Calculate Settlements
-        debtors = []
-        creditors = []
-        
-        for name, balance in balances.items():
-            balance = round(balance, 2)
-            if balance < 0:
-                debtors.append({"name": name, "amount": -balance})
-            elif balance > 0:
-                creditors.append({"name": name, "amount": balance})
-                
-        debtors.sort(key=lambda x: x["amount"], reverse=True)
-        creditors.sort(key=lambda x: x["amount"], reverse=True)
-        
+        # We use a pairwise exact settlement algorithm instead of simplified debts
+        # so users see exactly who owes whom for individual transactions.
+        pairwise = {}
+        for exp in expenses:
+            payer = exp["payer_name"]
+            for s in exp["splits"]:
+                debtor = s["participant_name"]
+                amount_owed = s["amount_owed"]
+                if debtor != payer:
+                    pair = tuple(sorted([payer, debtor]))
+                    if pair not in pairwise: pairwise[pair] = 0
+                    if debtor == pair[0]:
+                        pairwise[pair] -= amount_owed
+                    else:
+                        pairwise[pair] += amount_owed
+                        
         settlements = []
-        
-        i, j = 0, 0
-        while i < len(debtors) and j < len(creditors):
-            debtor = debtors[i]
-            creditor = creditors[j]
-            
-            settle_amount = min(debtor["amount"], creditor["amount"])
-            
-            if settle_amount > 0.01:
-                settlements.append({
-                    "from": debtor["name"],
-                    "to": creditor["name"],
-                    "amount": round(settle_amount, 2)
-                })
-                
-            debtor["amount"] -= settle_amount
-            creditor["amount"] -= settle_amount
-            
-            if debtor["amount"] < 0.01: i += 1
-            if creditor["amount"] < 0.01: j += 1
-            
+        for (p1, p2), net in pairwise.items():
+            net = round(net, 2)
+            if net < -0.01:
+                settlements.append({"from": p1, "to": p2, "amount": -net})
+            elif net > 0.01:
+                settlements.append({"from": p2, "to": p1, "amount": net})
+
 
         # Fetch global participants
         cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
