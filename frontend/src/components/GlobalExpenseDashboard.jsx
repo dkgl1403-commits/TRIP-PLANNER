@@ -217,10 +217,30 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     setEditTripId(exp.trip_id);
     setAmount(exp.amount); setDescription(exp.description);
     setCategory(exp.category); setPayerName(exp.payer_name);
-    const chips = Array.from(new Set([exp.payer_name, ...(exp.splits || []).map(s => s.participant_name)]))
+    const splitsArray = exp.splits || [];
+    const chips = Array.from(new Set([exp.payer_name, ...splitsArray.map(s => s.participant_name)]))
       .map(name => ({ name }));
     setExpenseParticipants(chips);
-    setSplitMode('equal'); setCustomSplits({});
+
+    let isCustom = false;
+    let customSplitVals = {};
+    if (splitsArray.length > 0) {
+      const maxSplit = Math.max(...splitsArray.map(s => s.amount_owed));
+      const minSplit = Math.min(...splitsArray.map(s => s.amount_owed));
+      isCustom = (maxSplit - minSplit) > 0.02;
+      splitsArray.forEach(s => {
+        customSplitVals[s.participant_name] = s.amount_owed;
+      });
+    }
+
+    if (isCustom) {
+      setSplitMode('custom');
+      setCustomSplits(customSplitVals);
+    } else {
+      setSplitMode('equal'); 
+      setCustomSplits({});
+    }
+
     setPersonQuery(''); setPersonResults([]);
     setPayerSearchQuery(''); setPayerSearchResults([]);
     setIsPayerSearchFocused(false);
