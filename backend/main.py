@@ -962,8 +962,8 @@ def add_expense(trip_id: int, request: ExpenseRequest):
         # Insert expense
         cursor.execute(
             """
-            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category) 
-            VALUES (:1, :2, :3, :4, :5) RETURNING id INTO :6
+            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category, expense_date) 
+            VALUES (:1, :2, :3, :4, :5, CURRENT_TIMESTAMP) RETURNING id INTO :6
             """,
             [trip_id, request.payer_name, request.amount, request.description, request.category, out_val]
         )
@@ -1120,7 +1120,7 @@ def get_global_expenses(login_id: str):
             FROM trip_expenses e
             JOIN trips t ON e.trip_id = t.id
             WHERE t.login_id = :1 
-            OR t.id IN (SELECT trip_id FROM trip_participants WHERE login_id = :1 OR name = :1)
+            OR t.id IN (SELECT trip_id FROM trip_participants WHERE login_id = :1 OR name = (SELECT name FROM users WHERE login_id = :1))
             OR e.payer_name = :1
             GROUP BY e.id, e.payer_name, e.amount, e.description, e.category, e.expense_date, e.trip_id
             ORDER BY e.expense_date DESC
@@ -1261,8 +1261,8 @@ def add_global_expense(login_id: str, request: ExpenseRequest):
         # Now insert the expense
         out_val_exp = cursor.var(int)
         cursor.execute('''
-            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category) 
-            VALUES (:1, :2, :3, :4, :5) RETURNING id INTO :6
+            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category, expense_date) 
+            VALUES (:1, :2, :3, :4, :5, CURRENT_TIMESTAMP) RETURNING id INTO :6
         ''', [trip_id, request.payer_name, request.amount, request.description, request.category, out_val_exp])
         
         expense_id = out_val_exp.getvalue()[0]
