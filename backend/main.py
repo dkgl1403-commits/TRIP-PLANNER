@@ -1679,7 +1679,27 @@ def get_logs():
 class RoleUpdateRequest(BaseModel):
     role: str
 
+@app.get("/api/users/search")
+def search_users(q: str = "", login_id: str = ""):
+    """Search registered users by name (case-insensitive). Excludes the requesting user."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        if not q.strip():
+            return {"users": []}
+        cursor.execute(
+            "SELECT login_id, name, phone FROM users WHERE UPPER(name) LIKE UPPER(:1) AND login_id != :2 AND ROWNUM <= 10",
+            [f"%{q.strip()}%", login_id or ""]
+        )
+        results = cursor.fetchall()
+        return {"users": [{"login_id": r[0], "name": r[1], "phone": r[2]} for r in results]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
 @app.get("/api/admin/users")
+
 def get_all_users(requester_id: str):
     conn = get_db_connection()
     try:

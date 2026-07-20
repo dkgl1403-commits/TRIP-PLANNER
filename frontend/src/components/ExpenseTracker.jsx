@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 export default function ExpenseTracker({ tripId, participants, user }) {
-  // Use local state for participants to support dynamically adding new people on the fly
-  const [localParticipants, setLocalParticipants] = useState(participants || []);
   const [expenses, setExpenses] = useState([]);
   const [settlements, setSettlements] = useState([]);
   const [balances, setBalances] = useState({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showSettleModal, setShowSettleModal] = useState(false);
-  const [showAddPersonModal, setShowAddPersonModal] = useState(false); // Controls visibility of the Add Person modal
   const [editExpenseId, setEditExpenseId] = useState(null);
   const [flippedCardId, setFlippedCardId] = useState(null);
 
@@ -25,10 +22,6 @@ export default function ExpenseTracker({ tripId, participants, user }) {
   const [payerName, setPayerName] = useState(user?.name || '');
   const [splitMode, setSplitMode] = useState('equal'); // 'equal' or 'custom'
   
-  // Form states for adding a new person with mandatory phone number field
-  const [newPersonName, setNewPersonName] = useState('');
-  const [newPersonPhone, setNewPersonPhone] = useState('');
-
   // selectedParticipants stores which names are included in the equal split
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   // customSplits stores exact amounts keyed by name
@@ -38,21 +31,16 @@ export default function ExpenseTracker({ tripId, participants, user }) {
     fetchExpenses();
   }, [tripId]);
 
-  // Keep localParticipants in sync with changes to participants prop
   useEffect(() => {
-    setLocalParticipants(participants || []);
-  }, [participants]);
-
-  useEffect(() => {
-    // Default all local participants to selected
-    if (localParticipants && localParticipants.length > 0) {
-      const names = Array.from(new Set(localParticipants.map(p => p.name)));
+    // Default all participants to selected
+    if (participants && participants.length > 0) {
+      const names = Array.from(new Set(participants.map(p => p.name)));
       setSelectedParticipants(names);
       if (!payerName) {
         setPayerName(names[0]);
       }
     }
-  }, [localParticipants]);
+  }, [participants]);
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -141,9 +129,9 @@ export default function ExpenseTracker({ tripId, participants, user }) {
           splits[0].amount_owed = parseFloat((splits[0].amount_owed + diff).toFixed(2));
       }
     } else {
-      // Custom split using local participants state
+      // Custom split
       const payerRemainder = calculateCustomPayerRemainder();
-      const allNames = Array.from(new Set(localParticipants.map(p => p.name)));
+      const allNames = Array.from(new Set(participants.map(p => p.name)));
       
       let sum = 0;
       splits = [];
@@ -225,47 +213,7 @@ export default function ExpenseTracker({ tripId, participants, user }) {
     }
   };
 
-  // Handles submission of Add Person modal, enforcing name and phone number are mandatory
-  const handleAddPersonSubmit = async (e) => {
-    e.preventDefault();
-    if (!newPersonName.trim()) {
-      return alert("Name is required");
-    }
-    if (!newPersonPhone.trim()) {
-      return alert("Phone number is mandatory");
-    }
-
-    try {
-      // Post the new person details including mandatory phone number to participants API
-      const res = await fetch(`/api/trips/${tripId}/participants`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newPersonName.trim(),
-          phone: newPersonPhone.trim(),
-          phone_number: newPersonPhone.trim()
-        })
-      });
-
-      if (res.ok) {
-        const newPerson = await res.json();
-        setLocalParticipants(prev => [...prev, newPerson]);
-      } else {
-        // Fallback local updates if API is not fully configured to keep application functional
-        setLocalParticipants(prev => [...prev, { name: newPersonName.trim(), phone: newPersonPhone.trim(), phone_number: newPersonPhone.trim() }]);
-      }
-    } catch (err) {
-      console.error("Error adding participant to backend, fallback to local memory", err);
-      setLocalParticipants(prev => [...prev, { name: newPersonName.trim(), phone: newPersonPhone.trim(), phone_number: newPersonPhone.trim() }]);
-    }
-
-    // Reset input fields and close the modal
-    setNewPersonName('');
-    setNewPersonPhone('');
-    setShowAddPersonModal(false);
-  };
-
-  const uniqueNames = Array.from(new Set(localParticipants.map(p => p.name)));
+  const uniqueNames = Array.from(new Set(participants.map(p => p.name)));
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading expenses...</div>;
 
@@ -278,14 +226,6 @@ export default function ExpenseTracker({ tripId, participants, user }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '1.8rem', margin: 0 }}>💸 Expense Tracker</h3>
         <div style={{ display: 'flex', gap: '10px' }}>
-          {/* Add Person button triggers the modal where phone number input is mandatory */}
-          <button className="btn-primary" onClick={() => {
-            setNewPersonName('');
-            setNewPersonPhone('');
-            setShowAddPersonModal(true);
-          }} style={{ padding: '10px 20px', borderRadius: '20px', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)' }}>
-            👤 Add Person
-          </button>
           <button className="btn-primary" onClick={() => {
             setSettleFrom(user?.name || uniqueNames[0]);
             setSettleTo(uniqueNames.find(n => n !== user?.name) || uniqueNames[1] || uniqueNames[0]);
@@ -563,45 +503,6 @@ export default function ExpenseTracker({ tripId, participants, user }) {
               <div style={{ display: 'flex', gap: '15px' }}>
                 <button type="button" onClick={() => setShowSettleModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Cancel</button>
                 <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #10b981, #34d399)' }}>Record Payment</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Person Modal where phone number is a mandatory field */}
-      {showAddPersonModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#1a1a2e', padding: '30px', borderRadius: '20px', width: '90%', maxWidth: '400px' }}>
-            <h3 style={{ margin: '0 0 20px 0' }}>👤 Add Person</h3>
-            <form onSubmit={handleAddPersonSubmit}>
-              <div className="form-group" style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={newPersonName} 
-                  onChange={e => setNewPersonName(e.target.value)} 
-                  placeholder="e.g. John Doe" 
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }} 
-                />
-              </div>
-              <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>
-                  Phone Number <span style={{ color: '#ff4b2b' }}>*</span>
-                </label>
-                <input 
-                  type="tel" 
-                  required 
-                  value={newPersonPhone} 
-                  onChange={e => setNewPersonPhone(e.target.value)} 
-                  placeholder="e.g. +1234567890 (Mandatory)" 
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }} 
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <button type="button" onClick={() => setShowAddPersonModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Add Person</button>
               </div>
             </form>
           </div>
