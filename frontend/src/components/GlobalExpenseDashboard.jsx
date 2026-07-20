@@ -100,6 +100,7 @@ function PersonChip({ name, onRemove }) {
 export default function GlobalExpenseDashboard({ user, onBack }) {
   const [expenses, setExpenses] = useState([]);
   const [settlements, setSettlements] = useState([]);
+  const [simplifiedSettlements, setSimplifiedSettlements] = useState([]);
   const [balances, setBalances] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -154,6 +155,7 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
         const data = await res.json();
         setExpenses(data.expenses || []);
         setSettlements(data.settlements || []);
+        setSimplifiedSettlements(data.simplified_settlements || []);
         setBalances(data.balances || {});
       }
     } catch (err) {
@@ -798,9 +800,23 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
                 <label style={{ display: 'block', marginBottom: '5px', opacity: 0.8, fontSize: '0.85rem' }}>Amount (₹)</label>
                 <input type="number" required min="1" step="0.01" value={settleAmount} onChange={e => setSettleAmount(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', boxSizing: 'border-box' }} />
                 {(() => {
-                  const sug = settlements.find(s => s.from === settleFrom && s.to === settleTo);
-                  if (sug) return <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#10b981', cursor: 'pointer' }} onClick={() => setSettleAmount(sug.amount)}>💡 Suggested: ₹{sug.amount}</div>;
-                  return null;
+                  const exactSug = settlements.find(s => s.from === settleFrom && s.to === settleTo);
+                  const simpSug = simplifiedSettlements.find(s => s.from === settleFrom && s.to === settleTo);
+                  
+                  return (
+                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {exactSug && (
+                        <div style={{ fontSize: '0.8rem', color: '#10b981', cursor: 'pointer', padding: '6px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '6px' }} onClick={() => setSettleAmount(exactSug.amount)}>
+                          💡 Exact debt: ₹{exactSug.amount}
+                        </div>
+                      )}
+                      {simpSug && (!exactSug || simpSug.amount !== exactSug.amount) && (
+                        <div style={{ fontSize: '0.8rem', color: '#fb923c', cursor: 'pointer', padding: '6px', background: 'rgba(251, 146, 60, 0.1)', borderRadius: '6px' }} onClick={() => setSettleAmount(simpSug.amount)}>
+                          ✨ Suggestion: Pay ₹{simpSug.amount} to {settleTo} to settle your entire net debt instead of paying individuals.
+                        </div>
+                      )}
+                    </div>
+                  );
                 })()}
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>

@@ -1070,6 +1070,34 @@ def get_expenses(trip_id: int):
                 settlements.append({"from": p2, "to": p1, "amount": net})
 
 
+        # Calculate Simplified Settlements (for UI suggestions)
+        debtors = []
+        creditors = []
+        for name, balance in balances.items():
+            balance = round(balance, 2)
+            if balance < 0: debtors.append({"name": name, "amount": -balance})
+            elif balance > 0: creditors.append({"name": name, "amount": balance})
+                
+        debtors.sort(key=lambda x: x["amount"], reverse=True)
+        creditors.sort(key=lambda x: x["amount"], reverse=True)
+        
+        simplified_settlements = []
+        i, j = 0, 0
+        while i < len(debtors) and j < len(creditors):
+            debtor = debtors[i]
+            creditor = creditors[j]
+            settle_amount = min(debtor["amount"], creditor["amount"])
+            if settle_amount > 0.01:
+                simplified_settlements.append({
+                    "from": debtor["name"],
+                    "to": creditor["name"],
+                    "amount": round(settle_amount, 2)
+                })
+            debtor["amount"] -= settle_amount
+            creditor["amount"] -= settle_amount
+            if debtor["amount"] < 0.01: i += 1
+            if creditor["amount"] < 0.01: j += 1
+
         # Fetch global participants
         cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
         global_trip = cursor.fetchone()
@@ -1082,6 +1110,7 @@ def get_expenses(trip_id: int):
             "status": "success",
             "expenses": expenses,
             "settlements": settlements,
+            "simplified_settlements": simplified_settlements,
             "balances": balances,
             "global_participants": global_participants
         }
@@ -1181,6 +1210,34 @@ def get_global_expenses(login_id: str):
                 settlements.append({"from": p2, "to": p1, "amount": net})
 
 
+        # Calculate Simplified Settlements (for UI suggestions)
+        debtors = []
+        creditors = []
+        for name, balance in balances.items():
+            balance = round(balance, 2)
+            if balance < 0: debtors.append({"name": name, "amount": -balance})
+            elif balance > 0: creditors.append({"name": name, "amount": balance})
+                
+        debtors.sort(key=lambda x: x["amount"], reverse=True)
+        creditors.sort(key=lambda x: x["amount"], reverse=True)
+        
+        simplified_settlements = []
+        i, j = 0, 0
+        while i < len(debtors) and j < len(creditors):
+            debtor = debtors[i]
+            creditor = creditors[j]
+            settle_amount = min(debtor["amount"], creditor["amount"])
+            if settle_amount > 0.01:
+                simplified_settlements.append({
+                    "from": debtor["name"],
+                    "to": creditor["name"],
+                    "amount": round(settle_amount, 2)
+                })
+            debtor["amount"] -= settle_amount
+            creditor["amount"] -= settle_amount
+            if debtor["amount"] < 0.01: i += 1
+            if creditor["amount"] < 0.01: j += 1
+
         # Fetch global participants
         cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
         global_trip = cursor.fetchone()
@@ -1193,6 +1250,7 @@ def get_global_expenses(login_id: str):
             "status": "success",
             "expenses": expenses,
             "settlements": settlements,
+            "simplified_settlements": simplified_settlements,
             "balances": balances,
             "global_participants": global_participants
         }
