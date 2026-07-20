@@ -1120,12 +1120,12 @@ def get_global_expenses(login_id: str):
             FROM trip_expenses e
             JOIN trips t ON e.trip_id = t.id
             WHERE t.login_id = :1 
-            OR t.id IN (SELECT trip_id FROM trip_participants WHERE login_id = :1 OR name = (SELECT name FROM users WHERE login_id = :1))
-            OR e.payer_name = :1
+            OR t.id IN (SELECT trip_id FROM trip_participants WHERE login_id = :2 OR name = (SELECT name FROM users WHERE login_id = :3))
+            OR e.payer_name = :4
             GROUP BY e.id, e.payer_name, e.amount, e.description, e.category, e.expense_date, e.trip_id
             ORDER BY e.expense_date DESC
             ''',
-            [login_id]
+            [login_id, login_id, login_id, login_id]
         )
         expenses_data = cursor.fetchall()
         
