@@ -962,8 +962,8 @@ def add_expense(trip_id: int, request: ExpenseRequest):
         # Insert expense
         cursor.execute(
             """
-            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category) 
-            VALUES (:1, :2, :3, :4, :5) RETURNING id INTO :6
+            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category, expense_date) 
+            VALUES (:1, :2, :3, :4, :5, CURRENT_TIMESTAMP) RETURNING id INTO :6
             """,
             [trip_id, request.payer_name, request.amount, request.description, request.category, out_val]
         )
@@ -1045,55 +1045,306 @@ def get_expenses(trip_id: int):
             })
             
         # 2. Calculate Settlements
-        # Separate into debtors (who owe) and creditors (who are owed)
+        # We use a pairwise exact settlement algorithm instead of simplified debts
+        # so users see exactly who owes whom for individual transactions.
+        pairwise = {}
+        for exp in expenses:
+            payer = exp["payer_name"]
+            for s in exp["splits"]:
+                debtor = s["participant_name"]
+                amount_owed = s["amount_owed"]
+                if debtor != payer:
+                    pair = tuple(sorted([payer, debtor]))
+                    if pair not in pairwise: pairwise[pair] = 0
+                    if debtor == pair[0]:
+                        pairwise[pair] -= amount_owed
+                    else:
+                        pairwise[pair] += amount_owed
+                        
+        settlements = []
+        for (p1, p2), net in pairwise.items():
+            net = round(net, 2)
+            if net < -0.01:
+                settlements.append({"from": p1, "to": p2, "amount": -net})
+            elif net > 0.01:
+                settlements.append({"from": p2, "to": p1, "amount": net})
+
+
+        # Calculate Simplified Settlements (for UI suggestions)
         debtors = []
         creditors = []
-        
         for name, balance in balances.items():
-            # rounding to avoid floating point issues
             balance = round(balance, 2)
-            if balance < 0:
-                debtors.append({"name": name, "amount": -balance})
-            elif balance > 0:
-                creditors.append({"name": name, "amount": balance})
+            if balance < 0: debtors.append({"name": name, "amount": -balance})
+            elif balance > 0: creditors.append({"name": name, "amount": balance})
                 
-        # Sort so largest debts/credits are processed first
         debtors.sort(key=lambda x: x["amount"], reverse=True)
         creditors.sort(key=lambda x: x["amount"], reverse=True)
         
-        settlements = []
-        
+        simplified_settlements = []
         i, j = 0, 0
         while i < len(debtors) and j < len(creditors):
             debtor = debtors[i]
             creditor = creditors[j]
-            
             settle_amount = min(debtor["amount"], creditor["amount"])
-            
-            if settle_amount > 0.01: # ignore tiny fractions
-                settlements.append({
+            if settle_amount > 0.01:
+                simplified_settlements.append({
                     "from": debtor["name"],
                     "to": creditor["name"],
                     "amount": round(settle_amount, 2)
                 })
-                
             debtor["amount"] -= settle_amount
             creditor["amount"] -= settle_amount
-            
             if debtor["amount"] < 0.01: i += 1
             if creditor["amount"] < 0.01: j += 1
+
+        # Fetch global participants
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
+        global_trip = cursor.fetchone()
+        global_participants = []
+        if global_trip:
+            cursor.execute("SELECT name FROM trip_participants WHERE trip_id = :1", [global_trip[0]])
+            global_participants = [row[0] for row in cursor.fetchall()]
             
         return {
             "status": "success",
             "expenses": expenses,
             "settlements": settlements,
-            "balances": balances
+            "simplified_settlements": simplified_settlements,
+            "balances": balances,
+            "global_participants": global_participants
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
 
+
+
+
+@app.get("/api/expenses/global")
+def get_global_expenses(login_id: str):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Fetch all expenses where trip_id belongs to user
+        cursor.execute(
+            '''
+            SELECT e.id, e.payer_name, e.amount, e.description, e.category, e.expense_date, e.trip_id
+            FROM trip_expenses e
+            JOIN trips t ON e.trip_id = t.id
+            WHERE t.login_id = :1 
+            OR t.id IN (SELECT trip_id FROM trip_participants WHERE login_id = :2 OR name = (SELECT name FROM users WHERE login_id = :3))
+            OR e.payer_name = :4
+            GROUP BY e.id, e.payer_name, e.amount, e.description, e.category, e.expense_date, e.trip_id
+            ORDER BY e.expense_date DESC
+            ''',
+            [login_id, login_id, login_id, login_id]
+        )
+        expenses_data = cursor.fetchall()
+        
+        expenses = []
+        balances = {} # name -> net_balance
+        
+        for exp in expenses_data:
+            exp_id = exp[0]
+            payer = exp[1]
+            amount = exp[2]
+            trip_id = exp[6]
+            
+            # Payer gets positive balance (they paid, so they should get it back)
+            balances[payer] = balances.get(payer, 0) + amount
+            
+            # Fetch splits for this expense
+            cursor.execute("SELECT participant_name, amount_owed FROM trip_expense_splits WHERE expense_id = :1", [exp_id])
+            splits = cursor.fetchall()
+            
+            split_details = []
+            for split in splits:
+                participant = split[0]
+                amount_owed = split[1]
+                
+                # Participant gets negative balance (they owe money)
+                balances[participant] = balances.get(participant, 0) - amount_owed
+                
+                split_details.append({
+                    "participant_name": participant,
+                    "amount_owed": amount_owed
+                })
+                
+            expenses.append({
+                "id": exp_id,
+                "payer_name": payer,
+                "amount": amount,
+                "description": exp[3],
+                "category": exp[4],
+                "date": exp[5],
+                "trip_id": trip_id,
+                "splits": split_details
+            })
+            
+        # 2. Calculate Settlements
+        # We use a pairwise exact settlement algorithm instead of simplified debts
+        # so users see exactly who owes whom for individual transactions.
+        pairwise = {}
+        for exp in expenses:
+            payer = exp["payer_name"]
+            for s in exp["splits"]:
+                debtor = s["participant_name"]
+                amount_owed = s["amount_owed"]
+                if debtor != payer:
+                    pair = tuple(sorted([payer, debtor]))
+                    if pair not in pairwise: pairwise[pair] = 0
+                    if debtor == pair[0]:
+                        pairwise[pair] -= amount_owed
+                    else:
+                        pairwise[pair] += amount_owed
+                        
+        settlements = []
+        for (p1, p2), net in pairwise.items():
+            net = round(net, 2)
+            if net < -0.01:
+                settlements.append({"from": p1, "to": p2, "amount": -net})
+            elif net > 0.01:
+                settlements.append({"from": p2, "to": p1, "amount": net})
+
+
+        # Calculate Simplified Settlements (for UI suggestions)
+        debtors = []
+        creditors = []
+        for name, balance in balances.items():
+            balance = round(balance, 2)
+            if balance < 0: debtors.append({"name": name, "amount": -balance})
+            elif balance > 0: creditors.append({"name": name, "amount": balance})
+                
+        debtors.sort(key=lambda x: x["amount"], reverse=True)
+        creditors.sort(key=lambda x: x["amount"], reverse=True)
+        
+        simplified_settlements = []
+        i, j = 0, 0
+        while i < len(debtors) and j < len(creditors):
+            debtor = debtors[i]
+            creditor = creditors[j]
+            settle_amount = min(debtor["amount"], creditor["amount"])
+            if settle_amount > 0.01:
+                simplified_settlements.append({
+                    "from": debtor["name"],
+                    "to": creditor["name"],
+                    "amount": round(settle_amount, 2)
+                })
+            debtor["amount"] -= settle_amount
+            creditor["amount"] -= settle_amount
+            if debtor["amount"] < 0.01: i += 1
+            if creditor["amount"] < 0.01: j += 1
+
+        # Fetch global participants
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [f"__GLOBAL_EXPENSES_{login_id}__", login_id])
+        global_trip = cursor.fetchone()
+        global_participants = []
+        if global_trip:
+            cursor.execute("SELECT name FROM trip_participants WHERE trip_id = :1", [global_trip[0]])
+            global_participants = [row[0] for row in cursor.fetchall()]
+            
+        return {
+            "status": "success",
+            "expenses": expenses,
+            "settlements": settlements,
+            "simplified_settlements": simplified_settlements,
+            "balances": balances,
+            "global_participants": global_participants
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+@app.post("/api/expenses/global")
+def add_global_expense(login_id: str, request: ExpenseRequest):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Find or create a global trip for this user
+        global_trip_title = f"__GLOBAL_EXPENSES_{login_id}__"
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [global_trip_title, login_id])
+        global_trip_res = cursor.fetchone()
+        
+        if not global_trip_res:
+            out_val = cursor.var(int)
+            cursor.execute('''
+                INSERT INTO trips (login_id, title, status)
+                VALUES (:1, :2, 'Completed') RETURNING id INTO :3
+            ''', [login_id, global_trip_title, out_val])
+            trip_id = out_val.getvalue()[0]
+        else:
+            trip_id = global_trip_res[0]
+            
+        # Also ensure the payer is in the participants table for this trip
+        cursor.execute("SELECT id FROM trip_participants WHERE trip_id = :1 AND name = :2", [trip_id, request.payer_name])
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO trip_participants (trip_id, name) VALUES (:1, :2)", [trip_id, request.payer_name])
+            
+        # Ensure all split targets are participants
+        for s in request.splits:
+            cursor.execute("SELECT id FROM trip_participants WHERE trip_id = :1 AND name = :2", [trip_id, s.participant_name])
+            if not cursor.fetchone():
+                cursor.execute("INSERT INTO trip_participants (trip_id, name) VALUES (:1, :2)", [trip_id, s.participant_name])
+                
+        # Now insert the expense
+        out_val_exp = cursor.var(int)
+        cursor.execute('''
+            INSERT INTO trip_expenses (trip_id, payer_name, amount, description, category, expense_date) 
+            VALUES (:1, :2, :3, :4, :5, CURRENT_TIMESTAMP) RETURNING id INTO :6
+        ''', [trip_id, request.payer_name, request.amount, request.description, request.category, out_val_exp])
+        
+        expense_id = out_val_exp.getvalue()[0]
+        
+        split_data = [(expense_id, s.participant_name, s.amount_owed) for s in request.splits]
+        cursor.executemany("INSERT INTO trip_expense_splits (expense_id, participant_name, amount_owed) VALUES (:1, :2, :3)", split_data)
+        
+        conn.commit()
+        return {"status": "success", "message": "Global expense added", "expense_id": expense_id, "trip_id": trip_id}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.post("/api/expenses/global/participants")
+def add_global_participant(login_id: str, participant: Participant):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Find or create global trip
+        global_trip_title = f"__GLOBAL_EXPENSES_{login_id}__"
+        cursor.execute("SELECT id FROM trips WHERE title = :1 AND login_id = :2", [global_trip_title, login_id])
+        global_trip_res = cursor.fetchone()
+        
+        if not global_trip_res:
+            out_val = cursor.var(int)
+            cursor.execute('''
+                INSERT INTO trips (login_id, title, status)
+                VALUES (:1, :2, 'Completed') RETURNING id INTO :3
+            ''', [login_id, global_trip_title, out_val])
+            trip_id = out_val.getvalue()[0]
+        else:
+            trip_id = global_trip_res[0]
+            
+        # Insert participant if not exists
+        cursor.execute("SELECT id FROM trip_participants WHERE trip_id = :1 AND name = :2", [trip_id, participant.name])
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO trip_participants (trip_id, name) VALUES (:1, :2)", [trip_id, participant.name])
+            
+        conn.commit()
+        return {"status": "success", "message": "Participant added"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
 
 @app.put("/api/trips/{trip_id}/expenses/{expense_id}")
 def update_expense(trip_id: int, expense_id: int, request: ExpenseRequest):
@@ -1461,7 +1712,27 @@ def get_logs():
 class RoleUpdateRequest(BaseModel):
     role: str
 
+@app.get("/api/users/search")
+def search_users(q: str = "", login_id: str = ""):
+    """Search registered users by name (case-insensitive). Excludes the requesting user."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        if not q.strip():
+            return {"users": []}
+        cursor.execute(
+            "SELECT login_id, name, phone FROM users WHERE UPPER(name) LIKE UPPER(:1) AND login_id != :2 AND ROWNUM <= 10",
+            [f"%{q.strip()}%", login_id or ""]
+        )
+        results = cursor.fetchall()
+        return {"users": [{"login_id": r[0], "name": r[1], "phone": r[2]} for r in results]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
 @app.get("/api/admin/users")
+
 def get_all_users(requester_id: str):
     conn = get_db_connection()
     try:
@@ -1559,11 +1830,14 @@ def get_current_indices():
         nifty = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^NSEI').order_by(RawMarketDataV2.date.desc()).first()
         sensex = db.query(RawMarketDataV2).filter(RawMarketDataV2.ticker == '^BSESN').order_by(RawMarketDataV2.date.desc()).first()
         
+        # Return nifty and sensex open and close prices, along with the date of the market record formatted as 'YYYY-MM-DD'
         return {
             "nifty50": float(round(nifty.close_price, 2)) if nifty else 0.0,
             "nifty50_open": float(round(nifty.open_price, 2)) if nifty else 0.0,
+            "nifty50_date": nifty.date.strftime("%Y-%m-%d") if nifty and nifty.date else None,
             "sensex": float(round(sensex.close_price, 2)) if sensex else 0.0,
-            "sensex_open": float(round(sensex.open_price, 2)) if sensex else 0.0
+            "sensex_open": float(round(sensex.open_price, 2)) if sensex else 0.0,
+            "sensex_date": sensex.date.strftime("%Y-%m-%d") if sensex and sensex.date else None
         }
     except Exception as e:
         return {"error": str(e)}
@@ -1611,23 +1885,39 @@ def system_health():
             from sqlalchemy import text
             db.execute(text("SELECT 1"))
             
-            # DB Size
-            db_size_res = db.execute(text("SELECT pg_database_size(current_database())")).fetchone()
-            if db_size_res:
-                db_size_gb = round(db_size_res[0] / (1024**3), 2)
+            dialect = db.bind.dialect.name
+            if dialect == 'postgresql':
+                # DB Size
+                db_size_res = db.execute(text("SELECT pg_database_size(current_database())")).fetchone()
+                if db_size_res:
+                    db_size_gb = round(db_size_res[0] / (1024**3), 2)
+                    
+                # Top Tables
+                tables_query = text("""
+                    SELECT relname as table_name, pg_total_relation_size(relid) as size_bytes
+                    FROM pg_catalog.pg_statio_user_tables
+                    ORDER BY pg_total_relation_size(relid) DESC
+                    LIMIT 5;
+                """)
+                tables_res = db.execute(tables_query).fetchall()
+                top_tables = [{"name": row[0], "size_mb": round(row[1] / (1024**2), 2)} for row in tables_res]
+            
+            elif dialect == 'sqlite':
+                import os
+                db_path = str(db.bind.url).replace('sqlite:///', '')
+                # handle relative path sqlite:///./finance.db
+                if db_path.startswith('./'):
+                    db_path = db_path[2:]
                 
-            # Top Tables
-            tables_query = text("""
-                SELECT relname as table_name, pg_total_relation_size(relid) as size_bytes
-                FROM pg_catalog.pg_statio_user_tables
-                ORDER BY pg_total_relation_size(relid) DESC
-                LIMIT 5;
-            """)
-            tables_res = db.execute(tables_query).fetchall()
-            top_tables = [{"name": row[0], "size_mb": round(row[1] / (1024**2), 2)} for row in tables_res]
+                if os.path.exists(db_path):
+                    db_size_gb = round(os.path.getsize(db_path) / (1024**3), 4)
+                
+                tables_query = text("SELECT name FROM sqlite_master WHERE type='table';")
+                tables_res = db.execute(tables_query).fetchall()
+                top_tables = [{"name": row[0], "size_mb": 0.0} for row in tables_res[:5]]
             
         except Exception as e:
-            db_status = f"Offline: {e}"
+            db_status = f"Offline: ({type(e).__name__}) {str(e)}"
         
         # Get Job Statuses
         jobs = db.query(SystemJobStatus).all()

@@ -1,13 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <link rel="manifest" href="/manifest.json" />
     <title>TRIP Planner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Manrope:wght@400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
   </head>
-  <body>
+  <body class="bg-surface text-on-surface min-h-screen relative overflow-x-hidden font-body-md text-body-md selection:bg-neon-coral/30 selection:text-white">
+    <!-- Atmospheric Background Image (Global) -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center opacity-30 mix-blend-screen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDR7MI6wSZF4_3Ti_cnLWZUV2lttfb3ccnIJkJgVB0JXN1d3MbWSMzAWvT9DggIw3ThYw3xf7Z3KmdpseLoMq18csGOdlfiOx-kP1IBy4YqPfw6hwZ9ItZ8IpQikcQbRWnZuhLU88lqhriQgqUtWIJWJtWX4-FMrMqR8aqM4BfoamcORxtaAED8Tp-hS5tC9y-605chr8z0wMbeqt8ObhwFtyBLiLhtFtRYDVW8TtvUDSXjegXWQ35R')"></div>
+    <!-- Gradient Overlay for depth (Global) -->
+    <div class="fixed inset-0 z-[-1] bg-gradient-to-b from-surface/50 via-surface/80 to-surface pointer-events-none"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>

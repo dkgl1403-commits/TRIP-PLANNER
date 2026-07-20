@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      # DEPLOY TO PRODUCTION
+
+      # ── DEPLOY TO PRODUCTION (main branch) ─────────────────────────────────
       - name: Deploy Production
         if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@v1
@@ -19,17 +19,21 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/TRIP_Planner
-            git checkout main
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             cd backend
             pip3 install -r requirements.txt 2>/dev/null || true
             bash restart_backend.sh
             cd ../frontend
-            npm install && npm run build
+            npm install
+            npm run build
             sudo chmod -R 755 dist/
+            sudo nginx -s reload
+            echo "=== PRODUCTION DEPLOY DONE ==="
 
-      # DEPLOY TO UAT
+      # ── DEPLOY TO UAT (uat branch) ─────────────────────────────────────────
       - name: Deploy UAT
         if: github.ref == 'refs/heads/uat'
         uses: appleboy/ssh-action@v1
@@ -38,12 +42,16 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/TRIP_Planner_UAT
-            git checkout uat
-            git pull origin uat
+            git fetch origin
+            git reset --hard origin/uat
             cd backend
             pip3 install -r requirements.txt 2>/dev/null || true
             bash restart_backend_uat.sh
             cd ../frontend
-            npm install && npm run build
+            npm install
+            npm run build
             sudo chmod -R 755 dist/
+            sudo nginx -s reload
+            echo "=== UAT DEPLOY DONE ==="

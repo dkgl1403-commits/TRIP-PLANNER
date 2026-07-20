@@ -70,8 +70,8 @@
 }
 
 .trip-detail-btn.primary {
-  background: #FF6B6B;
-  border-color: #FF6B6B;
+  background: var(--neon-coral);
+  border-color: var(--neon-coral);
   color: white;
 }
 .trip-detail-btn.primary:hover {
@@ -102,8 +102,8 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 .round-icon-btn.primary {
-  background: #FF6B6B;
-  border-color: #FF6B6B;
+  background: var(--neon-coral);
+  border-color: var(--neon-coral);
 }
 .round-icon-btn.primary:hover {
   background: #ff5252;
@@ -211,8 +211,8 @@
 
 .add-participant-btn {
   background: none;
-  border: 1px dashed #FF6B6B;
-  color: #FF6B6B;
+  border: 1px dashed var(--neon-coral);
+  color: var(--neon-coral);
   padding: 10px;
   border-radius: 10px;
   cursor: pointer;

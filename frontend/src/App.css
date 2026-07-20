@@ -1,15 +1,40 @@
+/* ── App Shell ───────────────────────────────────────────────────────────── */
 .app-container {
   width: 100vw;
-  height: 100vh;
-  background-image: url('./assets/watermark_bg.png');
-  background-size: 100% 100%;
-  background-position: center bottom;
-  background-repeat: no-repeat;
+  min-height: 100vh;
+  /* Deep dark gradient background for glassmorphism */
+  background: linear-gradient(135deg, #0a0f1e 0%, #0d1b2a 40%, #1a0a2e 80%, #0a0f1e 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  color: #e2e8f0;
+}
+
+/* Ambient background glow blobs */
+.app-container::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 107, 74, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-container::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(80, 160, 255, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .app-container.dashboard-active {
@@ -17,18 +42,16 @@
   overflow-y: auto;
 }
 
-/* Subtle overlay if the watermark needs to be darkened/lightened for contrast */
+/* Subtle dark overlay — replaces the old white wash */
 .bg-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.4);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: transparent;
   z-index: 1;
   pointer-events: none;
 }
 
+/* ── Content Wrappers ─────────────────────────────────────────────────────── */
 .content-wrapper {
   position: relative;
   z-index: 2;
@@ -36,7 +59,7 @@
 }
 
 .content-wrapper.login-mode {
-  max-width: 450px;
+  max-width: 480px;
   padding: 20px;
 }
 
@@ -47,23 +70,25 @@
   min-height: 100vh;
 }
 
-.theme-toggle { position: absolute; top: 20px; right: 20px; z-index: 10; padding: 10px 15px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.7); cursor: pointer; font-family: inherit; font-weight: 600; backdrop-filter: blur(5px); transition: all 0.3s; }
-.theme-toggle:hover { background: rgba(255,255,255,0.9); }
+/* ── Theme Toggle ─────────────────────────────────────────────────────────── */
+.theme-toggle {
+  position: absolute;
+  top: 20px; right: 20px;
+  z-index: 10;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: #e2e8f0;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.8rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.15); }
 
-/* Global Dark Mode Rules */
-.app-container.dark { color: #f0f0f0; }
-.dark .bg-overlay { background: rgba(0, 0, 0, 0.7); }
-.dark .theme-toggle { background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.2); }
-.dark .glass-panel { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: #f0f0f0; }
-.dark .input-group label { color: #ccc; }
-.dark .input-group input, .dark .input-group select { background: rgba(0,0,0,0.4); color: white; border-color: rgba(255,255,255,0.2); }
-.dark .input-group input::placeholder { color: #888; }
-.dark .tab-btn { color: #aaa; }
-.dark .tab-btn.active { color: #FF6B6B; }
-.dark .btn-biometric { background: rgba(0,0,0,0.4); color: white; border-color: rgba(255,255,255,0.2); }
-.dark .logo-sub { color: #aaa; }
+/* Leaflet routing container override */
+.leaflet-routing-container { display: none !important; }
 
-.dark .input-group input:focus, .dark .dropdown-input:focus { background: rgba(0,0,0,0.6); color: white; border-color: #FF6B6B; }
-/* Fix browser autofill colors in dark mode */
-.dark input:-webkit-autofill { -webkit-text-fill-color: white; -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.8) inset; }
-.leaflet-routing-container { display: none !important; } 

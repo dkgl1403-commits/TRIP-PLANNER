@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Alert, Spin, Card, Row, Col, Statistic, Progress } from 'antd';
-import { RiseOutlined, FallOutlined, WarningOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-
-const { Title, Text } = Typography;
 
 const FinanceDashboard = ({ onBack }) => {
     const [factors, setFactors] = useState([]);
@@ -12,14 +8,49 @@ const FinanceDashboard = ({ onBack }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // FIN-14: Added states to track interaction for the 3D 'Back to App' button press and hover effects
+    const [btnPressed, setBtnPressed] = useState(false);
+    const [btnHovered, setBtnHovered] = useState(false);
 
-    // Refined Dark Professional Financial Palette
-    const darkNavy = '#010409'; 
-    const cardBg = '#0d1117';   
-    const borderColor = '#30363d';
-    const textColor = '#e6edf3';
-    const secondaryTextColor = '#8b949e';
-    const accentColor = '#58a6ff';
+    const darkNavy = 'transparent'; 
+    const borderColor = 'var(--glass-stroke)';
+    const textColor = 'var(--on-surface)';
+    const secondaryTextColor = 'var(--on-surface-variant)';
+    const accentColor = '#FF6B4A';
+
+    // FIN-13: Helper function to safely extract open, close, and date values for indices with robust fallbacks
+    const getIndexData = (key) => {
+        if (!indices) return { open: 0, close: 0, date: '' };
+        const val = indices[key];
+        let open = null;
+        let close = null;
+        let date = null;
+
+        if (val && typeof val === 'object') {
+            open = val.open;
+            close = val.close;
+            date = val.date;
+        }
+
+        if (open === null || open === undefined) {
+            open = indices[`${key}_open`] !== undefined ? indices[`${key}_open`] : (indices[`${key}Open`] !== undefined ? indices[`${key}Open`] : val);
+        }
+        if (close === null || close === undefined) {
+            close = indices[`${key}_close`] !== undefined ? indices[`${key}_close`] : (indices[`${key}Close`] !== undefined ? indices[`${key}Close`] : val);
+        }
+        if (date === null || date === undefined) {
+            date = indices[`${key}_date`] || indices[`${key}Date`] || indices.date || '';
+        }
+
+        const numOpen = typeof open === 'number' ? open : parseFloat(open);
+        const numClose = typeof close === 'number' ? close : parseFloat(close);
+
+        return {
+            open: isNaN(numOpen) ? 0 : numOpen,
+            close: isNaN(numClose) ? 0 : numClose,
+            date: date || ''
+        };
+    };
 
     const formatFactorName = (text) => {
         if (!text) return text;
@@ -50,7 +81,6 @@ const FinanceDashboard = ({ onBack }) => {
         };
         if (mapping[text]) return mapping[text];
         
-        // Fallback for LLM v1 legacy tags
         const prefixes = ['dom_', 'intl_', 'geo_', 'com_', 'sec_', 'pol_', 'reg_'];
         let formatted = text;
         for (const prefix of prefixes) {
@@ -101,179 +131,196 @@ const FinanceDashboard = ({ onBack }) => {
     }, []);
 
     const getSignalColor = (signal) => {
-        if (!signal) return '#8c8c8c';
-        if (signal.includes('CRASH')) return '#f85149';
-        if (signal.includes('DOWN') || (signal.includes('MILD') && signal.includes('SELL'))) return '#d29922';
-        if (signal.includes('BOOM')) return '#3fb950';
-        return accentColor;
+        if (!signal) return 'text-on-surface-variant';
+        if (signal.includes('CRASH')) return 'text-error';
+        if (signal.includes('DOWN') || (signal.includes('MILD') && signal.includes('SELL'))) return 'text-yellow-500';
+        if (signal.includes('BOOM')) return 'text-green-500';
+        return 'text-neon-coral';
     };
 
     const getSignalIcon = (signal) => {
         if (!signal) return null;
-        if (signal.includes('CRASH')) return <WarningOutlined />;
-        if (signal.includes('DOWN') || signal.includes('SELL')) return <FallOutlined />;
-        if (signal.includes('BOOM')) return <ThunderboltOutlined />;
-        return <RiseOutlined />;
+        if (signal.includes('CRASH')) return 'warning';
+        if (signal.includes('DOWN') || signal.includes('SELL')) return 'trending_down';
+        if (signal.includes('BOOM')) return 'bolt';
+        return 'trending_up';
     };
 
-    if (loading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-neon-coral border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    );
 
     return (
-        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', backgroundColor: darkNavy, minHeight: '100vh', color: textColor, fontFamily: "'Inter', -apple-system, sans-serif" }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="w-full min-h-screen flex flex-col pt-24 px-4 sm:px-8 max-w-7xl mx-auto text-on-surface font-body-md pb-12">
+            <div className="flex items-center mb-8 gap-4">
                 <button 
                     onClick={onBack} 
-                    style={{ 
-                        marginRight: '16px', 
-                        cursor: 'pointer', 
-                        background: 'transparent', 
-                        border: `1px solid ${borderColor}`, 
-                        borderRadius: '6px',
-                        padding: '8px 16px',
-                        fontSize: '14px',
-                        color: secondaryTextColor,
-                        transition: 'none'
-                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-glass-stroke text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors"
                 >
-                    ← Back to App
+                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                    Back to App
                 </button>
-                <Title level={2} style={{ margin: 0, color: textColor, fontWeight: 600, fontSize: '22px' }}>XGBoost EOD Engine (V2)</Title>
+                <h2 className="font-display-lg text-3xl font-bold m-0">XGBoost EOD Engine (V2)</h2>
             </div>
 
-            {error && <Alert type="error" message={error} style={{ marginBottom: 24, backgroundColor: '#3d1616', borderColor: '#f85149', color: '#ffa198' }} />}
+            {error && (
+                <div className="mb-6 p-4 rounded-xl bg-error/10 border border-error/20 text-error flex items-center gap-3">
+                    <span className="material-symbols-outlined">error</span>
+                    {error}
+                </div>
+            )}
             
-            <Row gutter={24} style={{ marginBottom: '24px' }}>
-                <Col span={24} md={12}>
-                    <Card 
-                        title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>BSE SENSEX V2 Proxy</span>}
-                        bordered={false}
-                        style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}` }}
-                        headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
-                    >
-                        <div style={{ height: '250px', width: '100%' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl flex flex-col">
+                    <div className="px-6 py-4 border-b border-glass-stroke">
+                        <span className="font-title-md font-bold">BSE SENSEX V2 Proxy</span>
+                    </div>
+                    <div className="p-6 flex flex-col gap-4">
+                        <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={history}>
-                                    <CartesianGrid stroke={borderColor} strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="date" stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} />
-                                    {/* Dynamic Y-Axis scale to prevent flat lines. 5% padding is applied on min/max to ensure ideal range. Width adjusted to prevent text truncation. */}
-                                    <YAxis stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} width={65} domain={['dataMin - 5%', 'dataMax + 5%']} />
-                                    <RechartsTooltip contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor }} />
-                                    {/* Added connectNulls={true} to flawlessly bridge any missing/discontinuous data points in the trend line */}
-                                    <Line type="monotone" dataKey="sensex_close" stroke={accentColor} strokeWidth={2} dot={false} connectNulls={true} />
+                                    <CartesianGrid stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#8b949e" tick={{fontSize: 12, fill: "#8b949e"}} />
+                                    <YAxis stroke="#8b949e" tick={{fontSize: 12, fill: "#8b949e"}} width={65} domain={['dataMin - 5%', 'dataMax + 5%']} />
+                                    <RechartsTooltip contentStyle={{ backgroundColor: '#111316', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} />
+                                    <Line type="monotone" dataKey="sensex_close" stroke="#FF6B4A" strokeWidth={2} dot={false} connectNulls={true} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
                         {prediction && indices ? (
-                            <div style={{ marginTop: '16px', padding: '16px', background: darkNavy, borderRadius: '6px', border: `1px solid ${borderColor}` }}>
-                                <Statistic title={<span style={{ color: secondaryTextColor, fontSize: '13px' }}>AI EOD Signal</span>} value={prediction.signal} valueStyle={{ color: getSignalColor(prediction.signal), fontSize: '20px', fontWeight: 700 }} prefix={getSignalIcon(prediction.signal)} />
-                                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${borderColor}`, paddingTop: '12px' }}>
-                                    <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>EOD Close</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{indices.sensex.toFixed(2)}</Text></div>
-                                    <div style={{ textAlign: 'right' }}><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Confidence</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{(prediction.confidence * 100).toFixed(1)}%</Text></div>
+                            <div className="mt-2 p-5 bg-surface-container border border-glass-stroke rounded-xl">
+                                <div className="flex flex-col gap-1">
+                                    <span className="font-label-sm text-on-surface-variant uppercase tracking-wider">AI EOD Signal</span>
+                                    <div className={`flex items-center gap-2 font-display-md text-2xl font-bold ${getSignalColor(prediction.signal)}`}>
+                                        <span className="material-symbols-outlined">{getSignalIcon(prediction.signal)}</span>
+                                        {prediction.signal}
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-glass-stroke flex justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="font-label-sm text-on-surface-variant">EOD Close</span>
+                                        <span className="font-title-md font-bold">{indices.sensex.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex flex-col text-right">
+                                        <span className="font-label-sm text-on-surface-variant">Confidence</span>
+                                        <span className="font-title-md font-bold">{(prediction.confidence * 100).toFixed(1)}%</span>
+                                    </div>
                                 </div>
                             </div>
-                        ) : <Text style={{ color: secondaryTextColor }}>Loading prediction data...</Text>}
-                    </Card>
-                </Col>
+                        ) : <div className="text-on-surface-variant">Loading prediction data...</div>}
+                    </div>
+                </div>
 
-                <Col span={24} md={12}>
-                    <Card 
-                        title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>NSE NIFTY 50 V2 Target</span>}
-                        bordered={false}
-                        style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}` }}
-                        headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
-                    >
-                        <div style={{ height: '250px', width: '100%' }}>
+                <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl flex flex-col">
+                    <div className="px-6 py-4 border-b border-glass-stroke">
+                        <span className="font-title-md font-bold">NSE NIFTY 50 V2 Target</span>
+                    </div>
+                    <div className="p-6 flex flex-col gap-4">
+                        <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={history}>
-                                    <CartesianGrid stroke={borderColor} strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="date" stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} />
-                                    {/* Dynamic Y-Axis scale to prevent flat lines. 5% padding is applied on min/max to ensure ideal range. Width adjusted to prevent text truncation. */}
-                                    <YAxis stroke={secondaryTextColor} tick={{fontSize: 12, fill: secondaryTextColor}} width={65} domain={['dataMin - 5%', 'dataMax + 5%']} />
-                                    <RechartsTooltip contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor }} />
-                                    {/* Added connectNulls={true} to flawlessly bridge any missing/discontinuous data points in the trend line */}
+                                    <CartesianGrid stroke="rgba(255,255,255,0.1)" strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#8b949e" tick={{fontSize: 12, fill: "#8b949e"}} />
+                                    <YAxis stroke="#8b949e" tick={{fontSize: 12, fill: "#8b949e"}} width={65} domain={['dataMin - 5%', 'dataMax + 5%']} />
+                                    <RechartsTooltip contentStyle={{ backgroundColor: '#111316', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} />
                                     <Line type="monotone" dataKey="nifty_close" stroke="#3fb950" strokeWidth={2} dot={false} connectNulls={true} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
                         {prediction && indices ? (
-                            <div style={{ marginTop: '16px', padding: '16px', background: darkNavy, borderRadius: '6px', border: `1px solid ${borderColor}` }}>
-                                <Statistic title={<span style={{ color: secondaryTextColor, fontSize: '13px' }}>AI EOD Signal</span>} value={prediction.signal} valueStyle={{ color: getSignalColor(prediction.signal), fontSize: '20px', fontWeight: 700 }} prefix={getSignalIcon(prediction.signal)} />
-                                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${borderColor}`, paddingTop: '12px' }}>
-                                    <div><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>EOD Close</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{indices.nifty50.toFixed(2)}</Text></div>
-                                    <div style={{ textAlign: 'right' }}><Text style={{ color: secondaryTextColor, fontSize: '12px' }}>Confidence</Text><br/><Text strong style={{ color: textColor, fontSize: '15px' }}>{(prediction.confidence * 100).toFixed(1)}%</Text></div>
+                            <div className="mt-2 p-5 bg-surface-container border border-glass-stroke rounded-xl">
+                                <div className="flex flex-col gap-1">
+                                    <span className="font-label-sm text-on-surface-variant uppercase tracking-wider">AI EOD Signal</span>
+                                    <div className={`flex items-center gap-2 font-display-md text-2xl font-bold ${getSignalColor(prediction.signal)}`}>
+                                        <span className="material-symbols-outlined">{getSignalIcon(prediction.signal)}</span>
+                                        {prediction.signal}
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-glass-stroke flex justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="font-label-sm text-on-surface-variant">EOD Close</span>
+                                        <span className="font-title-md font-bold">{indices.nifty50.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex flex-col text-right">
+                                        <span className="font-label-sm text-on-surface-variant">Confidence</span>
+                                        <span className="font-title-md font-bold">{(prediction.confidence * 100).toFixed(1)}%</span>
+                                    </div>
                                 </div>
                             </div>
-                        ) : <Text style={{ color: secondaryTextColor }}>Loading prediction data...</Text>}
-                    </Card>
-                </Col>
-            </Row>
-
-            <Card 
-                title={<span style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>XGBoost EOD Probability Matrix</span>} 
-                bordered={false}
-                /* FIN-10: Make background color 20% lighter than #0d1117 (adjusted from 7% lightness to 27% lightness: #314256) */
-                style={{ backgroundColor: '#314256', borderRadius: '8px', border: `1px solid ${borderColor}`, marginBottom: '24px' }}
-                headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: '#fff' }}
-            >
-                {/* RESTORED: Explicit labels for brackets (e.g. <-1%) and removed size="small" to match original UI layout */}
-                {prediction ? (
-                    <Row gutter={24}>
-                        <Col span={6}>
-                            {/* FIN-10: Change all label colors to white for readability/contrast */}
-                            <Text style={{ color: '#fff', fontSize: '12px' }}>Crash (&lt;-1%)</Text>
-                            {/* FIN-10: Force the percentage text to be white using the format prop */}
-                            <Progress percent={parseFloat((prediction.prob_crash * 100).toFixed(1))} strokeColor="#f85149" trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
-                        </Col>
-                        <Col span={6}>
-                            {/* FIN-10: Change all label colors to white for readability/contrast */}
-                            <Text style={{ color: '#fff', fontSize: '12px' }}>Down (-1% to 0%)</Text>
-                            {/* FIN-10: Force the percentage text to be white using the format prop */}
-                            <Progress percent={parseFloat((prediction.prob_down * 100).toFixed(1))} strokeColor="#d29922" trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
-                        </Col>
-                        <Col span={6}>
-                            {/* FIN-10: Change all label colors to white for readability/contrast */}
-                            <Text style={{ color: '#fff', fontSize: '12px' }}>Up (0% to +1%)</Text>
-                            {/* FIN-10: Force the percentage text to be white using the format prop */}
-                            <Progress percent={parseFloat((prediction.prob_up * 100).toFixed(1))} strokeColor="#3fb950" trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
-                        </Col>
-                        <Col span={6}>
-                            {/* FIN-10: Change all label colors to white for readability/contrast */}
-                            <Text style={{ color: '#fff', fontSize: '12px' }}>Boom (&gt;+1%)</Text>
-                            {/* FIN-10: Force the percentage text to be white using the format prop */}
-                            <Progress percent={parseFloat((prediction.prob_boom * 100).toFixed(1))} strokeColor={accentColor} trailColor={borderColor} format={(percent) => <span style={{ color: '#fff' }}>{percent}%</span>} />
-                        </Col>
-                    </Row>
-                ) : <Text style={{ color: '#fff' }}>No predictions available.</Text>}
-            </Card>
-
-            <Card 
-                title={<span style={{ color: textColor, fontSize: '14px', fontWeight: 600 }}>Top 10 Feature Importances</span>} 
-                bordered={false}
-                style={{ backgroundColor: cardBg, borderRadius: '8px', border: `1px solid ${borderColor}` }}
-                headStyle={{ borderBottom: `1px solid ${borderColor}`, minHeight: '48px', color: textColor }}
-            >
-                <Text style={{ display: 'block', marginBottom: '16px', color: secondaryTextColor, fontSize: '13px' }}>Internal decision nodes of the XGBoost model.</Text>
-                <div style={{ height: '400px', width: '100%' }}>
-                    {/* RESTORED: Added factors.length check, RechartsTooltip formatter, barSize, and chart margins */}
-                    {factors.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={factors} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
-                                <CartesianGrid stroke={borderColor} horizontal={false} />
-                                <XAxis type="number" stroke={secondaryTextColor} tick={{fontSize: 12}} tickFormatter={(v) => `${v}%`} />
-                                <YAxis dataKey="factor_name" type="category" stroke={secondaryTextColor} width={120} tick={{fontSize: 12, fill: secondaryTextColor}} tickFormatter={formatFactorName} />
-                                <RechartsTooltip 
-                                    formatter={(value) => [`${value.toFixed(2)}%`, 'Importance']}
-                                    labelFormatter={(label) => formatFactorName(label)}
-                                    contentStyle={{ backgroundColor: darkNavy, borderColor: borderColor, color: textColor, borderRadius: '8px' }} 
-                                />
-                                <Bar dataKey="impact_weight" fill={accentColor} radius={[0, 4, 4, 0]} barSize={20} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <Text style={{ color: secondaryTextColor }}>Loading feature importances...</Text>
-                    )}
+                        ) : <div className="text-on-surface-variant">Loading prediction data...</div>}
+                    </div>
                 </div>
-            </Card>
+            </div>
+
+            <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl mb-6">
+                <div className="px-6 py-4 border-b border-glass-stroke">
+                    <span className="font-title-md font-bold">XGBoost EOD Probability Matrix</span>
+                </div>
+                <div className="p-6">
+                    {prediction ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="flex flex-col gap-2">
+                                <span className="font-label-sm">Crash (&lt;-1%)</span>
+                                <div className="w-full bg-surface-container rounded-full h-2.5">
+                                    <div className="bg-error h-2.5 rounded-full" style={{ width: `${(prediction.prob_crash * 100).toFixed(1)}%` }}></div>
+                                </div>
+                                <span className="font-body-md font-bold">{(prediction.prob_crash * 100).toFixed(1)}%</span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <span className="font-label-sm">Down (-1% to 0%)</span>
+                                <div className="w-full bg-surface-container rounded-full h-2.5">
+                                    <div className="bg-yellow-500 h-2.5 rounded-full" style={{ width: `${(prediction.prob_down * 100).toFixed(1)}%` }}></div>
+                                </div>
+                                <span className="font-body-md font-bold">{(prediction.prob_down * 100).toFixed(1)}%</span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <span className="font-label-sm">Up (0% to +1%)</span>
+                                <div className="w-full bg-surface-container rounded-full h-2.5">
+                                    <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${(prediction.prob_up * 100).toFixed(1)}%` }}></div>
+                                </div>
+                                <span className="font-body-md font-bold">{(prediction.prob_up * 100).toFixed(1)}%</span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <span className="font-label-sm">Boom (&gt;+1%)</span>
+                                <div className="w-full bg-surface-container rounded-full h-2.5">
+                                    <div className="bg-neon-coral h-2.5 rounded-full" style={{ width: `${(prediction.prob_boom * 100).toFixed(1)}%` }}></div>
+                                </div>
+                                <span className="font-body-md font-bold">{(prediction.prob_boom * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    ) : <div className="text-on-surface-variant">No predictions available.</div>}
+                </div>
+            </div>
+
+            <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl">
+                <div className="px-6 py-4 border-b border-glass-stroke">
+                    <span className="font-title-md font-bold">Top 10 Feature Importances</span>
+                </div>
+                <div className="p-6">
+                    <p className="font-body-sm text-on-surface-variant mb-6">Internal decision nodes of the XGBoost model.</p>
+                    <div className="h-[400px] w-full">
+                        {factors.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={factors} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                                    <CartesianGrid stroke="rgba(255,255,255,0.1)" horizontal={false} />
+                                    <XAxis type="number" stroke="#8b949e" tick={{fontSize: 12}} tickFormatter={(v) => `${v}%`} />
+                                    <YAxis dataKey="factor_name" type="category" stroke="#8b949e" width={120} tick={{fontSize: 12, fill: "#8b949e"}} tickFormatter={formatFactorName} />
+                                    <RechartsTooltip 
+                                        formatter={(value) => [`${value.toFixed(2)}%`, 'Importance']}
+                                        labelFormatter={(label) => formatFactorName(label)}
+                                        contentStyle={{ backgroundColor: '#111316', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px' }} 
+                                    />
+                                    <Bar dataKey="impact_weight" fill="#FF6B4A" radius={[0, 4, 4, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="text-on-surface-variant">Loading feature importances...</div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
