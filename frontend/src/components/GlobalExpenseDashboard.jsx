@@ -439,7 +439,8 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
           <h3 className="text-2xl sm:text-3xl m-0 font-bold text-white">🌍 Global Expenses</h3>
         </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-          <button className="btn-primary flex-1 sm:flex-none px-5 py-3 rounded-full font-bold" style={{ background: 'linear-gradient(135deg,#10b981,#34d399)' }}
+          <button className="flex-1 sm:flex-none px-5 py-3 rounded-full font-bold transition-transform hover:scale-105" 
+            style={{ background: '#064e3b', border: '2px solid rgba(52,211,153,0.8)', color: 'white', cursor: 'pointer' }}
             onClick={() => {
               const debtorName = Object.keys(peopleBalances).find(n => peopleBalances[n] < 0) || allNames.find(n => n !== myName) || '';
               setSettleFrom(myName); setSettleTo(debtorName); setSettleAmount('');
@@ -447,7 +448,9 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
             }}>
             🤝 Settle Up
           </button>
-          <button className="btn-primary flex-1 sm:flex-none px-5 py-3 rounded-full font-bold" onClick={openAddModal}>
+          <button className="flex-1 sm:flex-none px-5 py-3 rounded-full font-bold transition-transform hover:scale-105" 
+            style={{ background: '#7c2d12', border: '2px solid rgba(251,146,60,0.8)', color: 'white', cursor: 'pointer' }} 
+            onClick={openAddModal}>
             + Add Expense
           </button>
         </div>
@@ -579,14 +582,14 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
               <button onClick={() => setDrilldownUser(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.5rem' }}>×</button>
             </div>
 
-            <button onClick={() => {
+            <button className="transition-transform hover:scale-105" onClick={() => {
               setDrilldownUser(null);
               const debt = peopleBalances[drilldownUser];
               if (debt > 0) { setSettleFrom(drilldownUser); setSettleTo(myName); }
               else { setSettleFrom(myName); setSettleTo(drilldownUser); }
               setSettleAmount(Math.abs(debt || 0).toString());
               setShowSettleModal(true);
-            }} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'linear-gradient(135deg,#10b981,#34d399)', border: 'none', color: 'white', fontWeight: 'bold', cursor: 'pointer', marginBottom: '20px', fontSize: '0.95rem' }}>
+            }} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: '#064e3b', border: '2px solid rgba(52,211,153,0.8)', color: 'white', fontWeight: 'bold', cursor: 'pointer', marginBottom: '20px', fontSize: '0.95rem' }}>
               🤝 Settle Up with {drilldownUser}
             </button>
 
