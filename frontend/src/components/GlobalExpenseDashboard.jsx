@@ -127,10 +127,16 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
   const [expenseParticipants, setExpenseParticipants] = useState([]); // chips
   const [customSplits, setCustomSplits] = useState({});
 
-  // User search inside modal
+  // User search inside modal for Split With
   const [personQuery, setPersonQuery] = useState('');
   const [personResults, setPersonResults] = useState([]);
   const searchRef = useRef(null);
+
+  // User search inside modal for Paid By
+  const [payerSearchQuery, setPayerSearchQuery] = useState('');
+  const [payerSearchResults, setPayerSearchResults] = useState([]);
+  const [isPayerSearchFocused, setIsPayerSearchFocused] = useState(false);
+
 
   // Filters for full transaction view
   const [filterUser, setFilterUser] = useState('');
@@ -174,6 +180,20 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     return () => clearTimeout(timer);
   }, [personQuery, user]);
 
+  useEffect(() => {
+    if (!payerSearchQuery.trim()) { setPayerSearchResults([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(payerSearchQuery)}&login_id=${user?.login_id || ''}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPayerSearchResults(data.users || []);
+        }
+      } catch { setPayerSearchResults([]); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [payerSearchQuery, user]);
+
   // ── Open Add Expense modal (fresh) ─────────────────────────────────────────
   const openAddModal = () => {
     setEditExpenseId(null);
@@ -184,6 +204,8 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     setExpenseParticipants([{ name: user?.name || '', login_id: user?.login_id }]);
     setCustomSplits({});
     setPersonQuery(''); setPersonResults([]);
+    setPayerSearchQuery(''); setPayerSearchResults([]);
+    setIsPayerSearchFocused(false);
     setShowModal(true);
   };
 
@@ -198,6 +220,8 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     setExpenseParticipants(chips);
     setSplitMode('equal'); setCustomSplits({});
     setPersonQuery(''); setPersonResults([]);
+    setPayerSearchQuery(''); setPayerSearchResults([]);
+    setIsPayerSearchFocused(false);
     setShowModal(true);
   };
 
@@ -615,11 +639,55 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
               </div>
 
               {/* Paid By */}
-              <div style={{ marginBottom: '18px' }}>
+              <div style={{ marginBottom: '18px', position: 'relative' }}>
                 <label style={{ display: 'block', marginBottom: '5px', opacity: 0.8, fontSize: '0.85rem' }}>Paid By</label>
-                <select value={payerName} onChange={e => setPayerName(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(30,30,50,1)', border: 'none', color: 'white', boxSizing: 'border-box' }}>
-                  {expenseParticipants.map(p => <option key={p.name} value={p.name} style={{ background: '#1a1a2e' }}>{p.name}</option>)}
-                </select>
+                
+                {/* Mode toggle between dropdown (known users) or Search (all users) */}
+                <div style={{ position: 'relative' }}>
+                  {isPayerSearchFocused ? (
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search any registered user..."
+                      value={payerSearchQuery}
+                      onChange={e => setPayerSearchQuery(e.target.value)}
+                      onBlur={() => setTimeout(() => setIsPayerSearchFocused(false), 200)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: '1px solid #10b981', color: 'white', boxSizing: 'border-box', outline: 'none' }}
+                    />
+                  ) : (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select value={payerName} onChange={e => setPayerName(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'rgba(30,30,50,1)', border: 'none', color: 'white', boxSizing: 'border-box' }}>
+                        {Array.from(new Set([user?.name, ...expenseParticipants.map(p => p.name), ...allNames].filter(Boolean))).map(name => (
+                          <option key={name} value={name} style={{ background: '#1a1a2e' }}>{name}</option>
+                        ))}
+                      </select>
+                      <button type="button" onClick={() => { setIsPayerSearchFocused(true); setPayerSearchQuery(''); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', padding: '0 12px', color: 'white', cursor: 'pointer' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>search</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Search Results Dropdown */}
+                  {isPayerSearchFocused && payerSearchResults.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e1e3a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', zIndex: 100, maxHeight: '180px', overflowY: 'auto', marginTop: '4px' }}>
+                      {payerSearchResults.map(person => (
+                        <div key={person.login_id} 
+                          onClick={() => { setPayerName(person.name); setIsPayerSearchFocused(false); }}
+                          style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#a855f7,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', flexShrink: 0 }}>
+                            {person.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div>{person.name}</div>
+                            <div style={{ opacity: 0.5, fontSize: '0.75rem' }}>{person.login_id}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Person Search */}
