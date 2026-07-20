@@ -480,6 +480,23 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
         </div>
       </div>
 
+      {/* Simplify Debt Suggestion */}
+      {simplifiedSettlements.filter(s => s.from === myName).length > 0 && (
+        <div style={{ marginBottom: '25px', background: 'rgba(251, 146, 60, 0.1)', border: '1px solid rgba(251, 146, 60, 0.3)', borderRadius: '12px', padding: '16px' }}>
+          <h4 style={{ margin: '0 0 10px 0', color: '#fb923c', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>tips_and_updates</span>
+            Smart Settlement Suggestion
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {simplifiedSettlements.filter(s => s.from === myName).map((s, idx) => (
+              <div key={idx} style={{ fontSize: '0.95rem', color: '#fb923c', opacity: 0.9 }}>
+                Pay <b>₹{s.amount.toFixed(2)}</b> to <b>{s.to}</b> to settle your entire net debt instead of paying individuals separately.
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* People Balance List */}
       {Object.keys(peopleBalances).length > 0 && (
         <div style={{ marginBottom: '30px' }}>
