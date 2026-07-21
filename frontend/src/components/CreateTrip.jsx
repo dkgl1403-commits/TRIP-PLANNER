@@ -16,11 +16,43 @@ export default function CreateTrip({ user, onBack }) {
   const [destSuggestions, setDestSuggestions] = useState([]);
 
   const [checkpoints, setCheckpoints] = useState([]);
-  const [participants, setParticipants] = useState([{ name: '', mobile: '', email: '' }]);
+  const [participants, setParticipants] = useState([]);
+  const [personQuery, setPersonQuery] = useState('');
+  const [personResults, setPersonResults] = useState([]);
+  const personSearchRef = React.useRef(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Close person search dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target)) {
+        setPersonResults([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      if (personQuery.trim().length < 2) {
+        setPersonResults([]);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(personQuery)}&login_id=${user?.login_id || ''}`);
+        const data = await res.json();
+        setPersonResults(data.users || []);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+    const timer = setTimeout(fetchUsers, 300);
+    return () => clearTimeout(timer);
+  }, [personQuery, user]);
 
   const searchTimerRef = React.useRef(null);
   const searchLocation = (query, setSuggestions) => {
@@ -115,16 +147,11 @@ export default function CreateTrip({ user, onBack }) {
     setCheckpoints(updated);
   };
 
-  const addParticipant = () => {
-    if (participants.length < 30) {
-      setParticipants([...participants, { name: '', mobile: '', email: '' }]);
-    }
-  };
-
-  const updateParticipant = (index, field, value) => {
-    const updated = [...participants];
-    updated[index][field] = value;
-    setParticipants(updated);
+  const addPersonParticipant = (person) => {
+    if (participants.some(p => p.name === person.name)) return;
+    setParticipants([...participants, { name: person.name, mobile: person.phone || '', email: '' }]);
+    setPersonQuery('');
+    setPersonResults([]);
   };
 
   const removeParticipant = (index) => {
@@ -291,36 +318,38 @@ export default function CreateTrip({ user, onBack }) {
           <div className="section-divider"></div>
           
           <h3>Participants</h3>
-          <p className="sub-text">Add up to 30 people to your trip.</p>
+          <p className="sub-text">Add registered users to your trip.</p>
           
-          <div className="participants-list">
-            {participants.map((p, idx) => (
-              <div key={idx} className="participant-row">
-                <input 
-                  type="text" 
-                  placeholder="Name" 
-                  value={p.name} 
-                  onChange={e => updateParticipant(idx, 'name', e.target.value)} 
-                />
-                <input 
-                  type="text" 
-                  placeholder="Mobile" 
-                  value={p.mobile} 
-                  onChange={e => updateParticipant(idx, 'mobile', e.target.value)} 
-                />
-                <input 
-                  type="email" 
-                  placeholder="Email" 
-                  value={p.email} 
-                  onChange={e => updateParticipant(idx, 'email', e.target.value)} 
-                />
-                <button type="button" className="remove-btn" onClick={() => removeParticipant(idx)}>❌</button>
-              </div>
-            ))}
+          <div className="participants-list" style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+              {participants.map((p, idx) => (
+                <div key={idx} style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'white' }}>{p.name}</span>
+                  <button type="button" onClick={() => removeParticipant(idx)} style={{ background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', padding: 0 }}>&times;</button>
+                </div>
+              ))}
+            </div>
+
             {participants.length < 30 && (
-              <button type="button" className="add-participant-btn" onClick={addParticipant}>
-                + Add Person
-              </button>
+              <div style={{ position: 'relative' }} ref={personSearchRef}>
+                <input
+                  type="text"
+                  placeholder="Search registered users..."
+                  value={personQuery}
+                  onChange={e => setPersonQuery(e.target.value)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', boxSizing: 'border-box' }}
+                />
+                {personResults.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e1e2d', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
+                    {personResults.map(person => (
+                      <div key={person.login_id} onClick={() => addPersonParticipant(person)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'white', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{person.name}</span>
+                        <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>{person.phone}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

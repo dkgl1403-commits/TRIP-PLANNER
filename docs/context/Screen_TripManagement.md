@@ -5,9 +5,10 @@ This document covers everything related to creating, viewing, and managing a spe
 ## 1. Components
 
 ### CreateTrip.jsx (12 KB) & CreateTrip.css
-  Purpose:  Manual trip creation form with location autocomplete
+  Purpose:  Manual trip creation form with location autocomplete and registered user participant search
   Location: `frontend/src/components/CreateTrip.jsx`, `frontend/src/components/CreateTrip.css`
   External: Nominatim OSM API (browser-direct, no backend proxy)
+  Note:     Participants are restricted to registered users searched via `/api/users/search`.
 
 ### AiCreateTrip.jsx (23 KB) & AiCreateTrip.css
   Purpose:  AI-assisted trip creation via Gemini API — multi-step wizard
@@ -18,7 +19,7 @@ This document covers everything related to creating, viewing, and managing a spe
   Purpose:  Full trip view: edit details, live map, expenses, media, participants
   Location: `frontend/src/components/TripDetails.jsx`, `frontend/src/components/TripDetails.css`
   Sub-comps:`TripMap.jsx` (embedded), `ExpenseTracker.jsx` (embedded)
-  Note:     Largest component in the application.
+  Note:     Largest component in the application. Adding participants enforces registered user search via `/api/users/search`.
 
 ### TripMap.jsx (21 KB)
   Purpose:  Leaflet.js interactive map — participant markers, routes, checkpoints

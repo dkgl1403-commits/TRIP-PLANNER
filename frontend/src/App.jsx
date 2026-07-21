@@ -115,19 +115,18 @@ function App() {
         </button>
       )}
 
-      {isLoggedIn && (
-        <Header 
-          user={user}
-          onLogout={handleLogout}
-          onAdminDashboard={() => setCurrentView('admin_dashboard')}
-          onSystemHealth={() => setCurrentView('systemHealth')}
-          onFinanceDashboard={() => setCurrentView('finance_dashboard')}
-          onNavigateTab={handleNavigateTab}
-          activeTab={currentView === 'dashboard' ? dashboardTab : ''}
-        />
-      )}
-
       <div className={`content-wrapper ${isLoggedIn ? 'dashboard-mode' : 'login-mode'}`}>
+        {isLoggedIn && (
+          <Header 
+            user={user}
+            onLogout={handleLogout}
+            onAdminDashboard={() => setCurrentView('admin_dashboard')}
+            onSystemHealth={() => setCurrentView('systemHealth')}
+            onFinanceDashboard={() => setCurrentView('finance_dashboard')}
+            onNavigateTab={handleNavigateTab}
+            activeTab={currentView === 'dashboard' ? dashboardTab : ''}
+          />
+        )}
         {currentView === 'dashboard' && (
           <Dashboard 
             user={user}

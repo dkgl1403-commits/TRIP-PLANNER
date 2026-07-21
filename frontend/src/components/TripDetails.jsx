@@ -323,6 +323,38 @@ export default function TripDetails({ tripId, onBack, user }) {
   const [newParticipantName, setNewParticipantName] = useState('');
   const [newParticipantMobile, setNewParticipantMobile] = useState('');
   const [newParticipantEmail, setNewParticipantEmail] = useState('');
+  const [personQuery, setPersonQuery] = useState('');
+  const [personResults, setPersonResults] = useState([]);
+  const personSearchRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target)) {
+        setPersonResults([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (personQuery.trim().length < 2) {
+        setPersonResults([]);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(personQuery)}&login_id=${user?.login_id || ''}`);
+        const data = await res.json();
+        setPersonResults(data.users || []);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+    const timer = setTimeout(fetchUsers, 300);
+    return () => clearTimeout(timer);
+  }, [personQuery, user]);
+
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
   const [editingParticipants, setEditingParticipants] = useState({});
   const [participantToRemove, setParticipantToRemove] = useState(null);
@@ -700,29 +732,6 @@ export default function TripDetails({ tripId, onBack, user }) {
 
   const handleRemoveParticipantClick = (participantName) => {
     setParticipantToRemove(participantName);
-  };
-
-  const handleSelectContact = async () => {
-    try {
-      const supported = ('contacts' in navigator && 'ContactsManager' in window);
-      if (!supported) {
-        alert("Contact Picker API is not supported on this device/browser.");
-        return;
-      }
-      
-      const props = ['name', 'tel', 'email'];
-      const opts = { multiple: false };
-      
-      const contacts = await navigator.contacts.select(props, opts);
-      if (contacts && contacts.length > 0) {
-        const c = contacts[0];
-        if (c.name && c.name.length > 0) setNewParticipantName(c.name[0]);
-        if (c.tel && c.tel.length > 0) setNewParticipantMobile(c.tel[0]);
-        if (c.email && c.email.length > 0) setNewParticipantEmail(c.email[0]);
-      }
-    } catch (err) {
-      console.error("Failed to select contact", err);
-    }
   };
 
   const confirmRemoveParticipant = async () => {
@@ -1352,44 +1361,42 @@ export default function TripDetails({ tripId, onBack, user }) {
                 
                 <div style={{ marginTop: '30px', background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h4 style={{ margin: '0' }}>Add New Participant</h4>
-                    {('contacts' in navigator && 'ContactsManager' in window) && (
-                      <button 
-                        onClick={handleSelectContact}
-                        className="btn-primary" 
-                        style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)', border: 'none' }}
-                      >
-                        📱 Select from Contacts
-                      </button>
+                    <h4 style={{ margin: '0' }}>Add Registered Participant</h4>
+                  </div>
+                  <div style={{ position: 'relative', flex: 1 }} ref={personSearchRef}>
+                    <input
+                      type="text"
+                      placeholder="Search registered users..."
+                      value={personQuery}
+                      onChange={(e) => setPersonQuery(e.target.value)}
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '12px', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }}
+                    />
+                    {personResults.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e1e2d', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
+                        {personResults.map(person => (
+                          <div key={person.login_id} onClick={() => {
+                            setNewParticipantName(person.name);
+                            setNewParticipantMobile(person.phone || '');
+                            setNewParticipantEmail('');
+                            setPersonQuery(person.name);
+                            setPersonResults([]);
+                          }} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'white', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{person.name}</span>
+                            <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>{person.phone}</span>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-                    <input 
-                      type="text" 
-                      placeholder="Name" 
-                      value={newParticipantName} 
-                      onChange={(e) => setNewParticipantName(e.target.value)}
-                      style={{ flex: '1 1 150px', minWidth: '150px', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="Mobile (optional)" 
-                      value={newParticipantMobile} 
-                      onChange={(e) => setNewParticipantMobile(e.target.value)}
-                      style={{ flex: '1 1 150px', minWidth: '150px', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
-                    />
-                    <input 
-                      type="email" 
-                      placeholder="Email (optional)" 
-                      value={newParticipantEmail} 
-                      onChange={(e) => setNewParticipantEmail(e.target.value)}
-                      style={{ flex: '1 1 150px', minWidth: '150px', background: 'rgba(255,255,255,0.1)', border: 'none', padding: '10px', borderRadius: '8px', color: 'white' }} 
-                    />
+                  <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
                     <button 
-                      onClick={handleAddParticipant} 
-                      disabled={isAddingParticipant}
+                      onClick={() => {
+                        handleAddParticipant();
+                        setPersonQuery('');
+                      }} 
+                      disabled={isAddingParticipant || !newParticipantName}
                       className="btn-primary" 
-                      style={{ flex: '1 1 auto', padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #10b981, #34d399)' }}
+                      style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #10b981, #34d399)' }}
                     >
                       {isAddingParticipant ? '...' : 'Add'}
                     </button>
