@@ -136,9 +136,16 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
                   {nextTrip.image ? (
                     <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${nextTrip.image})` }} />
                   ) : (
-                    <div className="flex flex-col items-center gap-3 opacity-50 group-hover:opacity-80 transition-opacity duration-300">
-                      <span className="material-symbols-outlined text-6xl text-neon-coral">explore</span>
-                      <span className="text-xs uppercase tracking-widest font-bold">Adventure Awaits</span>
+                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-surface-variant">
+                      <span 
+                        className="material-symbols-outlined absolute animate-spin" 
+                        style={{ fontSize: '20rem', opacity: 0.03, color: '#fff', animationDuration: '40s' }}
+                      >
+                        explore
+                      </span>
+                      <div className="relative z-10 flex flex-col items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                        <span className="text-xs uppercase tracking-[0.25em] font-bold text-neon-coral">Adventure Awaits</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -209,9 +216,16 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
                         {trip.image ? (
                           <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{backgroundImage: `url(${trip.image})`}} />
                         ) : (
-                          <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-50 transition-opacity">
-                            <span className="material-symbols-outlined text-4xl text-neon-coral">explore</span>
-                            <span className="text-[10px] uppercase tracking-widest font-bold">Adventure</span>
+                          <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-surface-variant">
+                            <span 
+                              className="material-symbols-outlined absolute animate-spin" 
+                              style={{ fontSize: '14rem', opacity: 0.03, color: '#fff', animationDuration: '40s' }}
+                            >
+                              explore
+                            </span>
+                            <div className="relative z-10 flex flex-col items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-neon-coral">Adventure</span>
+                            </div>
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
