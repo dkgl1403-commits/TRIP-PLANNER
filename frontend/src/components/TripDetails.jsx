@@ -1025,10 +1025,10 @@ export default function TripDetails({ tripId, onBack, user }) {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {!isEditing && isOwner && isPlanned && (
                   <>
-                    <button className="round-icon-btn primary" title="Start Trip" onClick={handleStartTrip} style={{ padding: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button className="round-icon-btn" title="Start Trip" onClick={handleStartTrip} style={{ padding: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
                       <svg viewBox="0 0 100 100" width="100%" height="100%" className="animate-[spin_8s_linear_infinite]">
                         <path id="curveStart" fill="transparent" d="M 12,50 A 38,38 0 1,1 88,50 A 38,38 0 1,1 12,50" />
-                        <text fontSize="18" fontWeight="bold" fill="white" letterSpacing="3">
+                        <text fontSize="18" fontWeight="bold" fill="#34d399" letterSpacing="3">
                           <textPath href="#curveStart" startOffset="0">START TRIP • START TRIP • </textPath>
                         </text>
                       </svg>
@@ -1063,34 +1063,46 @@ export default function TripDetails({ tripId, onBack, user }) {
             <h3 className="options-heading" style={{ marginTop: '10px', marginBottom: '20px', fontSize: '1.2rem', textAlign: 'center' }}>What would you like to do?</h3>
             <div className="trip-options-grid">
               <div className="trip-option-card" onClick={() => setActiveTab('detail')}>
-                <div className="opt-icon">🗺️</div>
+                <div className="opt-icon" style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}>
+                  <span className="material-symbols-outlined" style={{color: '#a1a1aa'}}>map</span>
+                </div>
                 <h4>Trip Detail</h4>
                 <p>View route, map, and itinerary notes.</p>
               </div>
               <div className="trip-option-card" onClick={handleStartNavigation}>
-                <div className="opt-icon" style={{background: 'linear-gradient(135deg, #10b981, #34d399)'}}>🚀</div>
+                <div className="opt-icon" style={{background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)'}}>
+                  <span className="material-symbols-outlined" style={{color: '#34d399'}}>navigation</span>
+                </div>
                 <h4>Start Navigation</h4>
                 <p>Enter full-screen live tracking mode.</p>
               </div>
               <div className="trip-option-card" onClick={() => setActiveTab('expense')}>
-                <div className="opt-icon" style={{background: 'linear-gradient(135deg, #f59e0b, #fbbf24)'}}>💸</div>
+                <div className="opt-icon" style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}>
+                  <span className="material-symbols-outlined" style={{color: '#a1a1aa'}}>receipt_long</span>
+                </div>
                 <h4>Log/View Expense</h4>
                 <p>Manage and settle group expenses.</p>
               </div>
               <div className="trip-option-card" onClick={() => setActiveTab('media')}>
-                <div className="opt-icon" style={{background: 'linear-gradient(135deg, #a855f7, #c084fc)'}}>📸</div>
+                <div className="opt-icon" style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}>
+                  <span className="material-symbols-outlined" style={{color: '#a1a1aa'}}>photo_camera</span>
+                </div>
                 <h4>Trip Media</h4>
                 <p>View and upload photos/videos.</p>
               </div>
               {isOwner && (
                 <div className="trip-option-card" onClick={() => setActiveTab('participants')}>
-                  <div className="opt-icon" style={{background: 'linear-gradient(135deg, #ec4899, #f472b6)'}}>👥</div>
+                  <div className="opt-icon" style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}>
+                    <span className="material-symbols-outlined" style={{color: '#a1a1aa'}}>group</span>
+                  </div>
                   <h4>Manage Participants</h4>
                   <p>Add or remove people from trip.</p>
                 </div>
               )}
               <div className="trip-option-card" onClick={() => setActiveTab('location')}>
-                <div className="opt-icon" style={{background: 'linear-gradient(135deg, #6366f1, #818cf8)'}}>📍</div>
+                <div className="opt-icon" style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}>
+                  <span className="material-symbols-outlined" style={{color: '#a1a1aa'}}>location_on</span>
+                </div>
                 <h4>Mark Location</h4>
                 <p>Manual check-in and favorites.</p>
               </div>
