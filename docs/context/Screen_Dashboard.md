@@ -23,9 +23,10 @@ This document covers the main dashboard view, trips summary, saved locations, an
   Location: `frontend/src/components/GlobalExpenseDashboard.jsx`
   Props:    `user`, `onBack`
   Route:    `currentView === 'global-expenses'` in `App.jsx`
+  ⚠️  NOT to be confused with `FinanceDashboard.jsx` (XGBoost ML stock prediction screen — unrelated)
 
   Layout (top to bottom):
-    1. Header row — back button, title "🌍 Global Expenses", [Settle Up] + [+ Add Expense] buttons
+    1. Header row — back button, title "🌍 Global Expenses" (emoji at line ~461 in JSX), [Settle Up] + [+ Add Expense] buttons
     2. Summary row — 🔴 "To Pay" card | SVG Donut Chart | 🟢 "To Receive" card
     3. Active Balances — list of people with unsettled balance, clickable → slide-in panel
     4. Recent Transactions — last 10 expenses, each with edit/delete, "View All →" link
