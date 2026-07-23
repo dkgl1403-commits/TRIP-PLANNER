@@ -61,7 +61,7 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
     id: t.id,
     title: t.title,
     date: `${t.start_date} - ${t.end_date}`,
-    image: t.cover_image_url || "https://images.unsplash.com/photo-1598155523122-3842334d6c1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    image: t.cover_image_url || null,
     location: t.dest_name,
     source_name: t.source_name,
     status: t.status,
@@ -205,8 +205,15 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {upcomingTrips.map(trip => (
                     <div key={trip.id} className="group rounded-xl overflow-hidden cursor-pointer bg-surface-container border border-glass-stroke hover:border-neon-coral/50 transition-colors flex flex-col shadow-lg" onClick={() => onViewTrip(trip.id)}>
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{backgroundImage: `url(${trip.image})`}} />
+                      <div className="relative h-48 w-full overflow-hidden bg-surface flex items-center justify-center">
+                        {trip.image ? (
+                          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{backgroundImage: `url(${trip.image})`}} />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-50 transition-opacity">
+                            <span className="material-symbols-outlined text-4xl text-neon-coral">explore</span>
+                            <span className="text-[10px] uppercase tracking-widest font-bold">Adventure</span>
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
                         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                           <h4 className="font-title-md font-bold text-white leading-tight">{trip.title}</h4>
