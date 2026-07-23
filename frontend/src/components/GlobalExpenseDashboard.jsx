@@ -568,37 +568,58 @@ export default function GlobalExpenseDashboard({ user, onBack, tripId, tripParti
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {recentExpenses.map(exp => (
-              <div key={exp.id} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div 
-                  onClick={() => setExpandedExpenseId(expandedExpenseId === exp.id ? null : exp.id)}
-                  style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', cursor: 'pointer' }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{exp.description}</div>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '2px' }}>
-                      {exp.payer_name} · {exp.category} · {exp.date ? new Date(exp.date).toLocaleDateString() : '—'}
+            {recentExpenses.map(exp => {
+              const isSettlement = exp.category === 'Settlement';
+              const bgColor = isSettlement ? 'rgba(16, 185, 129, 0.08)' : 'rgba(249, 115, 22, 0.08)';
+              
+              let detailsText = '';
+              if (isSettlement) {
+                const recipient = exp.splits?.[0]?.participant_name || 'someone';
+                detailsText = `${exp.payer_name} paid ₹${exp.amount} to ${recipient}.`;
+              } else {
+                const splitsText = exp.splits && exp.splits.length > 0 
+                  ? exp.splits.map(s => `${s.participant_name} (₹${s.amount_owed})`).join(', ') 
+                  : 'everyone equally';
+                detailsText = `${exp.payer_name} paid ₹${exp.amount} for ${exp.category?.toLowerCase() || 'this'} and split between ${splitsText}.`;
+              }
+
+              return (
+                <div key={exp.id} style={{ background: bgColor, borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div 
+                    onClick={() => setExpandedExpenseId(expandedExpenseId === exp.id ? null : exp.id)}
+                    style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', cursor: 'pointer' }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{exp.description}</div>
+                      <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '2px' }}>
+                        {exp.payer_name} · {exp.category} · {exp.date ? new Date(exp.date).toLocaleDateString() : '—'}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                      <span style={{ fontWeight: 'bold', color: exp.payer_name === myName ? '#10b981' : '#a5b4fc' }}>
+                        ₹{exp.amount}
+                      </span>
+                      <div style={{ display: 'flex', gap: '2px' }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => handleEdit(exp)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '1rem', padding: '5px' }}>✏️</button>
+                        <button onClick={() => handleDelete(exp)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem', padding: '5px' }}>🗑️</button>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    <span style={{ fontWeight: 'bold', color: exp.payer_name === myName ? '#10b981' : '#a5b4fc' }}>
-                      ₹{exp.amount}
-                    </span>
-                    <div style={{ display: 'flex', gap: '2px' }} onClick={e => e.stopPropagation()}>
-                      <button onClick={() => handleEdit(exp)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '1rem', padding: '5px' }}>✏️</button>
-                      <button onClick={() => handleDelete(exp)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem', padding: '5px' }}>🗑️</button>
+                  <div style={{
+                    maxHeight: expandedExpenseId === exp.id ? '200px' : '0',
+                    opacity: expandedExpenseId === exp.id ? 1 : 0,
+                    transition: 'all 0.3s ease-in-out',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{ padding: '0 18px 14px 18px', fontSize: '0.85rem', opacity: 0.9, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ paddingTop: '10px' }}>
+                        {detailsText}
+                      </div>
                     </div>
                   </div>
                 </div>
-                {expandedExpenseId === exp.id && (
-                  <div style={{ padding: '0 18px 14px 18px', fontSize: '0.75rem', opacity: 0.7, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ paddingTop: '8px' }}>
-                      <strong>Splits:</strong> {exp.splits && exp.splits.length > 0 ? exp.splits.map(s => `${s.participant_name} (₹${s.amount_owed})`).join(', ') : 'None'}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
             {expenses.length > 10 && (
               <button onClick={() => setShowAllTransactions(true)} style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '12px', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '0.9rem' }}>
                 + {expenses.length - 10} more transactions — View All
