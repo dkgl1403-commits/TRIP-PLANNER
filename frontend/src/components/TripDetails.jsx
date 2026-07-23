@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './CreateTrip.css'; // Re-use the styling from Create Trip for consistency
 import './TripDetails.css'; // Split Layout styles
 import TripMap from './TripMap';
-import ExpenseTracker from './ExpenseTracker';
+import GlobalExpenseDashboard from './GlobalExpenseDashboard';
 
 export default function TripDetails({ tripId, onBack, user }) {
   const [trip, setTrip] = useState(null);
@@ -1172,7 +1172,7 @@ export default function TripDetails({ tripId, onBack, user }) {
 
             {/* ---- TAB: EXPENSES ---- */}
             {activeTab === 'expense' && (
-              <ExpenseTracker tripId={tripId} participants={trip.participants || []} user={user} />
+              <GlobalExpenseDashboard user={user} tripId={tripId} tripParticipants={trip.participants || []} />
             )}
 
             {/* ---- TAB: MEDIA ---- */}

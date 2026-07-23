@@ -97,7 +97,7 @@ function PersonChip({ name, onRemove }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function GlobalExpenseDashboard({ user, onBack }) {
+export default function GlobalExpenseDashboard({ user, onBack, tripId, tripParticipants }) {
   const [expenses, setExpenses] = useState([]);
   const [settlements, setSettlements] = useState([]);
   const [simplifiedSettlements, setSimplifiedSettlements] = useState([]);
@@ -150,7 +150,10 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/expenses/global?login_id=${user.login_id}`);
+      const endpoint = tripId 
+        ? `/api/trips/${tripId}/expenses?login_id=${user.login_id}` 
+        : `/api/expenses/global?login_id=${user.login_id}`;
+      const res = await fetch(endpoint);
       if (res.ok) {
         const data = await res.json();
         setExpenses(data.expenses || []);
@@ -203,7 +206,9 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     setDescription(''); setAmount(''); setCategory('Food');
     setPayerName(user?.name || '');
     setSplitMode('equal');
-    setExpenseParticipants([{ name: user?.name || '', login_id: user?.login_id }]);
+    setExpenseParticipants(tripParticipants && tripParticipants.length > 0 
+      ? tripParticipants.map(p => ({ name: p.name, login_id: p.login_id })) 
+      : [{ name: user?.name || '', login_id: user?.login_id }]);
     setCustomSplits({});
     setPersonQuery(''); setPersonResults([]);
     setPayerSearchQuery(''); setPayerSearchResults([]);
@@ -304,7 +309,9 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     try {
       const url = editExpenseId
         ? `/api/trips/${editTripId}/expenses/${editExpenseId}`
-        : `/api/expenses/global?login_id=${user.login_id}`;
+        : (tripId 
+            ? `/api/trips/${tripId}/expenses` 
+            : `/api/expenses/global?login_id=${user.login_id}`);
       const method = editExpenseId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -328,7 +335,10 @@ export default function GlobalExpenseDashboard({ user, onBack }) {
     if (!amt || amt <= 0) return alert('Enter a valid amount');
     if (settleFrom === settleTo) return alert('Cannot settle with yourself');
     try {
-      const res = await fetch(`/api/expenses/global?login_id=${user.login_id}`, {
+      const url = tripId 
+        ? `/api/trips/${tripId}/expenses` 
+        : `/api/expenses/global?login_id=${user.login_id}`;
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
