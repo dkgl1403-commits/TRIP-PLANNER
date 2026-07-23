@@ -132,14 +132,21 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
                 onClick={() => onViewTrip(nextTrip.id)}
               >
                 {/* Image Section (Editorial) */}
-                <div className="sm:w-1/3 h-48 sm:h-auto relative overflow-hidden">
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${nextTrip.image})` }} />
+                <div className="sm:w-1/3 h-48 sm:h-auto relative overflow-hidden bg-surface flex items-center justify-center border-r border-glass-stroke">
+                  {nextTrip.image ? (
+                    <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${nextTrip.image})` }} />
+                  ) : (
+                    <div className="flex flex-col items-center gap-3 opacity-50 group-hover:opacity-80 transition-opacity duration-300">
+                      <span className="material-symbols-outlined text-6xl text-neon-coral">explore</span>
+                      <span className="text-xs uppercase tracking-widest font-bold">Adventure Awaits</span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Boarding Pass Details */}
                 <div className="sm:w-2/3 p-6 sm:p-8 flex flex-col justify-center">
                   <div className="flex justify-between items-start mb-4">
-                    <h4 className="font-display-lg text-2xl font-bold text-white m-0 leading-none">{nextTrip.title}</h4>
+                    <h4 className="font-display-lg text-2xl font-bold text-white m-0 leading-none">{nextTrip.location} Trip</h4>
                     {nextTrip.status && nextTrip.status !== 'Planned' && (
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${nextTrip.status === 'In Progress' ? 'bg-green-500/20 text-green-400' : (nextTrip.status === 'Cancelled' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400')}`}>
                         {nextTrip.status}
