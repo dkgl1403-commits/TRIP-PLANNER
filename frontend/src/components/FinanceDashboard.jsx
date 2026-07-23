@@ -162,7 +162,11 @@ const FinanceDashboard = ({ onBack }) => {
                     <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                     Back to App
                 </button>
-                <h2 className="font-display-lg text-3xl font-bold m-0">XGBoost EOD Engine (V2)</h2>
+                {/* FIN-16: Replaced 'Earth' icon concept with Indian Rupee sign for Global Expense/Finance context */}
+                <h2 className="font-display-lg text-3xl font-bold m-0 flex items-center gap-2">
+                    <span className="material-symbols-outlined">currency_rupee</span>
+                    XGBoost EOD Engine (V2)
+                </h2>
             </div>
 
             {error && (
