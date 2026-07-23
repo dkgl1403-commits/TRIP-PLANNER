@@ -145,6 +145,9 @@ export default function GlobalExpenseDashboard({ user, onBack, tripId, tripParti
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
 
+  // Transaction expansion
+  const [expandedExpenseId, setExpandedExpenseId] = useState(null);
+
   // ── Fetch ───────────────────────────────────────────────────────────────────
   const fetchExpenses = useCallback(async () => {
     if (!user) return;
@@ -472,16 +475,16 @@ export default function GlobalExpenseDashboard({ user, onBack, tripId, tripParti
         </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <button className="flex-1 sm:flex-none px-5 py-3 rounded-full font-bold transition-transform hover:scale-105" 
-            style={{ background: '#064e3b', border: '2px solid rgba(52,211,153,0.8)', color: 'white', cursor: 'pointer' }}
+            style={{ background: '#064e3b', color: 'white', cursor: 'pointer' }}
             onClick={() => {
               const debtorName = Object.keys(peopleBalances).find(n => peopleBalances[n] < 0) || allNames.find(n => n !== myName) || '';
               setSettleFrom(myName); setSettleTo(debtorName); setSettleAmount('');
               setShowSettleModal(true);
             }}>
-            🤝 Settle Up
+            = Settle Up
           </button>
           <button className="flex-1 sm:flex-none px-5 py-3 rounded-full font-bold transition-transform hover:scale-105" 
-            style={{ background: '#7c2d12', border: '2px solid rgba(251,146,60,0.8)', color: 'white', cursor: 'pointer' }} 
+            style={{ background: '#7c2d12', color: 'white', cursor: 'pointer' }} 
             onClick={openAddModal}>
             + Add Expense
           </button>
