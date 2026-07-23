@@ -1025,12 +1025,33 @@ export default function TripDetails({ tripId, onBack, user }) {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {!isEditing && isOwner && isPlanned && (
                   <>
-                    <button className="round-icon-btn primary" title="Start Trip" onClick={handleStartTrip}>🚀</button>
-                    <button className="round-icon-btn danger" title="Cancel Trip" onClick={handleCancelTrip}>❌</button>
+                    <button className="round-icon-btn primary" title="Start Trip" onClick={handleStartTrip} style={{ padding: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg viewBox="0 0 100 100" width="100%" height="100%" className="animate-[spin_8s_linear_infinite]">
+                        <path id="curveStart" fill="transparent" d="M 12,50 A 38,38 0 1,1 88,50 A 38,38 0 1,1 12,50" />
+                        <text fontSize="18" fontWeight="bold" fill="white" letterSpacing="3">
+                          <textPath href="#curveStart" startOffset="0">START TRIP • START TRIP • </textPath>
+                        </text>
+                      </svg>
+                    </button>
+                    <button className="round-icon-btn danger" title="Cancel Trip" onClick={handleCancelTrip} style={{ padding: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg viewBox="0 0 100 100" width="100%" height="100%" className="animate-[spin_8s_linear_infinite]">
+                        <path id="curveCancel" fill="transparent" d="M 12,50 A 38,38 0 1,1 88,50 A 38,38 0 1,1 12,50" />
+                        <text fontSize="16" fontWeight="bold" fill="white" letterSpacing="3">
+                          <textPath href="#curveCancel" startOffset="0">CANCEL TRIP • CANCEL TRIP • </textPath>
+                        </text>
+                      </svg>
+                    </button>
                   </>
                 )}
                 {!isEditing && isOwner && isInProgress && (
-                  <button className="round-icon-btn danger" title="End Trip" onClick={handleEndTrip}>🛑</button>
+                  <button className="round-icon-btn danger" title="End Trip" onClick={handleEndTrip} style={{ padding: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg viewBox="0 0 100 100" width="100%" height="100%" className="animate-[spin_8s_linear_infinite]">
+                      <path id="curveEnd" fill="transparent" d="M 12,50 A 38,38 0 1,1 88,50 A 38,38 0 1,1 12,50" />
+                      <text fontSize="18" fontWeight="bold" fill="white" letterSpacing="4">
+                        <textPath href="#curveEnd" startOffset="0">END TRIP • END TRIP • </textPath>
+                      </text>
+                    </svg>
+                  </button>
                 )}
                 <div className={`status-badge ${trip.status === 'In Progress' ? 'status-green' : 'status-blue'}`}>{trip.status || 'Planned'}</div>
               </div>
