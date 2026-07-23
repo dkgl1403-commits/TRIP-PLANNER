@@ -111,10 +111,10 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
               <p className="font-body-lg text-on-surface-variant mb-8 text-lg">Track global balances and settle debts</p>
               <div className="flex flex-col sm:flex-row gap-4 w-full justify-center h-[56px]">
                 <button 
-                  className="px-8 py-4 rounded-xl bg-surface-container-high text-on-surface font-title-md font-bold hover:bg-surface-variant border border-glass-stroke shadow-lg transition-all flex items-center justify-center gap-2 w-full max-w-[300px]"
+                  className="px-8 py-4 rounded-xl font-title-md font-bold border border-glass-stroke shadow-lg transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl flex items-center justify-center gap-2 w-full max-w-[300px] bg-[#355E3B] text-[#FFD700] hover:bg-[#2c4c31]"
                   onClick={onOpenGlobalExpenses}
                 >
-                  <span className="material-symbols-outlined">account_balance_wallet</span> Open Global Expenses
+                  <span className="material-symbols-outlined">account_balance_wallet</span> Expenses
                 </button>
               </div>
             </div>
