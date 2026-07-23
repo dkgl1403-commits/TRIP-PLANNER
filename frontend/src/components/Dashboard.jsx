@@ -106,17 +106,15 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
             </div>
 
             {/* Expense Management Portion */}
-            <div className="p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl flex flex-col items-center justify-center text-center">
-              <h2 className="font-display-lg text-3xl font-bold mb-4">Expense Management</h2>
-              <p className="font-body-lg text-on-surface-variant mb-8 text-lg">Track global balances and settle debts</p>
-              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center h-[56px]">
-                <button 
-                  className="px-8 py-4 rounded-xl font-title-md font-bold border border-glass-stroke shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl flex items-center justify-center gap-2 w-full max-w-[300px] bg-[#355E3B] text-white hover:bg-[#2c4c31]"
-                  onClick={onOpenGlobalExpenses}
-                >
-                  <span className="material-symbols-outlined">account_balance_wallet</span> Expenses
-                </button>
+            <div 
+              className="p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl hover:bg-surface-variant"
+              onClick={onOpenGlobalExpenses}
+            >
+              <div className="bg-[#355E3B] text-white p-4 rounded-full mb-4 shadow-lg flex items-center justify-center">
+                <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>account_balance_wallet</span>
               </div>
+              <h2 className="font-display-lg text-3xl font-bold mb-2">Expense Management</h2>
+              <p className="font-body-lg text-on-surface-variant text-lg">Track global balances and settle debts</p>
             </div>
           </div>
         )}
