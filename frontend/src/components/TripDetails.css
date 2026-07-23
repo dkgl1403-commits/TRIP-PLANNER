@@ -4,8 +4,8 @@
   gap: 20px;
   width: 100%;
   max-width: 1400px;
-  height: calc(100vh - 40px);
-  padding: 20px;
+  height: calc(100vh - 100px);
+  padding: 100px 20px 20px 20px;
   margin: 0 auto;
 }
 
@@ -183,7 +183,7 @@
 }
 
 @media (max-width: 900px) {
-  .trip-details-layout { flex-direction: column; height: auto; min-height: 100vh; padding: 10px; gap: 10px; }
+  .trip-details-layout { flex-direction: column; height: auto; min-height: 100vh; padding: 100px 10px 10px 10px; gap: 10px; }
   
   /* Swap order: options/header on top, participants below */
   .trip-right-panel { order: -1; }
@@ -232,7 +232,7 @@
 }
 
 @media (max-width: 500px) {
-  .trip-details-layout { padding: 5px; gap: 8px; }
+  .trip-details-layout { padding: 100px 5px 5px 5px; gap: 8px; }
   .trip-left-panel { padding: 8px; }
   .trip-right-panel { padding: 8px; }
   .trip-title { font-size: 1rem !important; }
