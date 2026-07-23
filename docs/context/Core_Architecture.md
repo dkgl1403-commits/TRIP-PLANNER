@@ -37,6 +37,34 @@ Navigation is done via callback props passed down to each component.
   'admin_dashboard'     | AdminDashboard        | frontend/src/components/AdminDashboard.jsx
   'systemHealth'        | SystemHealthDashboard | frontend/src/components/SystemHealthDashboard.jsx
   'finance_dashboard'   | FinanceDashboard      | frontend/src/components/FinanceDashboard.jsx
+  'global-expenses'     | GlobalExpenseDashboard| frontend/src/components/GlobalExpenseDashboard.jsx
+
+## 2b. Screen → File Quick Reference (for Jira "Affected File" field)
+
+  Use this table when writing a Jira ticket to specify the exact file to change.
+  The AI agent uses this mapping to find the correct file before making any edit.
+
+  | Screen (what you see)                        | Jira Label                  | Primary File(s)                                        |
+  |----------------------------------------------|-----------------------------|--------------------------------------------------------|
+  | Login / Sign Up / Biometric                  | Login Screen                | components/Login.jsx + Login.css                       |
+  | Home / Dashboard (Trip & Expense cards)      | Dashboard Screen            | components/Dashboard.jsx + Dashboard.css               |
+  | Top Navigation Bar / Sidebar Menu            | Header / Nav                | components/Header.jsx                                  |
+  | Create Trip (manual form)                    | Create Trip Screen          | components/CreateTrip.jsx + CreateTrip.css             |
+  | Create Trip with AI (multi-step wizard)      | AI Trip Planner Screen      | components/AiCreateTrip.jsx                            |
+  | Trip Detail / Live Map / Trip Expenses       | Trip Details Screen         | components/TripDetails.jsx + TripDetails.css           |
+  | Map embedded inside Trip Detail              | Trip Map                    | components/TripMap.jsx                                 |
+  | Expense split inside a specific Trip         | Expense Tracker (in-trip)   | components/ExpenseTracker.jsx                          |
+  | 💰 Global Expenses / Balances / Settle Up    | Global Expense Screen       | components/GlobalExpenseDashboard.jsx                  |
+  | 📈 XGBoost / Stock Prediction / ML pipeline  | Finance Dashboard Screen    | components/FinanceDashboard.jsx                        |
+  | Admin Panel (user management / roles)        | Admin Dashboard Screen      | components/AdminDashboard.jsx                          |
+  | System Health / Cron Job Status              | System Health Screen        | components/SystemHealthDashboard.jsx                   |
+  | Toast / pop-up notifications                 | Toast / Notifications       | components/Toast.jsx                                   |
+  | All REST API endpoints                       | Backend / API               | backend/main.py                                        |
+
+  ⚠️  MOST COMMONLY CONFUSED — these are two completely separate screens:
+      GlobalExpenseDashboard.jsx  → trip expense balances, settle up, shared costs between people
+      FinanceDashboard.jsx        → Indian stock market ML prediction (XGBoost) — NOT expense-related
+
 
 Auth state: `localStorage` key `tripPlannerUser` (JSON: {login_id, name, role})
 
