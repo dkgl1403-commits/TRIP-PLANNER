@@ -122,37 +122,67 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
         {/* Dashboard View */}
         {activeTab === 'dashboard' && (
           <div className="flex flex-col gap-6">
-            <h3 className="font-headline-lg text-3xl font-bold border-b border-glass-stroke pb-2">Your Next Adventure</h3>
+            <h3 className="text-sm font-bold tracking-[0.2em] text-on-surface-variant uppercase border-b border-glass-stroke pb-2">Upcoming Adventure</h3>
             
             {loading ? (
               <p className="text-on-surface-variant p-4">Loading trips...</p>
             ) : nextTrip ? (
               <div 
-                className="group relative w-full h-80 rounded-2xl overflow-hidden cursor-pointer shadow-xl border border-glass-stroke transition-transform hover:scale-[1.01]"
+                className="group flex flex-col sm:flex-row w-full bg-surface-container rounded-2xl overflow-hidden cursor-pointer shadow-lg border border-glass-stroke transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
                 onClick={() => onViewTrip(nextTrip.id)}
               >
-                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${nextTrip.image})` }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent" />
+                {/* Image Section (Editorial) */}
+                <div className="sm:w-1/3 h-48 sm:h-auto relative overflow-hidden">
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${nextTrip.image})` }} />
+                </div>
                 
-                <div className="absolute inset-x-0 bottom-0 p-8 flex flex-col gap-2">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-display-lg text-3xl font-bold text-white m-0 leading-none">{nextTrip.title}</h4>
+                {/* Boarding Pass Details */}
+                <div className="sm:w-2/3 p-6 sm:p-8 flex flex-col justify-center">
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className="font-display-lg text-2xl font-bold text-white m-0 leading-none">{nextTrip.title}</h4>
                     {nextTrip.status && nextTrip.status !== 'Planned' && (
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${nextTrip.status === 'In Progress' ? 'bg-green-500/20 text-green-400' : (nextTrip.status === 'Cancelled' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400')}`}>
                         {nextTrip.status}
                       </span>
                     )}
                   </div>
-                  <p className="font-title-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px] text-neon-coral">location_on</span>
-                    {nextTrip.source_name} ➔ {nextTrip.location}
-                  </p>
-                  <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 font-label-sm uppercase tracking-wider text-on-surface-variant">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">calendar_today</span> {nextTrip.date}</span>
-                    {nextTrip.actual_start_time && (
-                      <span className="flex items-center gap-1 text-green-400"><span className="material-symbols-outlined text-[16px]">rocket_launch</span> {new Date(nextTrip.actual_start_time).toLocaleString()}</span>
-                    )}
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">group</span> {nextTrip.participant_count || 1}</span>
+                  
+                  {/* Dashed Separator */}
+                  <div className="border-t-2 border-dashed border-glass-stroke my-4 w-full relative">
+                    <div className="absolute -left-10 -top-3 w-6 h-6 rounded-full bg-background"></div>
+                    <div className="absolute -right-10 -top-3 w-6 h-6 rounded-full bg-background"></div>
+                  </div>
+
+                  {/* Route & Info */}
+                  <div className="flex flex-col gap-4 mt-2">
+                    <div className="flex items-center gap-6 text-on-surface-variant">
+                      <div className="flex flex-col">
+                        <span className="text-xs uppercase tracking-wider opacity-60">Origin</span>
+                        <span className="font-bold text-white text-lg">{nextTrip.source_name}</span>
+                      </div>
+                      <span className="material-symbols-outlined text-neon-coral text-3xl">flight_takeoff</span>
+                      <div className="flex flex-col">
+                        <span className="text-xs uppercase tracking-wider opacity-60">Destination</span>
+                        <span className="font-bold text-white text-lg">{nextTrip.location}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-8 mt-2">
+                      <div className="flex flex-col">
+                        <span className="text-xs uppercase tracking-wider opacity-60 mb-1">Date</span>
+                        <span className="font-semibold text-sm">{nextTrip.date}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs uppercase tracking-wider opacity-60 mb-1">Passengers</span>
+                        <span className="font-semibold text-sm">{nextTrip.participant_count || 1}</span>
+                      </div>
+                      {nextTrip.actual_start_time && (
+                        <div className="flex flex-col">
+                          <span className="text-xs uppercase tracking-wider opacity-60 mb-1">Boarding</span>
+                          <span className="font-semibold text-sm text-green-400">{new Date(nextTrip.actual_start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
