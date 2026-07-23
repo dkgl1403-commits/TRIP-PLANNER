@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './CreateTrip.css'; // Re-use the styling from Create Trip for consistency
 import './TripDetails.css'; // Split Layout styles
 import TripMap from './TripMap';
