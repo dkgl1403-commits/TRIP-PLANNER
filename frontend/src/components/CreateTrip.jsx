@@ -16,7 +16,12 @@ export default function CreateTrip({ user, onBack }) {
   const [destSuggestions, setDestSuggestions] = useState([]);
 
   const [checkpoints, setCheckpoints] = useState([]);
-  const [participants, setParticipants] = useState([]);
+  const [participants, setParticipants] = useState([{
+    name: user?.name || user?.login_id || 'Me',
+    mobile: user?.phone || '',
+    email: user?.email || '',
+    login_id: user?.login_id
+  }]);
   const [personQuery, setPersonQuery] = useState('');
   const [personResults, setPersonResults] = useState([]);
   const personSearchRef = React.useRef(null);

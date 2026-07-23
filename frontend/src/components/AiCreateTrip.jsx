@@ -294,7 +294,13 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
         start_date: tripStartDate,
         end_date: tripEndDate,
         description: aiNotes,
-        checkpoints: checkpointData
+        checkpoints: checkpointData,
+        participants: [{
+          name: user.name || user.login_id,
+          email: user.email || '',
+          mobile: user.phone || '',
+          login_id: user.login_id
+        }]
       };
 
       const res = await fetch('/api/trips', {

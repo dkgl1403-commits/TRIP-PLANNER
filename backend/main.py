@@ -178,6 +178,7 @@ class Participant(BaseModel):
     name: str
     mobile: Optional[str] = None
     email: Optional[str] = None
+    login_id: Optional[str] = None
 
 class TripCreateRequest(BaseModel):
     login_id: str
@@ -228,9 +229,9 @@ def create_trip(request: TripCreateRequest):
             
         # Insert Participants
         if request.participants:
-            part_data = [(trip_id, p.name, p.mobile, p.email) for p in request.participants]
+            part_data = [(trip_id, p.name, p.mobile, p.email, p.login_id) for p in request.participants]
             cursor.executemany(
-                "INSERT INTO trip_participants (trip_id, name, mobile, email) VALUES (:1, :2, :3, :4)",
+                "INSERT INTO trip_participants (trip_id, name, mobile, email, login_id) VALUES (:1, :2, :3, :4, :5)",
                 part_data
             )
             
@@ -545,9 +546,9 @@ def update_trip(trip_id: int, request: TripCreateRequest):
         # Re-insert Participants
         cursor.execute("DELETE FROM trip_participants WHERE trip_id = :1", [trip_id])
         if request.participants:
-            part_data = [(trip_id, p.name, p.mobile, p.email) for p in request.participants]
+            part_data = [(trip_id, p.name, p.mobile, p.email, p.login_id) for p in request.participants]
             cursor.executemany(
-                "INSERT INTO trip_participants (trip_id, name, mobile, email) VALUES (:1, :2, :3, :4)",
+                "INSERT INTO trip_participants (trip_id, name, mobile, email, login_id) VALUES (:1, :2, :3, :4, :5)",
                 part_data
             )
             
