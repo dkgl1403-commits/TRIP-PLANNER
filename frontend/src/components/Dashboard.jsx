@@ -1,10 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// Helper for the mini donut chart in the Expense Card
+const getMiniDonutPath = (cx, cy, r, startAngle, endAngle) => {
+  const polarToCartesian = (angle) => {
+    const rad = (angle - 90) * (Math.PI / 180);
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  };
+  if (endAngle - startAngle >= 360) {
+    return `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r}`;
+  }
+  const start = polarToCartesian(startAngle);
+  const end = polarToCartesian(endAngle);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
+};
+
 function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, onOpenGlobalExpenses }) {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savedLocations, setSavedLocations] = useState([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
+  const [globalBalances, setGlobalBalances] = useState({ toPay: 0, toReceive: 0 });
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -22,6 +38,25 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
       }
     };
     fetchTrips();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchGlobalBalances = async () => {
+      try {
+        const loginId = user?.login_id || 'guest';
+        const res = await fetch(`/api/expenses/global?login_id=${loginId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const myName = user?.name || '';
+          const toPay = (data.settlements || []).filter(s => s.from === myName).reduce((s, x) => s + x.amount, 0);
+          const toReceive = (data.settlements || []).filter(s => s.to === myName).reduce((s, x) => s + x.amount, 0);
+          setGlobalBalances({ toPay, toReceive });
+        }
+      } catch (err) {
+        console.error('Failed to fetch global balances', err);
+      }
+    };
+    fetchGlobalBalances();
   }, [user]);
 
   useEffect(() => {
@@ -107,14 +142,54 @@ function Dashboard({ user, activeTab, onCreateTrip, onAiPlanTrip, onViewTrip, on
 
             {/* Expense Management Portion */}
             <div 
-              className="p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl hover:bg-surface-variant"
+              className="p-8 rounded-2xl bg-glass-fill backdrop-blur-md border border-glass-stroke shadow-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl hover:bg-surface-variant group relative overflow-hidden"
               onClick={onOpenGlobalExpenses}
             >
-              <div className="bg-[#355E3B] text-white p-4 rounded-full mb-4 shadow-lg flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#355E3B]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="bg-[#355E3B] text-white p-4 rounded-full mb-4 shadow-[0_4px_20px_rgba(53,94,59,0.4)] flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 relative z-10">
                 <span className="material-symbols-outlined" style={{ fontSize: '2rem' }}>account_balance_wallet</span>
               </div>
-              <h2 className="font-display-lg text-3xl font-bold mb-2">Expense Management</h2>
-              <p className="font-body-lg text-on-surface-variant text-lg">Track global balances and settle debts</p>
+              <h2 className="font-display-lg text-3xl font-bold mb-2 relative z-10">Global Expenses</h2>
+              <p className="font-body-lg text-on-surface-variant text-lg relative z-10 mb-4">Manage and settle up across all trips</p>
+
+              {/* Subtle Mini Dashboard */}
+              {(() => {
+                const { toPay, toReceive } = globalBalances;
+                const total = toPay + toReceive || 1;
+                const receiveRatio = toReceive / total;
+                const payRatio = toPay / total;
+                const cx = 35, cy = 35, r = 28;
+                return (
+                  <div className="flex w-full justify-between items-center bg-black/20 rounded-xl p-4 border border-glass-stroke relative z-10">
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-[10px] uppercase tracking-widest text-on-surface-variant flex items-center gap-1 opacity-70">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div> To Pay
+                      </span>
+                      <span className="text-lg font-bold text-red-400">₹{toPay.toFixed(0)}</span>
+                    </div>
+
+                    <div className="relative">
+                      <svg width="70" height="70" viewBox="0 0 70 70">
+                        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
+                        {toReceive > 0 && <path d={getMiniDonutPath(cx, cy, r, 0, receiveRatio * 360)} fill="none" stroke="#10b981" strokeWidth="6" />}
+                        {toPay > 0 && <path d={getMiniDonutPath(cx, cy, r, receiveRatio * 360, 360)} fill="none" stroke="#ef4444" strokeWidth="6" />}
+                        <text x={cx} y={cy - 2} textAnchor="middle" fill="white" fontSize="9" opacity="0.5">Net</text>
+                        <text x={cx} y={cy + 10} textAnchor="middle" fill={toReceive >= toPay ? '#10b981' : '#ef4444'} fontSize="11" fontWeight="bold">
+                          ₹{Math.abs(toReceive - toPay).toFixed(0)}
+                        </text>
+                      </svg>
+                    </div>
+
+                    <div className="flex flex-col items-end text-right">
+                      <span className="text-[10px] uppercase tracking-widest text-on-surface-variant flex items-center gap-1 opacity-70">
+                        Receive <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                      </span>
+                      <span className="text-lg font-bold text-green-400">₹{toReceive.toFixed(0)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
