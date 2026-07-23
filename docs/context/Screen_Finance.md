@@ -5,8 +5,10 @@ This document covers the Finance Dashboard UI, the backend ML prediction pipelin
 ## 1. Components
 
 ### FinanceDashboard.jsx (18 KB)
-  Purpose:  Indian market (Nifty/Sensex) ML prediction dashboard
+  Purpose:  Indian market (Nifty/Sensex) ML prediction dashboard — XGBoost stock prediction ONLY
   Location: `frontend/src/components/FinanceDashboard.jsx`
+  ⚠️  This is NOT the global expense tracker. It is NOT related to trip expenses or balances.
+  ⚠️  For expense-related changes, use `GlobalExpenseDashboard.jsx` instead.
   Libraries: recharts (LineChart, BarChart), antd (Card, Statistic, Progress)
   CSS:      NO separate CSS file — uses inline styles + Tailwind + Ant Design components
   Change:   Modify Background -> FinanceDashboard.jsx, find outer wrapper div with `className="flex items-center justify-center min-h-screen"` or `style={{ background: ... }}`
