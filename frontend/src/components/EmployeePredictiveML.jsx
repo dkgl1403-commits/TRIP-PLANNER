@@ -5,7 +5,8 @@ export default function EmployeePredictiveML({ user }) {
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [runningAnalysis, setRunningAnalysis] = useState(false);
-  const [feedbackModal, setFeedbackModal] = useState({ open: false, insight: null });
+  const [activeFeedbackId, setActiveFeedbackId] = useState(null);
+  const [feedbackData, setFeedbackData] = useState({});
   const [generatingPlanId, setGeneratingPlanId] = useState(null);
   const toast = useToast();
 
@@ -55,7 +56,7 @@ export default function EmployeePredictiveML({ user }) {
       });
       if (res.ok) {
         toast.success("Feedback recorded for future model training!");
-        setFeedbackModal({ open: false, insight: null });
+        setActiveFeedbackId(null);
       } else {
         toast.error("Failed to submit feedback");
       }
@@ -298,6 +299,22 @@ export default function EmployeePredictiveML({ user }) {
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.flight_risk_score)}`}>
                             {Math.round(insight.flight_risk_score * 100)}%
                           </span>
+                          {activeFeedbackId === insight.id && (
+                            <div className="mt-2 flex justify-center gap-3">
+                              <button 
+                                onClick={() => submitFeedback(insight.id, insight.employee_id, insight.flight_risk_score, true, null, feedbackData[insight.id] || '')}
+                                className="text-gray-400 hover:text-green-400 transition-colors bg-white/5 hover:bg-white/10 rounded p-1 flex items-center justify-center" title="Accurate"
+                              >
+                                <span className="material-symbols-outlined text-sm">thumb_up</span>
+                              </button>
+                              <button 
+                                onClick={() => submitFeedback(insight.id, insight.employee_id, insight.flight_risk_score, false, null, feedbackData[insight.id] || '')}
+                                className="text-gray-400 hover:text-red-400 transition-colors bg-white/5 hover:bg-white/10 rounded p-1 flex items-center justify-center" title="False Alarm"
+                              >
+                                <span className="material-symbols-outlined text-sm">thumb_down</span>
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td className="p-4 text-center">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.burnout_risk_score)}`}>
@@ -315,14 +332,24 @@ export default function EmployeePredictiveML({ user }) {
                               <li key={idx}>{factor}</li>
                             ))}
                           </ul>
+                          {activeFeedbackId === insight.id && (
+                            <div className="mt-2">
+                              <textarea
+                                value={feedbackData[insight.id] || ''}
+                                onChange={(e) => setFeedbackData({...feedbackData, [insight.id]: e.target.value})}
+                                placeholder="Add optional feedback notes..."
+                                className="w-full bg-surface-variant/50 border border-surface-variant rounded px-2 py-1 text-xs text-white outline-none focus:border-neon-coral min-h-[40px] resize-y"
+                              />
+                            </div>
+                          )}
                         </td>
                         <td className="p-4 text-center">
                           <div className="flex flex-col items-center gap-2">
                             <button 
-                              onClick={() => setFeedbackModal({ open: true, insight })}
-                              className="text-xs px-2 py-1 bg-surface-variant/50 hover:bg-surface-variant rounded border border-surface-variant transition-colors whitespace-nowrap"
+                              onClick={() => setActiveFeedbackId(activeFeedbackId === insight.id ? null : insight.id)}
+                              className={`text-xs px-2 py-1 rounded border transition-colors whitespace-nowrap ${activeFeedbackId === insight.id ? 'bg-surface-variant text-white border-surface-variant' : 'bg-surface-variant/50 hover:bg-surface-variant border-surface-variant'}`}
                             >
-                              Feedback
+                              {activeFeedbackId === insight.id ? 'Cancel' : 'Feedback'}
                             </button>
                             {(insight.flight_risk_score > 0.6 || insight.burnout_risk_score > 0.6) && (
                               <button 
@@ -365,80 +392,7 @@ export default function EmployeePredictiveML({ user }) {
         </>
       )}
 
-      {/* Feedback Modal */}
-      {feedbackModal.open && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-surface border border-surface-variant rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-xl font-bold mb-2">Provide Feedback</h3>
-            <p className="text-sm opacity-70 mb-4">
-              Help train the ML engine for {feedbackModal.insight.employee_name}. Is the predicted flight risk of {Math.round(feedbackModal.insight.flight_risk_score * 100)}% accurate?
-            </p>
-            
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              submitFeedback(
-                feedbackModal.insight.id,
-                feedbackModal.insight.employee_id,
-                feedbackModal.insight.flight_risk_score,
-                formData.get('thumbs_up') === 'true',
-                formData.get('actual_outcome'),
-                formData.get('notes')
-              );
-            }}>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold mb-2">Accuracy Rating *</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="thumbs_up" value="true" required className="accent-neon-coral" />
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_up</span> Accurate</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="thumbs_up" value="false" required className="accent-neon-coral" />
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_down</span> False Alarm</span>
-                  </label>
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-semibold mb-1">Actual Outcome (Optional)</label>
-                <select name="actual_outcome" className="w-full bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral">
-                  <option value="">-- Select --</option>
-                  <option value="Resigned">Employee Resigned</option>
-                  <option value="Retained">Successfully Retained</option>
-                  <option value="Terminated">Terminated</option>
-                  <option value="Promoted">Promoted</option>
-                </select>
-              </div>
-              
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-1">Notes (Optional)</label>
-                <textarea 
-                  name="notes"
-                  className="w-full bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral min-h-[80px]"
-                  placeholder="Additional context on why the prediction was right or wrong..."
-                ></textarea>
-              </div>
-              
-              <div className="flex justify-end gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setFeedbackModal({ open: false, insight: null })}
-                  className="px-4 py-2 bg-surface-variant hover:bg-surface-variant/80 rounded-lg transition-colors font-semibold"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-neon-coral text-white rounded-lg hover:bg-neon-coral/90 transition-colors font-bold shadow-lg shadow-neon-coral/20"
-                >
-                  Submit Feedback
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
