@@ -9,6 +9,7 @@ import AdminDashboard from './components/AdminDashboard'
 import FinanceDashboard from './components/FinanceDashboard'
 import SystemHealthDashboard from './components/SystemHealthDashboard'
 import GlobalExpenseDashboard from './components/GlobalExpenseDashboard'
+import EmployeeDashboard from './components/EmployeeDashboard'
 import Header from './components/Header'
 import { ToastProvider } from './components/Toast'
 
@@ -117,6 +118,7 @@ function App() {
             onAdminDashboard={() => setCurrentView('admin_dashboard')}
             onSystemHealth={() => setCurrentView('systemHealth')}
             onFinanceDashboard={() => setCurrentView('finance_dashboard')}
+            onEmployeeDashboard={() => setCurrentView('employee_dashboard')}
             onNavigateTab={handleNavigateTab}
             activeTab={currentView === 'dashboard' ? dashboardTab : ''}
           />
@@ -136,6 +138,9 @@ function App() {
         )}
         {currentView === 'admin_dashboard' && (
           <AdminDashboard user={user} onBack={() => window.history.back()} />
+        )}
+        {currentView === 'employee_dashboard' && (
+          <EmployeeDashboard user={user} onBack={() => window.history.back()} />
         )}
         {currentView === 'systemHealth' && (
           <SystemHealthDashboard onBack={() => window.history.back()} />

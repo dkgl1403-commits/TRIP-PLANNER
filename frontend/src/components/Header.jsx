@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDashboard, onNavigateTab, activeTab }) {
+function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDashboard, onEmployeeDashboard, onNavigateTab, activeTab }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
@@ -130,9 +130,14 @@ function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDas
             <div className="h-px bg-glass-stroke my-2"></div>
             
             {user?.role === 'ADMIN' && (
-              <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors" onClick={() => { onSystemHealth(); setIsSidebarOpen(false); }}>
-                <span className="material-symbols-outlined text-[22px]">health_and_safety</span> System Health
-              </button>
+              <>
+                <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors" onClick={() => { onSystemHealth(); setIsSidebarOpen(false); }}>
+                  <span className="material-symbols-outlined text-[22px]">health_and_safety</span> System Health
+                </button>
+                <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors" onClick={() => { onEmployeeDashboard(); setIsSidebarOpen(false); }}>
+                  <span className="material-symbols-outlined text-[22px]">groups</span> Employee Dashboard
+                </button>
+              </>
             )}
             {(user?.role === 'ADMIN' || user?.role === 'FINANCE_USER') && (
               <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors" onClick={() => { onFinanceDashboard(); setIsSidebarOpen(false); }}>
