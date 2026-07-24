@@ -130,3 +130,39 @@ async def upload_bulk_logs(file: UploadFile = File(...), db: Session = Depends(g
         db.commit()
         
     return {"message": f"Successfully imported {len(logs)} logs"}
+
+@router.post("/ml/run")
+def run_ml_engine(db: Session = Depends(get_db)):
+    from hr_analytics.ml_engine import calculate_insights_for_all
+    try:
+        result = calculate_insights_for_all(db)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/insights")
+def get_insights(db: Session = Depends(get_db)):
+    from hr_analytics.db import EmployeeAiInsight
+    # Fetch the latest insight for each employee
+    insights = db.query(EmployeeAiInsight).order_by(EmployeeAiInsight.calculation_date.desc()).all()
+    
+    # We only want the most recent per employee
+    latest_insights = {}
+    for insight in insights:
+        if insight.employee_id not in latest_insights:
+            emp = db.query(Employee).filter(Employee.id == insight.employee_id).first()
+            latest_insights[insight.employee_id] = {
+                "id": insight.id,
+                "employee_id": insight.employee_id,
+                "employee_name": emp.name if emp else "Unknown",
+                "role": emp.role if emp else "Unknown",
+                "department": emp.department if emp else "Unknown",
+                "calculation_date": insight.calculation_date,
+                "flight_risk_score": insight.flight_risk_score,
+                "burnout_risk_score": insight.burnout_risk_score,
+                "compensation_fairness_score": insight.compensation_fairness_score,
+                "top_risk_factors": insight.top_risk_factors,
+                "manager_action_plan": insight.manager_action_plan
+            }
+            
+    return list(latest_insights.values())

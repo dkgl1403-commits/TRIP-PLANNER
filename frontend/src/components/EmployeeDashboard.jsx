@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import EmployeeDataIngestion from './EmployeeDataIngestion';
+import EmployeePredictiveML from './EmployeePredictiveML';
 
 export default function EmployeeDashboard({ user, onBack }) {
   const [activeTab, setActiveTab] = useState('data-ingestion');
@@ -59,13 +60,7 @@ export default function EmployeeDashboard({ user, onBack }) {
       )}
       
       {activeTab === 'predictive-ml' && (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center min-h-[300px] flex flex-col items-center justify-center shadow-lg backdrop-blur-sm mt-8">
-          <span className="material-symbols-outlined text-6xl text-neon-coral opacity-50 mb-4 animate-pulse">model_training</span>
-          <h3 className="text-xl font-bold mb-2">ML Engine Processing</h3>
-          <p className="opacity-70 max-w-md mx-auto">
-            The advanced HR Analytics and Predictive ML engine is currently being built in Brick 4 and 5.
-          </p>
-        </div>
+        <EmployeePredictiveML user={user} />
       )}
     </div>
   );
