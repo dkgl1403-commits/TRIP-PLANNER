@@ -88,7 +88,7 @@ export default function EmployeePredictiveML({ user }) {
         setTimeout(() => {
           setSavedFeedbackId(null);
           setActiveFeedbackId(null);
-          fetchInsights();
+          fetchInsights(false);
         }, 1500);
       } else {
         setSavingFeedbackId(null);
@@ -98,8 +98,8 @@ export default function EmployeePredictiveML({ user }) {
     }
   };
 
-  const fetchInsights = async () => {
-    setLoading(true);
+  const fetchInsights = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch('/api/employee-dashboard/insights');
       if (res.ok) {
@@ -110,7 +110,7 @@ export default function EmployeePredictiveML({ user }) {
       console.error(e);
       toast.error("Failed to fetch ML insights");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
