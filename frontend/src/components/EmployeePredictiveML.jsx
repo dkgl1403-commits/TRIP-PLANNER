@@ -49,10 +49,34 @@ export default function EmployeePredictiveML({ user }) {
     }
   };
 
+  const [nameFilter, setNameFilter] = useState('');
+  const [flightRiskFilter, setFlightRiskFilter] = useState('all'); // all, >50, >70
+  const [burnoutFilter, setBurnoutFilter] = useState('all'); // all, >50, >70
+  const [compFilter, setCompFilter] = useState('all'); // all, <40, <70
+
   // Process data for UI
   const highFlightRisk = insights.filter(i => i.flight_risk_score > 0.7);
   const highBurnoutRisk = insights.filter(i => i.burnout_risk_score > 0.7);
   const unfairComp = insights.filter(i => i.compensation_fairness_score < 0.4);
+
+  const filteredInsights = insights.filter(insight => {
+    // Name
+    if (nameFilter && !insight.employee_name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
+    
+    // Flight Risk
+    if (flightRiskFilter === '>50' && insight.flight_risk_score <= 0.5) return false;
+    if (flightRiskFilter === '>70' && insight.flight_risk_score <= 0.7) return false;
+    
+    // Burnout
+    if (burnoutFilter === '>50' && insight.burnout_risk_score <= 0.5) return false;
+    if (burnoutFilter === '>70' && insight.burnout_risk_score <= 0.7) return false;
+    
+    // Comp Fairness
+    if (compFilter === '<70' && insight.compensation_fairness_score >= 0.7) return false;
+    if (compFilter === '<40' && insight.compensation_fairness_score >= 0.4) return false;
+
+    return true;
+  });
 
   const getRiskColor = (score) => {
     if (score > 0.7) return "text-red-400 bg-red-500/10 border-red-500/20";
@@ -99,7 +123,10 @@ export default function EmployeePredictiveML({ user }) {
         <>
           {/* Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-surface border border-red-500/20 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div 
+              onClick={() => { setFlightRiskFilter('>70'); setBurnoutFilter('all'); setCompFilter('all'); setNameFilter(''); }}
+              className="bg-surface border border-red-500/20 rounded-2xl p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:bg-white/5 transition-colors"
+            >
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-bold opacity-70">High Flight Risk</h4>
@@ -110,7 +137,10 @@ export default function EmployeePredictiveML({ user }) {
               </div>
             </div>
             
-            <div className="bg-surface border border-yellow-500/20 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div 
+              onClick={() => { setBurnoutFilter('>70'); setFlightRiskFilter('all'); setCompFilter('all'); setNameFilter(''); }}
+              className="bg-surface border border-yellow-500/20 rounded-2xl p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:bg-white/5 transition-colors"
+            >
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-bold opacity-70">High Burnout Risk</h4>
@@ -121,7 +151,10 @@ export default function EmployeePredictiveML({ user }) {
               </div>
             </div>
 
-            <div className="bg-surface border border-orange-500/20 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div 
+              onClick={() => { setCompFilter('<40'); setFlightRiskFilter('all'); setBurnoutFilter('all'); setNameFilter(''); }}
+              className="bg-surface border border-orange-500/20 rounded-2xl p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:bg-white/5 transition-colors"
+            >
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-bold opacity-70">Compensation Flags</h4>
@@ -135,7 +168,54 @@ export default function EmployeePredictiveML({ user }) {
 
           {/* Detailed Roster */}
           <div className="bg-surface border border-surface-variant rounded-2xl p-6 shadow-sm overflow-hidden">
-            <h3 className="text-xl font-bold mb-6">Employee Risk Roster</h3>
+            <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+              <h3 className="text-xl font-bold">Employee Risk Roster</h3>
+              <div className="flex flex-wrap items-center gap-3">
+                <input 
+                  type="text" 
+                  placeholder="Search by name..." 
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  className="bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral min-w-[200px]"
+                />
+                <select 
+                  value={flightRiskFilter} 
+                  onChange={(e) => setFlightRiskFilter(e.target.value)}
+                  className="bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral"
+                >
+                  <option value="all">Flight Risk: All</option>
+                  <option value=">50">Flight Risk &gt; 50%</option>
+                  <option value=">70">Flight Risk &gt; 70%</option>
+                </select>
+                <select 
+                  value={burnoutFilter} 
+                  onChange={(e) => setBurnoutFilter(e.target.value)}
+                  className="bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral"
+                >
+                  <option value="all">Burnout: All</option>
+                  <option value=">50">Burnout &gt; 50%</option>
+                  <option value=">70">Burnout &gt; 70%</option>
+                </select>
+                <select 
+                  value={compFilter} 
+                  onChange={(e) => setCompFilter(e.target.value)}
+                  className="bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral"
+                >
+                  <option value="all">Comp: All</option>
+                  <option value="<70">Comp &lt; 70%</option>
+                  <option value="<40">Comp &lt; 40%</option>
+                </select>
+                {(nameFilter || flightRiskFilter !== 'all' || burnoutFilter !== 'all' || compFilter !== 'all') && (
+                  <button 
+                    onClick={() => { setNameFilter(''); setFlightRiskFilter('all'); setBurnoutFilter('all'); setCompFilter('all'); }}
+                    className="text-xs text-neon-coral hover:underline"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+            
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-surface-variant/50">
@@ -148,7 +228,11 @@ export default function EmployeePredictiveML({ user }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {insights.map(insight => (
+                  {filteredInsights.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center opacity-50">No employees match the current filters.</td>
+                    </tr>
+                  ) : filteredInsights.map(insight => (
                     <tr key={insight.id} className="border-b border-surface-variant/30 hover:bg-white/5 transition-colors">
                       <td className="p-4">
                         <div className="font-bold">{insight.employee_name}</div>
