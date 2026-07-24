@@ -226,7 +226,7 @@ export default function Login({ onLoginSuccess }) {
           {/* Slowly rotating background compass */}
           <span 
             className="material-symbols-outlined absolute animate-[spin_30s_linear_infinite]" 
-            style={{ fontSize: '4.5rem', opacity: 0.2, color: '#fff' }}
+            style={{ fontSize: '4.5rem', color: '#fff' }}
           >
             explore
           </span>
@@ -235,9 +235,6 @@ export default function Login({ onLoginSuccess }) {
             {/* Outer border */}
             <circle cx="60" cy="60" r="57" fill="none" stroke="white" strokeWidth="4" />
             
-            {/* Inner border */}
-            <circle cx="60" cy="60" r="35" fill="none" stroke="white" strokeWidth="1.5" opacity="0.4" />
-
             {/* Top Arc for DKGL (r=38, text draws upwards away from center) */}
             <path id="curveTop" fill="transparent" d="M 22,60 A 38,38 0 0,1 98,60" />
             
