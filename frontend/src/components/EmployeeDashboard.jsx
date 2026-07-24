@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
+import EmployeeDataIngestion from './EmployeeDataIngestion';
+
 export default function EmployeeDashboard({ user, onBack }) {
+  const [activeTab, setActiveTab] = useState('data-ingestion');
+
   if (user?.role !== 'ADMIN') {
     return (
       <div className="w-full min-h-screen pt-24 flex flex-col items-center justify-center text-white">
@@ -34,15 +38,35 @@ export default function EmployeeDashboard({ user, onBack }) {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-3 bg-white/5 border border-white/10 rounded-2xl p-8 text-center min-h-[300px] flex flex-col items-center justify-center shadow-lg backdrop-blur-sm">
-          <span className="material-symbols-outlined text-6xl text-neon-coral opacity-50 mb-4 animate-pulse">engineering</span>
-          <h3 className="text-xl font-bold mb-2">Module Under Construction</h3>
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-surface-variant mb-6">
+        <button 
+          className={`pb-4 px-2 font-bold transition-colors border-b-2 ${activeTab === 'data-ingestion' ? 'border-neon-coral text-neon-coral' : 'border-transparent text-on-surface-variant hover:text-white'}`}
+          onClick={() => setActiveTab('data-ingestion')}
+        >
+          Data Ingestion
+        </button>
+        <button 
+          className={`pb-4 px-2 font-bold transition-colors border-b-2 ${activeTab === 'predictive-ml' ? 'border-neon-coral text-neon-coral' : 'border-transparent text-on-surface-variant hover:text-white'}`}
+          onClick={() => setActiveTab('predictive-ml')}
+        >
+          Predictive ML & Insights
+        </button>
+      </div>
+
+      {activeTab === 'data-ingestion' && (
+        <EmployeeDataIngestion user={user} />
+      )}
+      
+      {activeTab === 'predictive-ml' && (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center min-h-[300px] flex flex-col items-center justify-center shadow-lg backdrop-blur-sm mt-8">
+          <span className="material-symbols-outlined text-6xl text-neon-coral opacity-50 mb-4 animate-pulse">model_training</span>
+          <h3 className="text-xl font-bold mb-2">ML Engine Processing</h3>
           <p className="opacity-70 max-w-md mx-auto">
-            The advanced HR Analytics and Predictive ML engine is currently being built. Check back soon for deep employee profiles, flight risk models, and generative AI coaching summaries.
+            The advanced HR Analytics and Predictive ML engine is currently being built in Brick 4 and 5.
           </p>
         </div>
-      </div>
+      )}
     </div>
   );
 }
