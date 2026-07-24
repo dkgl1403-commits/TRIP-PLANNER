@@ -9,6 +9,8 @@ export default function EmployeePredictiveML({ user }) {
   const [feedbackData, setFeedbackData] = useState({});
   const [generatingPlanId, setGeneratingPlanId] = useState(null);
   const [expandedRowId, setExpandedRowId] = useState(null);
+  const [savingFeedbackId, setSavingFeedbackId] = useState(null);
+  const [savedFeedbackId, setSavedFeedbackId] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -64,9 +66,9 @@ export default function EmployeePredictiveML({ user }) {
   };
 
   const submitFeedback = async (insight) => {
-    toast.info("Saving feedback...");
-    const data = feedbackData[insight.id] || {};
+    setSavingFeedbackId(insight.id);
     try {
+      const data = feedbackData[insight.id] || {};
       const res = await fetch('/api/employee-dashboard/ml/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,14 +83,18 @@ export default function EmployeePredictiveML({ user }) {
         })
       });
       if (res.ok) {
-        toast.success("Feedback saved!");
-        setActiveFeedbackId(null);
-        fetchInsights();
+        setSavingFeedbackId(null);
+        setSavedFeedbackId(insight.id);
+        setTimeout(() => {
+          setSavedFeedbackId(null);
+          setActiveFeedbackId(null);
+          fetchInsights();
+        }, 1500);
       } else {
-        toast.error("Failed to save feedback");
+        setSavingFeedbackId(null);
       }
     } catch (e) {
-      toast.error("Network error");
+      setSavingFeedbackId(null);
     }
   };
 
@@ -166,7 +172,14 @@ export default function EmployeePredictiveML({ user }) {
   };
 
   return (
-    <div className="w-full text-on-surface font-body-md text-white mt-8 space-y-8">
+    <>
+      <style>{`
+        @keyframes sweep {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+      <div className="w-full text-on-surface font-body-md text-white mt-8 space-y-8">
       
       {/* Top Bar: Action & Summary */}
       <div className="flex flex-col md:flex-row items-center justify-between bg-surface border border-surface-variant rounded-2xl p-6 shadow-sm gap-6">
@@ -409,10 +422,20 @@ export default function EmployeePredictiveML({ user }) {
                           <div className="flex flex-col items-center gap-2">
                             {activeFeedbackId === insight.id && (
                               <button 
-                                onClick={(e) => { e.stopPropagation(); submitFeedback(insight); }}
-                                className="text-xs px-2 py-1 bg-neon-coral text-white rounded border border-neon-coral hover:bg-neon-coral/90 transition-colors whitespace-nowrap mb-2 w-full"
+                                onClick={(e) => { e.stopPropagation(); if (savingFeedbackId !== insight.id) submitFeedback(insight); }}
+                                disabled={savingFeedbackId === insight.id}
+                                className={`text-xs px-2 py-1 rounded border transition-colors whitespace-nowrap mb-2 w-full relative overflow-hidden ${savedFeedbackId === insight.id ? 'bg-green-500 text-white border-green-500' : 'bg-neon-coral text-white border-neon-coral'} ${savingFeedbackId === insight.id ? 'opacity-80 cursor-wait' : 'hover:opacity-90'}`}
                               >
-                                Save Feedback
+                                {savingFeedbackId === insight.id ? (
+                                  <>
+                                    <div className="absolute inset-0 bg-white/30" style={{ animation: 'sweep 1s infinite linear' }}></div>
+                                    Saving...
+                                  </>
+                                ) : savedFeedbackId === insight.id ? (
+                                  'Saved!'
+                                ) : (
+                                  'Save Feedback'
+                                )}
                               </button>
                             )}
                             <button 
