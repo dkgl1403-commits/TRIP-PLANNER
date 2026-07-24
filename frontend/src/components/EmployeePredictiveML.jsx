@@ -324,20 +324,20 @@ export default function EmployeePredictiveML({ user }) {
                           <div className="font-bold">{insight.employee_name}</div>
                           <div className="text-xs opacity-70">{insight.role} • {insight.department}</div>
                         </td>
-                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-4 text-center">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.flight_risk_score)}`}>
                             {Math.round(insight.flight_risk_score * 100)}%
                           </span>
                           {activeFeedbackId === insight.id && (
                             <div className="mt-2 flex justify-center gap-2">
                               <button 
-                                onClick={() => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), flight_risk_rating: true}})}
+                                onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), flight_risk_rating: true}}); }}
                                 className={`transition-colors rounded p-1 flex items-center justify-center ${feedbackData[insight.id]?.flight_risk_rating === true ? 'text-green-400 bg-green-400/10' : 'text-gray-400 opacity-50 hover:opacity-100 hover:text-green-400'}`} title="Accurate"
                               >
                                 <span className="material-symbols-outlined text-sm">thumb_up</span>
                               </button>
                               <button 
-                                onClick={() => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), flight_risk_rating: false}})}
+                                onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), flight_risk_rating: false}}); }}
                                 className={`transition-colors rounded p-1 flex items-center justify-center ${feedbackData[insight.id]?.flight_risk_rating === false ? 'text-red-400 bg-red-400/10' : 'text-gray-400 opacity-50 hover:opacity-100 hover:text-red-400'}`} title="False Alarm"
                               >
                                 <span className="material-symbols-outlined text-sm">thumb_down</span>
@@ -345,20 +345,20 @@ export default function EmployeePredictiveML({ user }) {
                             </div>
                           )}
                         </td>
-                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-4 text-center">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.burnout_risk_score)}`}>
                             {Math.round(insight.burnout_risk_score * 100)}%
                           </span>
                           {activeFeedbackId === insight.id && (
                             <div className="mt-2 flex justify-center gap-2">
                               <button 
-                                onClick={() => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), burnout_rating: true}})}
+                                onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), burnout_rating: true}}); }}
                                 className={`transition-colors rounded p-1 flex items-center justify-center ${feedbackData[insight.id]?.burnout_rating === true ? 'text-green-400 bg-green-400/10' : 'text-gray-400 opacity-50 hover:opacity-100 hover:text-green-400'}`} title="Accurate"
                               >
                                 <span className="material-symbols-outlined text-sm">thumb_up</span>
                               </button>
                               <button 
-                                onClick={() => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), burnout_rating: false}})}
+                                onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), burnout_rating: false}}); }}
                                 className={`transition-colors rounded p-1 flex items-center justify-center ${feedbackData[insight.id]?.burnout_rating === false ? 'text-red-400 bg-red-400/10' : 'text-gray-400 opacity-50 hover:opacity-100 hover:text-red-400'}`} title="False Alarm"
                               >
                                 <span className="material-symbols-outlined text-sm">thumb_down</span>
@@ -366,20 +366,20 @@ export default function EmployeePredictiveML({ user }) {
                             </div>
                           )}
                         </td>
-                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-4 text-center">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${insight.compensation_fairness_score < 0.4 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-green-400 bg-green-500/10 border-green-500/20'}`}>
                             {Math.round(insight.compensation_fairness_score * 100)}%
                           </span>
                           {activeFeedbackId === insight.id && (
                             <div className="mt-2 flex justify-center gap-2">
                               <button 
-                                onClick={() => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), comp_rating: true}})}
+                                onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), comp_rating: true}}); }}
                                 className={`transition-colors rounded p-1 flex items-center justify-center ${feedbackData[insight.id]?.comp_rating === true ? 'text-green-400 bg-green-400/10' : 'text-gray-400 opacity-50 hover:opacity-100 hover:text-green-400'}`} title="Accurate"
                               >
                                 <span className="material-symbols-outlined text-sm">thumb_up</span>
                               </button>
                               <button 
-                                onClick={() => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), comp_rating: false}})}
+                                onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), comp_rating: false}}); }}
                                 className={`transition-colors rounded p-1 flex items-center justify-center ${feedbackData[insight.id]?.comp_rating === false ? 'text-red-400 bg-red-400/10' : 'text-gray-400 opacity-50 hover:opacity-100 hover:text-red-400'}`} title="False Alarm"
                               >
                                 <span className="material-symbols-outlined text-sm">thumb_down</span>
@@ -387,7 +387,7 @@ export default function EmployeePredictiveML({ user }) {
                             </div>
                           )}
                         </td>
-                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-4">
                           <ul className="list-disc pl-4 text-xs opacity-80 space-y-1">
                             {insight.top_risk_factors.map((factor, idx) => (
                               <li key={idx}>{factor}</li>
@@ -398,13 +398,14 @@ export default function EmployeePredictiveML({ user }) {
                               <textarea
                                 value={feedbackData[insight.id]?.notes || ''}
                                 onChange={(e) => setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), notes: e.target.value}})}
+                                onClick={(e) => e.stopPropagation()}
                                 placeholder="Add optional feedback notes..."
                                 className="w-full bg-surface-variant/50 border border-surface-variant rounded px-2 py-1 text-xs text-white outline-none focus:border-neon-coral min-h-[40px] resize-y"
                               />
                             </div>
                           )}
                         </td>
-                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-4 text-center">
                           <div className="flex flex-col items-center gap-2">
                             {activeFeedbackId === insight.id && (
                               <button 
