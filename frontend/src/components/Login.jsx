@@ -221,9 +221,15 @@ export default function Login({ onLoginSuccess }) {
     <main className="relative z-10 w-full max-w-md mx-auto p-8 sm:p-12 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col items-center">
       {/* Brand Header */}
       <div className="flex flex-col items-center justify-center mb-10 w-full">
-        <div className="w-32 h-32 rounded-full border-4 border-white flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-          <h1 className="font-display-lg text-4xl font-bold tracking-tighter uppercase leading-none">DKGL</h1>
-          <span className="text-[9px] font-bold uppercase tracking-widest mt-2 opacity-90 text-center">EST. 2026</span>
+        <div className="w-32 h-32 rounded-full border-4 border-white flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)] relative">
+          <h1 className="font-display-lg text-4xl font-bold tracking-tighter uppercase leading-none z-10">DKGL</h1>
+          
+          <svg viewBox="0 0 100 100" width="100%" height="100%" className="absolute inset-0 z-0 pointer-events-none">
+            <path id="curveLogin" fill="transparent" d="M 15,55 A 35,35 0 0,0 85,55" />
+            <text fontSize="11" fill="white" letterSpacing="1" style={{ fontFamily: '"Courier New", Courier, monospace', opacity: 0.9 }}>
+              <textPath href="#curveLogin" startOffset="50%" textAnchor="middle">EST. 2026</textPath>
+            </text>
+          </svg>
         </div>
         <p className="font-label-sm text-label-sm text-on-surface-variant tracking-[0.2em] uppercase">Organizer</p>
       </div>
