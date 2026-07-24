@@ -1924,6 +1924,7 @@ def system_health():
                 top_tables = [{"name": row[0], "size_mb": 0.0} for row in tables_res[:5]]
             
         except Exception as e:
+            db.rollback()
             db_status = f"Offline: ({type(e).__name__}) {str(e)}"
         
         # Get Job Statuses
