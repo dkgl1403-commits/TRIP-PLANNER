@@ -220,13 +220,13 @@ export default function Login({ onLoginSuccess }) {
   return (
     <main className="relative z-10 w-full max-w-md mx-auto p-8 sm:p-12 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col items-center">
       {/* Brand Header */}
-      <div className="flex flex-col items-center justify-center mb-10 w-full">
-        <div className="w-36 h-36 rounded-full flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)] relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center mb-8 w-full">
+        <div className="w-24 h-24 rounded-full flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)] relative overflow-hidden">
           
           {/* Slowly rotating background compass */}
           <span 
             className="material-symbols-outlined absolute animate-[spin_30s_linear_infinite]" 
-            style={{ fontSize: '4.5rem', color: '#fff' }}
+            style={{ fontSize: '3rem', color: '#fff' }}
           >
             explore
           </span>
