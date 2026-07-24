@@ -17,13 +17,16 @@ app = FastAPI(title="Event Planner API")
 @app.on_event("startup")
 def startup_event():
     try:
-        from finance_pipeline.db import init_db
-        init_db()
+        from finance_pipeline.db import init_db as init_finance_db
+        init_finance_db()
+        
+        from hr_analytics.db import init_db as init_hr_db
+        init_hr_db()
         
         from finance_pipeline.scheduler import start_scheduler
         start_scheduler()
     except Exception as e:
-        print(f"Failed to start finance scheduler: {e}")
+        print(f"Failed to start startup events: {e}")
 
 app.add_middleware(
     CORSMiddleware,
