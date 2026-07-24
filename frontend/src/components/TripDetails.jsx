@@ -1114,9 +1114,14 @@ export default function TripDetails({ tripId, onBack, user }) {
       {/* ---------------- FULL SCREEN TABS ---------------- */}
       {activeTab !== 'dashboard' && (
         <div className="full-screen-tab glass-panel">
-          <div className="full-screen-header">
-            <button className="back-to-trip-btn" onClick={() => window.history.back()}>⬅ Back to Trip Dashboard</button>
-            <h2 className="full-screen-title">{trip.title}</h2>
+          <div className="full-screen-header" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button 
+              onClick={() => window.history.back()} 
+              className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h2 className="full-screen-title" style={{ margin: 0 }}>{trip.title}</h2>
             <div className={`status-badge ${trip.status === 'In Progress' ? 'status-green' : 'status-blue'}`}>{trip.status || 'Planned'}</div>
           </div>
           

@@ -462,16 +462,24 @@ export default function GlobalExpenseDashboard({ user, onBack, tripId, tripParti
   }
 
   // ── Main Dashboard ──────────────────────────────────────────────────────────
+  const containerStyle = tripId 
+    ? "w-full px-4 sm:px-8 max-w-container-max mx-auto text-on-surface font-body-md"
+    : "w-full min-h-screen pt-24 px-4 sm:px-8 max-w-container-max mx-auto text-on-surface font-body-md";
+
   return (
-    <div className="w-full min-h-screen pt-24 px-4 sm:px-8 max-w-container-max mx-auto text-on-surface font-body-md" style={{ color: 'white' }}>
+    <div className={containerStyle} style={{ color: 'white' }}>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h3 className="text-2xl sm:text-3xl m-0 font-bold text-white">₹ Global Expenses</h3>
+          {onBack && (
+            <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors">
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          )}
+          <h3 className="text-2xl sm:text-3xl m-0 font-bold text-white">
+            ₹ {tripId ? 'Trip Expenses' : 'Global Expenses'}
+          </h3>
         </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <button className="flex-1 sm:flex-none px-5 py-3 rounded-full font-bold transition-transform hover:scale-105" 
