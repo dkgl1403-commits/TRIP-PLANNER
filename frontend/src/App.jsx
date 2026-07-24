@@ -109,12 +109,6 @@ function App() {
     <div className={`app-container ${theme} ${isLoggedIn ? 'dashboard-active' : ''}`}>
       <div className="bg-overlay"></div>
       
-      {!isLoggedIn && (
-        <button className="theme-toggle" onClick={toggleTheme}>
-          {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
-        </button>
-      )}
-
       <div className={`content-wrapper ${isLoggedIn ? 'dashboard-mode' : 'login-mode'}`}>
         {isLoggedIn && (
           <Header 
