@@ -485,7 +485,7 @@ export default function EmployeePredictiveML({ user }) {
         </>
       )}
 
-
     </div>
+    </>
   );
 }
