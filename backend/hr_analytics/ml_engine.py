@@ -18,22 +18,31 @@ def calculate_insights_for_all(db: Session):
     for role, salaries in role_averages.items():
         role_averages[role] = sum(salaries) / len(salaries) if salaries else 0
 
+    ninety_days_ago = datetime.date.today() - datetime.timedelta(days=90)
+    
+    # Fetch all recent logs once to avoid N+1 queries
+    all_recent_logs = db.query(EmployeeDailyLog).filter(
+        EmployeeDailyLog.date >= ninety_days_ago
+    ).all()
+    
+    # Group logs by employee
+    logs_by_emp = {}
+    for log in all_recent_logs:
+        if log.employee_id not in logs_by_emp:
+            logs_by_emp[log.employee_id] = []
+        logs_by_emp[log.employee_id].append(log)
+
     for emp in employees:
-        insight = generate_employee_insights(db, emp, role_averages)
+        emp_logs = logs_by_emp.get(emp.id, [])
+        emp_logs.sort(key=lambda x: x.date)
+        insight = generate_employee_insights(db, emp, role_averages, emp_logs)
         if insight:
             results.append(insight)
             
+    db.commit()
     return {"message": f"Generated insights for {len(results)} employees"}
 
-def generate_employee_insights(db: Session, employee: Employee, role_averages: dict):
-    # Fetch last 90 days of logs
-    ninety_days_ago = datetime.date.today() - datetime.timedelta(days=90)
-    
-    logs = db.query(EmployeeDailyLog).filter(
-        EmployeeDailyLog.employee_id == employee.id,
-        EmployeeDailyLog.date >= ninety_days_ago
-    ).order_by(EmployeeDailyLog.date).all()
-    
+def generate_employee_insights(db: Session, employee: Employee, role_averages: dict, logs: list):
     if not logs:
         return None
         
@@ -139,7 +148,6 @@ def generate_employee_insights(db: Session, employee: Employee, role_averages: d
         existing.burnout_risk_score = burnout_score
         existing.compensation_fairness_score = comp_score
         existing.top_risk_factors = risk_factors
-        db.commit()
         return existing
     else:
         new_insight = EmployeeAiInsight(
@@ -153,5 +161,4 @@ def generate_employee_insights(db: Session, employee: Employee, role_averages: d
             manager_action_plan="" # Generated later via GenAI
         )
         db.add(new_insight)
-        db.commit()
         return new_insight
