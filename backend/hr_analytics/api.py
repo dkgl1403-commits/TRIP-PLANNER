@@ -151,6 +151,10 @@ def get_insights(db: Session = Depends(get_db)):
     for insight in insights:
         if insight.employee_id not in latest_insights:
             emp = db.query(Employee).filter(Employee.id == insight.employee_id).first()
+            plan = insight.manager_action_plan
+            if plan and (plan.startswith("Failed") or plan.startswith("Error")):
+                plan = None
+                
             latest_insights[insight.employee_id] = {
                 "id": insight.id,
                 "employee_id": insight.employee_id,
@@ -162,7 +166,7 @@ def get_insights(db: Session = Depends(get_db)):
                 "burnout_risk_score": insight.burnout_risk_score,
                 "compensation_fairness_score": insight.compensation_fairness_score,
                 "top_risk_factors": insight.top_risk_factors,
-                "manager_action_plan": insight.manager_action_plan
+                "manager_action_plan": plan
             }
             
     return list(latest_insights.values())
@@ -206,8 +210,10 @@ def generate_plan(insight_id: str, db: Session = Depends(get_db)):
     
     plan = generate_action_plan(emp, insight)
     
-    if not plan.startswith("Error"):
-        insight.manager_action_plan = plan
-        db.commit()
+    if plan.startswith("Error") or plan.startswith("Failed"):
+        raise HTTPException(status_code=500, detail=plan)
+        
+    insight.manager_action_plan = plan
+    db.commit()
         
     return {"plan": plan}
