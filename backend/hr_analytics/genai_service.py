@@ -4,7 +4,7 @@ from hr_analytics.db import Employee, EmployeeAiInsight
 
 # The standard local Ollama endpoint on UAT
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-MODEL_NAME = "llama3" # Or whatever model is loaded locally on UAT
+MODEL_NAME = "qwen2.5-coder:7b" # Or whatever model is loaded locally on UAT
 
 def generate_action_plan(employee: Employee, insight: EmployeeAiInsight) -> str:
     """
