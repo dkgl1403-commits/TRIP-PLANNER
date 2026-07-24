@@ -221,8 +221,17 @@ export default function Login({ onLoginSuccess }) {
     <main className="relative z-10 w-full max-w-md mx-auto p-8 sm:p-12 rounded-2xl bg-glass-fill backdrop-blur-[24px] border border-glass-stroke shadow-2xl flex flex-col items-center">
       {/* Brand Header */}
       <div className="flex flex-col items-center justify-center mb-10 w-full">
-        <div className="w-32 h-32 rounded-full border-4 border-white flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)] relative">
-          <svg viewBox="0 0 100 100" width="100%" height="100%" className="absolute inset-0 pointer-events-none">
+        <div className="w-32 h-32 rounded-full border-4 border-white flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)] relative overflow-hidden">
+          
+          {/* Slowly rotating background compass */}
+          <span 
+            className="material-symbols-outlined absolute animate-[spin_30s_linear_infinite]" 
+            style={{ fontSize: '5rem', opacity: 0.2, color: '#fff' }}
+          >
+            explore
+          </span>
+
+          <svg viewBox="0 0 100 100" width="100%" height="100%" className="absolute inset-0 pointer-events-none z-10">
             {/* Top Arc for DKGL */}
             <path id="curveTop" fill="transparent" d="M 20,50 A 30,30 0 0,1 80,50" />
             {/* Bottom Arc for EST 2026 */}
