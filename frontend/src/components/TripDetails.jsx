@@ -1019,7 +1019,9 @@ export default function TripDetails({ tripId, onBack, user }) {
           <div className="trip-right-panel glass-panel" style={{position: 'relative', display: 'flex', flexDirection: 'column'}}>
             <div className="trip-header">
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button className="round-icon-btn" title="Back to Dashboard" onClick={onBack}>⬅</button>
+                <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors" title="Back to Dashboard">
+                  <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+                </button>
                 <h2 className="trip-title" title={trip.title}>{trip.title}</h2>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

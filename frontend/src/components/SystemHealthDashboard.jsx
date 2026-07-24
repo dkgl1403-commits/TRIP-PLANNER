@@ -121,10 +121,10 @@ const SystemHealthDashboard = ({ onBack }) => {
             <div className="flex items-center mb-8 gap-4">
                 <button 
                     onClick={onBack} 
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-glass-stroke text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors"
+                    className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors"
+                    title="Back"
                 >
-                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-                    Back to App
+                    <span className="material-symbols-outlined text-[24px]">arrow_back</span>
                 </button>
                 <h2 className="font-display-lg text-3xl font-bold m-0 flex items-center gap-3">
                     <DashboardOutlined /> System Health

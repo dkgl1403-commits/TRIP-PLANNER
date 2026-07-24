@@ -326,11 +326,11 @@ Return ONLY a valid JSON object strictly matching this format without any markdo
     <div className="w-full min-h-screen flex flex-col pt-24 px-4 sm:px-8 max-w-4xl mx-auto text-on-surface font-body-md pb-12">
       <div className="flex items-center gap-4 mb-8">
         <button 
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-glass-stroke text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors"
           onClick={step === 1 ? onBack : () => setStep(step - 1)}
+          className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors"
+          title="Back"
         >
-          <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-          Back
+          <span className="material-symbols-outlined text-[24px]">arrow_back</span>
         </button>
         <h2 className="font-display-lg text-3xl font-bold m-0 flex items-center gap-3">
           <span className="text-neon-coral material-symbols-outlined text-[32px]">auto_awesome</span>

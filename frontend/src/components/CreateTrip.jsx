@@ -217,11 +217,13 @@ export default function CreateTrip({ user, onBack }) {
       <div className="form-panel glass-panel">
         <div className="form-header" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
           <button 
-            className="round-icon-btn" 
+            onClick={onBack} 
+            className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors"
             title="Back to Dashboard"
-            onClick={onBack}
             style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)' }}
-          >⬅</button>
+          >
+            <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+          </button>
           <h2 style={{ margin: 0 }}>Plan a New Trip</h2>
         </div>
 

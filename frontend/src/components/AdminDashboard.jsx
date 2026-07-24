@@ -54,8 +54,12 @@ const AdminDashboard = ({ user, onBack }) => {
       <header className="dashboard-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button className="btn-icon" onClick={onBack} aria-label="Go Back" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <button 
+              onClick={onBack} 
+              className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors"
+              title="Back"
+            >
+              <span className="material-symbols-outlined text-[24px]">arrow_back</span>
             </button>
             <div>
               <h1 style={{ margin: 0 }}>Admin Dashboard</h1>
