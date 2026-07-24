@@ -5,7 +5,7 @@ export default function EmployeePredictiveML({ user }) {
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [runningAnalysis, setRunningAnalysis] = useState(false);
-  const { addToast } = useToast();
+  const toast = useToast();
 
   useEffect(() => {
     fetchInsights();
@@ -21,7 +21,7 @@ export default function EmployeePredictiveML({ user }) {
       }
     } catch (e) {
       console.error(e);
-      addToast("Failed to fetch ML insights", "error");
+      toast.error("Failed to fetch ML insights");
     } finally {
       setLoading(false);
     }
@@ -29,21 +29,21 @@ export default function EmployeePredictiveML({ user }) {
 
   const runAnalysis = async () => {
     setRunningAnalysis(true);
-    addToast("Initializing predictive models...", "info");
+    toast.info("Initializing predictive models...");
     try {
       const res = await fetch('/api/employee-dashboard/ml/run', {
         method: 'POST'
       });
       if (res.ok) {
         const result = await res.json();
-        addToast(result.message, "success");
+        toast.success(result.message);
         await fetchInsights();
       } else {
-        addToast("ML Engine failed to run", "error");
+        toast.error("ML Engine failed to run");
       }
     } catch (e) {
       console.error(e);
-      addToast("Error running analysis", "error");
+      toast.error("Error running analysis");
     } finally {
       setRunningAnalysis(false);
     }

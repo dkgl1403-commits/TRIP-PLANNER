@@ -15,8 +15,10 @@ export default function EmployeeDataIngestion({ user }) {
   const [leaveType, setLeaveType] = useState('');
   const [productivityScore, setProductivityScore] = useState(85);
   
+  const [selectedFile, setSelectedFile] = useState(null);
+  const toast = useToast();
+  
   const fileInputRef = useRef(null);
-  const { addToast } = useToast();
 
   useEffect(() => {
     fetchEmployees();
@@ -33,7 +35,7 @@ export default function EmployeeDataIngestion({ user }) {
       }
     } catch (e) {
       console.error(e);
-      addToast("Failed to fetch employees", "error");
+      toast.error("Failed to fetch employees");
     }
   };
 
@@ -46,7 +48,7 @@ export default function EmployeeDataIngestion({ user }) {
       }
     } catch (e) {
       console.error(e);
-      addToast("Failed to fetch logs", "error");
+      toast.error("Failed to fetch logs");
     } finally {
       setLoading(false);
     }
@@ -74,15 +76,15 @@ export default function EmployeeDataIngestion({ user }) {
       });
 
       if (res.ok) {
-        addToast("Log added successfully", "success");
+        toast.success("Log added successfully");
         fetchLogs();
       } else {
-        addToast("Failed to add log", "error");
+        toast.error("Failed to add log");
       }
     } catch (e) {
       console.error(e);
-      addToast("Error submitting log", "error");
-    }
+      toast.error("Error submitting log");
+    } finally { };
   };
 
   const handleFileUpload = async (e) => {
@@ -90,30 +92,31 @@ export default function EmployeeDataIngestion({ user }) {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', selectedFile);
 
-    addToast("Uploading logs...", "info");
+    toast.info("Uploading logs...");
     try {
-      const res = await fetch('/api/employee-dashboard/logs/bulk', {
+      const res = await fetch('/api/employee-dashboard/upload', {
         method: 'POST',
         body: formData
       });
 
       if (res.ok) {
         const result = await res.json();
-        addToast(result.message, "success");
+        toast.success(result.message);
         fetchLogs();
+        setSelectedFile(null);
       } else {
         const err = await res.json();
-        addToast(`Upload failed: ${err.detail || 'Unknown error'}`, "error");
+        toast.error(`Upload failed: ${err.detail || 'Unknown error'}`);
       }
     } catch (e) {
       console.error(e);
-      addToast("Error uploading file", "error");
-    }
-    
+      toast.error("Error uploading file");
+    } finally {   
     // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
