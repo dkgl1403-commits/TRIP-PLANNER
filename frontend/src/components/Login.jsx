@@ -224,13 +224,13 @@ export default function Login({ onLoginSuccess }) {
         <div className="w-32 h-32 rounded-full border-4 border-white flex flex-col items-center justify-center mb-4 text-white bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.1)] relative">
           <svg viewBox="0 0 100 100" width="100%" height="100%" className="absolute inset-0 pointer-events-none">
             {/* Top Arc for DKGL */}
-            <path id="curveTop" fill="transparent" d="M 10,50 A 40,40 0 0,1 90,50" />
+            <path id="curveTop" fill="transparent" d="M 20,50 A 30,30 0 0,1 80,50" />
             {/* Bottom Arc for EST 2026 */}
             <path id="curveBottom" fill="transparent" d="M 15,50 A 35,35 0 0,0 85,50" />
             
-            <text fontSize="26" fill="white" letterSpacing="4" style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 'bold' }}>
+            <text fontSize="22" fill="white" letterSpacing="6" style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 'bold' }}>
               <textPath href="#curveTop" startOffset="50%" textAnchor="middle">
-                <tspan dy="24">DKGL</tspan>
+                <tspan dy="6">DKGL</tspan>
               </textPath>
             </text>
 
