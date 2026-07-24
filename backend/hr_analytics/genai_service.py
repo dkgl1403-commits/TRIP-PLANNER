@@ -12,6 +12,14 @@ def generate_action_plan(employee: Employee, insight: EmployeeAiInsight) -> str:
     """
     risk_factors_str = "\n".join([f"- {factor}" for factor in insight.top_risk_factors]) if insight.top_risk_factors else "None"
     
+    comp_status = "Fair / Market Rate"
+    if insight.compensation_fairness_score < 0.2:
+        comp_status = "Very Unfair / Significantly Below Market"
+    elif insight.compensation_fairness_score < 0.4:
+        comp_status = "Unfair / Below Market"
+    elif insight.compensation_fairness_score > 0.8:
+        comp_status = "Highly Fair / Above Market"
+
     prompt = f"""You are an expert HR Manager AI. 
 Write a highly concise, actionable 2-3 sentence plan for a manager to retain the following employee. 
 Be direct, professional, and do not include pleasantries or greetings.
@@ -20,7 +28,7 @@ Employee: {employee.name}
 Role: {employee.role}
 Flight Risk Score: {round(insight.flight_risk_score * 100)}%
 Burnout Risk Score: {round(insight.burnout_risk_score * 100)}%
-Compensation Fairness: {round(insight.compensation_fairness_score * 100)}%
+Compensation Fairness: {round(insight.compensation_fairness_score * 100)}% ({comp_status})
 
 Risk Factors Detected:
 {risk_factors_str}
@@ -38,7 +46,7 @@ Action Plan:"""
     }
     
     try:
-        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        response = requests.post(OLLAMA_URL, json=payload, timeout=180)
         if response.status_code == 200:
             result = response.json()
             return result.get("response", "").strip()

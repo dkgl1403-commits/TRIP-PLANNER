@@ -15,21 +15,25 @@ export default function EmployeePredictiveML({ user }) {
 
   const generateActionPlan = async (insightId) => {
     setGeneratingPlanId(insightId);
-    toast.info("Generating AI Action Plan...");
     try {
       const res = await fetch(`/api/employee-dashboard/ml/action-plan/${insightId}`, {
         method: 'POST'
       });
       if (res.ok) {
-        toast.success("Action plan generated!");
+        setGeneratingPlanId(`${insightId}-success`);
+        setTimeout(() => {
+          if (generatingPlanId !== insightId) {
+            setGeneratingPlanId(null);
+          }
+        }, 3000);
         await fetchInsights();
       } else {
-        toast.error("Failed to generate plan");
+        const errorData = await res.json();
+        toast.error(errorData.detail || "Failed to generate plan");
+        setGeneratingPlanId(null);
       }
     } catch (e) {
-      console.error(e);
-      toast.error("Error generating plan");
-    } finally {
+      toast.error("Network error while generating action plan");
       setGeneratingPlanId(null);
     }
   };
@@ -320,13 +324,20 @@ export default function EmployeePredictiveML({ user }) {
                             >
                               Feedback
                             </button>
-                            {(insight.flight_risk_score > 0.6 || insight.burnout_risk_score > 0.6) && !insight.manager_action_plan && (
+                            {(insight.flight_risk_score > 0.6 || insight.burnout_risk_score > 0.6) && (
                               <button 
                                 onClick={() => generateActionPlan(insight.id)}
-                                disabled={generatingPlanId === insight.id}
+                                disabled={generatingPlanId === insight.id || generatingPlanId === `${insight.id}-success`}
                                 className="text-xs px-2 py-1 bg-neon-coral/20 text-neon-coral hover:bg-neon-coral/30 rounded border border-neon-coral/30 transition-colors whitespace-nowrap disabled:opacity-50"
                               >
-                                {generatingPlanId === insight.id ? 'Generating...' : 'AI Action Plan'}
+                                {generatingPlanId === insight.id 
+                                  ? 'Generating...' 
+                                  : generatingPlanId === `${insight.id}-success`
+                                    ? 'Generated!'
+                                    : insight.manager_action_plan
+                                      ? 'Regenerate AI Plan'
+                                      : 'AI Action Plan'
+                                }
                               </button>
                             )}
                           </div>
