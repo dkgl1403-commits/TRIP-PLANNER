@@ -334,13 +334,13 @@ export default function EmployeePredictiveML({ user }) {
                                 onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), flight_risk_rating: true}}); }}
                                 className={`transition-colors p-1 flex items-center justify-center ${feedbackData[insight.id]?.flight_risk_rating === true ? 'text-green-500' : 'text-gray-500 opacity-50 hover:opacity-100 hover:text-green-500'}`} title="Accurate"
                               >
-                                <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: feedbackData[insight.id]?.flight_risk_rating === true ? "'FILL' 1" : "'FILL' 0" }}>thumb_up</span>
+                                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: feedbackData[insight.id]?.flight_risk_rating === true ? "'FILL' 1" : "'FILL' 0" }}>thumb_up</span>
                               </button>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), flight_risk_rating: false}}); }}
                                 className={`transition-colors p-1 flex items-center justify-center ${feedbackData[insight.id]?.flight_risk_rating === false ? 'text-red-500' : 'text-gray-500 opacity-50 hover:opacity-100 hover:text-red-500'}`} title="False Alarm"
                               >
-                                <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: feedbackData[insight.id]?.flight_risk_rating === false ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
+                                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: feedbackData[insight.id]?.flight_risk_rating === false ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
                               </button>
                             </div>
                           )}
@@ -355,13 +355,13 @@ export default function EmployeePredictiveML({ user }) {
                                 onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), burnout_rating: true}}); }}
                                 className={`transition-colors p-1 flex items-center justify-center ${feedbackData[insight.id]?.burnout_rating === true ? 'text-green-500' : 'text-gray-500 opacity-50 hover:opacity-100 hover:text-green-500'}`} title="Accurate"
                               >
-                                <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: feedbackData[insight.id]?.burnout_rating === true ? "'FILL' 1" : "'FILL' 0" }}>thumb_up</span>
+                                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: feedbackData[insight.id]?.burnout_rating === true ? "'FILL' 1" : "'FILL' 0" }}>thumb_up</span>
                               </button>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), burnout_rating: false}}); }}
                                 className={`transition-colors p-1 flex items-center justify-center ${feedbackData[insight.id]?.burnout_rating === false ? 'text-red-500' : 'text-gray-500 opacity-50 hover:opacity-100 hover:text-red-500'}`} title="False Alarm"
                               >
-                                <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: feedbackData[insight.id]?.burnout_rating === false ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
+                                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: feedbackData[insight.id]?.burnout_rating === false ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
                               </button>
                             </div>
                           )}
@@ -376,13 +376,13 @@ export default function EmployeePredictiveML({ user }) {
                                 onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), comp_rating: true}}); }}
                                 className={`transition-colors p-1 flex items-center justify-center ${feedbackData[insight.id]?.comp_rating === true ? 'text-green-500' : 'text-gray-500 opacity-50 hover:opacity-100 hover:text-green-500'}`} title="Accurate"
                               >
-                                <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: feedbackData[insight.id]?.comp_rating === true ? "'FILL' 1" : "'FILL' 0" }}>thumb_up</span>
+                                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: feedbackData[insight.id]?.comp_rating === true ? "'FILL' 1" : "'FILL' 0" }}>thumb_up</span>
                               </button>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setFeedbackData({...feedbackData, [insight.id]: {...(feedbackData[insight.id]||{}), comp_rating: false}}); }}
                                 className={`transition-colors p-1 flex items-center justify-center ${feedbackData[insight.id]?.comp_rating === false ? 'text-red-500' : 'text-gray-500 opacity-50 hover:opacity-100 hover:text-red-500'}`} title="False Alarm"
                               >
-                                <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: feedbackData[insight.id]?.comp_rating === false ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
+                                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: feedbackData[insight.id]?.comp_rating === false ? "'FILL' 1" : "'FILL' 0" }}>thumb_down</span>
                               </button>
                             </div>
                           )}
