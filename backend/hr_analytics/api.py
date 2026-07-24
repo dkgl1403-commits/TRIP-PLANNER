@@ -155,6 +155,17 @@ def get_insights(db: Session = Depends(get_db)):
             if plan and (plan.startswith("Failed") or plan.startswith("Error")):
                 plan = None
                 
+            from hr_analytics.db import MlFeedbackLog
+            feedback_log = db.query(MlFeedbackLog).filter(MlFeedbackLog.insight_id == insight.id).first()
+            feedback_data = None
+            if feedback_log:
+                feedback_data = {
+                    "thumbs_up": feedback_log.thumbs_up,
+                    "burnout_thumbs_up": getattr(feedback_log, 'burnout_thumbs_up', None),
+                    "comp_thumbs_up": getattr(feedback_log, 'comp_thumbs_up', None),
+                    "feedback_notes": feedback_log.feedback_notes
+                }
+                
             latest_insights[insight.employee_id] = {
                 "id": insight.id,
                 "employee_id": insight.employee_id,
@@ -166,7 +177,8 @@ def get_insights(db: Session = Depends(get_db)):
                 "burnout_risk_score": insight.burnout_risk_score,
                 "compensation_fairness_score": insight.compensation_fairness_score,
                 "top_risk_factors": insight.top_risk_factors,
-                "manager_action_plan": plan
+                "manager_action_plan": plan,
+                "feedback": feedback_data
             }
             
     return list(latest_insights.values())
@@ -176,24 +188,37 @@ class MLFeedbackCreate(BaseModel):
     employee_id: str
     predicted_flight_risk: float
     manager_corrected_flight_risk: Optional[float] = None
-    thumbs_up: bool
+    thumbs_up: Optional[bool] = None
+    burnout_thumbs_up: Optional[bool] = None
+    comp_thumbs_up: Optional[bool] = None
     actual_outcome: Optional[str] = None
     feedback_notes: Optional[str] = None
 
 @router.post("/ml/feedback")
 def submit_ml_feedback(feedback: MLFeedbackCreate, db: Session = Depends(get_db)):
     from hr_analytics.db import MlFeedbackLog, get_uuid
-    log = MlFeedbackLog(
-        id=get_uuid(),
-        insight_id=feedback.insight_id,
-        employee_id=feedback.employee_id,
-        predicted_flight_risk=feedback.predicted_flight_risk,
-        manager_corrected_flight_risk=feedback.manager_corrected_flight_risk,
-        thumbs_up=feedback.thumbs_up,
-        actual_outcome=feedback.actual_outcome,
-        feedback_notes=feedback.feedback_notes
-    )
-    db.add(log)
+    
+    log = db.query(MlFeedbackLog).filter(MlFeedbackLog.insight_id == feedback.insight_id).first()
+    if log:
+        log.thumbs_up = feedback.thumbs_up if feedback.thumbs_up is not None else log.thumbs_up
+        log.burnout_thumbs_up = feedback.burnout_thumbs_up if feedback.burnout_thumbs_up is not None else log.burnout_thumbs_up
+        log.comp_thumbs_up = feedback.comp_thumbs_up if feedback.comp_thumbs_up is not None else log.comp_thumbs_up
+        log.feedback_notes = feedback.feedback_notes if feedback.feedback_notes is not None else log.feedback_notes
+    else:
+        log = MlFeedbackLog(
+            id=get_uuid(),
+            insight_id=feedback.insight_id,
+            employee_id=feedback.employee_id,
+            predicted_flight_risk=feedback.predicted_flight_risk,
+            manager_corrected_flight_risk=feedback.manager_corrected_flight_risk,
+            thumbs_up=feedback.thumbs_up,
+            burnout_thumbs_up=feedback.burnout_thumbs_up,
+            comp_thumbs_up=feedback.comp_thumbs_up,
+            actual_outcome=feedback.actual_outcome,
+            feedback_notes=feedback.feedback_notes
+        )
+        db.add(log)
+        
     db.commit()
     return {"message": "Feedback submitted successfully"}
 

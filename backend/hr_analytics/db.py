@@ -86,7 +86,9 @@ class MlFeedbackLog(Base):
     employee_id = Column(String(36), ForeignKey('hr_employees.id'))
     predicted_flight_risk = Column(Float)
     manager_corrected_flight_risk = Column(Float, nullable=True)
-    thumbs_up = Column(Boolean)
+    thumbs_up = Column(Boolean) # For flight risk
+    burnout_thumbs_up = Column(Boolean, nullable=True)
+    comp_thumbs_up = Column(Boolean, nullable=True)
     actual_outcome = Column(String, nullable=True) # Resigned, Retained, Promoted, etc
     feedback_notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
@@ -96,3 +98,10 @@ class MlFeedbackLog(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    from sqlalchemy import text
+    try:
+        with engine.begin() as conn:
+            conn.execute(text('ALTER TABLE hr_ml_feedback_logs ADD COLUMN burnout_thumbs_up BOOLEAN'))
+            conn.execute(text('ALTER TABLE hr_ml_feedback_logs ADD COLUMN comp_thumbs_up BOOLEAN'))
+    except Exception:
+        pass
