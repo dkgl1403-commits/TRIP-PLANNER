@@ -5,13 +5,12 @@ webauthn
 pydantic
 boto3
 python-dotenv
-
 sqlalchemy
 psycopg2-binary
- 
 pandas
 scikit-learn
 apscheduler
 requests
-
+python-multipart
+xgboost
 psutil
