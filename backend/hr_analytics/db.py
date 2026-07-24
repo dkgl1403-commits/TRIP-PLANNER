@@ -1,6 +1,6 @@
 import os
 import uuid
-from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Integer, Boolean, Text, ForeignKey, Time, Numeric
+from sqlalchemy import create_engine, Column, String, Float, DateTime, JSON, Date, Integer, Boolean, Text, ForeignKey, Time, Numeric, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from dotenv import load_dotenv
 
@@ -78,16 +78,21 @@ class EmployeeAiInsight(Base):
     
     employee = relationship("Employee")
 
-class MlPredictionFeedback(Base):
-    __tablename__ = "hr_ml_prediction_feedback"
+class MlFeedbackLog(Base):
+    __tablename__ = "hr_ml_feedback_logs"
     
     id = Column(String(36), primary_key=True, default=get_uuid)
-    prediction_id = Column(String(36), ForeignKey('hr_employee_ai_insights.id'))
-    feedback_type = Column(String) # False Alarm, Accurate
-    feedback_date = Column(DateTime)
-    notes = Column(Text, nullable=True)
+    insight_id = Column(String(36), ForeignKey('hr_employee_ai_insights.id'))
+    employee_id = Column(String(36), ForeignKey('hr_employees.id'))
+    predicted_flight_risk = Column(Float)
+    manager_corrected_flight_risk = Column(Float, nullable=True)
+    thumbs_up = Column(Boolean)
+    actual_outcome = Column(String, nullable=True) # Resigned, Retained, Promoted, etc
+    feedback_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=func.now())
     
-    prediction = relationship("EmployeeAiInsight")
+    insight = relationship("EmployeeAiInsight")
+    employee = relationship("Employee")
 
 def init_db():
     Base.metadata.create_all(bind=engine)

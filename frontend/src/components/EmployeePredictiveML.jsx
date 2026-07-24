@@ -5,11 +5,61 @@ export default function EmployeePredictiveML({ user }) {
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [runningAnalysis, setRunningAnalysis] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, insight: null });
+  const [generatingPlanId, setGeneratingPlanId] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
     fetchInsights();
   }, []);
+
+  const generateActionPlan = async (insightId) => {
+    setGeneratingPlanId(insightId);
+    toast.info("Generating AI Action Plan...");
+    try {
+      const res = await fetch(`/api/employee-dashboard/ml/action-plan/${insightId}`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        toast.success("Action plan generated!");
+        await fetchInsights();
+      } else {
+        toast.error("Failed to generate plan");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Error generating plan");
+    } finally {
+      setGeneratingPlanId(null);
+    }
+  };
+
+  const submitFeedback = async (insightId, employeeId, predictedRisk, isAccurate, actualOutcome, notes) => {
+    toast.info("Submitting feedback to ML engine...");
+    try {
+      const res = await fetch('/api/employee-dashboard/ml/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          insight_id: insightId,
+          employee_id: employeeId,
+          predicted_flight_risk: predictedRisk,
+          thumbs_up: isAccurate,
+          actual_outcome: actualOutcome,
+          feedback_notes: notes
+        })
+      });
+      if (res.ok) {
+        toast.success("Feedback recorded for future model training!");
+        setFeedbackModal({ open: false, insight: null });
+      } else {
+        toast.error("Failed to submit feedback");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Error submitting feedback");
+    }
+  };
 
   const fetchInsights = async () => {
     setLoading(true);
@@ -225,48 +275,158 @@ export default function EmployeePredictiveML({ user }) {
                     <th className="p-4 text-sm font-semibold opacity-80 border-b border-surface-variant text-center">Burnout</th>
                     <th className="p-4 text-sm font-semibold opacity-80 border-b border-surface-variant text-center">Comp Fairness</th>
                     <th className="p-4 text-sm font-semibold opacity-80 border-b border-surface-variant">Top Risk Factors</th>
+                    <th className="p-4 text-sm font-semibold opacity-80 border-b border-surface-variant text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredInsights.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="p-8 text-center opacity-50">No employees match the current filters.</td>
+                      <td colSpan="6" className="p-8 text-center opacity-50">No employees match the current filters.</td>
                     </tr>
                   ) : filteredInsights.map(insight => (
-                    <tr key={insight.id} className="border-b border-surface-variant/30 hover:bg-white/5 transition-colors">
-                      <td className="p-4">
-                        <div className="font-bold">{insight.employee_name}</div>
-                        <div className="text-xs opacity-70">{insight.role} • {insight.department}</div>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.flight_risk_score)}`}>
-                          {Math.round(insight.flight_risk_score * 100)}%
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.burnout_risk_score)}`}>
-                          {Math.round(insight.burnout_risk_score * 100)}%
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${insight.compensation_fairness_score < 0.4 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-green-400 bg-green-500/10 border-green-500/20'}`}>
-                          {Math.round(insight.compensation_fairness_score * 100)}%
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <ul className="list-disc pl-4 text-xs opacity-80 space-y-1">
-                          {insight.top_risk_factors.map((factor, idx) => (
-                            <li key={idx}>{factor}</li>
-                          ))}
-                        </ul>
-                      </td>
-                    </tr>
+                    <React.Fragment key={insight.id}>
+                      <tr className="border-b border-surface-variant/30 hover:bg-white/5 transition-colors">
+                        <td className="p-4">
+                          <div className="font-bold">{insight.employee_name}</div>
+                          <div className="text-xs opacity-70">{insight.role} • {insight.department}</div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.flight_risk_score)}`}>
+                            {Math.round(insight.flight_risk_score * 100)}%
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(insight.burnout_risk_score)}`}>
+                            {Math.round(insight.burnout_risk_score * 100)}%
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${insight.compensation_fairness_score < 0.4 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-green-400 bg-green-500/10 border-green-500/20'}`}>
+                            {Math.round(insight.compensation_fairness_score * 100)}%
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <ul className="list-disc pl-4 text-xs opacity-80 space-y-1">
+                            {insight.top_risk_factors.map((factor, idx) => (
+                              <li key={idx}>{factor}</li>
+                            ))}
+                          </ul>
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <button 
+                              onClick={() => setFeedbackModal({ open: true, insight })}
+                              className="text-xs px-2 py-1 bg-surface-variant/50 hover:bg-surface-variant rounded border border-surface-variant transition-colors whitespace-nowrap"
+                            >
+                              Feedback
+                            </button>
+                            {(insight.flight_risk_score > 0.6 || insight.burnout_risk_score > 0.6) && !insight.manager_action_plan && (
+                              <button 
+                                onClick={() => generateActionPlan(insight.id)}
+                                disabled={generatingPlanId === insight.id}
+                                className="text-xs px-2 py-1 bg-neon-coral/20 text-neon-coral hover:bg-neon-coral/30 rounded border border-neon-coral/30 transition-colors whitespace-nowrap disabled:opacity-50"
+                              >
+                                {generatingPlanId === insight.id ? 'Generating...' : 'AI Action Plan'}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {insight.manager_action_plan && (
+                        <tr className="border-b border-surface-variant/30 bg-surface-variant/20">
+                          <td colSpan="6" className="p-4">
+                            <div className="flex items-start gap-3">
+                              <span className="material-symbols-outlined text-neon-coral shrink-0 mt-1">auto_awesome</span>
+                              <div>
+                                <h4 className="font-bold text-sm mb-1 text-neon-coral">AI Action Plan</h4>
+                                <p className="text-sm opacity-90 leading-relaxed">{insight.manager_action_plan}</p>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
         </>
+      )}
+
+      {/* Feedback Modal */}
+      {feedbackModal.open && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-surface border border-surface-variant rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-xl font-bold mb-2">Provide Feedback</h3>
+            <p className="text-sm opacity-70 mb-4">
+              Help train the ML engine for {feedbackModal.insight.employee_name}. Is the predicted flight risk of {Math.round(feedbackModal.insight.flight_risk_score * 100)}% accurate?
+            </p>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target);
+              submitFeedback(
+                feedbackModal.insight.id,
+                feedbackModal.insight.employee_id,
+                feedbackModal.insight.flight_risk_score,
+                formData.get('thumbs_up') === 'true',
+                formData.get('actual_outcome'),
+                formData.get('notes')
+              );
+            }}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold mb-2">Accuracy Rating *</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="thumbs_up" value="true" required className="accent-neon-coral" />
+                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_up</span> Accurate</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="thumbs_up" value="false" required className="accent-neon-coral" />
+                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_down</span> False Alarm</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-semibold mb-1">Actual Outcome (Optional)</label>
+                <select name="actual_outcome" className="w-full bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral">
+                  <option value="">-- Select --</option>
+                  <option value="Resigned">Employee Resigned</option>
+                  <option value="Retained">Successfully Retained</option>
+                  <option value="Terminated">Terminated</option>
+                  <option value="Promoted">Promoted</option>
+                </select>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-1">Notes (Optional)</label>
+                <textarea 
+                  name="notes"
+                  className="w-full bg-surface-variant/50 border border-surface-variant rounded-lg px-3 py-2 text-white outline-none focus:border-neon-coral min-h-[80px]"
+                  placeholder="Additional context on why the prediction was right or wrong..."
+                ></textarea>
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setFeedbackModal({ open: false, insight: null })}
+                  className="px-4 py-2 bg-surface-variant hover:bg-surface-variant/80 rounded-lg transition-colors font-semibold"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-neon-coral text-white rounded-lg hover:bg-neon-coral/90 transition-colors font-bold shadow-lg shadow-neon-coral/20"
+                >
+                  Submit Feedback
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

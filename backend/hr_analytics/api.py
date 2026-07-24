@@ -166,3 +166,48 @@ def get_insights(db: Session = Depends(get_db)):
             }
             
     return list(latest_insights.values())
+
+class MLFeedbackCreate(BaseModel):
+    insight_id: str
+    employee_id: str
+    predicted_flight_risk: float
+    manager_corrected_flight_risk: Optional[float] = None
+    thumbs_up: bool
+    actual_outcome: Optional[str] = None
+    feedback_notes: Optional[str] = None
+
+@router.post("/ml/feedback")
+def submit_ml_feedback(feedback: MLFeedbackCreate, db: Session = Depends(get_db)):
+    from hr_analytics.db import MlFeedbackLog, get_uuid
+    log = MlFeedbackLog(
+        id=get_uuid(),
+        insight_id=feedback.insight_id,
+        employee_id=feedback.employee_id,
+        predicted_flight_risk=feedback.predicted_flight_risk,
+        manager_corrected_flight_risk=feedback.manager_corrected_flight_risk,
+        thumbs_up=feedback.thumbs_up,
+        actual_outcome=feedback.actual_outcome,
+        feedback_notes=feedback.feedback_notes
+    )
+    db.add(log)
+    db.commit()
+    return {"message": "Feedback submitted successfully"}
+
+@router.post("/ml/action-plan/{insight_id}")
+def generate_plan(insight_id: str, db: Session = Depends(get_db)):
+    from hr_analytics.db import EmployeeAiInsight
+    from hr_analytics.genai_service import generate_action_plan
+    
+    insight = db.query(EmployeeAiInsight).filter(EmployeeAiInsight.id == insight_id).first()
+    if not insight:
+        raise HTTPException(status_code=404, detail="Insight not found")
+        
+    emp = db.query(Employee).filter(Employee.id == insight.employee_id).first()
+    
+    plan = generate_action_plan(emp, insight)
+    
+    if not plan.startswith("Error"):
+        insight.manager_action_plan = plan
+        db.commit()
+        
+    return {"plan": plan}
