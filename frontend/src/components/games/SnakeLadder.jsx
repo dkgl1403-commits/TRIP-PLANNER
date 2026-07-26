@@ -5,8 +5,8 @@ const GRID_SIZE = 10;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
 // Initial Entities (Only Snakes and Ladders now)
-const INITIAL_SNAKES = { 99: 12, 72: 22, 30: 10, 52: 23 };
-const LADDERS = { 3: 25, 35: 82, 48: 71, 20: 81 };
+const INITIAL_SNAKES = { 99: 12, 72: 22, 30: 10, 52: 23, 96: 67 };
+const LADDERS = { 3: 25, 35: 82, 48: 71, 20: 81, 84: 98 };
 
 const COLORS = ['#FF6B6B', '#4D9DE0', '#F9DC5C', '#84DCC6', '#A5668B'];
 
