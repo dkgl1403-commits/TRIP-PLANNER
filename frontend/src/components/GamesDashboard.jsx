@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import DotsAndBoxes from './games/DotsAndBoxes';
+import ZeroKata from './games/ZeroKata';
 
 export default function GamesDashboard({ user, onBack }) {
   const [activeGame, setActiveGame] = useState(null);
 
   if (activeGame === 'dots') {
     return <DotsAndBoxes user={user} onBack={() => setActiveGame(null)} />;
+  }
+  if (activeGame === 'zerokata') {
+    return <ZeroKata user={user} onBack={() => setActiveGame(null)} />;
   }
 
   return (
@@ -60,26 +64,7 @@ export default function GamesDashboard({ user, onBack }) {
           </div>
         </div>
 
-        {/* Coming Soon Cards */}
-        <div className="relative overflow-hidden bg-surface-container/50 border border-glass-stroke/50 rounded-3xl p-6 shadow-glass opacity-70 flex flex-col h-full group">
-          {/* Watermark Background */}
-          <div className="absolute -bottom-4 -right-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none transform -rotate-12 scale-150">
-            <h1 className="font-display-lg font-black text-[120px] leading-none tracking-widest text-on-surface">FLAMES</h1>
-          </div>
-
-          <div className="relative z-10 w-16 h-16 rounded-2xl bg-glass-fill flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-3xl text-on-surface-variant">local_fire_department</span>
-          </div>
-          <h3 className="relative z-10 font-display-lg text-2xl font-bold mb-2">FLAMES</h3>
-          <p className="relative z-10 text-on-surface-variant text-sm mb-4 flex-grow">
-            The classic Indian relationship prediction game based on name letters.
-          </p>
-          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke/50">
-            <span className="text-xs font-bold text-on-surface-variant px-2 py-1 bg-glass-fill rounded-md">Coming Soon</span>
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden bg-surface-container/50 border border-glass-stroke/50 rounded-3xl p-6 shadow-glass opacity-70 flex flex-col h-full group">
+        <div className="relative overflow-hidden bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass hover:shadow-primary/20 hover:border-primary/30 transition-all cursor-pointer group flex flex-col h-full" onClick={() => setActiveGame('zerokata')}>
           {/* Watermark Background */}
           <div className="absolute -bottom-10 -right-10 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none transform rotate-12 scale-125">
             <svg width="200" height="200" viewBox="0 0 100 100">
@@ -95,15 +80,16 @@ export default function GamesDashboard({ user, onBack }) {
             </svg>
           </div>
 
-          <div className="relative z-10 w-16 h-16 rounded-2xl bg-glass-fill flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-3xl text-on-surface-variant">close</span>
+          <div className="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-[#4D9DE0]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-3xl text-primary">close</span>
           </div>
-          <h3 className="relative z-10 font-display-lg text-2xl font-bold mb-2">Zero Kata</h3>
+          <h3 className="relative z-10 font-display-lg text-2xl font-bold mb-2 group-hover:text-primary transition-colors">Zero Kata</h3>
           <p className="relative z-10 text-on-surface-variant text-sm mb-4 flex-grow">
             The universal 3x3 grid game of Xs and Os (Tic-Tac-Toe).
           </p>
-          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke/50">
-            <span className="text-xs font-bold text-on-surface-variant px-2 py-1 bg-glass-fill rounded-md">Coming Soon</span>
+          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
+            <span className="text-xs font-bold text-primary px-2 py-1 bg-primary/10 rounded-md">Local & Online</span>
+            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
           </div>
         </div>
 
