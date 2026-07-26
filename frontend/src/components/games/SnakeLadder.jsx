@@ -1,28 +1,198 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Text, Environment, PerspectiveCamera, ContactShadows } from '@react-three/drei';
+import { useSpring, a } from '@react-spring/three';
+import * as THREE from 'three';
 import confetti from 'canvas-confetti';
 
 const GRID_SIZE = 10;
-const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
+const TILE_SIZE = 2; // Size of each tile in 3D units
 
-// Initial Entities (Only Snakes and Ladders now)
+// Default constants
 const INITIAL_SNAKES = { 99: 12, 72: 22, 30: 10, 52: 23, 96: 67 };
 const LADDERS = { 3: 25, 35: 82, 48: 71, 20: 81, 84: 98 };
+const COLORS = ['#FF4D4D', '#3399FF', '#FFCC00', '#00CC66', '#9933FF'];
 
-const COLORS = ['#FF6B6B', '#4D9DE0', '#F9DC5C', '#84DCC6', '#A5668B'];
+// --- Helper Math: Map cell number to 3D Vector3 position ---
+const getPosition = (num) => {
+  const row = Math.floor((num - 1) / 10);
+  let col = (num - 1) % 10;
+  if (row % 2 !== 0) col = 9 - col; // Zig-zag logic
+  
+  // Center the board around 0,0,0
+  const x = (col * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) + (TILE_SIZE / 2);
+  const z = (row * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) + (TILE_SIZE / 2);
+  const y = 0.5; // Height of the tile
+  
+  return new THREE.Vector3(x, y, z);
+};
+
+// ==========================================
+// 3D COMPONENTS
+// ==========================================
+
+const Board = () => {
+  const tiles = useMemo(() => {
+    let arr = [];
+    for (let i = 1; i <= 100; i++) {
+      const pos = getPosition(i);
+      const isAlt = (Math.floor((i - 1) / 10) + ((i - 1) % 10)) % 2 === 0;
+      arr.push(
+        <group key={`tile-${i}`} position={[pos.x, pos.y - 0.5, pos.z]}>
+          <mesh receiveShadow>
+            <boxGeometry args={[TILE_SIZE * 0.95, 1, TILE_SIZE * 0.95]} />
+            <meshPhysicalMaterial 
+              color={isAlt ? '#1A1A2E' : '#16213E'} 
+              metalness={0.8} 
+              roughness={0.2} 
+              clearcoat={1} 
+            />
+          </mesh>
+          <Text
+            position={[0, 0.51, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            fontSize={0.6}
+            color="#0F3460"
+            anchorX="center"
+            anchorY="middle"
+            font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf"
+          >
+            {i}
+          </Text>
+        </group>
+      );
+    }
+    return arr;
+  }, []);
+
+  return <group>{tiles}</group>;
+};
+
+const Token = ({ player, isActive }) => {
+  const targetPos = getPosition(player.pos);
+  const offset = (player.id - 3) * 0.3; // Stagger tokens so they don't perfectly overlap
+  
+  // React Spring for buttery smooth arc hopping
+  const { pos } = useSpring({
+    to: async (next) => {
+      // Create an "arc" hop effect by going up slightly during movement
+      await next({ pos: [targetPos.x + offset, targetPos.y + 1.5, targetPos.z + offset], config: { mass: 1, tension: 200, friction: 20 } });
+      await next({ pos: [targetPos.x + offset, targetPos.y + 0.5, targetPos.z + offset], config: { mass: 1, tension: 300, friction: 15 } });
+    },
+    from: { pos: [targetPos.x + offset, targetPos.y + 0.5, targetPos.z + offset] }
+  });
+
+  return (
+    <a.mesh position={pos} castShadow>
+      <sphereGeometry args={[0.5, 32, 32]} />
+      <meshPhysicalMaterial 
+        color={player.color} 
+        metalness={0.9} 
+        roughness={0.1} 
+        clearcoat={1}
+        emissive={isActive ? player.color : '#000000'}
+        emissiveIntensity={isActive ? 0.5 : 0}
+      />
+    </a.mesh>
+  );
+};
+
+const Snakes = ({ snakesData }) => {
+  const [time, setTime] = useState(0);
+  
+  useFrame((state) => {
+    setTime(state.clock.elapsedTime);
+  });
+
+  return (
+    <group>
+      {Object.entries(snakesData).map(([start, end]) => {
+        const sPos = getPosition(parseInt(start));
+        const ePos = getPosition(parseInt(end));
+        
+        // Create a bezier curve between the tiles, arcing high into the air
+        const midPoint = new THREE.Vector3().lerpVectors(sPos, ePos, 0.5);
+        midPoint.y += Math.abs(sPos.x - ePos.x) * 0.5 + 2; // Arc height
+        
+        const curve = new THREE.QuadraticBezierCurve3(sPos, midPoint, ePos);
+        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.4, 16, false);
+
+        return (
+          <mesh key={`snake-${start}-${end}`} geometry={tubeGeo} castShadow receiveShadow>
+            <meshPhysicalMaterial 
+              color="#E63946" 
+              metalness={0.2} 
+              roughness={0.4} 
+              clearcoat={0.8}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+};
+
+const Ladders = () => {
+  return (
+    <group>
+      {Object.entries(LADDERS).map(([start, end]) => {
+        const sPos = getPosition(parseInt(start));
+        const ePos = getPosition(parseInt(end));
+        
+        const direction = new THREE.Vector3().subVectors(ePos, sPos);
+        const distance = direction.length();
+        const center = new THREE.Vector3().addVectors(sPos, ePos).multiplyScalar(0.5);
+        
+        // We need to rotate the ladder to align with the direction vector
+        const axis = new THREE.Vector3(0, 1, 0);
+        const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, direction.clone().normalize());
+
+        const railOffset = 0.5;
+        
+        return (
+          <group key={`ladder-${start}-${end}`} position={center} quaternion={quaternion}>
+            {/* Left Rail */}
+            <mesh position={[-railOffset, 0, 0]} castShadow>
+              <cylinderGeometry args={[0.1, 0.1, distance, 8]} />
+              <meshStandardMaterial color="#8B4513" roughness={0.9} />
+            </mesh>
+            {/* Right Rail */}
+            <mesh position={[railOffset, 0, 0]} castShadow>
+              <cylinderGeometry args={[0.1, 0.1, distance, 8]} />
+              <meshStandardMaterial color="#8B4513" roughness={0.9} />
+            </mesh>
+            {/* Rungs */}
+            {Array.from({ length: Math.floor(distance) }).map((_, i) => {
+              const yPos = -distance/2 + (i + 1) * (distance / (Math.floor(distance) + 1));
+              return (
+                <mesh key={`rung-${i}`} position={[0, yPos, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
+                  <cylinderGeometry args={[0.08, 0.08, railOffset * 2, 8]} />
+                  <meshStandardMaterial color="#A0522D" roughness={0.9} />
+                </mesh>
+              );
+            })}
+          </group>
+        );
+      })}
+    </group>
+  );
+};
+
+// ==========================================
+// MAIN COMPONENT
+// ==========================================
 
 export default function SnakeLadder({ user, onBack }) {
   const [gameMode, setGameMode] = useState(null);
-  
   const [numPlayers, setNumPlayers] = useState(2);
   const [players, setPlayers] = useState([]);
-
+  
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [diceValue, setDiceValue] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
   const [winner, setWinner] = useState(null);
   const [message, setMessage] = useState('');
   
-  // Dynamic Snake State
   const [snakes, setSnakes] = useState(INITIAL_SNAKES);
   const [turnCounter, setTurnCounter] = useState(0);
   const [isMigrating, setIsMigrating] = useState(false);
@@ -31,8 +201,8 @@ export default function SnakeLadder({ user, onBack }) {
   const [roomCode, setRoomCode] = useState('');
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [onlineStatus, setOnlineStatus] = useState('setup');
+  
   const wsRef = useRef(null);
-
   const playersRef = useRef(players);
   const myPlayerIdRef = useRef(myPlayerId);
   const currentPlayerRef = useRef(currentPlayer);
@@ -95,19 +265,18 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const executeRollAnimation = (finalRoll) => {
+    // 3D rolling physics happen in the UI via CSS/Spring for now
     setTimeout(() => {
       setDiceValue(finalRoll);
-      setTimeout(() => processTurn(finalRoll), 500);
+      setTimeout(() => processTurn(finalRoll), 800); // Wait for dice to land
     }, 1500);
   };
 
   const generateNewSnakes = () => {
-    // We pick 2 random snakes to move to new valid locations.
     const currentSnakes = { ...snakesRef.current };
     const snakeKeys = Object.keys(currentSnakes);
     if (snakeKeys.length < 2) return currentSnakes;
     
-    // Pick 2 random snakes to remove
     const keysToRemove = snakeKeys.sort(() => 0.5 - Math.random()).slice(0, 2);
     keysToRemove.forEach(k => delete currentSnakes[k]);
 
@@ -117,20 +286,10 @@ export default function SnakeLadder({ user, onBack }) {
     for (let i = 0; i < 2; i++) {
        let newHead, newTail;
        let attempts = 0;
-       do {
-         newHead = Math.floor(Math.random() * 88) + 11; // 11 to 98
-         attempts++;
-       } while (!isValidHead(newHead) && attempts < 100);
-
+       do { newHead = Math.floor(Math.random() * 88) + 11; attempts++; } while (!isValidHead(newHead) && attempts < 100);
        attempts = 0;
-       do {
-         newTail = Math.floor(Math.random() * (newHead - 2)) + 2; // 2 to head-1
-         attempts++;
-       } while (!isValidTail(newTail, newHead) && attempts < 100);
-
-       if (isValidHead(newHead) && isValidTail(newTail, newHead)) {
-         currentSnakes[newHead] = newTail;
-       }
+       do { newTail = Math.floor(Math.random() * (newHead - 2)) + 2; attempts++; } while (!isValidTail(newTail, newHead) && attempts < 100);
+       if (isValidHead(newHead) && isValidTail(newTail, newHead)) currentSnakes[newHead] = newTail;
     }
     return currentSnakes;
   };
@@ -138,20 +297,12 @@ export default function SnakeLadder({ user, onBack }) {
   const triggerMigration = (forcedSnakes = null) => {
     setIsMigrating(true);
     let newSnakes = forcedSnakes;
-    
     if (!newSnakes) {
       newSnakes = generateNewSnakes();
-      if (gameMode === 'online' && wsRef.current) {
-        wsRef.current.send(JSON.stringify({ type: 'snake_migration', newSnakes }));
-      }
+      if (gameMode === 'online' && wsRef.current) wsRef.current.send(JSON.stringify({ type: 'snake_migration', newSnakes }));
     }
-    
     setSnakes(newSnakes);
-    
-    // Wait for the CSS transition (snakes sliding/fading) to finish before allowing play
-    setTimeout(() => {
-      setIsMigrating(false);
-    }, 3000);
+    setTimeout(() => { setIsMigrating(false); }, 3000);
   };
 
   const processTurn = async (roll) => {
@@ -167,24 +318,22 @@ export default function SnakeLadder({ user, onBack }) {
       showToast(`${player.name} needs exact roll to win.`);
     } else {
       let path = [];
-      for (let i = startPos + 1; i <= targetPos; i++) {
-        path.push(i);
-      }
+      for (let i = startPos + 1; i <= targetPos; i++) path.push(i);
 
       for (const step of path) {
         player.pos = step;
         nextPlayers[pIdx] = { ...player };
         setPlayers([...nextPlayers]); 
-        await new Promise(r => setTimeout(r, 250)); 
+        await new Promise(r => setTimeout(r, 400)); // Wait for 3D hop animation
       }
 
       if (snakesRef.current[targetPos]) {
         showToast(`${player.name} got bitten by a Snake!`);
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 600));
         player.pos = snakesRef.current[targetPos];
       } else if (LADDERS[targetPos]) {
         showToast(`${player.name} climbed a Ladder!`);
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 600));
         player.pos = LADDERS[targetPos];
       }
       
@@ -201,7 +350,6 @@ export default function SnakeLadder({ user, onBack }) {
       return;
     }
 
-    // Update turns and check for migration
     const newTurnCounter = turnCounterRef.current + 1;
     setTurnCounter(newTurnCounter);
     
@@ -211,8 +359,6 @@ export default function SnakeLadder({ user, onBack }) {
     setCurrentPlayer(nextCp);
     setIsRolling(false);
 
-    // Every 5 full rounds (e.g. 5 rolls * numPlayers) trigger migration
-    // But only the client whose turn just finished triggers it if online, to prevent race conditions.
     const rounds = Math.floor(newTurnCounter / nextPlayers.length);
     const isEndOfRound = (newTurnCounter % nextPlayers.length === 0);
     
@@ -229,7 +375,6 @@ export default function SnakeLadder({ user, onBack }) {
       let actualPlayerId = user.login_id;
       if (gameMode === 'local' && winningPlayerId !== 1) actualPlayerId = "Guest";
       if (gameMode === 'online' && winningPlayerId !== myPlayerId) return;
-      
       await fetch('/api/games/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -250,152 +395,13 @@ export default function SnakeLadder({ user, onBack }) {
 
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === 2 && !winner && !isRolling && !isMigrating) {
-      const timer = setTimeout(() => {
-        performRoll();
-      }, 1500);
+      const timer = setTimeout(() => { performRoll(); }, 1500);
       return () => clearTimeout(timer);
     }
   }, [currentPlayer, gameMode, winner, isRolling, isMigrating]);
 
-  const setupWebSocket = (code, expectedCount = 2) => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/api/games/ws/${code}?expected_players=${expectedCount}`);
-    
-    ws.onopen = () => setOnlineStatus('waiting');
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'game_start') {
-        setOnlineStatus('connected');
-        initializeGame(expectedCount);
-      } else if (data.type === 'player_assignment') {
-        setMyPlayerId(data.player);
-      } else if (data.type === 'roll') {
-        if (data.player !== myPlayerIdRef.current) performRoll(data.value);
-      } else if (data.type === 'snake_migration') {
-        triggerMigration(data.newSnakes);
-      } else if (data.type === 'reset') {
-        if (data.player !== myPlayerIdRef.current) initializeGame(expectedCount);
-      } else if (data.type === 'player_disconnected') {
-        alert('A player disconnected.');
-        setOnlineStatus('error');
-      } else if (data.type === 'error') {
-        alert(data.message);
-        setOnlineStatus('setup');
-      }
-    };
-    ws.onerror = () => { if (wsRef.current === ws) setOnlineStatus('error'); };
-    ws.onclose = () => { if (wsRef.current === ws) setOnlineStatus('error'); };
-    wsRef.current = ws;
-  };
-
-  const createRoom = () => {
-    const code = Math.random().toString(36).substring(2, 7).toUpperCase();
-    setRoomCode(code);
-    setupWebSocket(code, numPlayers);
-  };
-
-  const joinRoom = () => {
-    if (joinCodeInput.trim().length !== 5) return alert('Enter a valid 5-character code.');
-    setRoomCode(joinCodeInput.toUpperCase());
-    setupWebSocket(joinCodeInput.toUpperCase(), numPlayers);
-  };
-
-  const resetGame = () => {
-    initializeGame(players.length);
-    if (gameMode === 'online' && wsRef.current) wsRef.current.send(JSON.stringify({ type: 'reset', player: myPlayerId }));
-  };
-
-  const handleLeaveGame = () => {
-    if (wsRef.current) wsRef.current.close();
-    onBack();
-  };
-
-  const getCoords = (num) => {
-    const row = Math.floor((num - 1) / 10);
-    let col;
-    if (row % 2 === 0) col = (num - 1) % 10;
-    else col = 9 - ((num - 1) % 10);
-    return { cx: (col * 10) + 5, cy: 100 - (row * 10) - 5 };
-  };
-
-  const renderSnakes = () => {
-    return Object.entries(snakes).map(([start, end]) => {
-      const s = getCoords(parseInt(start));
-      const e = getCoords(parseInt(end));
-      const midY = (s.cy + e.cy) / 2;
-      const c1x = s.cx + 15;
-      const c1y = midY;
-      const c2x = e.cx - 15;
-      const c2y = midY;
-      
-      const dPath = `M ${s.cx} ${s.cy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${e.cx} ${e.cy}`;
-      
-      return (
-        <g key={`snake-${start}-${end}`} className="transition-all duration-[2000ms] ease-in-out snake-group">
-          {/* Shadow */}
-          <path d={dPath} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="3" transform="translate(1, 1)" className="snake-path transition-all duration-[2000ms]" />
-          {/* Body */}
-          <path d={dPath} fill="none" stroke="#E63946" strokeWidth="2" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
-          {/* Pattern */}
-          <path d={dPath} fill="none" stroke="#FFE66D" strokeWidth="0.5" strokeDasharray="2 3" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
-          {/* Head */}
-          <circle cx={s.cx} cy={s.cy} r="1.5" fill="#E63946" className="transition-all duration-[2000ms]" />
-        </g>
-      );
-    });
-  };
-
-  const renderLadders = () => {
-    return Object.entries(LADDERS).map(([start, end]) => {
-      const s = getCoords(parseInt(start));
-      const e = getCoords(parseInt(end));
-      
-      const dx = e.cx - s.cx;
-      const dy = e.cy - s.cy;
-      const length = Math.sqrt(dx*dx + dy*dy);
-      const perpX = (-dy / length) * 0.5; 
-      const perpY = (dx / length) * 0.5;
-
-      const rungs = [];
-      const numRungs = Math.floor(length / 5);
-      for (let i = 1; i <= numRungs; i++) {
-        const ratio = i / (numRungs + 1);
-        const rx = s.cx + dx * ratio;
-        const ry = s.cy + dy * ratio;
-        rungs.push(
-          <line key={i} x1={rx - perpX} y1={ry - perpY} x2={rx + perpX} y2={ry + perpY} stroke="#8B4513" strokeWidth="0.5" />
-        );
-      }
-
-      return (
-        <g key={`ladder-${start}`}>
-          <line x1={s.cx - perpX} y1={s.cy - perpY} x2={e.cx - perpX} y2={e.cy - perpY} stroke="#A0522D" strokeWidth="1" strokeLinecap="round" />
-          <line x1={s.cx + perpX} y1={s.cy + perpY} x2={e.cx + perpX} y2={e.cy + perpY} stroke="#A0522D" strokeWidth="1" strokeLinecap="round" />
-          {rungs}
-        </g>
-      );
-    });
-  };
-
-  const generateBoardHTML = () => {
-    const cells = [];
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        let num;
-        if (r % 2 === 0) num = (GRID_SIZE - 1 - r) * GRID_SIZE + (GRID_SIZE - c); 
-        else num = (GRID_SIZE - 1 - r) * GRID_SIZE + c + 1; 
-
-        cells.push(
-          <div key={num} className="border border-glass-stroke/30 flex items-center justify-center relative bg-surface-variant/20">
-            <span className="absolute top-1 left-1 text-[9px] sm:text-xs font-bold text-on-surface-variant opacity-60">{num}</span>
-          </div>
-        );
-      }
-    }
-    return cells;
-  };
-
-  const renderSetupScreen = () => {
+  // UI Setup Screens...
+  if (!gameMode) {
     return (
       <div className="w-full h-full flex flex-col p-6 pt-28 animate-fade-in relative z-10 overflow-y-auto">
         <div className="flex items-center gap-4 mb-8">
@@ -403,11 +409,10 @@ export default function SnakeLadder({ user, onBack }) {
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div>
-            <h1 className="font-display-lg text-4xl font-bold text-on-surface tracking-tight">Snake & Ladder</h1>
+            <h1 className="font-display-lg text-4xl font-bold text-on-surface tracking-tight">Snake & Ladder 3D</h1>
             <p className="font-label-md text-on-surface-variant">Choose a game mode</p>
           </div>
         </div>
-
         <div className="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass hover:shadow-neon-coral/20 cursor-pointer flex flex-col items-center text-center" onClick={() => setGameMode('single')}>
             <span className="material-symbols-outlined text-5xl text-neon-coral mb-4">smart_toy</span>
@@ -420,191 +425,174 @@ export default function SnakeLadder({ user, onBack }) {
               {[2,3,4,5].map(n => <option key={n} value={n}>{n} Players</option>)}
             </select>
           </div>
-          <div className="bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass hover:shadow-primary/20 cursor-pointer flex flex-col items-center text-center" onClick={() => { setGameMode('online'); setOnlineStatus('setup'); }}>
-            <span className="material-symbols-outlined text-5xl text-primary mb-4">public</span>
-            <h3 className="font-display-lg text-2xl font-bold mb-2">Online Multiplayer</h3>
-            <select value={numPlayers} onChange={(e) => setNumPlayers(parseInt(e.target.value))} onClick={(e)=>e.stopPropagation()} className="bg-glass-fill text-on-surface rounded p-1 mt-2">
-              {[2,3,4,5].map(n => <option key={n} value={n}>{n} Players</option>)}
-            </select>
-          </div>
         </div>
       </div>
     );
-  };
-
-  const renderOnlineSetup = () => {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center p-6 pt-28 animate-fade-in relative z-10">
-        <div className="bg-surface-container border border-glass-stroke rounded-3xl p-8 shadow-glass max-w-md w-full text-center">
-          <h2 className="font-display-lg text-3xl font-bold mb-6">Online Multiplayer</h2>
-          {onlineStatus === 'setup' && (
-            <div className="flex flex-col gap-6">
-              <button onClick={createRoom} className="w-full py-3 bg-neon-coral text-surface font-title-md font-bold rounded-xl shadow-lg">Create Room for {numPlayers}</button>
-              <div className="flex flex-col gap-2">
-                <input type="text" value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())} placeholder="Enter 5-character Code" className="w-full bg-glass-fill border border-glass-stroke rounded-xl px-4 py-3 text-on-surface font-bold text-center uppercase" maxLength={5} />
-                <button onClick={joinRoom} className="w-full py-3 bg-primary text-surface font-title-md font-bold rounded-xl shadow-lg">Join Game</button>
-              </div>
-            </div>
-          )}
-          {onlineStatus === 'waiting' && (
-             <div className="flex flex-col items-center gap-4">
-               <div className="w-12 h-12 border-4 border-neon-coral/30 border-t-neon-coral rounded-full animate-spin"></div>
-               <p>Waiting for players... Code: <span className="font-bold text-neon-coral">{roomCode}</span></p>
-             </div>
-          )}
-          {onlineStatus === 'error' && (
-             <div className="flex flex-col items-center gap-4">
-               <span className="material-symbols-outlined text-error text-5xl">error</span>
-               <p>Connection Error or Player Left</p>
-               <button onClick={handleLeaveGame} className="py-2 px-6 bg-glass-fill rounded-xl border border-glass-stroke">Back</button>
-             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  if (!gameMode) return renderSetupScreen();
-  if (gameMode === 'online' && onlineStatus !== 'connected') return renderOnlineSetup();
+  }
 
   return (
-    <div className="w-full h-full flex flex-col p-6 pt-28 animate-fade-in relative z-10 overflow-y-auto">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-        <div className="flex items-center gap-4">
-          <button onClick={handleLeaveGame} className="p-2 rounded-xl bg-glass-fill border border-glass-stroke">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className="font-display-lg text-3xl font-bold tracking-tight">Snake & Ladder</h1>
-        </div>
-        
-        {message && (
-          <div className="px-6 py-2 rounded-full bg-warning/20 border border-warning text-warning font-bold animate-fade-in shadow-[0_0_15px_rgba(249,220,92,0.3)]">
-            {message}
-          </div>
-        )}
+    <div className="w-full h-full relative overflow-hidden bg-[#0A0A10]">
+      {/* 3D Canvas Background */}
+      <div className="absolute inset-0">
+        <Canvas shadows>
+          <PerspectiveCamera makeDefault position={[0, -5, 25]} fov={50} rotation={[0.4, 0, 0]} />
+          
+          <ambientLight intensity={0.4} />
+          <directionalLight 
+            position={[10, 20, 10]} 
+            intensity={1.5} 
+            castShadow 
+            shadow-mapSize-width={2048} 
+            shadow-mapSize-height={2048} 
+            shadow-camera-far={50} 
+            shadow-camera-left={-20} 
+            shadow-camera-right={20} 
+            shadow-camera-top={20} 
+            shadow-camera-bottom={-20} 
+          />
+          <Environment preset="city" />
+
+          {/* Group to tilt the entire board isometrically */}
+          <group rotation={[-Math.PI / 4, 0, 0]} position={[0, -5, -10]}>
+            <Board />
+            <Snakes snakesData={snakes} />
+            <Ladders />
+            {players.map(p => (
+              <Token key={p.id} player={p} isActive={currentPlayer === p.id} />
+            ))}
+            <ContactShadows position={[0, -0.6, 0]} opacity={0.4} scale={40} blur={2} far={10} />
+          </group>
+        </Canvas>
       </div>
 
-      <div className="max-w-6xl mx-auto w-full flex flex-col lg:flex-row gap-8 items-start justify-center">
+      {/* HTML UI Overlay */}
+      <div className="absolute inset-0 pointer-events-none z-10 p-6 pt-24 flex flex-col justify-between">
         
-        {/* Game Board Container */}
-        <div className="relative flex-shrink-0 w-full max-w-[500px] aspect-square bg-surface-container border-2 border-glass-stroke rounded-xl shadow-glass overflow-hidden">
-          
-          {isMigrating && (
-            <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center animate-fade-in rounded-xl backdrop-blur-sm">
-              <div className="flex flex-col items-center">
-                <span className="text-4xl animate-bounce mb-2">🐍</span>
-                <h2 className="font-display-lg text-2xl font-bold text-neon-coral drop-shadow-md tracking-wider">SNAKES ARE MOVING!</h2>
-              </div>
+        {/* Top Bar */}
+        <div className="flex items-center justify-between w-full pointer-events-auto">
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="p-2 rounded-xl bg-glass-fill/80 backdrop-blur-md border border-glass-stroke">
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1 className="font-display-lg text-3xl font-bold text-white drop-shadow-md">Snake & Ladder 3D</h1>
+          </div>
+          {message && (
+            <div className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white text-white font-bold shadow-lg animate-fade-in">
+              {message}
             </div>
           )}
-
-          {/* HTML CSS Grid */}
-          <div className="absolute inset-0 grid grid-cols-10 grid-rows-10">
-            {generateBoardHTML()}
-          </div>
-
-          {/* SVG Overlay for Snakes and Ladders */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
-             {renderLadders()}
-             {renderSnakes()}
-          </svg>
-
-          {/* Animated Player Tokens */}
-          <div className="absolute inset-0 pointer-events-none z-10">
-            {players.map(p => {
-               const coords = getCoords(p.pos);
-               const offset = (p.id - 3) * 2; 
-               return (
-                 <div 
-                   key={p.id}
-                   className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full shadow-lg border border-white/80 transition-all duration-300 ease-in-out z-20"
-                   style={{
-                     backgroundColor: p.color,
-                     top: `calc(${coords.cy}% - 8px + ${offset}px)`,
-                     left: `calc(${coords.cx}% - 8px + ${offset}px)`
-                   }}
-                 ></div>
-               );
-            })}
-          </div>
         </div>
 
-        {/* Sidebar Controls */}
-        <div className="bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass w-full max-w-sm flex flex-col gap-6">
-          <h2 className="font-display-lg text-2xl font-bold text-center">Players</h2>
-          
-          <div className="flex flex-col gap-2">
-            {players.map(p => (
-              <div key={p.id} className={`flex items-center justify-between p-2 rounded-xl border transition-all ${currentPlayer === p.id && !winner ? 'border-white shadow-[0_0_10px_rgba(255,255,255,0.2)] bg-white/10 scale-105' : 'border-glass-stroke bg-black/20'}`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full shadow-md" style={{ backgroundColor: p.color }}></div>
-                  <span className="font-bold text-sm">{p.name}</span>
-                </div>
-                <div className="font-bold">{p.pos}</div>
-              </div>
-            ))}
-          </div>
-          
-          {winner && (
-            <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-neon-coral/20 to-primary/20 border border-neon-coral/50 animate-pulse text-center">
-              <h3 className="text-xl font-bold mb-2">Game Over!</h3>
-              <p className="text-primary font-bold">{players.find(p=>p.id===winner)?.name} Wins!</p>
-              <button onClick={resetGame} className="mt-4 w-full py-2 bg-primary text-surface font-bold rounded-xl">Play Again</button>
+        {isMigrating && (
+          <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center animate-fade-in backdrop-blur-sm pointer-events-auto">
+            <div className="flex flex-col items-center">
+              <h2 className="font-display-lg text-4xl font-bold text-neon-coral drop-shadow-[0_0_15px_rgba(230,57,70,0.8)] tracking-wider animate-pulse">SNAKES ARE MOVING!</h2>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Bottom UI Row */}
+        <div className="flex items-end justify-between w-full pointer-events-none">
           
-          {!winner && (
-            <div className="mt-4 flex flex-col items-center perspective-[800px]">
-               {/* 3D Dice */}
-               <div className={`dice-container w-12 h-12 relative transform-style-3d transition-transform duration-700 ease-in-out mb-6 ${isRolling && !isMigrating ? 'animate-roll' : ''}`} style={{ transform: isRolling && !isMigrating ? 'rotateX(360deg) rotateY(360deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
-                 {[1,2,3,4,5,6].map(face => (
-                   <div key={face} className={`absolute w-full h-full bg-glass-fill border border-glass-stroke shadow-glass rounded-xl flex items-center justify-center text-2xl font-black text-on-surface
-                     ${face===1?'translate-z-6':face===6?'-translate-z-6 rotate-x-180':face===2?'rotate-x-90 translate-z-6':face===5?'-rotate-x-90 translate-z-6':face===3?'rotate-y-90 translate-z-6':'-rotate-y-90 translate-z-6'}
-                   `} style={{ transform: `rotateX(${face===2?'90deg':face===5?'-90deg':face===6?'180deg':'0deg'}) rotateY(${face===3?'90deg':face===4?'-90deg':'0deg'}) translateZ(24px)` }}>
-                     {isRolling && !isMigrating ? '?' : face}
+          {/* Players List */}
+          <div className="bg-glass-fill/80 backdrop-blur-md border border-glass-stroke rounded-2xl p-4 shadow-glass w-64 pointer-events-auto">
+            <h3 className="font-bold text-white mb-2">Players</h3>
+            <div className="flex flex-col gap-2">
+              {players.map(p => (
+                <div key={p.id} className={`flex items-center justify-between p-2 rounded-xl transition-all ${currentPlayer === p.id && !winner ? 'bg-white/20 border border-white scale-105 shadow-md' : 'bg-black/30'}`}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full shadow-md" style={{ backgroundColor: p.color }}></div>
+                    <span className="font-bold text-sm text-white">{p.name}</span>
+                  </div>
+                  <div className="font-bold text-white">{p.pos}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dice & Controls */}
+          {winner ? (
+            <div className="bg-glass-fill/90 backdrop-blur-md border border-neon-coral rounded-2xl p-6 text-center pointer-events-auto shadow-[0_0_20px_rgba(230,57,70,0.5)]">
+              <h3 className="text-2xl font-bold text-white mb-2">Game Over!</h3>
+              <p className="text-neon-coral font-bold text-xl mb-4">{players.find(p=>p.id===winner)?.name} Wins!</p>
+              <button onClick={() => initializeGame(players.length)} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:scale-105 transition-all">Play Again</button>
+            </div>
+          ) : (
+            <div className="bg-glass-fill/80 backdrop-blur-md border border-glass-stroke rounded-2xl p-6 shadow-glass w-64 flex flex-col items-center pointer-events-auto">
+               
+               {/* Pure CSS 3D Classic White Dice with Black Dots */}
+               <div className="perspective-[1000px] mb-6">
+                 <div className={`dice-container w-16 h-16 relative transform-style-3d transition-transform duration-1000 ease-in-out ${isRolling && !isMigrating ? 'animate-roll' : ''}`} 
+                      style={{ transform: isRolling && !isMigrating ? 'rotateX(720deg) rotateY(720deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
+                   
+                   {/* 1 */}
+                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex items-center justify-center translate-z-8">
+                     <div className="w-3 h-3 bg-black rounded-full shadow-inner"></div>
                    </div>
-                 ))}
+                   {/* 6 */}
+                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between items-center p-2 -translate-z-8 rotate-x-180">
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                   </div>
+                   {/* 2 */}
+                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex justify-between p-2 rotate-x-90 translate-z-8">
+                     <div className="w-3 h-3 bg-black rounded-full self-start shadow-inner"></div>
+                     <div className="w-3 h-3 bg-black rounded-full self-end shadow-inner"></div>
+                   </div>
+                   {/* 5 */}
+                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between p-2 -rotate-x-90 translate-z-8">
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-center w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                   </div>
+                   {/* 3 */}
+                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between p-2 rotate-y-90 translate-z-8">
+                     <div className="w-3 h-3 bg-black rounded-full self-start shadow-inner"></div>
+                     <div className="w-3 h-3 bg-black rounded-full self-center shadow-inner"></div>
+                     <div className="w-3 h-3 bg-black rounded-full self-end shadow-inner"></div>
+                   </div>
+                   {/* 4 */}
+                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between p-2 -rotate-y-90 translate-z-8">
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                   </div>
+
+                 </div>
                </div>
                
                <button 
                  onClick={handleRollDice}
-                 disabled={isRolling || isMigrating || (gameMode === 'single' && currentPlayer !== 1) || (gameMode === 'online' && currentPlayer !== myPlayerId)}
-                 className="w-full py-3 bg-neon-coral text-surface font-display-lg text-lg font-bold rounded-xl shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                 disabled={isRolling || isMigrating || (gameMode === 'single' && currentPlayer !== 1)}
+                 className="w-full py-3 bg-neon-coral text-white font-bold rounded-xl shadow-lg hover:-translate-y-1 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                >
-                 {isMigrating ? 'SNAKES MOVING...' : isRolling ? 'Rolling...' : 'ROLL DICE'}
+                 {isMigrating ? 'MOVING...' : isRolling ? 'ROLLING...' : 'ROLL DICE'}
                </button>
             </div>
           )}
 
-          {/* Inline styles */}
-          <style dangerouslySetInnerHTML={{__html: `
-            .transform-style-3d { transform-style: preserve-3d; }
-            .translate-z-6 { transform: translateZ(1.5rem); }
-            .-translate-z-6 { transform: translateZ(-1.5rem); }
-            .rotate-x-180 { transform: rotateX(180deg); }
-            .rotate-x-90 { transform: rotateX(90deg); }
-            .-rotate-x-90 { transform: rotateX(-90deg); }
-            .rotate-y-90 { transform: rotateY(90deg); }
-            .-rotate-y-90 { transform: rotateY(-90deg); }
-            
-            @keyframes roll {
-               0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
-               30% { transform: rotateX(180deg) rotateY(90deg) rotateZ(45deg) translateY(-20px) scale(1.1); }
-               70% { transform: rotateX(360deg) rotateY(270deg) rotateZ(90deg) translateY(-10px) scale(1.05); }
-               100% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg) translateY(0) scale(1); }
-            }
-            .animate-roll { animation: roll 1s ease-out forwards; }
-
-            @keyframes wriggle {
-               0% { stroke-dashoffset: 0; }
-               50% { stroke-dashoffset: 10; transform: translateY(1px); }
-               100% { stroke-dashoffset: 0; transform: translateY(0); }
-            }
-            .snake-path { animation: wriggle 3s infinite ease-in-out; }
-          `}} />
-
         </div>
       </div>
+      
+      {/* Required CSS for Dice */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .transform-style-3d { transform-style: preserve-3d; }
+        .translate-z-8 { transform: translateZ(2rem); }
+        .-translate-z-8 { transform: translateZ(-2rem); }
+        .rotate-x-180 { transform: rotateX(180deg); }
+        .rotate-x-90 { transform: rotateX(90deg); }
+        .-rotate-x-90 { transform: rotateX(-90deg); }
+        .rotate-y-90 { transform: rotateY(90deg); }
+        .-rotate-y-90 { transform: rotateY(-90deg); }
+        
+        @keyframes roll {
+           0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
+           50% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) translateY(-40px) scale(1.2); }
+           100% { transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg) translateY(0) scale(1); }
+        }
+        .animate-roll { animation: roll 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+      `}} />
+
     </div>
   );
 }

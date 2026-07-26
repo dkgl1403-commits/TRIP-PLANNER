@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",
+    "@react-spring/three": "^10.1.2",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@simplewebauthn/browser": "^13.3.0",
     "antd": "^6.5.0",
     "canvas-confetti": "^1.9.4",
@@ -20,7 +23,8 @@
     "react-dom": "^19.2.7",
     "react-leaflet": "^5.0.0",
     "react-ts-tradingview-widgets": "^1.2.8",
-    "recharts": "^3.9.2"
+    "recharts": "^3.9.2",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
