@@ -442,60 +442,93 @@ const Ladder = ({ fromTile, toTile, activePlayerPos }) => {
   const fp = getPosition(fromTile);
   const tp = getPosition(toTile);
 
-  const start = useMemo(() => new THREE.Vector3(fp.x, fp.y + TILE_H / 2 + 0.05, fp.z), [fromTile]);
-  const end   = useMemo(() => new THREE.Vector3(tp.x, tp.y + TILE_H / 2 + 0.05, tp.z), [toTile]);
+  const start = useMemo(() => new THREE.Vector3(fp.x, fp.y + TILE_H / 2 + 0.1, fp.z), [fromTile]);
+  const end   = useMemo(() => new THREE.Vector3(tp.x, tp.y + TILE_H / 2 + 0.1, tp.z), [toTile]);
 
-  const dir    = useMemo(() => new THREE.Vector3().subVectors(end, start), [fromTile, toTile]);
-  const length = dir.length();
-  const midPt  = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [fromTile, toTile]);
+  const { curve, leftRopeCurve, rightRopeCurve, numPlanks, perpDir } = useMemo(() => {
+    const d = start.distanceTo(end);
+    
+    // Control point for the arch
+    const control = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+    // Peak height based on distance (make it arch gracefully high into the air)
+    control.y += Math.max(2.5, d * 0.45); 
 
-  const perpDir = useMemo(() => {
-    const d = dir.clone().normalize();
-    return new THREE.Vector3(-d.z, 0, d.x).normalize();
-  }, [fromTile, toTile]);
+    const mainCurve = new THREE.QuadraticBezierCurve3(start, control, end);
+    const length = mainCurve.getLength();
+    // Dynamic plank count based on curve length
+    const planksCount = Math.max(6, Math.round(length / 0.55));
 
-  const bridgeQuat = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize()), [fromTile, toTile]);
-  const plankQuat  = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), perpDir), [fromTile, toTile]);
+    // Calculate perpendicular direction (horizontal) to offset ropes
+    const dir = new THREE.Vector3().subVectors(end, start).normalize();
+    const perp = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
 
-  const ROAD_HALF = 0.75;
-  const leftRope  = useMemo(() => midPt.clone().addScaledVector(perpDir,  ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0)), [fromTile, toTile]);
-  const rightRope = useMemo(() => midPt.clone().addScaledVector(perpDir, -ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0)), [fromTile, toTile]);
+    const ROAD_HALF = 0.75;
+    
+    // Sagging handrails (control point is lower than the main bridge control point to simulate gravity/sag)
+    const sag = 0.4; 
+    
+    // Offset the start, control, and end points for left and right ropes
+    const lStart = start.clone().addScaledVector(perp, ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0));
+    const lEnd = end.clone().addScaledVector(perp, ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0));
+    const lControl = control.clone().addScaledVector(perp, ROAD_HALF).add(new THREE.Vector3(0, 0.45 - sag, 0));
+    const lCurve = new THREE.QuadraticBezierCurve3(lStart, lControl, lEnd);
 
-  const numPlanks = Math.max(4, Math.round(length / 0.7));
+    const rStart = start.clone().addScaledVector(perp, -ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0));
+    const rEnd = end.clone().addScaledVector(perp, -ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0));
+    const rControl = control.clone().addScaledVector(perp, -ROAD_HALF).add(new THREE.Vector3(0, 0.45 - sag, 0));
+    const rCurve = new THREE.QuadraticBezierCurve3(rStart, rControl, rEnd);
+
+    return { 
+      curve: mainCurve, 
+      leftRopeCurve: lCurve, 
+      rightRopeCurve: rCurve, 
+      numPlanks: planksCount,
+      perpDir: perp
+    };
+  }, [start, end]);
 
   const woodMat = <meshStandardMaterial color="#5c3a21" roughness={0.88} metalness={0.05} transparent opacity={opacity} />;
   const ropeMat = <meshStandardMaterial color="#b38b59" roughness={0.95} metalness={0.01} transparent opacity={opacity} />;
   const postMat = <meshStandardMaterial color="#3d2615" roughness={0.90} metalness={0.02} transparent opacity={opacity} />;
 
+  const ROAD_HALF = 0.75;
+
   return (
     <group>
-      {/* Planks along bridge walkway */}
+      {/* Dynamic Planks along the arched bridge */}
       {Array.from({ length: numPlanks }, (_, i) => {
-        const t       = i / (numPlanks - 1);
-        const plankPt = new THREE.Vector3().lerpVectors(start, end, t);
+        const t = i / (numPlanks - 1);
+        const plankPt = curve.getPoint(t);
+        const tangent = curve.getTangent(t).normalize();
+        
+        // Calculate quaternion so the plank lays flat but follows the curve's slope
+        const up = new THREE.Vector3().crossVectors(perpDir, tangent).normalize();
+        const m = new THREE.Matrix4().makeBasis(perpDir, up, tangent);
+        const plankQuat = new THREE.Quaternion().setFromRotationMatrix(m);
+        
         return (
           <mesh key={i} position={plankPt.toArray()} quaternion={plankQuat} castShadow receiveShadow>
-            <boxGeometry args={[0.22, 0.08, ROAD_HALF * 2.2]} />
+            <boxGeometry args={[ROAD_HALF * 2.2, 0.08, 0.35]} />
             {woodMat}
           </mesh>
         );
       })}
 
-      {/* Left rope handrail */}
-      <mesh position={leftRope.toArray()} quaternion={bridgeQuat} castShadow>
-        <cylinderGeometry args={[0.06, 0.06, length, 8]} />
+      {/* Left rope handrail (Procedural Tube) */}
+      <mesh castShadow>
+        <tubeGeometry args={[leftRopeCurve, Math.max(10, numPlanks), 0.06, 8, false]} />
         {ropeMat}
       </mesh>
 
-      {/* Right rope handrail */}
-      <mesh position={rightRope.toArray()} quaternion={bridgeQuat} castShadow>
-        <cylinderGeometry args={[0.06, 0.06, length, 8]} />
+      {/* Right rope handrail (Procedural Tube) */}
+      <mesh castShadow>
+        <tubeGeometry args={[rightRopeCurve, Math.max(10, numPlanks), 0.06, 8, false]} />
         {ropeMat}
       </mesh>
-
+      
       {/* Support posts at start & end */}
       {[-ROAD_HALF, ROAD_HALF].map((offset, i) => (
-        <React.Fragment key={i}>
+        <React.Fragment key={`post-${i}`}>
           <mesh position={start.clone().addScaledVector(perpDir, offset).add(new THREE.Vector3(0, 0.25, 0)).toArray()} castShadow>
             <cylinderGeometry args={[0.09, 0.09, 0.5, 8]} />
             {postMat}
