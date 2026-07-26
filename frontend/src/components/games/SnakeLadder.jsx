@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Environment, PerspectiveCamera, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Text, Environment, PerspectiveCamera, ContactShadows, RoundedBox } from '@react-three/drei';
 import { useSpring, a } from '@react-spring/three';
 import * as THREE from 'three';
 import confetti from 'canvas-confetti';
@@ -212,7 +212,7 @@ const DICE_ROTATIONS = {
 
 const Dot = ({ position }) => (
   <mesh position={position}>
-    <sphereGeometry args={[0.12, 16, 16]} />
+    <sphereGeometry args={[0.15, 16, 16]} />
     <meshStandardMaterial color="#000000" roughness={0.8} />
   </mesh>
 );
@@ -223,35 +223,39 @@ const Dice3D = ({ value, isRolling }) => {
   const { pos, rot } = useSpring({
     to: async (next) => {
       if (isRolling) {
-        // Jump up and spin wildly
+        // Roll into the middle of the board, bouncing slightly
         await next({
-          pos: [-10, 12, 10],
-          rot: [Math.PI * 6 + Math.random(), Math.PI * 6 + Math.random(), Math.PI * 6 + Math.random()],
-          config: { mass: 1, tension: 200, friction: 20 }
+          pos: [Math.random() * 4 - 2, 2, Math.random() * 4 - 2],
+          rot: [Math.PI * 4, Math.PI * 4, Math.PI * 4],
+          config: { mass: 1, tension: 250, friction: 15 }
         });
       } else {
         // Land on the board with the correct face up
         await next({
-          pos: [-10, 1, 10], // lands just off the left-front corner
-          rot: [targetRot[0] + Math.PI * 4, targetRot[1] + Math.PI * 4, targetRot[2] + Math.PI * 4],
-          config: { mass: 2, tension: 300, friction: 15 }
+          pos: [Math.random() * 6 - 3, 1.0, Math.random() * 6 - 3], 
+          rot: [targetRot[0] + Math.PI * 8, targetRot[1] + Math.PI * 8, targetRot[2] + Math.PI * 8],
+          config: { mass: 2, tension: 200, friction: 15 }
         });
-        // Snap exact rotation instantly to prevent drift on next roll
+        // Snap exact rotation instantly to prevent drift
+        await next({ rot: targetRot, immediate: true });
+        
+        // Wait for player to see the result, then roll it away to the corner
+        await new Promise(r => setTimeout(r, 1500));
         await next({
+          pos: [-9, 1.0, 9],
           rot: targetRot,
-          immediate: true
+          config: { mass: 1, tension: 100, friction: 20 }
         });
       }
     },
-    from: { pos: [-10, 1, 10], rot: [0, 0, 0] }
+    from: { pos: [-9, 1.0, 9], rot: [0, 0, 0] }
   });
 
   return (
-    <a.group position={pos} rotation={rot}>
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[1.5, 1.5, 1.5]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.1} metalness={0.1} />
-      </mesh>
+    <a.group position={pos} rotation={rot} scale={0.25}>
+      <RoundedBox args={[1.5, 1.5, 1.5]} radius={0.15} smoothness={4} castShadow receiveShadow>
+        <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.1} />
+      </RoundedBox>
       
       {/* Face 1 (Y+) */}
       <Dot position={[0, 0.76, 0]} />
@@ -373,10 +377,14 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const executeRollAnimation = (finalRoll) => {
+    // Start rolling animation
     setTimeout(() => {
       setDiceValue(finalRoll);
-      setTimeout(() => processTurn(finalRoll), 800); 
-    }, 800); // Wait for jump and spin
+      setIsRolling(false); // Trigger dice landing animation
+      
+      // Wait for dice to land and player to see it, then move the token
+      setTimeout(() => processTurn(finalRoll), 1500); 
+    }, 500);
   };
 
   const generateNewSnakes = () => {
@@ -451,7 +459,6 @@ export default function SnakeLadder({ user, onBack }) {
 
     if (player.pos === 100) {
       setWinner(player.id);
-      setIsRolling(false);
       triggerWinConfetti();
       saveWin(player.id);
       return;
@@ -464,7 +471,6 @@ export default function SnakeLadder({ user, onBack }) {
     if (nextCp > nextPlayers.length) nextCp = 1;
     
     setCurrentPlayer(nextCp);
-    setIsRolling(false);
 
     const rounds = Math.floor(newTurnCounter / nextPlayers.length);
     const isEndOfRound = (newTurnCounter % nextPlayers.length === 0);
