@@ -431,7 +431,7 @@ export default function SnakeLadder({ user, onBack }) {
   }
 
   return (
-    <div className="w-full h-full relative overflow-hidden bg-[#0A0A10]">
+    <div className="w-full h-[calc(100vh-100px)] min-h-[600px] relative overflow-hidden bg-[#0A0A10] rounded-2xl">
       {/* 3D Canvas Background */}
       <div className="absolute inset-0">
         <Canvas shadows>
