@@ -26,6 +26,8 @@ Be direct, professional, and do not include pleasantries or greetings.
 
 Employee: {employee.name}
 Role: {employee.role}
+Age: {employee.age if employee.age else 'Unknown'}
+Commute Distance: {employee.commute_distance_miles if employee.commute_distance_miles else 'Unknown'} miles
 Flight Risk Score: {round(insight.flight_risk_score * 100)}%
 Burnout Risk Score: {round(insight.burnout_risk_score * 100)}%
 Compensation Fairness: {round(insight.compensation_fairness_score * 100)}% ({comp_status})

@@ -172,6 +172,8 @@ def get_insights(db: Session = Depends(get_db)):
                 "employee_name": emp.name if emp else "Unknown",
                 "role": emp.role if emp else "Unknown",
                 "department": emp.department if emp else "Unknown",
+                "age": emp.age if emp else None,
+                "commute_distance_miles": emp.commute_distance_miles if emp else None,
                 "calculation_date": insight.calculation_date,
                 "flight_risk_score": insight.flight_risk_score,
                 "burnout_risk_score": insight.burnout_risk_score,

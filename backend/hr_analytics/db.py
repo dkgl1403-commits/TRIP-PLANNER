@@ -25,6 +25,8 @@ class Employee(Base):
     role = Column(String)
     department = Column(String)
     join_date = Column(Date)
+    age = Column(Integer, nullable=True)
+    commute_distance_miles = Column(Float, nullable=True)
     total_experience_years = Column(Integer)
     base_salary = Column(Numeric(12, 2))
     manager_id = Column(String(36), ForeignKey('hr_employees.id'), nullable=True)
@@ -103,5 +105,12 @@ def init_db():
         with engine.begin() as conn:
             conn.execute(text('ALTER TABLE hr_ml_feedback_logs ADD COLUMN burnout_thumbs_up BOOLEAN'))
             conn.execute(text('ALTER TABLE hr_ml_feedback_logs ADD COLUMN comp_thumbs_up BOOLEAN'))
+    except Exception:
+        pass
+        
+    try:
+        with engine.begin() as conn:
+            conn.execute(text('ALTER TABLE hr_employees ADD COLUMN age INTEGER'))
+            conn.execute(text('ALTER TABLE hr_employees ADD COLUMN commute_distance_miles FLOAT'))
     except Exception:
         pass

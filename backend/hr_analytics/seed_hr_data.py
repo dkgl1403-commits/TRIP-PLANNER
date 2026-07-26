@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 load_dotenv('../.env')
-from hr_analytics.db import Base, Employee, EmployeeDailyLog, EmployeePerformanceReview
+from hr_analytics.db import Base, Employee, EmployeeDailyLog, EmployeePerformanceReview, EmployeeAiInsight
 
 fake = Faker()
 
@@ -29,13 +29,23 @@ STRENGTHS = ["Strategic Planning", "Client De-escalation", "Technical Documentat
 WEAKNESSES = ["Time Management", "Delegation", "Public Speaking", "Technical Documentation", "Patience", "Over-committing", "Context Switching"]
 
 def seed_data():
+    from hr_analytics.db import init_db
+    init_db()
     session = SessionLocal()
     
-    # Check if we already have employees
-    if session.query(Employee).count() > 0:
-        print("Data already seeded. Skipping.")
-        return
-        
+    # Clear existing data to allow re-seeding
+    print("Clearing existing data...")
+    session.query(EmployeePerformanceReview).delete()
+    session.query(EmployeeDailyLog).delete()
+    session.query(EmployeeAiInsight).delete()
+    try:
+        from hr_analytics.db import MlFeedbackLog
+        session.query(MlFeedbackLog).delete()
+    except Exception:
+        pass
+    session.query(Employee).delete()
+    session.commit()
+    
     print("Generating 100 dummy employees...")
     employees = []
     
@@ -62,12 +72,15 @@ def seed_data():
             role=role,
             department=dept,
             join_date=join_date,
+            age=random.randint(22, 65),
+            commute_distance_miles=round(random.uniform(2.0, 60.0), 1),
             total_experience_years=random.randint(1, 15),
             base_salary=base_salary,
             status="Active",
             ai_strengths=ai_strengths,
             ai_weaknesses=ai_weaknesses
         )
+        emp._leave_persona = random.choice(["normal", "sick_prone", "workaholic"]) # Temp attribute for seeding
         employees.append(emp)
         session.add(emp)
         
@@ -91,9 +104,20 @@ def seed_data():
             if is_weekend:
                 is_leave = True
                 leave_type = "Weekend"
-            elif random.random() < 0.05: # 5% chance of leave on weekday
-                is_leave = True
-                leave_type = random.choice(["PTO", "Sick", "Unpaid"])
+            else:
+                persona = getattr(emp, '_leave_persona', 'normal')
+                leave_chance = 0.05
+                leave_choices = ["PTO", "Sick", "Unpaid"]
+                
+                if persona == "sick_prone":
+                    leave_chance = 0.15
+                    leave_choices = ["Sick", "Sick", "Unpaid"] # Bias heavily to sick
+                elif persona == "workaholic":
+                    leave_chance = 0.01
+                    
+                if random.random() < leave_chance:
+                    is_leave = True
+                    leave_type = random.choice(leave_choices)
                 
             in_time = None
             out_time = None

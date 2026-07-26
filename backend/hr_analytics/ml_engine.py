@@ -48,6 +48,7 @@ def generate_employee_insights(db: Session, employee: Employee, role_averages: d
         
     total_days = len(logs)
     leave_days = sum(1 for log in logs if log.is_leave and log.leave_type != "Weekend")
+    sick_days = sum(1 for log in logs if log.is_leave and log.leave_type == "Sick")
     
     total_hours = 0
     work_days = 0
@@ -89,6 +90,12 @@ def generate_employee_insights(db: Session, employee: Employee, role_averages: d
     if (leave_days / total_days) < 0.05: # Less than 5% leave in 90 days
         burnout_score += 0.2
         
+    if (sick_days / total_days) > 0.05: # High frequency of sick leave
+        burnout_score += 0.2
+        
+    if employee.commute_distance_miles and employee.commute_distance_miles > 40:
+        burnout_score += 0.2
+        
     if avg_prod_recent < avg_prod_past and avg_prod_past > 0:
         burnout_score += 0.2
         
@@ -121,6 +128,17 @@ def generate_employee_insights(db: Session, employee: Employee, role_averages: d
     if avg_prod_recent < (avg_prod_past * 0.8): # Significant drop in productivity
         flight_score += 0.2
         
+    if employee.commute_distance_miles and employee.commute_distance_miles > 40:
+        flight_score += 0.1
+        
+    if employee.age:
+        if employee.age < 27:
+            flight_score += 0.15 # Gen Z mobility
+        elif 35 <= employee.age <= 50:
+            flight_score -= 0.1 # Mid-career stability
+        elif employee.age > 60:
+            flight_score += 0.2 # Retirement risk
+        
     flight_score = min(1.0, flight_score)
     
     # Explainable AI Factors
@@ -133,6 +151,18 @@ def generate_employee_insights(db: Session, employee: Employee, role_averages: d
         risk_factors.append("Noticeable decline in daily productivity over the last 14 days")
     if (leave_days / total_days) < 0.02:
         risk_factors.append("Employee has taken almost no time off recently")
+        
+    if (sick_days / total_days) > 0.05:
+        risk_factors.append("High frequency of unplanned sick leave detected")
+        
+    if employee.commute_distance_miles and employee.commute_distance_miles > 40:
+        risk_factors.append(f"Long commute ({employee.commute_distance_miles} miles) significantly increases burnout potential")
+        
+    if employee.age:
+        if employee.age < 27:
+            risk_factors.append("Early-career (Gen Z) employees statistically have higher mobility; ensure rapid growth opportunities")
+        elif employee.age > 60:
+            risk_factors.append("Employee is nearing retirement age (Succession Planning required)")
 
     if not risk_factors:
         risk_factors.append("Employee is stable with no immediate risk factors detected.")

@@ -470,7 +470,13 @@ export default function EmployeePredictiveML({ user }) {
                               <span className="material-symbols-outlined text-neon-coral shrink-0 text-sm mt-0.5">auto_awesome</span>
                               <div>
                                 <h4 className="font-bold text-xs mb-1 text-neon-coral">AI Action Plan</h4>
-                                <p className="text-[11px] opacity-80 leading-relaxed">{insight.manager_action_plan}</p>
+                                <p className="text-[11px] opacity-80 leading-relaxed mb-3">{insight.manager_action_plan}</p>
+                                
+                                <h4 className="font-bold text-xs mb-1 text-neon-coral/70">Context Profile</h4>
+                                <div className="text-[10px] opacity-70 flex gap-4 bg-black/20 p-2 rounded inline-flex border border-white/5">
+                                  <span><strong className="opacity-100">Age:</strong> {insight.age || 'N/A'}</span>
+                                  <span><strong className="opacity-100">Commute:</strong> {insight.commute_distance_miles ? `${insight.commute_distance_miles} miles` : 'N/A'}</span>
+                                </div>
                               </div>
                             </div>
                           </td>
