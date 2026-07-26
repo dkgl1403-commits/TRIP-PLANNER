@@ -135,13 +135,14 @@ const Snakes = ({ snakesData }) => {
         const ePos = getPosition(parseInt(end));
         
         const midPoint = new THREE.Vector3().lerpVectors(sPos, ePos, 0.5);
-        midPoint.y += Math.abs(sPos.x - ePos.x) * 0.3 + 3;
+        // Lie flat on the board with a very tiny arch so it doesn't clip through tiles
+        midPoint.y += 0.2; 
         
         const curve = new THREE.QuadraticBezierCurve3(sPos, midPoint, ePos);
-        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.5, 16, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.15, 8, false);
 
         return (
-          <mesh key={`snake-${start}-${end}`} geometry={tubeGeo} castShadow receiveShadow>
+          <mesh key={`snake-${start}-${end}`} geometry={tubeGeo} castShadow receiveShadow position={[0, 0.6, 0]}>
             <meshPhysicalMaterial 
               color="#ff006e" 
               metalness={0.1} 
@@ -157,7 +158,7 @@ const Snakes = ({ snakesData }) => {
 
 const Ladders = () => {
   return (
-    <group>
+    <group position={[0, 0.55, 0]}>
       {Object.entries(LADDERS).map(([start, end]) => {
         const sPos = getPosition(parseInt(start));
         const ePos = getPosition(parseInt(end));
@@ -169,18 +170,18 @@ const Ladders = () => {
         const axis = new THREE.Vector3(0, 1, 0);
         const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, direction.clone().normalize());
 
-        const railOffset = 0.6;
+        const railOffset = 0.4;
         
         return (
           <group key={`ladder-${start}-${end}`} position={center} quaternion={quaternion}>
             {/* Left Rail */}
             <mesh position={[-railOffset, 0, 0]} castShadow>
-              <cylinderGeometry args={[0.2, 0.2, distance, 16]} />
+              <cylinderGeometry args={[0.08, 0.08, distance, 8]} />
               <meshStandardMaterial color="#fb5607" roughness={0.6} metalness={0.3} />
             </mesh>
             {/* Right Rail */}
             <mesh position={[railOffset, 0, 0]} castShadow>
-              <cylinderGeometry args={[0.2, 0.2, distance, 16]} />
+              <cylinderGeometry args={[0.08, 0.08, distance, 8]} />
               <meshStandardMaterial color="#fb5607" roughness={0.6} metalness={0.3} />
             </mesh>
             {/* Rungs */}
@@ -189,7 +190,7 @@ const Ladders = () => {
               const yPos = -distance/2 + (i + 1) * (distance / (numRungs + 1));
               return (
                 <mesh key={`rung-${i}`} position={[0, yPos, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-                  <cylinderGeometry args={[0.15, 0.15, railOffset * 2, 16]} />
+                  <cylinderGeometry args={[0.06, 0.06, railOffset * 2, 8]} />
                   <meshStandardMaterial color="#ffbe0b" roughness={0.6} metalness={0.3} />
                 </mesh>
               );
@@ -252,7 +253,7 @@ const Dice3D = ({ value, isRolling }) => {
   });
 
   return (
-    <a.group position={pos} rotation={rot} scale={0.25}>
+    <a.group position={pos} rotation={rot} scale={0.5}>
       <RoundedBox args={[1.5, 1.5, 1.5]} radius={0.15} smoothness={4} castShadow receiveShadow>
         <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.1} />
       </RoundedBox>
