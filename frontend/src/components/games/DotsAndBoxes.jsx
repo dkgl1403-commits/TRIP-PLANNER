@@ -381,7 +381,7 @@ export default function DotsAndBoxes({ user, onBack }) {
       for (let c = 0; c <= GRID_SIZE; c++) {
         // Dot
         hRow.push(
-          <div key={`dot-${r}-${c}`} className="w-4 h-4 bg-glass-stroke rounded-full flex-shrink-0 z-10" />
+          <div key={`dot-${r}-${c}`} className="w-2 h-2 bg-glass-stroke rounded-full flex-shrink-0 z-10" />
         );
         // Horizontal Line
         if (c < GRID_SIZE) {
@@ -394,8 +394,8 @@ export default function DotsAndBoxes({ user, onBack }) {
             <div 
               key={`hline-${r}-${c}`} 
               onClick={() => { if (canClick) handleHLineClick(r, c); }}
-              className={`h-4 w-16 flex-shrink-0 transition-all duration-300 rounded-full my-auto mx-[-4px] z-0
-                ${isDrawn ? 'bg-neon-coral shadow-[0_0_8px_rgba(255,107,107,0.8)]' : (canClick ? 'hover:bg-neon-coral/30 cursor-pointer' : '')}`}
+              className={`h-2 w-16 flex-shrink-0 transition-all duration-300 rounded-full my-auto z-0
+                ${isDrawn ? 'bg-neon-coral shadow-[0_0_8px_rgba(255,107,107,0.8)]' : (canClick ? 'bg-glass-stroke/30 hover:bg-neon-coral/50 cursor-pointer' : 'bg-glass-stroke/10')}`}
             />
           );
         }
@@ -416,8 +416,8 @@ export default function DotsAndBoxes({ user, onBack }) {
             <div 
               key={`vline-${r}-${c}`} 
               onClick={() => { if (canClick) handleVLineClick(r, c); }}
-              className={`w-4 h-16 flex-shrink-0 transition-all duration-300 rounded-full mx-auto my-[-4px] z-0
-                ${isDrawn ? 'bg-neon-coral shadow-[0_0_8px_rgba(255,107,107,0.8)]' : (canClick ? 'hover:bg-neon-coral/30 cursor-pointer' : '')}`}
+              className={`w-2 h-16 flex-shrink-0 transition-all duration-300 rounded-full mx-auto z-0
+                ${isDrawn ? 'bg-neon-coral shadow-[0_0_8px_rgba(255,107,107,0.8)]' : (canClick ? 'bg-glass-stroke/30 hover:bg-neon-coral/50 cursor-pointer' : 'bg-glass-stroke/10')}`}
             />
           );
           // Box
