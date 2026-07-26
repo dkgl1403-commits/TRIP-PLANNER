@@ -207,6 +207,33 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   const dir = new THREE.Vector3().subVectors(tailPos, headPos).normalize();
   const angle = Math.atan2(dir.x, dir.z);
 
+  // Dynamically calculate the bounding box to perfectly scale and center the model
+  const { scale, centerOffset, midPos } = useMemo(() => {
+    if (!scene) return { scale: [1, 1, 1], centerOffset: new THREE.Vector3(), midPos: new THREE.Vector3() };
+    
+    // Get native bounding box
+    const box = new THREE.Box3().setFromObject(scene);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    
+    // The model's length is its longest axis
+    const nativeLen = Math.max(size.x, size.y, size.z) || 1;
+    const dist = headPos.distanceTo(tailPos);
+    
+    // Uniformly scale the model so its longest axis matches the tile distance perfectly
+    const s = dist / nativeLen;
+    
+    // Calculate the offset required to center the model's bounding box at the group origin
+    const offset = center.clone().multiplyScalar(-s);
+    
+    const mid = new THREE.Vector3().addVectors(headPos, tailPos).multiplyScalar(0.5);
+    
+    // Drop the Y position slightly so it rests on the board
+    mid.y = 0.15;
+    
+    return { scale: [s, s, s], centerOffset: offset, midPos: mid };
+  }, [scene, headPos, tailPos]);
+
   // Fog-of-war visibility check
   const { row: pRow, col: pCol } = activePlayerPos > 0 ? getTileCoord(activePlayerPos) : { row: -3, col: 5 };
   const { row: hRow, col: hCol } = getTileCoord(headTile);
@@ -215,24 +242,13 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   if (dHead > visR + 1) return null;
 
   return (
-    <group>
-      {/* Subtle trail showing where the snake leads */}
-      <mesh position={[
-        (headPos.x + tailPos.x) / 2, 
-        0.05, 
-        (headPos.z + tailPos.z) / 2
-      ]} rotation={[-Math.PI/2, 0, angle]}>
-        <planeGeometry args={[0.3, headPos.distanceTo(tailPos)]} />
-        <meshBasicMaterial color="#ff2020" transparent opacity={0.2} />
-      </mesh>
-
-      {/* The 3D GLB Snake Model */}
-      <group 
-        ref={groupRef}
-        position={[headPos.x, headPos.y - 0.25, headPos.z]}
-        rotation={[0, angle, 0]}
-        scale={isBig ? 0.025 : 0.018}
-      >
+    <group 
+      ref={groupRef}
+      position={[midPos.x, midPos.y, midPos.z]}
+      rotation={[0, angle, 0]}
+    >
+      {/* The 3D GLB Snake Model perfectly scaled and centered */}
+      <group position={[centerOffset.x, centerOffset.y, centerOffset.z]} scale={scale}>
         <Clone object={scene} castShadow receiveShadow />
       </group>
     </group>
