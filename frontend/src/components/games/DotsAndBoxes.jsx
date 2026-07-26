@@ -21,6 +21,14 @@ export default function DotsAndBoxes({ onBack }) {
   const [myPlayerId, setMyPlayerId] = useState(1); // 1 or 2
   const wsRef = useRef(null);
 
+  // Refs for state that is accessed in async callbacks (WebSockets, timeouts)
+  const hLinesRef = useRef(hLines);
+  const vLinesRef = useRef(vLines);
+
+  // Update refs when state changes
+  useEffect(() => { hLinesRef.current = hLines; }, [hLines]);
+  useEffect(() => { vLinesRef.current = vLines; }, [vLines]);
+
   // Helper to deep copy arrays
   const copy2D = (arr) => arr.map(row => [...row]);
 
@@ -49,15 +57,18 @@ export default function DotsAndBoxes({ onBack }) {
     let fallbackMove = null;
     let safeMoves = [];
 
+    const currentHLines = hLinesRef.current;
+    const currentVLines = vLinesRef.current;
+
     // Helper to see if a line completes a box
     const checkLineCompletesBox = (r, c, type) => {
       let completes = false;
       if (type === 'h') {
-        if (r > 0 && hLines[r-1][c] && vLines[r-1][c] && vLines[r-1][c+1]) completes = true;
-        if (r < GRID_SIZE && hLines[r+1][c] && vLines[r][c] && vLines[r][c+1]) completes = true;
+        if (r > 0 && currentHLines[r-1][c] && currentVLines[r-1][c] && currentVLines[r-1][c+1]) completes = true;
+        if (r < GRID_SIZE && currentHLines[r+1][c] && currentVLines[r][c] && currentVLines[r][c+1]) completes = true;
       } else {
-        if (c > 0 && hLines[r][c-1] && hLines[r+1][c-1] && vLines[r][c-1]) completes = true;
-        if (c < GRID_SIZE && hLines[r][c] && hLines[r+1][c] && vLines[r][c+1]) completes = true;
+        if (c > 0 && currentHLines[r][c-1] && currentHLines[r+1][c-1] && currentVLines[r][c-1]) completes = true;
+        if (c < GRID_SIZE && currentHLines[r][c] && currentHLines[r+1][c] && currentVLines[r][c+1]) completes = true;
       }
       return completes;
     };
@@ -67,10 +78,10 @@ export default function DotsAndBoxes({ onBack }) {
       let gives = false;
       const countLines = (boxR, boxC) => {
         let count = 0;
-        if (hLines[boxR][boxC]) count++;
-        if (hLines[boxR+1][boxC]) count++;
-        if (vLines[boxR][boxC]) count++;
-        if (vLines[boxR][boxC+1]) count++;
+        if (currentHLines[boxR][boxC]) count++;
+        if (currentHLines[boxR+1][boxC]) count++;
+        if (currentVLines[boxR][boxC]) count++;
+        if (currentVLines[boxR][boxC+1]) count++;
         return count;
       };
 
@@ -87,7 +98,7 @@ export default function DotsAndBoxes({ onBack }) {
     // Scan all H lines
     for (let r = 0; r <= GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
-        if (!hLines[r][c]) {
+        if (!currentHLines[r][c]) {
           const move = { r, c, type: 'h' };
           if (checkLineCompletesBox(r, c, 'h')) {
             bestMove = move;
@@ -106,7 +117,7 @@ export default function DotsAndBoxes({ onBack }) {
     if (!bestMove) {
       for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c <= GRID_SIZE; c++) {
-          if (!vLines[r][c]) {
+          if (!currentVLines[r][c]) {
             const move = { r, c, type: 'v' };
             if (checkLineCompletesBox(r, c, 'v')) {
               bestMove = move;
@@ -193,37 +204,22 @@ export default function DotsAndBoxes({ onBack }) {
 
   // Shared move execution
   const applyMove = (r, c, type, playerMakingMove) => {
-    let newHLines = hLines;
-    let newVLines = vLines;
+    // Always use the latest state from refs to avoid stale closures in WebSockets
+    let nextHLines = copy2D(hLinesRef.current);
+    let nextVLines = copy2D(vLinesRef.current);
     
-    // We must use functional state updates here if we are receiving async websocket calls, 
-    // but React's state can be slightly stale. For simplicity, we trust the current state during a turn.
-    setHLines(prevH => {
-      if (type === 'h') {
-        const nextH = copy2D(prevH);
-        nextH[r][c] = true;
-        newHLines = nextH;
-        return nextH;
-      }
-      newHLines = prevH;
-      return prevH;
-    });
+    if (type === 'h') {
+      nextHLines[r][c] = true;
+      setHLines(nextHLines);
+    } else {
+      nextVLines[r][c] = true;
+      setVLines(nextVLines);
+    }
 
-    setVLines(prevV => {
-      if (type === 'v') {
-        const nextV = copy2D(prevV);
-        nextV[r][c] = true;
-        newVLines = nextV;
-        return nextV;
-      }
-      newVLines = prevV;
-      return prevV;
-    });
-
-    // Check boxes after a tiny timeout to ensure lines updated
+    // Check boxes after a tiny timeout so the UI can paint the line first
     setTimeout(() => {
-      checkBoxes(newHLines, newVLines, r, c, type, playerMakingMove);
-    }, 0);
+      checkBoxes(nextHLines, nextVLines, r, c, type, playerMakingMove);
+    }, 50);
   };
 
   const handleHLineClick = (r, c) => {
