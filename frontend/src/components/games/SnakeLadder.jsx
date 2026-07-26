@@ -40,19 +40,19 @@ const Board = () => {
       arr.push(
         <group key={`tile-${i}`} position={[pos.x, pos.y - 0.5, pos.z]}>
           <mesh receiveShadow>
-            <boxGeometry args={[TILE_SIZE * 0.95, 1, TILE_SIZE * 0.95]} />
+            <boxGeometry args={[TILE_SIZE * 0.95, 0.5, TILE_SIZE * 0.95]} />
             <meshPhysicalMaterial 
-              color={isAlt ? '#1A1A2E' : '#16213E'} 
-              metalness={0.8} 
-              roughness={0.2} 
+              color={isAlt ? '#3a86ff' : '#8338ec'} 
+              metalness={0.2} 
+              roughness={0.1} 
               clearcoat={1} 
             />
           </mesh>
           <Text
-            position={[0, 0.51, 0]}
+            position={[0, 0.26, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
-            fontSize={0.6}
-            color="#0F3460"
+            fontSize={0.8}
+            color="#ffffff"
             anchorX="center"
             anchorY="middle"
             font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf"
@@ -70,60 +70,51 @@ const Board = () => {
 
 const Token = ({ player, isActive }) => {
   const targetPos = getPosition(player.pos);
-  const offset = (player.id - 3) * 0.3; // Stagger tokens so they don't perfectly overlap
+  const offset = (player.id - 3) * 0.4;
   
-  // React Spring for buttery smooth arc hopping
   const { pos } = useSpring({
     to: async (next) => {
-      // Create an "arc" hop effect by going up slightly during movement
-      await next({ pos: [targetPos.x + offset, targetPos.y + 1.5, targetPos.z + offset], config: { mass: 1, tension: 200, friction: 20 } });
-      await next({ pos: [targetPos.x + offset, targetPos.y + 0.5, targetPos.z + offset], config: { mass: 1, tension: 300, friction: 15 } });
+      await next({ pos: [targetPos.x + offset, targetPos.y + 2, targetPos.z + offset], config: { mass: 1, tension: 150, friction: 15 } });
+      await next({ pos: [targetPos.x + offset, targetPos.y + 0.5, targetPos.z + offset], config: { mass: 1, tension: 250, friction: 12 } });
     },
     from: { pos: [targetPos.x + offset, targetPos.y + 0.5, targetPos.z + offset] }
   });
 
   return (
     <a.mesh position={pos} castShadow>
-      <sphereGeometry args={[0.5, 32, 32]} />
+      <sphereGeometry args={[0.6, 32, 32]} />
       <meshPhysicalMaterial 
         color={player.color} 
-        metalness={0.9} 
-        roughness={0.1} 
+        metalness={0.5} 
+        roughness={0.2} 
         clearcoat={1}
         emissive={isActive ? player.color : '#000000'}
-        emissiveIntensity={isActive ? 0.5 : 0}
+        emissiveIntensity={isActive ? 0.8 : 0}
       />
     </a.mesh>
   );
 };
 
 const Snakes = ({ snakesData }) => {
-  const [time, setTime] = useState(0);
-  
-  useFrame((state) => {
-    setTime(state.clock.elapsedTime);
-  });
-
   return (
     <group>
       {Object.entries(snakesData).map(([start, end]) => {
         const sPos = getPosition(parseInt(start));
         const ePos = getPosition(parseInt(end));
         
-        // Create a bezier curve between the tiles, arcing high into the air
         const midPoint = new THREE.Vector3().lerpVectors(sPos, ePos, 0.5);
-        midPoint.y += Math.abs(sPos.x - ePos.x) * 0.5 + 2; // Arc height
+        midPoint.y += Math.abs(sPos.x - ePos.x) * 0.3 + 3;
         
         const curve = new THREE.QuadraticBezierCurve3(sPos, midPoint, ePos);
-        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.4, 16, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.5, 16, false);
 
         return (
           <mesh key={`snake-${start}-${end}`} geometry={tubeGeo} castShadow receiveShadow>
             <meshPhysicalMaterial 
-              color="#E63946" 
-              metalness={0.2} 
-              roughness={0.4} 
-              clearcoat={0.8}
+              color="#ff006e" 
+              metalness={0.1} 
+              roughness={0.3} 
+              clearcoat={0.5}
             />
           </mesh>
         );
@@ -143,31 +134,31 @@ const Ladders = () => {
         const distance = direction.length();
         const center = new THREE.Vector3().addVectors(sPos, ePos).multiplyScalar(0.5);
         
-        // We need to rotate the ladder to align with the direction vector
         const axis = new THREE.Vector3(0, 1, 0);
         const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, direction.clone().normalize());
 
-        const railOffset = 0.5;
+        const railOffset = 0.6;
         
         return (
           <group key={`ladder-${start}-${end}`} position={center} quaternion={quaternion}>
             {/* Left Rail */}
             <mesh position={[-railOffset, 0, 0]} castShadow>
-              <cylinderGeometry args={[0.1, 0.1, distance, 8]} />
-              <meshStandardMaterial color="#8B4513" roughness={0.9} />
+              <cylinderGeometry args={[0.2, 0.2, distance, 16]} />
+              <meshStandardMaterial color="#fb5607" roughness={0.6} metalness={0.3} />
             </mesh>
             {/* Right Rail */}
             <mesh position={[railOffset, 0, 0]} castShadow>
-              <cylinderGeometry args={[0.1, 0.1, distance, 8]} />
-              <meshStandardMaterial color="#8B4513" roughness={0.9} />
+              <cylinderGeometry args={[0.2, 0.2, distance, 16]} />
+              <meshStandardMaterial color="#fb5607" roughness={0.6} metalness={0.3} />
             </mesh>
             {/* Rungs */}
-            {Array.from({ length: Math.floor(distance) }).map((_, i) => {
-              const yPos = -distance/2 + (i + 1) * (distance / (Math.floor(distance) + 1));
+            {Array.from({ length: Math.floor(distance / 1.5) }).map((_, i) => {
+              const numRungs = Math.floor(distance / 1.5);
+              const yPos = -distance/2 + (i + 1) * (distance / (numRungs + 1));
               return (
                 <mesh key={`rung-${i}`} position={[0, yPos, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-                  <cylinderGeometry args={[0.08, 0.08, railOffset * 2, 8]} />
-                  <meshStandardMaterial color="#A0522D" roughness={0.9} />
+                  <cylinderGeometry args={[0.15, 0.15, railOffset * 2, 16]} />
+                  <meshStandardMaterial color="#ffbe0b" roughness={0.6} metalness={0.3} />
                 </mesh>
               );
             })}
@@ -435,12 +426,13 @@ export default function SnakeLadder({ user, onBack }) {
       {/* 3D Canvas Background */}
       <div className="absolute inset-0">
         <Canvas shadows>
-          <PerspectiveCamera makeDefault position={[0, -5, 25]} fov={50} rotation={[0.4, 0, 0]} />
+          <PerspectiveCamera makeDefault position={[0, 15, 20]} fov={45} />
+          <OrbitControls target={[0, 0, 0]} maxPolarAngle={Math.PI / 2.1} />
           
-          <ambientLight intensity={0.4} />
+          <ambientLight intensity={0.8} />
           <directionalLight 
             position={[10, 20, 10]} 
-            intensity={1.5} 
+            intensity={2} 
             castShadow 
             shadow-mapSize-width={2048} 
             shadow-mapSize-height={2048} 
@@ -452,15 +444,15 @@ export default function SnakeLadder({ user, onBack }) {
           />
           <Environment preset="city" />
 
-          {/* Group to tilt the entire board isometrically */}
-          <group rotation={[-Math.PI / 4, 0, 0]} position={[0, -5, -10]}>
+          {/* Clean group without extreme tilting */}
+          <group position={[0, 0, 0]}>
             <Board />
             <Snakes snakesData={snakes} />
             <Ladders />
             {players.map(p => (
               <Token key={p.id} player={p} isActive={currentPlayer === p.id} />
             ))}
-            <ContactShadows position={[0, -0.6, 0]} opacity={0.4} scale={40} blur={2} far={10} />
+            <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={40} blur={2.5} far={10} />
           </group>
         </Canvas>
       </div>
