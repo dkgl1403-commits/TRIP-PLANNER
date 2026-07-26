@@ -306,6 +306,7 @@ export default function SnakeLadder({ user, onBack }) {
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [diceValue, setDiceValue] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [winner, setWinner] = useState(null);
   const [message, setMessage] = useState('');
   
@@ -356,7 +357,7 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const handleRollDice = () => {
-    if (isRolling || winner || isMigrating) return;
+    if (isRolling || isProcessing || winner || isMigrating) return;
     if (gameMode === 'single' && currentPlayer !== 1) return;
     if (gameMode === 'online' && currentPlayer !== myPlayerId) return;
 
@@ -364,8 +365,9 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const performRoll = (forcedValue = null) => {
-    if (isRolling || winner || isMigrating) return;
+    if (isRolling || isProcessing || winner || isMigrating) return;
     setIsRolling(true);
+    setIsProcessing(true);
     
     if (gameMode === 'online' && wsRef.current && !forcedValue) {
       const roll = Math.floor(Math.random() * 6) + 1;
@@ -460,6 +462,7 @@ export default function SnakeLadder({ user, onBack }) {
 
     if (player.pos === 100) {
       setWinner(player.id);
+      setIsProcessing(false);
       triggerWinConfetti();
       saveWin(player.id);
       return;
@@ -472,6 +475,7 @@ export default function SnakeLadder({ user, onBack }) {
     if (nextCp > nextPlayers.length) nextCp = 1;
     
     setCurrentPlayer(nextCp);
+    setIsProcessing(false);
 
     const rounds = Math.floor(newTurnCounter / nextPlayers.length);
     const isEndOfRound = (newTurnCounter % nextPlayers.length === 0);
@@ -508,11 +512,11 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   useEffect(() => {
-    if (gameMode === 'single' && currentPlayer === 2 && !winner && !isRolling && !isMigrating) {
+    if (gameMode === 'single' && currentPlayer === 2 && !winner && !isProcessing && !isMigrating) {
       const timer = setTimeout(() => { performRoll(); }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [currentPlayer, gameMode, winner, isRolling, isMigrating]);
+  }, [currentPlayer, gameMode, winner, isProcessing, isMigrating]);
 
   // UI Setup Screens...
   if (!gameMode) {
@@ -622,7 +626,7 @@ export default function SnakeLadder({ user, onBack }) {
           <div className="flex flex-col items-center bg-black/70 backdrop-blur-md border border-white/20 rounded-3xl p-4 shadow-2xl pointer-events-auto w-28 shrink-0">
                <button 
                  onClick={handleRollDice}
-                 disabled={isRolling || isMigrating || (gameMode === 'single' && currentPlayer !== 1)}
+                 disabled={isRolling || isProcessing || isMigrating || (gameMode === 'single' && currentPlayer !== 1)}
                  className="w-full py-4 bg-primary text-white text-base font-black rounded-xl shadow-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
                >
                  ROLL
