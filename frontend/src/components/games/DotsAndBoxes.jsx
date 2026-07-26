@@ -229,8 +229,15 @@ export default function DotsAndBoxes({ user, onBack }) {
       }
     };
     
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      if (wsRef.current === ws) {
+        setOnlineStatus('error');
+      }
+    };
+    
     ws.onclose = () => {
-      if (wsRef.current === ws && onlineStatus === 'connected') {
+      if (wsRef.current === ws) {
         setOnlineStatus('error');
       }
     };
@@ -262,9 +269,11 @@ export default function DotsAndBoxes({ user, onBack }) {
     if (type === 'h') {
       nextHLines[r][c] = true;
       setHLines(nextHLines);
+      hLinesRef.current = nextHLines; // Synchronous ref update to prevent race conditions
     } else {
       nextVLines[r][c] = true;
       setVLines(nextVLines);
+      vLinesRef.current = nextVLines; // Synchronous ref update to prevent race conditions
     }
 
     // Check boxes after a tiny timeout so the UI can paint the line first
@@ -326,10 +335,12 @@ export default function DotsAndBoxes({ user, onBack }) {
 
     if (boxesFormed > 0) {
       setBoxes(newBoxes);
+      boxesRef.current = newBoxes; // Synchronous update
       setScores(prev => ({ ...prev, [player]: prev[player] + boxesFormed }));
       // Player gets another turn (state stays the same)
     } else {
       setBoxes(newBoxes);
+      boxesRef.current = newBoxes; // Synchronous update
       setCurrentPlayer(player === 1 ? 2 : 1);
     }
   };
