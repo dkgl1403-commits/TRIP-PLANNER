@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 
 const GRID_SIZE = 10;
+const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
-const SNAKES = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
+// Initial Entities (Only Snakes and Ladders now)
+const INITIAL_SNAKES = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
 const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
-const TELEPORTS = [15, 55, 85];
-const JAILS = [12, 45, 82];
-const SPRINGS = [7, 33, 77];
 
 const COLORS = ['#FF6B6B', '#4D9DE0', '#F9DC5C', '#84DCC6', '#A5668B'];
 
@@ -22,6 +21,11 @@ export default function SnakeLadder({ user, onBack }) {
   const [isRolling, setIsRolling] = useState(false);
   const [winner, setWinner] = useState(null);
   const [message, setMessage] = useState('');
+  
+  // Dynamic Snake State
+  const [snakes, setSnakes] = useState(INITIAL_SNAKES);
+  const [turnCounter, setTurnCounter] = useState(0);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   const [myPlayerId, setMyPlayerId] = useState(1);
   const [roomCode, setRoomCode] = useState('');
@@ -32,22 +36,29 @@ export default function SnakeLadder({ user, onBack }) {
   const playersRef = useRef(players);
   const myPlayerIdRef = useRef(myPlayerId);
   const currentPlayerRef = useRef(currentPlayer);
+  const snakesRef = useRef(snakes);
+  const turnCounterRef = useRef(turnCounter);
 
   useEffect(() => { playersRef.current = players; }, [players]);
   useEffect(() => { myPlayerIdRef.current = myPlayerId; }, [myPlayerId]);
   useEffect(() => { currentPlayerRef.current = currentPlayer; }, [currentPlayer]);
+  useEffect(() => { snakesRef.current = snakes; }, [snakes]);
+  useEffect(() => { turnCounterRef.current = turnCounter; }, [turnCounter]);
 
   const initializeGame = (count) => {
     const initialPlayers = [];
     for (let i = 1; i <= count; i++) {
       let name = `Player ${i}`;
       if (gameMode === 'single') name = i === 1 ? 'You' : 'Computer';
-      initialPlayers.push({ id: i, pos: 1, jailTurns: 0, color: COLORS[i-1], name });
+      initialPlayers.push({ id: i, pos: 1, color: COLORS[i-1], name });
     }
     setPlayers(initialPlayers);
     setCurrentPlayer(1);
     setWinner(null);
     setMessage('');
+    setSnakes(INITIAL_SNAKES);
+    setTurnCounter(0);
+    setIsMigrating(false);
   };
 
   useEffect(() => {
@@ -62,7 +73,7 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const handleRollDice = () => {
-    if (isRolling || winner) return;
+    if (isRolling || winner || isMigrating) return;
     if (gameMode === 'single' && currentPlayer !== 1) return;
     if (gameMode === 'online' && currentPlayer !== myPlayerId) return;
 
@@ -70,12 +81,10 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const performRoll = (forcedValue = null) => {
-    if (isRolling || winner) return;
+    if (isRolling || winner || isMigrating) return;
     setIsRolling(true);
     
-    // Start rolling animation
     if (gameMode === 'online' && wsRef.current && !forcedValue) {
-      // Generate the roll now and send it, but wait to reveal it visually
       const roll = Math.floor(Math.random() * 6) + 1;
       wsRef.current.send(JSON.stringify({ type: 'roll', value: roll, player: currentPlayer }));
       executeRollAnimation(roll);
@@ -86,12 +95,63 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const executeRollAnimation = (finalRoll) => {
-    // We will let the CSS animation run for 1.5 seconds.
-    // The CSS handles the 3D spinning. We just delay revealing the actual dice result visually until it stops.
     setTimeout(() => {
       setDiceValue(finalRoll);
       setTimeout(() => processTurn(finalRoll), 500);
     }, 1500);
+  };
+
+  const generateNewSnakes = () => {
+    // We pick 2 random snakes to move to new valid locations.
+    const currentSnakes = { ...snakesRef.current };
+    const snakeKeys = Object.keys(currentSnakes);
+    if (snakeKeys.length < 2) return currentSnakes;
+    
+    // Pick 2 random snakes to remove
+    const keysToRemove = snakeKeys.sort(() => 0.5 - Math.random()).slice(0, 2);
+    keysToRemove.forEach(k => delete currentSnakes[k]);
+
+    const isValidHead = (h) => h > 10 && h < 100 && !LADDERS[h] && !currentSnakes[h];
+    const isValidTail = (t, h) => t > 1 && t < h && !LADDERS[t] && !currentSnakes[t];
+
+    for (let i = 0; i < 2; i++) {
+       let newHead, newTail;
+       let attempts = 0;
+       do {
+         newHead = Math.floor(Math.random() * 88) + 11; // 11 to 98
+         attempts++;
+       } while (!isValidHead(newHead) && attempts < 100);
+
+       attempts = 0;
+       do {
+         newTail = Math.floor(Math.random() * (newHead - 2)) + 2; // 2 to head-1
+         attempts++;
+       } while (!isValidTail(newTail, newHead) && attempts < 100);
+
+       if (isValidHead(newHead) && isValidTail(newTail, newHead)) {
+         currentSnakes[newHead] = newTail;
+       }
+    }
+    return currentSnakes;
+  };
+
+  const triggerMigration = (forcedSnakes = null) => {
+    setIsMigrating(true);
+    let newSnakes = forcedSnakes;
+    
+    if (!newSnakes) {
+      newSnakes = generateNewSnakes();
+      if (gameMode === 'online' && wsRef.current) {
+        wsRef.current.send(JSON.stringify({ type: 'snake_migration', newSnakes }));
+      }
+    }
+    
+    setSnakes(newSnakes);
+    
+    // Wait for the CSS transition (snakes sliding/fading) to finish before allowing play
+    setTimeout(() => {
+      setIsMigrating(false);
+    }, 3000);
   };
 
   const processTurn = async (roll) => {
@@ -100,76 +160,37 @@ export default function SnakeLadder({ user, onBack }) {
     let pIdx = nextPlayers.findIndex(p => p.id === cp);
     let player = { ...nextPlayers[pIdx] };
 
-    let turnMessage = '';
-    let moveToken = false;
-
-    if (player.jailTurns > 0) {
-      if (roll === 6) {
-        player.jailTurns = 0;
-        turnMessage = `${player.name} rolled a 6 and escaped Jail!`;
-        moveToken = true;
-      } else {
-        player.jailTurns++;
-        if (player.jailTurns > 3) {
-           player.jailTurns = 0;
-           turnMessage = `${player.name} served their time and is released!`;
-        } else {
-           turnMessage = `${player.name} is in Jail (Turn ${player.jailTurns}/3). Needs a 6!`;
-        }
-      }
+    let startPos = player.pos;
+    let targetPos = player.pos + roll;
+    
+    if (targetPos > 100) {
+      showToast(`${player.name} needs exact roll to win.`);
     } else {
-      moveToken = true;
-    }
-
-    if (turnMessage) showToast(turnMessage);
-
-    if (moveToken) {
-      let startPos = player.pos;
-      let targetPos = player.pos + roll;
-      
-      if (targetPos > 100) {
-        showToast(`${player.name} needs exact roll to win.`);
-      } else {
-        // Generate hop path
-        let path = [];
-        for (let i = startPos + 1; i <= targetPos; i++) {
-          path.push(i);
-        }
-
-        // Animate the hops one by one
-        for (const step of path) {
-          player.pos = step;
-          nextPlayers[pIdx] = { ...player };
-          setPlayers([...nextPlayers]); // Trigger re-render for step
-          await new Promise(r => setTimeout(r, 250)); // Wait for CSS transition
-        }
-
-        // Evaluate entities
-        if (SNAKES[targetPos]) {
-          showToast(`${player.name} got bitten by a Snake!`);
-          await new Promise(r => setTimeout(r, 400));
-          player.pos = SNAKES[targetPos];
-        } else if (LADDERS[targetPos]) {
-          showToast(`${player.name} climbed a Ladder!`);
-          await new Promise(r => setTimeout(r, 400));
-          player.pos = LADDERS[targetPos];
-        } else if (JAILS.includes(targetPos)) {
-          showToast(`Oh no! ${player.name} landed in Jail!`);
-          player.jailTurns = 1;
-        } else if (SPRINGS.includes(targetPos)) {
-          showToast(`Boing! ${player.name} hit a Spring!`);
-          await new Promise(r => setTimeout(r, 400));
-          player.pos = Math.min(100, targetPos + 10);
-        } else if (TELEPORTS.includes(targetPos)) {
-          showToast(`Woosh! ${player.name} teleported!`);
-          await new Promise(r => setTimeout(r, 400));
-          player.pos = Math.floor(Math.random() * 98) + 2;
-        }
-        
-        nextPlayers[pIdx] = { ...player };
-        setPlayers([...nextPlayers]);
-        await new Promise(r => setTimeout(r, 500)); // Final pause
+      let path = [];
+      for (let i = startPos + 1; i <= targetPos; i++) {
+        path.push(i);
       }
+
+      for (const step of path) {
+        player.pos = step;
+        nextPlayers[pIdx] = { ...player };
+        setPlayers([...nextPlayers]); 
+        await new Promise(r => setTimeout(r, 250)); 
+      }
+
+      if (snakesRef.current[targetPos]) {
+        showToast(`${player.name} got bitten by a Snake!`);
+        await new Promise(r => setTimeout(r, 400));
+        player.pos = snakesRef.current[targetPos];
+      } else if (LADDERS[targetPos]) {
+        showToast(`${player.name} climbed a Ladder!`);
+        await new Promise(r => setTimeout(r, 400));
+        player.pos = LADDERS[targetPos];
+      }
+      
+      nextPlayers[pIdx] = { ...player };
+      setPlayers([...nextPlayers]);
+      await new Promise(r => setTimeout(r, 500)); 
     }
 
     if (player.pos === 100) {
@@ -180,11 +201,26 @@ export default function SnakeLadder({ user, onBack }) {
       return;
     }
 
+    // Update turns and check for migration
+    const newTurnCounter = turnCounterRef.current + 1;
+    setTurnCounter(newTurnCounter);
+    
     let nextCp = cp + 1;
     if (nextCp > nextPlayers.length) nextCp = 1;
     
     setCurrentPlayer(nextCp);
     setIsRolling(false);
+
+    // Every 5 full rounds (e.g. 5 rolls * numPlayers) trigger migration
+    // But only the client whose turn just finished triggers it if online, to prevent race conditions.
+    const rounds = Math.floor(newTurnCounter / nextPlayers.length);
+    const isEndOfRound = (newTurnCounter % nextPlayers.length === 0);
+    
+    if (isEndOfRound && rounds % 5 === 0 && rounds > 0) {
+      if (gameMode !== 'online' || currentPlayerRef.current === myPlayerIdRef.current) {
+        triggerMigration();
+      }
+    }
   };
 
   const saveWin = async (winningPlayerId) => {
@@ -213,13 +249,13 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   useEffect(() => {
-    if (gameMode === 'single' && currentPlayer === 2 && !winner && !isRolling) {
+    if (gameMode === 'single' && currentPlayer === 2 && !winner && !isRolling && !isMigrating) {
       const timer = setTimeout(() => {
         performRoll();
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [currentPlayer, gameMode, winner, isRolling]);
+  }, [currentPlayer, gameMode, winner, isRolling, isMigrating]);
 
   const setupWebSocket = (code, expectedCount = 2) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -235,6 +271,8 @@ export default function SnakeLadder({ user, onBack }) {
         setMyPlayerId(data.player);
       } else if (data.type === 'roll') {
         if (data.player !== myPlayerIdRef.current) performRoll(data.value);
+      } else if (data.type === 'snake_migration') {
+        triggerMigration(data.newSnakes);
       } else if (data.type === 'reset') {
         if (data.player !== myPlayerIdRef.current) initializeGame(expectedCount);
       } else if (data.type === 'player_disconnected') {
@@ -272,61 +310,52 @@ export default function SnakeLadder({ user, onBack }) {
     onBack();
   };
 
-  // Coordinates Math for SVG overlay
   const getCoords = (num) => {
     const row = Math.floor((num - 1) / 10);
     let col;
     if (row % 2 === 0) col = (num - 1) % 10;
     else col = 9 - ((num - 1) % 10);
-    
-    // Return percentages relative to the board
-    return {
-      cx: (col * 10) + 5,
-      cy: 100 - (row * 10) - 5
-    };
+    return { cx: (col * 10) + 5, cy: 100 - (row * 10) - 5 };
   };
 
-  // SVG Snake rendering
   const renderSnakes = () => {
-    return Object.entries(SNAKES).map(([start, end]) => {
+    return Object.entries(snakes).map(([start, end]) => {
       const s = getCoords(parseInt(start));
       const e = getCoords(parseInt(end));
-      // Control points for bezier curve (slithering)
       const midY = (s.cy + e.cy) / 2;
       const c1x = s.cx + 15;
       const c1y = midY;
       const c2x = e.cx - 15;
       const c2y = midY;
       
+      const dPath = `M ${s.cx} ${s.cy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${e.cx} ${e.cy}`;
+      
       return (
-        <g key={`snake-${start}`}>
+        <g key={`snake-${start}-${end}`} className="transition-all duration-[2000ms] ease-in-out snake-group">
           {/* Shadow */}
-          <path d={`M ${s.cx} ${s.cy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${e.cx} ${e.cy}`} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="8" transform="translate(2, 2)" />
+          <path d={dPath} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="8" transform="translate(2, 2)" className="snake-path transition-all duration-[2000ms]" />
           {/* Body */}
-          <path d={`M ${s.cx} ${s.cy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${e.cx} ${e.cy}`} fill="none" stroke="#E63946" strokeWidth="6" strokeLinecap="round" />
+          <path d={dPath} fill="none" stroke="#E63946" strokeWidth="6" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
           {/* Pattern */}
-          <path d={`M ${s.cx} ${s.cy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${e.cx} ${e.cy}`} fill="none" stroke="#FFE66D" strokeWidth="2" strokeDasharray="4 6" strokeLinecap="round" />
+          <path d={dPath} fill="none" stroke="#FFE66D" strokeWidth="2" strokeDasharray="4 6" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
           {/* Head */}
-          <circle cx={s.cx} cy={s.cy} r="4" fill="#E63946" />
+          <circle cx={s.cx} cy={s.cy} r="4" fill="#E63946" className="transition-all duration-[2000ms]" />
         </g>
       );
     });
   };
 
-  // SVG Ladder rendering
   const renderLadders = () => {
     return Object.entries(LADDERS).map(([start, end]) => {
       const s = getCoords(parseInt(start));
       const e = getCoords(parseInt(end));
       
-      // Calculate angle and offset for parallel rails
       const dx = e.cx - s.cx;
       const dy = e.cy - s.cy;
       const length = Math.sqrt(dx*dx + dy*dy);
-      const perpX = (-dy / length) * 2; // Offset by 2% width
+      const perpX = (-dy / length) * 2; 
       const perpY = (dx / length) * 2;
 
-      // Generate rungs
       const rungs = [];
       const numRungs = Math.floor(length / 5);
       for (let i = 1; i <= numRungs; i++) {
@@ -340,10 +369,8 @@ export default function SnakeLadder({ user, onBack }) {
 
       return (
         <g key={`ladder-${start}`}>
-          {/* Rails */}
           <line x1={s.cx - perpX} y1={s.cy - perpY} x2={e.cx - perpX} y2={e.cy - perpY} stroke="#A0522D" strokeWidth="3" strokeLinecap="round" />
           <line x1={s.cx + perpX} y1={s.cy + perpY} x2={e.cx + perpX} y2={e.cy + perpY} stroke="#A0522D" strokeWidth="3" strokeLinecap="round" />
-          {/* Rungs */}
           {rungs}
         </g>
       );
@@ -352,22 +379,15 @@ export default function SnakeLadder({ user, onBack }) {
 
   const generateBoardHTML = () => {
     const cells = [];
-    
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c < GRID_SIZE; c++) {
         let num;
-        if (r % 2 === 0) num = (GRID_SIZE - 1 - r) * GRID_SIZE + (GRID_SIZE - c); // 100 to 91
-        else num = (GRID_SIZE - 1 - r) * GRID_SIZE + c + 1; // 81 to 90
-        
-        let entitySymbol = '';
-        if (TELEPORTS.includes(num)) entitySymbol = '🌀';
-        else if (JAILS.includes(num)) entitySymbol = '🚔';
-        else if (SPRINGS.includes(num)) entitySymbol = '🪀';
+        if (r % 2 === 0) num = (GRID_SIZE - 1 - r) * GRID_SIZE + (GRID_SIZE - c); 
+        else num = (GRID_SIZE - 1 - r) * GRID_SIZE + c + 1; 
 
         cells.push(
           <div key={num} className="border border-glass-stroke/30 flex items-center justify-center relative bg-surface-variant/20">
             <span className="absolute top-1 left-1 text-[9px] sm:text-xs font-bold text-on-surface-variant opacity-60">{num}</span>
-            <span className="text-xl sm:text-2xl mt-2 opacity-50">{entitySymbol}</span>
           </div>
         );
       }
@@ -469,6 +489,15 @@ export default function SnakeLadder({ user, onBack }) {
         {/* Game Board Container */}
         <div className="relative flex-shrink-0 w-full max-w-[500px] aspect-square bg-surface-container border-2 border-glass-stroke rounded-xl shadow-glass overflow-hidden">
           
+          {isMigrating && (
+            <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center animate-fade-in rounded-xl backdrop-blur-sm">
+              <div className="flex flex-col items-center">
+                <span className="text-4xl animate-bounce mb-2">🐍</span>
+                <h2 className="font-display-lg text-2xl font-bold text-neon-coral drop-shadow-md tracking-wider">SNAKES ARE MOVING!</h2>
+              </div>
+            </div>
+          )}
+
           {/* HTML CSS Grid */}
           <div className="absolute inset-0 grid grid-cols-10 grid-rows-10">
             {generateBoardHTML()}
@@ -484,7 +513,6 @@ export default function SnakeLadder({ user, onBack }) {
           <div className="absolute inset-0 pointer-events-none z-10">
             {players.map(p => {
                const coords = getCoords(p.pos);
-               // Add slight offset so tokens don't perfectly overlap
                const offset = (p.id - 3) * 2; 
                return (
                  <div 
@@ -528,27 +556,27 @@ export default function SnakeLadder({ user, onBack }) {
           {!winner && (
             <div className="mt-4 flex flex-col items-center perspective-[1000px]">
                {/* 3D Dice */}
-               <div className={`dice-container w-24 h-24 relative transform-style-3d transition-transform duration-1000 ease-in-out mb-8 ${isRolling ? 'animate-roll' : ''}`} style={{ transform: isRolling ? 'rotateX(720deg) rotateY(1080deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
+               <div className={`dice-container w-24 h-24 relative transform-style-3d transition-transform duration-1000 ease-in-out mb-8 ${isRolling && !isMigrating ? 'animate-roll' : ''}`} style={{ transform: isRolling && !isMigrating ? 'rotateX(720deg) rotateY(1080deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
                  {[1,2,3,4,5,6].map(face => (
                    <div key={face} className={`absolute w-full h-full bg-glass-fill border border-glass-stroke shadow-glass rounded-xl flex items-center justify-center text-4xl font-black text-on-surface
                      ${face===1?'translate-z-12':face===6?'-translate-z-12 rotate-x-180':face===2?'rotate-x-90 translate-z-12':face===5?'-rotate-x-90 translate-z-12':face===3?'rotate-y-90 translate-z-12':'-rotate-y-90 translate-z-12'}
                    `} style={{ transform: `rotateX(${face===2?'90deg':face===5?'-90deg':face===6?'180deg':'0deg'}) rotateY(${face===3?'90deg':face===4?'-90deg':'0deg'}) translateZ(48px)` }}>
-                     {isRolling ? '?' : face}
+                     {isRolling && !isMigrating ? '?' : face}
                    </div>
                  ))}
                </div>
                
                <button 
                  onClick={handleRollDice}
-                 disabled={isRolling || (gameMode === 'single' && currentPlayer !== 1) || (gameMode === 'online' && currentPlayer !== myPlayerId)}
+                 disabled={isRolling || isMigrating || (gameMode === 'single' && currentPlayer !== 1) || (gameMode === 'online' && currentPlayer !== myPlayerId)}
                  className="w-full py-3 bg-neon-coral text-surface font-display-lg text-lg font-bold rounded-xl shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                >
-                 {isRolling ? 'Rolling...' : 'ROLL DICE'}
+                 {isMigrating ? 'SNAKES MOVING...' : isRolling ? 'Rolling...' : 'ROLL DICE'}
                </button>
             </div>
           )}
 
-          {/* Inline styles for 3D dice */}
+          {/* Inline styles */}
           <style dangerouslySetInnerHTML={{__html: `
             .transform-style-3d { transform-style: preserve-3d; }
             .translate-z-12 { transform: translateZ(3rem); }
@@ -565,6 +593,13 @@ export default function SnakeLadder({ user, onBack }) {
                100% { transform: rotateX(1080deg) rotateY(1080deg) rotateZ(360deg); }
             }
             .animate-roll { animation: roll 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+            @keyframes wriggle {
+               0% { stroke-dashoffset: 0; }
+               50% { stroke-dashoffset: 10; transform: translateY(1px); }
+               100% { stroke-dashoffset: 0; transform: translateY(0); }
+            }
+            .snake-path { animation: wriggle 3s infinite ease-in-out; }
           `}} />
 
         </div>
