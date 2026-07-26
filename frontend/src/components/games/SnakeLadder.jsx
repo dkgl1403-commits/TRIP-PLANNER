@@ -218,7 +218,8 @@ const Character = ({ player, isActive, slotIndex, visualTarget }) => {
     px: target.x + slotX,
     py: target.y + TILE_H / 2 + 0.02,
     pz: target.z + slotZ,
-    config: { mass: 1.1, tension: 100, friction: 17 },
+    // Heavier mass + lower tension = character feels like it has real weight
+    config: { mass: 2.2, tension: 38, friction: 18 },
   });
 
   // Refs for animation
@@ -241,8 +242,8 @@ const Character = ({ player, isActive, slotIndex, visualTarget }) => {
     const moving  = dist > 0.05;
 
     if (moving) {
-      // Advance walk cycle
-      walkPhase.current += delta * 9;
+      // Walk cycle speed — matched to real human cadence (~1.8 strides/sec)
+      walkPhase.current += delta * 4.5;
       // Face direction of travel
       const dx = tgtX - curX;
       const dz = tgtZ - curZ;
@@ -646,14 +647,14 @@ export default function SnakeLadder({ user, onBack }) {
       z: (fromWorldPos.z + toPos.z) / 2,
     };
 
+    // 300ms per half-tile = 600ms total per tile step
+    // This matches the heavier spring and slower walk cycle
     return new Promise(resolve => {
-      // Step to midpoint
       setVisualPositions(prev => ({ ...prev, [playerId]: midPos }));
       setTimeout(() => {
-        // Step to tile center
         setVisualPositions(prev => ({ ...prev, [playerId]: toPos }));
-        setTimeout(() => resolve(toPos), 180);
-      }, 180);
+        setTimeout(() => resolve(toPos), 300);
+      }, 300);
     });
   };
 
