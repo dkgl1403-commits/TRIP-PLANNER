@@ -24,10 +24,12 @@ export default function DotsAndBoxes({ user, onBack }) {
   // Refs for state that is accessed in async callbacks (WebSockets, timeouts)
   const hLinesRef = useRef(hLines);
   const vLinesRef = useRef(vLines);
+  const boxesRef = useRef(boxes);
 
   // Update refs when state changes
   useEffect(() => { hLinesRef.current = hLines; }, [hLines]);
   useEffect(() => { vLinesRef.current = vLines; }, [vLines]);
+  useEffect(() => { boxesRef.current = boxes; }, [boxes]);
 
   // Helper to deep copy arrays
   const copy2D = (arr) => arr.map(row => [...row]);
@@ -279,40 +281,37 @@ export default function DotsAndBoxes({ user, onBack }) {
 
   const checkBoxes = (currentHLines, currentVLines, r, c, type, player) => {
     let boxesFormed = 0;
-    
-    setBoxes(prevBoxes => {
-      const newBoxes = copy2D(prevBoxes);
+    const newBoxes = copy2D(boxesRef.current);
 
-      const checkAndClaimBox = (boxR, boxC) => {
-        if (
-          currentHLines[boxR][boxC] &&         // top
-          currentHLines[boxR + 1][boxC] &&     // bottom
-          currentVLines[boxR][boxC] &&         // left
-          currentVLines[boxR][boxC + 1]        // right
-        ) {
-          if (newBoxes[boxR][boxC] === 0) {
-            newBoxes[boxR][boxC] = player;
-            return 1;
-          }
+    const checkAndClaimBox = (boxR, boxC) => {
+      if (
+        currentHLines[boxR][boxC] &&         // top
+        currentHLines[boxR + 1][boxC] &&     // bottom
+        currentVLines[boxR][boxC] &&         // left
+        currentVLines[boxR][boxC + 1]        // right
+      ) {
+        if (newBoxes[boxR][boxC] === 0) {
+          newBoxes[boxR][boxC] = player;
+          return 1;
         }
-        return 0;
-      };
-
-      if (type === 'h') {
-        if (r > 0) boxesFormed += checkAndClaimBox(r - 1, c);
-        if (r < GRID_SIZE) boxesFormed += checkAndClaimBox(r, c);
-      } else {
-        if (c > 0) boxesFormed += checkAndClaimBox(r, c - 1);
-        if (c < GRID_SIZE) boxesFormed += checkAndClaimBox(r, c);
       }
+      return 0;
+    };
 
-      return newBoxes;
-    });
+    if (type === 'h') {
+      if (r > 0) boxesFormed += checkAndClaimBox(r - 1, c);
+      if (r < GRID_SIZE) boxesFormed += checkAndClaimBox(r, c);
+    } else {
+      if (c > 0) boxesFormed += checkAndClaimBox(r, c - 1);
+      if (c < GRID_SIZE) boxesFormed += checkAndClaimBox(r, c);
+    }
 
     if (boxesFormed > 0) {
+      setBoxes(newBoxes);
       setScores(prev => ({ ...prev, [player]: prev[player] + boxesFormed }));
       // Player gets another turn (state stays the same)
     } else {
+      setBoxes(newBoxes);
       setCurrentPlayer(player === 1 ? 2 : 1);
     }
   };
