@@ -12,38 +12,43 @@ class ConnectionManager:
     def __init__(self):
         pass
 
-    async def connect(self, websocket: WebSocket, room_code: str):
+    async def connect(self, websocket: WebSocket, room_code: str, expected_players: int = 2):
         await websocket.accept()
         if room_code not in active_rooms:
-            active_rooms[room_code] = []
+            # First player sets the expected players for this room
+            active_rooms[room_code] = {"connections": [], "expected_players": expected_players}
         
-        # Max 2 players per room
-        if len(active_rooms[room_code]) >= 2:
+        room = active_rooms[room_code]
+        
+        # Max players per room
+        if len(room["connections"]) >= room["expected_players"]:
             await websocket.send_json({"type": "error", "message": "Room is full"})
             await websocket.close()
             return False
 
-        active_rooms[room_code].append(websocket)
+        room["connections"].append(websocket)
         
-        # If 2 players are now in the room, notify both that the game can start
-        if len(active_rooms[room_code]) == 2:
-            await self.broadcast(room_code, {"type": "game_start", "message": "Opponent joined. Game starting!"})
+        # If expected players are now in the room, notify all that the game can start
+        if len(room["connections"]) == room["expected_players"]:
+            await self.broadcast(room_code, {"type": "game_start", "message": "All players joined. Game starting!"})
             
             # Send player assignments
-            await active_rooms[room_code][0].send_json({"type": "player_assignment", "player": 1})
-            await active_rooms[room_code][1].send_json({"type": "player_assignment", "player": 2})
+            for i, conn in enumerate(room["connections"]):
+                await conn.send_json({"type": "player_assignment", "player": i + 1})
             
         return True
 
     def disconnect(self, websocket: WebSocket, room_code: str):
-        if room_code in active_rooms and websocket in active_rooms[room_code]:
-            active_rooms[room_code].remove(websocket)
-            if len(active_rooms[room_code]) == 0:
-                del active_rooms[room_code]
+        if room_code in active_rooms:
+            room = active_rooms[room_code]
+            if websocket in room["connections"]:
+                room["connections"].remove(websocket)
+                if len(room["connections"]) == 0:
+                    del active_rooms[room_code]
 
     async def broadcast(self, room_code: str, message: dict):
         if room_code in active_rooms:
-            for connection in active_rooms[room_code]:
+            for connection in active_rooms[room_code]["connections"]:
                 try:
                     await connection.send_json(message)
                 except Exception:
@@ -52,9 +57,9 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 @router.websocket("/ws/{room_code}")
-async def websocket_endpoint(websocket: WebSocket, room_code: str):
+async def websocket_endpoint(websocket: WebSocket, room_code: str, expected_players: int = 2):
     room_code = room_code.upper()
-    connected = await manager.connect(websocket, room_code)
+    connected = await manager.connect(websocket, room_code, expected_players)
     if not connected:
         return
         

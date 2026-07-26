@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DotsAndBoxes from './games/DotsAndBoxes';
 import ZeroKata from './games/ZeroKata';
+import SnakeLadder from './games/SnakeLadder';
 
 export default function GamesDashboard({ user, onBack }) {
   const [activeGame, setActiveGame] = useState(null);
@@ -10,6 +11,9 @@ export default function GamesDashboard({ user, onBack }) {
   }
   if (activeGame === 'zerokata') {
     return <ZeroKata user={user} onBack={() => setActiveGame(null)} />;
+  }
+  if (activeGame === 'snakeladder') {
+    return <SnakeLadder user={user} onBack={() => setActiveGame(null)} />;
   }
 
   return (
@@ -90,6 +94,35 @@ export default function GamesDashboard({ user, onBack }) {
           <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
             <span className="text-xs font-bold text-primary px-2 py-1 bg-primary/10 rounded-md">Local & Online</span>
             <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+          </div>
+        </div>
+
+        {/* Snake and Ladder Card */}
+        <div className="relative overflow-hidden bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass hover:shadow-[#F9DC5C]/20 hover:border-[#F9DC5C]/30 transition-all cursor-pointer group flex flex-col h-full" onClick={() => setActiveGame('snakeladder')}>
+          {/* Watermark Background */}
+          <div className="absolute -bottom-8 -right-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none transform -rotate-12 scale-150">
+            <svg width="200" height="200" viewBox="0 0 100 100">
+              <path d="M10,90 Q40,40 50,70 T90,20" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"/>
+              <circle cx="90" cy="20" r="4" fill="currentColor"/>
+              
+              <line x1="20" y1="20" x2="30" y2="80" stroke="currentColor" strokeWidth="4"/>
+              <line x1="40" y1="20" x2="50" y2="80" stroke="currentColor" strokeWidth="4"/>
+              <line x1="22" y1="30" x2="42" y2="30" stroke="currentColor" strokeWidth="3"/>
+              <line x1="25" y1="50" x2="45" y2="50" stroke="currentColor" strokeWidth="3"/>
+              <line x1="28" y1="70" x2="48" y2="70" stroke="currentColor" strokeWidth="3"/>
+            </svg>
+          </div>
+
+          <div className="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F9DC5C]/20 to-[#4D9DE0]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-3xl text-[#F9DC5C]">casino</span>
+          </div>
+          <h3 className="relative z-10 font-display-lg text-2xl font-bold mb-2 group-hover:text-[#F9DC5C] transition-colors">Snake & Ladder</h3>
+          <p className="relative z-10 text-on-surface-variant text-sm mb-4 flex-grow">
+            The classic race to 100, now with Teleports, Springs, and Jail!
+          </p>
+          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
+            <span className="text-xs font-bold text-[#F9DC5C] px-2 py-1 bg-[#F9DC5C]/10 rounded-md">Local & Online (Up to 5P)</span>
+            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-[#F9DC5C] transition-colors">arrow_forward</span>
           </div>
         </div>
 
