@@ -257,44 +257,56 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
 
   return (
     <group>
-      {/* HEAD */}
+      {/* COBRA HEAD */}
       <group ref={headRef} castShadow>
         {/* Skull */}
         <mesh castShadow>
-          <sphereGeometry args={[headR, 14, 14]} />
+          <sphereGeometry args={[headR * 0.85, 16, 16]} />
           {bodyMat}
         </mesh>
-        {/* Snout — elongated forward */}
+        {/* Cobra Hood */}
+        <mesh position={[0, 0, headR * 0.2]} rotation={[0.2, 0, 0]} castShadow>
+          <boxGeometry args={[headR * 2.2, headR * 0.18, headR * 1.4]} />
+          <meshPhysicalMaterial color={color.scale} roughness={0.4} metalness={0.1} clearcoat={0.6} />
+        </mesh>
+        {/* Snout */}
         <mesh position={[0, -headR * 0.1, -headR * 0.85]} castShadow>
-          <sphereGeometry args={[headR * 0.6, 12, 12]} />
+          <sphereGeometry args={[headR * 0.55, 14, 14]} />
           {bodyMat}
         </mesh>
-        {/* Eyes — glowing red */}
-        <mesh position={[-headR * 0.40, headR * 0.28, -headR * 0.70]}>
-          <sphereGeometry args={[headR * 0.19, 8, 8]} />
-          <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={2.8} transparent opacity={opacity} />
+        {/* Fangs */}
+        <mesh position={[-headR * 0.22, -headR * 0.45, -headR * 1.1]} rotation={[0.3, 0, -0.2]} castShadow>
+          <coneGeometry args={[headR * 0.07, headR * 0.4, 8]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.1} />
         </mesh>
-        <mesh position={[headR * 0.40, headR * 0.28, -headR * 0.70]}>
-          <sphereGeometry args={[headR * 0.19, 8, 8]} />
-          <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={2.8} transparent opacity={opacity} />
+        <mesh position={[headR * 0.22, -headR * 0.45, -headR * 1.1]} rotation={[0.3, 0, 0.2]} castShadow>
+          <coneGeometry args={[headR * 0.07, headR * 0.4, 8]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.1} />
+        </mesh>
+        {/* Glowing Slit Eyes */}
+        <mesh position={[-headR * 0.38, headR * 0.25, -headR * 0.65]} rotation={[0, -0.2, 0]}>
+          <boxGeometry args={[headR * 0.08, headR * 0.22, headR * 0.18]} />
+          <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={4.5} transparent opacity={opacity} />
+        </mesh>
+        <mesh position={[headR * 0.38, headR * 0.25, -headR * 0.65]} rotation={[0, 0.2, 0]}>
+          <boxGeometry args={[headR * 0.08, headR * 0.22, headR * 0.18]} />
+          <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={4.5} transparent opacity={opacity} />
         </mesh>
         {/* Tongue stem */}
-        <mesh position={[0, -headR * 0.12, -headR * 1.52]} rotation={[0.25, 0, 0]} castShadow>
-          <cylinderGeometry args={[headR * 0.04, headR * 0.04, headR * 0.65, 5]} />
-          <meshStandardMaterial color="#cc1122" emissive="#aa0010" emissiveIntensity={1.2} transparent opacity={opacity} />
+        <mesh position={[0, -headR * 0.15, -headR * 1.4]} rotation={[0.25, 0, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.04, headR * 0.04, headR * 0.65, 6]} />
+          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
         </mesh>
-        {/* Tongue fork — left */}
-        <mesh position={[-headR * 0.14, -headR * 0.14, -headR * 1.92]} rotation={[0.35, 0.4, 0]} castShadow>
-          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.38, 4]} />
-          <meshStandardMaterial color="#cc1122" emissive="#aa0010" emissiveIntensity={1.2} transparent opacity={opacity} />
+        {/* Tongue forks */}
+        <mesh position={[-headR * 0.12, -headR * 0.15, -headR * 1.8]} rotation={[0.35, 0.4, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.4, 4]} />
+          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
         </mesh>
-        {/* Tongue fork — right */}
-        <mesh position={[headR * 0.14, -headR * 0.14, -headR * 1.92]} rotation={[0.35, -0.4, 0]} castShadow>
-          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.38, 4]} />
-          <meshStandardMaterial color="#cc1122" emissive="#aa0010" emissiveIntensity={1.2} transparent opacity={opacity} />
+        <mesh position={[headR * 0.12, -headR * 0.15, -headR * 1.8]} rotation={[0.35, -0.4, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.4, 4]} />
+          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
         </mesh>
-        {/* Eye point light */}
-        <pointLight color={color.eye} intensity={isBig ? 5 : 2.5} distance={isBig ? 9 : 5} position={[0, headR * 0.3, -headR * 0.5]} />
+        <pointLight color={color.eye} intensity={isBig ? 6 : 3} distance={isBig ? 10 : 6} position={[0, headR * 0.3, -headR * 0.5]} />
       </group>
 
       {/* BODY SEGMENTS */}
@@ -655,6 +667,93 @@ const CameraRig = ({ targetPos }) => {
 };
 
 // ==========================================
+// 3D JUNGLE ENVIRONMENT & FIREFLIES
+// ==========================================
+
+const JungleTrees = () => {
+  const trees = useMemo(() => {
+    const list = [];
+    // Generate surrounding trees along outer perimeter of the 10x10 board
+    for (let i = 0; i < 28; i++) {
+      const angle = (i / 28) * Math.PI * 2;
+      const dist  = 26 + (i % 3) * 4;
+      const x     = Math.cos(angle) * dist;
+      const z     = Math.sin(angle) * dist;
+      const scale = 0.8 + (i % 4) * 0.3;
+      list.push({ x, z, scale, key: i });
+    }
+    return list;
+  }, []);
+
+  return (
+    <group>
+      {trees.map(t => (
+        <group key={t.key} position={[t.x, 0, t.z]} scale={[t.scale, t.scale, t.scale]}>
+          {/* Trunk */}
+          <mesh position={[0, 6, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.7, 1.2, 12, 8]} />
+            <meshStandardMaterial color="#3a2312" roughness={0.95} />
+          </mesh>
+          {/* Canopy Tier 1 */}
+          <mesh position={[0, 11, 0]} castShadow>
+            <coneGeometry args={[5.5, 7, 8]} />
+            <meshStandardMaterial color="#1b4d24" roughness={0.8} />
+          </mesh>
+          {/* Canopy Tier 2 */}
+          <mesh position={[0, 14, 0]} castShadow>
+            <coneGeometry args={[4.2, 6, 8]} />
+            <meshStandardMaterial color="#2d6a36" roughness={0.75} />
+          </mesh>
+          {/* Hanging jungle vine */}
+          <mesh position={[1.5, 7, 0]} rotation={[0, 0, 0.1]}>
+            <cylinderGeometry args={[0.08, 0.05, 7, 6]} />
+            <meshStandardMaterial color="#1a3a1e" roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+};
+
+const Fireflies = ({ activePos }) => {
+  const fliesRef = useRef([]);
+  const count    = 18;
+
+  const positions = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => ({
+      baseX: activePos.x + (Math.random() - 0.5) * 16,
+      baseY: 1.5 + Math.random() * 4,
+      baseZ: activePos.z + (Math.random() - 0.5) * 16,
+      speed: 0.8 + Math.random() * 1.2,
+      phase: Math.random() * Math.PI * 2,
+    }));
+  }, [activePos.x, activePos.z]);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    fliesRef.current.forEach((ref, i) => {
+      if (ref && positions[i]) {
+        const p = positions[i];
+        ref.position.x = p.baseX + Math.sin(t * p.speed + p.phase) * 1.5;
+        ref.position.y = p.baseY + Math.cos(t * p.speed * 1.3) * 0.6;
+        ref.position.z = p.baseZ + Math.cos(t * p.speed + p.phase) * 1.5;
+      }
+    });
+  });
+
+  return (
+    <group>
+      {positions.map((_, i) => (
+        <mesh key={i} ref={el => { fliesRef.current[i] = el; }}>
+          <sphereGeometry args={[0.07, 8, 8]} />
+          <meshStandardMaterial color="#aaff44" emissive="#aaff44" emissiveIntensity={5} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ==========================================
 // JUNGLE SCENE
 // ==========================================
 
@@ -664,33 +763,38 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
     ? (activePl.pos <= 0 ? getPosition(0) : getPosition(activePl.pos))
     : { x: 0, y: 0, z: 0 };
   const activePlayerPos = activePl?.pos ?? 0;
-
-  // Dice position follows active player
   const diceWorldPos = activePos;
 
   return (
     <>
-      <color attach="background" args={['#0c1a0c']} />
-      <fog attach="fog" args={['#1a3d1a', 14, 32]} />
+      <color attach="background" args={['#061206']} />
+      <fog attach="fog" args={['#0e2612', 10, 28]} />
 
-      <Sky distance={450000} sunPosition={[80, 20, 60]} turbidity={8} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.8} />
+      <Sky distance={450000} sunPosition={[80, 15, 60]} turbidity={10} rayleigh={0.6} mieCoefficient={0.008} mieDirectionalG={0.8} />
 
-      <ambientLight intensity={0.35} color="#4a7c59" />
-      <directionalLight position={[20, 30, 10]} intensity={1.6} color="#fffbe6" castShadow
+      <ambientLight intensity={0.45} color="#3d6b47" />
+      <directionalLight position={[25, 35, 12]} intensity={2.2} color="#fff8d6" castShadow
         shadow-mapSize-width={2048} shadow-mapSize-height={2048}
-        shadow-camera-near={0.5} shadow-camera-far={120}
-        shadow-camera-left={-35} shadow-camera-right={35}
-        shadow-camera-top={35} shadow-camera-bottom={-35}
+        shadow-camera-near={0.5} shadow-camera-far={140}
+        shadow-camera-left={-40} shadow-camera-right={40}
+        shadow-camera-top={40} shadow-camera-bottom={-40}
       />
-      <directionalLight position={[-10, 10, -10]} intensity={0.4} color="#6ab8c8" />
+      <directionalLight position={[-15, 15, -15]} intensity={0.6} color="#4890a8" />
 
       <Environment preset="forest" />
       <CameraRig targetPos={activePos} />
 
+      {/* Jungle floor mesh */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]} receiveShadow>
-        <planeGeometry args={[250, 250]} />
-        <meshStandardMaterial color="#080d08" roughness={1} />
+        <planeGeometry args={[300, 300]} />
+        <meshStandardMaterial color="#0b170b" roughness={0.95} />
       </mesh>
+
+      {/* Surrounding 3D Jungle Trees */}
+      <JungleTrees />
+
+      {/* Floating Firefly Particles */}
+      <Fireflies activePos={activePos} />
 
       <Board activePlayerPos={activePlayerPos} />
       <StartPlatform />
@@ -706,7 +810,7 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
         />
       ))}
 
-      {/* Ladders */}
+      {/* Bridges */}
       {Object.entries(LADDERS).map(([from, to]) => (
         <Ladder
           key={`ladder-${from}-${to}`}
@@ -726,7 +830,7 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
         <Character key={p.id} player={p} isActive={p.id === currentPlayer} slotIndex={i} visualTarget={visualPositions[p.id]} />
       ))}
 
-      <ContactShadows position={[0, -0.28, 0]} opacity={0.35} scale={80} blur={2.5} far={4} />
+      <ContactShadows position={[0, -0.28, 0]} opacity={0.4} scale={80} blur={2.2} far={5} />
     </>
   );
 };
