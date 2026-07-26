@@ -229,9 +229,9 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
       {/* The 3D GLB Snake Model */}
       <group 
         ref={groupRef}
-        position={[headPos.x, headPos.y, headPos.z]}
+        position={[headPos.x, headPos.y - 0.25, headPos.z]}
         rotation={[0, angle, 0]}
-        scale={isBig ? 1.5 : 1.0}
+        scale={isBig ? 0.025 : 0.018}
       >
         <Clone object={scene} castShadow receiveShadow />
       </group>
