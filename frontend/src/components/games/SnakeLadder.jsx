@@ -256,11 +256,10 @@ export default function SnakeLadder({ user, onBack }) {
   };
 
   const executeRollAnimation = (finalRoll) => {
-    // 3D rolling physics happen in the UI via CSS/Spring for now
     setTimeout(() => {
       setDiceValue(finalRoll);
-      setTimeout(() => processTurn(finalRoll), 800); // Wait for dice to land
-    }, 1500);
+      setTimeout(() => processTurn(finalRoll), 500); 
+    }, 600); // Faster, snappy roll
   };
 
   const generateNewSnakes = () => {
@@ -315,7 +314,7 @@ export default function SnakeLadder({ user, onBack }) {
         player.pos = step;
         nextPlayers[pIdx] = { ...player };
         setPlayers([...nextPlayers]); 
-        await new Promise(r => setTimeout(r, 400)); // Wait for 3D hop animation
+        await new Promise(r => setTimeout(r, 400)); 
       }
 
       if (snakesRef.current[targetPos]) {
@@ -422,7 +421,8 @@ export default function SnakeLadder({ user, onBack }) {
   }
 
   return (
-    <div className="w-full h-[calc(100vh-100px)] min-h-[600px] relative overflow-hidden bg-[#0A0A10] rounded-2xl">
+    <div className="fixed inset-0 z-[100] bg-[#0A0A10] overflow-hidden">
+      
       {/* 3D Canvas Background */}
       <div className="absolute inset-0">
         <Canvas shadows>
@@ -457,97 +457,81 @@ export default function SnakeLadder({ user, onBack }) {
         </Canvas>
       </div>
 
-      {/* HTML UI Overlay */}
-      <div className="absolute inset-0 pointer-events-none z-10 p-6 pt-24 flex flex-col justify-between">
+      {/* HTML UI Overlay - Mobile Friendly */}
+      <div className="absolute inset-0 pointer-events-none p-4 md:p-8 flex flex-col justify-between">
         
         {/* Top Bar */}
         <div className="flex items-center justify-between w-full pointer-events-auto">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="p-2 rounded-xl bg-glass-fill/80 backdrop-blur-md border border-glass-stroke">
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 className="font-display-lg text-3xl font-bold text-white drop-shadow-md">Snake & Ladder 3D</h1>
-          </div>
+          <button onClick={onBack} className="p-3 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white shadow-xl hover:bg-white/20 transition-all group">
+            <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
+          </button>
           {message && (
-            <div className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white text-white font-bold shadow-lg animate-fade-in">
+            <div className="px-6 py-2 rounded-full bg-black/80 backdrop-blur-md border border-neon-coral text-white font-bold shadow-lg animate-fade-in text-sm md:text-base">
               {message}
             </div>
           )}
         </div>
 
         {isMigrating && (
-          <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center animate-fade-in backdrop-blur-sm pointer-events-auto">
-            <div className="flex flex-col items-center">
-              <h2 className="font-display-lg text-4xl font-bold text-neon-coral drop-shadow-[0_0_15px_rgba(230,57,70,0.8)] tracking-wider animate-pulse">SNAKES ARE MOVING!</h2>
+          <div className="absolute inset-0 z-50 flex items-center justify-center animate-fade-in pointer-events-auto">
+            <div className="flex flex-col items-center bg-black/80 px-8 py-4 rounded-3xl backdrop-blur-md border border-neon-coral shadow-[0_0_30px_rgba(230,57,70,0.5)]">
+              <h2 className="font-display-lg text-3xl md:text-5xl font-bold text-neon-coral tracking-wider animate-pulse">SNAKES ARE MOVING!</h2>
             </div>
           </div>
         )}
 
-        {/* Bottom UI Row */}
-        <div className="flex items-end justify-between w-full pointer-events-none">
-          
-          {/* Players List */}
-          <div className="bg-glass-fill/80 backdrop-blur-md border border-glass-stroke rounded-2xl p-4 shadow-glass w-64 pointer-events-auto">
-            <h3 className="font-bold text-white mb-2">Players</h3>
-            <div className="flex flex-col gap-2">
-              {players.map(p => (
-                <div key={p.id} className={`flex items-center justify-between p-2 rounded-xl transition-all ${currentPlayer === p.id && !winner ? 'bg-white/20 border border-white scale-105 shadow-md' : 'bg-black/30'}`}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full shadow-md" style={{ backgroundColor: p.color }}></div>
-                    <span className="font-bold text-sm text-white">{p.name}</span>
-                  </div>
-                  <div className="font-bold text-white">{p.pos}</div>
-                </div>
-              ))}
+        {winner && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center animate-fade-in pointer-events-auto">
+            <div className="flex flex-col items-center bg-black/90 px-12 py-8 rounded-3xl backdrop-blur-md border border-white/20 shadow-2xl">
+              <h3 className="text-4xl md:text-5xl font-bold text-white mb-2">Game Over!</h3>
+              <p className="text-neon-coral font-bold text-3xl md:text-4xl mb-8">{players.find(p=>p.id===winner)?.name} Wins!</p>
+              <button onClick={() => initializeGame(players.length)} className="px-10 py-4 bg-primary text-white text-xl font-bold rounded-2xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(58,134,255,0.5)]">Play Again</button>
             </div>
           </div>
+        )}
 
-          {/* Dice & Controls */}
-          {winner ? (
-            <div className="bg-glass-fill/90 backdrop-blur-md border border-neon-coral rounded-2xl p-6 text-center pointer-events-auto shadow-[0_0_20px_rgba(230,57,70,0.5)]">
-              <h3 className="text-2xl font-bold text-white mb-2">Game Over!</h3>
-              <p className="text-neon-coral font-bold text-xl mb-4">{players.find(p=>p.id===winner)?.name} Wins!</p>
-              <button onClick={() => initializeGame(players.length)} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:scale-105 transition-all">Play Again</button>
-            </div>
-          ) : (
-            <div className="bg-glass-fill/80 backdrop-blur-md border border-glass-stroke rounded-2xl p-6 shadow-glass w-64 flex flex-col items-center pointer-events-auto">
-               
-               {/* Pure CSS 3D Classic White Dice with Black Dots */}
-               <div className="perspective-[1000px] mb-6">
-                 <div className={`dice-container w-16 h-16 relative transform-style-3d transition-transform duration-1000 ease-in-out ${isRolling && !isMigrating ? 'animate-roll' : ''}`} 
-                      style={{ transform: isRolling && !isMigrating ? 'rotateX(720deg) rotateY(720deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
+        {/* Bottom Footer Area */}
+        <div className="flex flex-row items-end justify-between w-full pointer-events-none gap-4">
+          
+          {/* Bottom Left: Dice */}
+          <div className="flex flex-col items-center bg-black/70 backdrop-blur-md border border-white/20 rounded-3xl p-4 shadow-2xl pointer-events-auto w-28 shrink-0">
+             
+             {/* Small CSS 3D Dice */}
+             <div className="perspective-[500px] mb-4">
+                 <div className={`dice-container w-10 h-10 relative transform-style-3d transition-transform duration-700 ease-out ${isRolling && !isMigrating ? 'animate-roll-fast' : ''}`} 
+                      style={{ transform: isRolling && !isMigrating ? 'rotateX(1080deg) rotateY(1080deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
                    
                    {/* 1 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex items-center justify-center translate-z-8">
-                     <div className="w-3 h-3 bg-black rounded-full shadow-inner"></div>
+                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex items-center justify-center translate-z-5">
+                     <div className="w-2 h-2 bg-black rounded-full shadow-inner"></div>
                    </div>
                    {/* 6 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between items-center p-2 -translate-z-8 rotate-x-180">
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between items-center p-1.5 -translate-z-5 rotate-x-180">
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
                    </div>
                    {/* 2 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex justify-between p-2 rotate-x-90 translate-z-8">
-                     <div className="w-3 h-3 bg-black rounded-full self-start shadow-inner"></div>
-                     <div className="w-3 h-3 bg-black rounded-full self-end shadow-inner"></div>
+                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex justify-between p-1.5 rotate-x-90 translate-z-5">
+                     <div className="w-2 h-2 bg-black rounded-full self-start shadow-inner"></div>
+                     <div className="w-2 h-2 bg-black rounded-full self-end shadow-inner"></div>
                    </div>
                    {/* 5 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between p-2 -rotate-x-90 translate-z-8">
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-center w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between p-1.5 -rotate-x-90 translate-z-5">
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-center w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
                    </div>
                    {/* 3 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between p-2 rotate-y-90 translate-z-8">
-                     <div className="w-3 h-3 bg-black rounded-full self-start shadow-inner"></div>
-                     <div className="w-3 h-3 bg-black rounded-full self-center shadow-inner"></div>
-                     <div className="w-3 h-3 bg-black rounded-full self-end shadow-inner"></div>
+                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between p-1.5 rotate-y-90 translate-z-5">
+                     <div className="w-2 h-2 bg-black rounded-full self-start shadow-inner"></div>
+                     <div className="w-2 h-2 bg-black rounded-full self-center shadow-inner"></div>
+                     <div className="w-2 h-2 bg-black rounded-full self-end shadow-inner"></div>
                    </div>
                    {/* 4 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-300 rounded-xl flex flex-col justify-between p-2 -rotate-y-90 translate-z-8">
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div><div className="w-3 h-3 bg-black rounded-full shadow-inner"></div></div>
+                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between p-1.5 -rotate-y-90 translate-z-5">
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
+                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
                    </div>
 
                  </div>
@@ -556,12 +540,25 @@ export default function SnakeLadder({ user, onBack }) {
                <button 
                  onClick={handleRollDice}
                  disabled={isRolling || isMigrating || (gameMode === 'single' && currentPlayer !== 1)}
-                 className="w-full py-3 bg-neon-coral text-white font-bold rounded-xl shadow-lg hover:-translate-y-1 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="w-full py-2 bg-primary text-white text-sm font-bold rounded-xl shadow-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                >
-                 {isMigrating ? 'MOVING...' : isRolling ? 'ROLLING...' : 'ROLL DICE'}
+                 ROLL
                </button>
-            </div>
-          )}
+          </div>
+
+          {/* Bottom Right: Players List */}
+          <div className="bg-black/70 backdrop-blur-md border border-white/20 rounded-3xl p-4 shadow-2xl pointer-events-auto flex flex-col gap-2 w-48 sm:w-64 max-h-[40vh] overflow-y-auto">
+             <h3 className="font-bold text-white/70 text-xs uppercase tracking-wider mb-1">Players</h3>
+             {players.map(p => (
+                <div key={p.id} className={`flex items-center justify-between p-2 rounded-xl transition-all ${currentPlayer === p.id && !winner ? 'bg-white/20 border border-white/50 shadow-md' : 'bg-transparent'}`}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full shadow-md border border-black" style={{ backgroundColor: p.color }}></div>
+                    <span className={`font-bold text-sm ${currentPlayer === p.id && !winner ? 'text-white' : 'text-white/70'}`}>{p.name}</span>
+                  </div>
+                  <div className="font-mono font-bold text-white">{p.pos}</div>
+                </div>
+              ))}
+          </div>
 
         </div>
       </div>
@@ -569,20 +566,20 @@ export default function SnakeLadder({ user, onBack }) {
       {/* Required CSS for Dice */}
       <style dangerouslySetInnerHTML={{__html: `
         .transform-style-3d { transform-style: preserve-3d; }
-        .translate-z-8 { transform: translateZ(2rem); }
-        .-translate-z-8 { transform: translateZ(-2rem); }
+        .translate-z-5 { transform: translateZ(1.25rem); }
+        .-translate-z-5 { transform: translateZ(-1.25rem); }
         .rotate-x-180 { transform: rotateX(180deg); }
         .rotate-x-90 { transform: rotateX(90deg); }
         .-rotate-x-90 { transform: rotateX(-90deg); }
         .rotate-y-90 { transform: rotateY(90deg); }
         .-rotate-y-90 { transform: rotateY(-90deg); }
         
-        @keyframes roll {
+        @keyframes roll-fast {
            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
-           50% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) translateY(-40px) scale(1.2); }
-           100% { transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg) translateY(0) scale(1); }
+           50% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) translateY(-30px) scale(1.2); }
+           100% { transform: rotateX(1080deg) rotateY(1080deg) rotateZ(360deg) translateY(0) scale(1); }
         }
-        .animate-roll { animation: roll 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .animate-roll-fast { animation: roll-fast 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
       `}} />
 
     </div>
