@@ -895,25 +895,25 @@ const JungleTrees = () => {
           <group rotation={[-Math.PI / 10, 0, 0]}> {/* Lean inward towards the board */}
             {/* Thin Main Trunk */}
             <mesh position={[0, 8, 0]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.3, 0.6, 16, 8]} />
+              <cylinderGeometry args={[0.15, 0.35, 16, 8]} />
               <meshStandardMaterial color="#3a2312" roughness={0.95} />
             </mesh>
             
             {/* Branch 1 (Leaning forward/over) */}
             <mesh position={[0, 13, 2]} rotation={[0.4, 0, 0]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.15, 0.3, 8, 8]} />
+              <cylinderGeometry args={[0.08, 0.15, 8, 8]} />
               <meshStandardMaterial color="#3a2312" roughness={0.95} />
             </mesh>
 
             {/* Branch 2 (Leaning right/over) */}
             <mesh position={[1.5, 11, 0]} rotation={[0, 0, -0.6]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.15, 0.25, 6, 8]} />
+              <cylinderGeometry args={[0.08, 0.12, 6, 8]} />
               <meshStandardMaterial color="#3a2312" roughness={0.95} />
             </mesh>
 
             {/* Branch 3 (Leaning left) */}
             <mesh position={[-1.2, 12, 0.5]} rotation={[0.2, 0, 0.5]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.1, 0.2, 5, 8]} />
+              <cylinderGeometry args={[0.05, 0.1, 5, 8]} />
               <meshStandardMaterial color="#3a2312" roughness={0.95} />
             </mesh>
 
