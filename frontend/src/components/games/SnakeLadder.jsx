@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Text, Environment, ContactShadows, RoundedBox, Sky, useGLTF, useAnimations, Clone } from '@react-three/drei';
+import { Text, Environment, ContactShadows, RoundedBox, Sky } from '@react-three/drei';
 import { useSpring, a } from '@react-spring/three';
 import * as THREE from 'three';
 import confetti from 'canvas-confetti';
@@ -185,78 +185,230 @@ const StartPlatform = () => {
 // ==========================================
 
 const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
-  const isBig = headTile - tailTile >= 50;
-  const headPos = useMemo(() => new THREE.Vector3(...Object.values(getPosition(headTile))), [headTile]);
-  const tailPos = useMemo(() => new THREE.Vector3(...Object.values(getPosition(tailTile))), [tailTile]);
+  const isBig  = headTile - tailTile >= 50;
+  // Massively increase segmentation to eliminate "corners" and make smooth curves
+  const numSegs = isBig ? 45 : 30;
+  const headR   = isBig ? 1.25 : 0.72;
+  const color   = SNAKE_PALETTE[snakeIndex % SNAKE_PALETTE.length];
 
-  // Load the GLB model
-  const { scene, animations } = useGLTF('/models/snake_attack_animations_multiple.glb');
-  
-  const groupRef = useRef();
-  const { actions: animActions } = useAnimations(animations, groupRef);
+  const headPos = useMemo(() => getPosition(headTile), [headTile]);
+  const tailPos = useMemo(() => getPosition(tailTile), [tailTile]);
 
-  useEffect(() => {
-    // Play the first animation found (idle or attack)
-    if (animations.length > 0 && animActions) {
-      const actionName = animations[0].name;
-      animActions[actionName]?.reset().fadeIn(0.5).play();
+  const { dir, perp, length, zigs } = useMemo(() => {
+    const d = new THREE.Vector3().subVectors(tailPos, headPos);
+    const len = d.length();
+    return {
+      dir: d.clone().normalize(),
+      perp: new THREE.Vector3(-d.z, 0, d.x).normalize(),
+      length: len,
+      zigs: len * 0.45,
+    };
+  }, [headPos, tailPos]);
+
+  // Procedural Scale Bump Map
+  const scaleTex = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#444';
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.fillStyle = '#fff';
+    // Draw diamond scales
+    for (let i = 0; i <= 128; i += 16) {
+      for (let j = 0; j <= 128; j += 16) {
+        ctx.beginPath();
+        const ox = (j % 32 === 0) ? 0 : 8;
+        ctx.arc(i + ox, j, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
-  }, [animations, animActions]);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(numSegs * 0.8, 6);
+    return tex;
+  }, [numSegs]);
 
-  // Orient the snake from head to tail
-  const dir = new THREE.Vector3().subVectors(tailPos, headPos).normalize();
-  const angle = Math.atan2(dir.x, dir.z);
+  // Initial flat line points
+  const basePoints = useMemo(() => {
+    const pts = [];
+    for (let i = 0; i <= numSegs; i++) {
+      const t = i / numSegs;
+      pts.push(new THREE.Vector3().lerpVectors(
+        new THREE.Vector3(headPos.x, headPos.y + 0.15, headPos.z), 
+        new THREE.Vector3(tailPos.x, tailPos.y + 0.15, tailPos.z), 
+        t
+      ));
+    }
+    return pts;
+  }, [headPos, tailPos, numSegs]);
 
-  // Dynamically calculate the bounding box to perfectly scale and center the model
-  const { scale, centerOffset, midPos } = useMemo(() => {
-    if (!scene) return { scale: [1, 1, 1], centerOffset: new THREE.Vector3(), midPos: new THREE.Vector3() };
-    
-    // Get native bounding box
-    const box = new THREE.Box3().setFromObject(scene);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    
-    // The model's length is its longest axis
-    const nativeLen = Math.max(size.x, size.y, size.z) || 1;
-    const dist = headPos.distanceTo(tailPos);
-    
-    // Uniformly scale the model so its longest axis matches the tile distance perfectly
-    const s = dist / nativeLen;
-    
-    // Calculate the offset required to center the model's bounding box at the group origin
-    const offset = center.clone().multiplyScalar(-s);
-    
-    const mid = new THREE.Vector3().addVectors(headPos, tailPos).multiplyScalar(0.5);
-    
-    // Drop the Y position slightly so it rests on the board
-    mid.y = 0.15;
-    
-    return { scale: [s, s, s], centerOffset: offset, midPos: mid };
-  }, [scene, headPos, tailPos]);
+  const [curve] = useState(() => new THREE.CatmullRomCurve3(basePoints.map(p => p.clone())));
+  const tubeRef = useRef();
+  const headRef = useRef();
+
+  useFrame(({ clock }) => {
+    // Slither VERY SLOWLY
+    const time = clock.elapsedTime * 0.6;
+
+    // Slither horizontally in a smooth zigzag/coiling pattern
+    for (let i = 0; i <= numSegs; i++) {
+      const t = i / numSegs;
+      const basePt = new THREE.Vector3().lerpVectors(
+        new THREE.Vector3(headPos.x, headPos.y + 0.15, headPos.z), 
+        new THREE.Vector3(tailPos.x, tailPos.y + 0.15, tailPos.z), 
+        t
+      );
+      
+      const env = Math.sin(t * Math.PI); // Envelope to taper amplitude at head and tail
+      // Reduce amplitude to 1.1 for a more natural resting slither
+      const offset = Math.sin(t * zigs * Math.PI + time) * env * 1.1;
+      
+      basePt.addScaledVector(perp, offset);
+      curve.points[i].copy(basePt);
+    }
+
+    // Orient Head
+    if (headRef.current && curve.points[0] && curve.points[1]) {
+      headRef.current.position.copy(curve.points[0]);
+      // Look away from the body
+      const lookPos = new THREE.Vector3().subVectors(curve.points[0], curve.points[1]).add(curve.points[0]);
+      headRef.current.lookAt(lookPos);
+    }
+
+    // Update Continuous Tapered Tube Geometry
+    if (tubeRef.current) {
+      if (tubeRef.current.geometry) tubeRef.current.geometry.dispose();
+      
+      const tubularSegments = numSegs * 3;
+      const radialSegments = 8;
+      const geo = new THREE.TubeGeometry(curve, tubularSegments, headR * 0.45, radialSegments, false);
+      const posAttr = geo.attributes.position;
+      
+      for (let i = 0; i <= tubularSegments; i++) {
+        const tVal = i / tubularSegments;
+        // Smoothly taper thickness towards the tail
+        const taper = Math.max(0.05, 1.0 - Math.pow(tVal, 1.8));
+        const center = curve.getPoint(tVal);
+        
+        for (let j = 0; j <= radialSegments; j++) {
+          const idx = i * (radialSegments + 1) + j;
+          const px = posAttr.getX(idx);
+          const py = posAttr.getY(idx);
+          const pz = posAttr.getZ(idx);
+          
+          posAttr.setXYZ(idx,
+             center.x + (px - center.x) * taper,
+             center.y + (py - center.y) * taper,
+             center.z + (pz - center.z) * taper
+          );
+        }
+      }
+      geo.computeVertexNormals();
+      tubeRef.current.geometry = geo;
+    }
+  });
 
   // Fog-of-war visibility check
   const { row: pRow, col: pCol } = activePlayerPos > 0 ? getTileCoord(activePlayerPos) : { row: -3, col: 5 };
   const { row: hRow, col: hCol } = getTileCoord(headTile);
+  const { row: tRow, col: tCol } = getTileCoord(tailTile);
   const dHead = Math.sqrt((hRow - pRow) ** 2 + (hCol - pCol) ** 2);
-  const visR = isBig ? 5.5 : 4.2;
-  if (dHead > visR + 1) return null;
+  const dTail = Math.sqrt((tRow - pRow) ** 2 + (tCol - pCol) ** 2);
+  const visR  = isBig ? 5.5 : 4.2;
+  const dist  = Math.min(dHead, dTail);
+  if (dist > visR) return null;
+
+  const opacity = dist > visR - 1.8 ? Math.max(0.06, 1 - (dist - (visR - 1.8)) / 1.8) : 1;
+
+  const bodyMat = (
+    <meshStandardMaterial
+      color={color.body}
+      roughness={0.85}
+      metalness={0.15}
+      bumpMap={scaleTex}
+      bumpScale={0.06}
+      transparent={opacity < 1}
+      opacity={opacity}
+    />
+  );
 
   return (
-    <group 
-      ref={groupRef}
-      position={[midPos.x, midPos.y, midPos.z]}
-      rotation={[0, angle, 0]}
-    >
-      {/* The 3D GLB Snake Model perfectly scaled and centered */}
-      <group position={[centerOffset.x, centerOffset.y, centerOffset.z]} scale={scale}>
-        <Clone object={scene} castShadow receiveShadow />
+    <group>
+      {/* OPEN MOUTH / AGGRESSIVE HEAD */}
+      <group ref={headRef} castShadow>
+        {/* Skull / Back of head */}
+        <mesh position={[0, headR * 0.2, headR * 0.2]} castShadow>
+          <sphereGeometry args={[headR * 0.8, 16, 16]} />
+          {bodyMat}
+        </mesh>
+        
+        {/* Upper Jaw (Angled UP for bite) */}
+        <mesh position={[0, headR * 0.35, -headR * 0.65]} rotation={[-Math.PI / 2 + 0.3, 0, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.45, headR * 0.7, headR * 1.5, 12]} />
+          {bodyMat}
+        </mesh>
+        
+        {/* Lower Jaw (Angled DOWN for bite) */}
+        <mesh position={[0, -headR * 0.25, -headR * 0.55]} rotation={[-Math.PI / 2 - 0.3, 0, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.35, headR * 0.6, headR * 1.3, 12]} />
+          {bodyMat}
+        </mesh>
+        
+        {/* Inside Mouth / Throat */}
+        <mesh position={[0, headR * 0.05, -headR * 0.6]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[headR * 0.7, headR * 0.6, headR * 1.1]} />
+          <meshStandardMaterial color="#2a0000" roughness={0.9} />
+        </mesh>
+        
+        {/* Long Fangs (Attached to Upper Jaw, pointing down/forward) */}
+        <mesh position={[-headR * 0.28, headR * 0.1, -headR * 1.25]} rotation={[0.4, 0, -0.1]} castShadow>
+          <coneGeometry args={[headR * 0.08, headR * 0.7, 8]} />
+          <meshStandardMaterial color="#e8eedd" roughness={0.2} metalness={0.1} />
+        </mesh>
+        <mesh position={[headR * 0.28, headR * 0.1, -headR * 1.25]} rotation={[0.4, 0, 0.1]} castShadow>
+          <coneGeometry args={[headR * 0.08, headR * 0.7, 8]} />
+          <meshStandardMaterial color="#e8eedd" roughness={0.2} metalness={0.1} />
+        </mesh>
+
+        {/* Glowing Slit Eyes */}
+        <mesh position={[-headR * 0.45, headR * 0.55, -headR * 0.35]} rotation={[0, -0.3, 0]}>
+          <boxGeometry args={[headR * 0.06, headR * 0.25, headR * 0.2]} />
+          <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={5} transparent opacity={opacity} />
+        </mesh>
+        <mesh position={[headR * 0.45, headR * 0.55, -headR * 0.35]} rotation={[0, 0.3, 0]}>
+          <boxGeometry args={[headR * 0.06, headR * 0.25, headR * 0.2]} />
+          <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={5} transparent opacity={opacity} />
+        </mesh>
+        
+        {/* Tongue stem (flicking out from throat) */}
+        <mesh position={[0, -headR * 0.1, -headR * 1.1]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.04, headR * 0.04, headR * 0.8, 6]} />
+          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
+        </mesh>
+        {/* Tongue forks */}
+        <mesh position={[-headR * 0.12, -headR * 0.1, -headR * 1.6]} rotation={[-Math.PI / 2, 0, -0.4]} castShadow>
+          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.5, 4]} />
+          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
+        </mesh>
+        <mesh position={[headR * 0.12, -headR * 0.1, -headR * 1.6]} rotation={[-Math.PI / 2, 0, 0.4]} castShadow>
+          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.5, 4]} />
+          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
+        </mesh>
+        
+        <pointLight color={color.eye} intensity={isBig ? 6 : 3} distance={isBig ? 10 : 6} position={[0, headR * 0.3, -headR * 0.5]} />
       </group>
+
+      {/* CONTINUOUS BODY TUBE */}
+      <mesh ref={tubeRef} castShadow>
+        {/* Geometry is injected dynamically in useFrame */}
+        <tubeGeometry args={[curve, numSegs * 3, headR * 0.45, 10, false]} />
+        {bodyMat}
+      </mesh>
     </group>
   );
 };
-
-// Preload the GLTF to prevent stuttering
-useGLTF.preload('/models/snake_attack_animations_multiple.glb');
 
 // ==========================================
 // LADDER — Wooden jungle ladder
