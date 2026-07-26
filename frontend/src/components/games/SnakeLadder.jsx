@@ -49,7 +49,7 @@ const Board = () => {
             />
           </mesh>
           <Text
-            position={[0, 0.26, 0]}
+            position={[0, 0.26, -0.6]}
             rotation={[-Math.PI / 2, 0, 0]}
             fontSize={0.8}
             color="#ffffff"
@@ -426,8 +426,8 @@ export default function SnakeLadder({ user, onBack }) {
       {/* 3D Canvas Background */}
       <div className="absolute inset-0">
         <Canvas shadows>
-          <PerspectiveCamera makeDefault position={[0, 15, 20]} fov={45} />
-          <OrbitControls target={[0, 0, 0]} maxPolarAngle={Math.PI / 2.1} />
+          <PerspectiveCamera makeDefault position={[0, -8, 15]} fov={60} />
+          <OrbitControls target={[0, 0, 0]} maxPolarAngle={Math.PI / 1.5} />
           
           <ambientLight intensity={0.8} />
           <directionalLight 
@@ -444,8 +444,8 @@ export default function SnakeLadder({ user, onBack }) {
           />
           <Environment preset="city" />
 
-          {/* Clean group without extreme tilting */}
-          <group position={[0, 0, 0]}>
+          {/* Group tilted backward to fit the screen isometrically */}
+          <group rotation={[-Math.PI / 5, 0, 0]} position={[0, 2, -2]}>
             <Board />
             <Snakes snakesData={snakes} />
             <Ladders />
