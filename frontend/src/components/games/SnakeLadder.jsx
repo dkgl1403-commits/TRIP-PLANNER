@@ -17,13 +17,13 @@ const COLORS = ['#e63946', '#4361ee', '#2dc653', '#8338ec', '#fb8500'];
 
 const LADDERS = { 4: 14, 9: 31, 20: 38, 28: 84, 40: 59, 51: 67, 63: 81, 71: 91 };
 
-// Snake body color palette — 5 distinct species
+// Snake body color palette — 5 distinct realistic species
 const SNAKE_PALETTE = [
-  { body: '#1b5e3a', scale: '#4caf87', eye: '#ff2020' },  // emerald king
-  { body: '#7b1a1a', scale: '#e8a04a', eye: '#ff9900' },  // blood dragon
-  { body: '#1a1a2e', scale: '#5a5a9a', eye: '#bb00ff' },  // shadow wraith
-  { body: '#6b1a7b', scale: '#d4a0e0', eye: '#ff2020' },  // violet death
-  { body: '#1a3a6b', scale: '#8ab8e8', eye: '#00ffcc' },  // ocean tyrant
+  { body: '#2a2015', scale: '#3c3022', eye: '#ffd700' }, // Brown python
+  { body: '#182b14', scale: '#253d1d', eye: '#ffb300' }, // Olive viper
+  { body: '#141414', scale: '#222222', eye: '#ff2020' }, // Black mamba
+  { body: '#3a2d1d', scale: '#4a3b26', eye: '#ff8c00' }, // Desert rattler
+  { body: '#243322', scale: '#364a32', eye: '#ffdd00' }, // Jungle constrictor
 ];
 
 // Pip positions for dice face value 1-6 (x/z offsets on top face)
@@ -186,7 +186,8 @@ const StartPlatform = () => {
 
 const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   const isBig  = headTile - tailTile >= 50;
-  const numSegs = isBig ? 22 : 13;
+  // Massively increase segmentation to eliminate "corners" and make smooth curves
+  const numSegs = isBig ? 45 : 30;
   const headR   = isBig ? 1.25 : 0.72;
   const color   = SNAKE_PALETTE[snakeIndex % SNAKE_PALETTE.length];
 
@@ -223,9 +224,10 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   const headRef = useRef();
 
   useFrame(({ clock }) => {
-    const time = clock.elapsedTime * 2.5;
+    // Slither VERY SLOWLY
+    const time = clock.elapsedTime * 0.6;
 
-    // Slither horizontally in a zigzag pattern
+    // Slither horizontally in a smooth zigzag/coiling pattern
     for (let i = 0; i <= numSegs; i++) {
       const t = i / numSegs;
       const basePt = new THREE.Vector3().lerpVectors(
@@ -235,7 +237,8 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
       );
       
       const env = Math.sin(t * Math.PI); // Envelope to taper amplitude at head and tail
-      const offset = Math.sin(t * zigs * Math.PI + time) * env * 1.5;
+      // Reduce amplitude to 1.1 for a more natural resting slither
+      const offset = Math.sin(t * zigs * Math.PI + time) * env * 1.1;
       
       basePt.addScaledVector(perp, offset);
       curve.points[i].copy(basePt);
@@ -295,11 +298,10 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   const opacity = dist > visR - 1.8 ? Math.max(0.06, 1 - (dist - (visR - 1.8)) / 1.8) : 1;
 
   const bodyMat = (
-    <meshPhysicalMaterial
+    <meshStandardMaterial
       color={color.body}
-      roughness={0.62}
+      roughness={0.92}
       metalness={0.08}
-      clearcoat={0.4}
       transparent={opacity < 1}
       opacity={opacity}
     />
@@ -317,7 +319,7 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
         {/* Cobra Hood */}
         <mesh position={[0, 0, headR * 0.2]} rotation={[0.2, 0, 0]} castShadow>
           <boxGeometry args={[headR * 2.2, headR * 0.18, headR * 1.4]} />
-          <meshPhysicalMaterial color={color.scale} roughness={0.4} metalness={0.1} clearcoat={0.6} />
+          <meshStandardMaterial color={color.scale} roughness={0.8} metalness={0.1} />
         </mesh>
         {/* Snout */}
         <mesh position={[0, -headR * 0.1, -headR * 0.85]} castShadow>
