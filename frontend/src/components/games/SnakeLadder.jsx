@@ -201,6 +201,94 @@ const Ladders = () => {
   );
 };
 
+const DICE_ROTATIONS = {
+  1: [0, 0, 0],
+  2: [-Math.PI / 2, 0, 0],
+  3: [0, 0, Math.PI / 2],
+  4: [0, 0, -Math.PI / 2],
+  5: [Math.PI / 2, 0, 0],
+  6: [Math.PI, 0, 0]
+};
+
+const Dot = ({ position }) => (
+  <mesh position={position}>
+    <sphereGeometry args={[0.12, 16, 16]} />
+    <meshStandardMaterial color="#000000" roughness={0.8} />
+  </mesh>
+);
+
+const Dice3D = ({ value, isRolling }) => {
+  const targetRot = DICE_ROTATIONS[value] || [0, 0, 0];
+  
+  const { pos, rot } = useSpring({
+    to: async (next) => {
+      if (isRolling) {
+        // Jump up and spin wildly
+        await next({
+          pos: [-10, 12, 10],
+          rot: [Math.PI * 6 + Math.random(), Math.PI * 6 + Math.random(), Math.PI * 6 + Math.random()],
+          config: { mass: 1, tension: 200, friction: 20 }
+        });
+      } else {
+        // Land on the board with the correct face up
+        await next({
+          pos: [-10, 1, 10], // lands just off the left-front corner
+          rot: [targetRot[0] + Math.PI * 4, targetRot[1] + Math.PI * 4, targetRot[2] + Math.PI * 4],
+          config: { mass: 2, tension: 300, friction: 15 }
+        });
+        // Snap exact rotation instantly to prevent drift on next roll
+        await next({
+          rot: targetRot,
+          immediate: true
+        });
+      }
+    },
+    from: { pos: [-10, 1, 10], rot: [0, 0, 0] }
+  });
+
+  return (
+    <a.group position={pos} rotation={rot}>
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[1.5, 1.5, 1.5]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.1} metalness={0.1} />
+      </mesh>
+      
+      {/* Face 1 (Y+) */}
+      <Dot position={[0, 0.76, 0]} />
+      
+      {/* Face 6 (Y-) */}
+      <Dot position={[0.4, -0.76, 0.4]} />
+      <Dot position={[-0.4, -0.76, -0.4]} />
+      <Dot position={[0.4, -0.76, -0.4]} />
+      <Dot position={[-0.4, -0.76, 0.4]} />
+      <Dot position={[0.4, -0.76, 0]} />
+      <Dot position={[-0.4, -0.76, 0]} />
+
+      {/* Face 2 (Z+) */}
+      <Dot position={[0.4, 0.4, 0.76]} />
+      <Dot position={[-0.4, -0.4, 0.76]} />
+
+      {/* Face 5 (Z-) */}
+      <Dot position={[0.4, 0.4, -0.76]} />
+      <Dot position={[-0.4, -0.4, -0.76]} />
+      <Dot position={[-0.4, 0.4, -0.76]} />
+      <Dot position={[0.4, -0.4, -0.76]} />
+      <Dot position={[0, 0, -0.76]} />
+
+      {/* Face 3 (X+) */}
+      <Dot position={[0.76, 0, 0]} />
+      <Dot position={[0.76, 0.4, 0.4]} />
+      <Dot position={[0.76, -0.4, -0.4]} />
+
+      {/* Face 4 (X-) */}
+      <Dot position={[-0.76, 0.4, 0.4]} />
+      <Dot position={[-0.76, -0.4, -0.4]} />
+      <Dot position={[-0.76, 0.4, -0.4]} />
+      <Dot position={[-0.76, -0.4, 0.4]} />
+    </a.group>
+  );
+};
+
 // ==========================================
 // MAIN COMPONENT
 // ==========================================
@@ -221,9 +309,6 @@ export default function SnakeLadder({ user, onBack }) {
   const [isMigrating, setIsMigrating] = useState(false);
 
   const [myPlayerId, setMyPlayerId] = useState(1);
-  const [roomCode, setRoomCode] = useState('');
-  const [joinCodeInput, setJoinCodeInput] = useState('');
-  const [onlineStatus, setOnlineStatus] = useState('setup');
   
   const wsRef = useRef(null);
   const playersRef = useRef(players);
@@ -290,8 +375,8 @@ export default function SnakeLadder({ user, onBack }) {
   const executeRollAnimation = (finalRoll) => {
     setTimeout(() => {
       setDiceValue(finalRoll);
-      setTimeout(() => processTurn(finalRoll), 500); 
-    }, 600); // Faster, snappy roll
+      setTimeout(() => processTurn(finalRoll), 800); 
+    }, 800); // Wait for jump and spin
   };
 
   const generateNewSnakes = () => {
@@ -484,6 +569,7 @@ export default function SnakeLadder({ user, onBack }) {
             {players.map(p => (
               <Token key={p.id} player={p} isActive={currentPlayer === p.id} />
             ))}
+            <Dice3D value={diceValue} isRolling={isRolling} />
             <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={40} blur={2.5} far={10} />
           </group>
         </Canvas>
@@ -525,54 +611,12 @@ export default function SnakeLadder({ user, onBack }) {
         {/* Bottom Footer Area */}
         <div className="flex flex-row items-end justify-between w-full pointer-events-none gap-4">
           
-          {/* Bottom Left: Dice */}
+          {/* Bottom Left: Dice Controls */}
           <div className="flex flex-col items-center bg-black/70 backdrop-blur-md border border-white/20 rounded-3xl p-4 shadow-2xl pointer-events-auto w-28 shrink-0">
-             
-             {/* Small CSS 3D Dice */}
-             <div className="perspective-[500px] mb-4">
-                 <div className={`dice-container w-10 h-10 relative transform-style-3d transition-transform duration-700 ease-out ${isRolling && !isMigrating ? 'animate-roll-fast' : ''}`} 
-                      style={{ transform: isRolling && !isMigrating ? 'rotateX(1080deg) rotateY(1080deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
-                   
-                   {/* 1 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex items-center justify-center translate-z-5">
-                     <div className="w-2 h-2 bg-black rounded-full shadow-inner"></div>
-                   </div>
-                   {/* 6 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between items-center p-1.5 -translate-z-5 rotate-x-180">
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                   </div>
-                   {/* 2 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex justify-between p-1.5 rotate-x-90 translate-z-5">
-                     <div className="w-2 h-2 bg-black rounded-full self-start shadow-inner"></div>
-                     <div className="w-2 h-2 bg-black rounded-full self-end shadow-inner"></div>
-                   </div>
-                   {/* 5 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between p-1.5 -rotate-x-90 translate-z-5">
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-center w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                   </div>
-                   {/* 3 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between p-1.5 rotate-y-90 translate-z-5">
-                     <div className="w-2 h-2 bg-black rounded-full self-start shadow-inner"></div>
-                     <div className="w-2 h-2 bg-black rounded-full self-center shadow-inner"></div>
-                     <div className="w-2 h-2 bg-black rounded-full self-end shadow-inner"></div>
-                   </div>
-                   {/* 4 */}
-                   <div className="absolute w-full h-full bg-white border border-gray-400 rounded-lg flex flex-col justify-between p-1.5 -rotate-y-90 translate-z-5">
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                     <div className="flex justify-between w-full"><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div><div className="w-2 h-2 bg-black rounded-full shadow-inner"></div></div>
-                   </div>
-
-                 </div>
-               </div>
-               
                <button 
                  onClick={handleRollDice}
                  disabled={isRolling || isMigrating || (gameMode === 'single' && currentPlayer !== 1)}
-                 className="w-full py-2 bg-primary text-white text-sm font-bold rounded-xl shadow-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="w-full py-4 bg-primary text-white text-base font-black rounded-xl shadow-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
                >
                  ROLL
                </button>
@@ -594,26 +638,6 @@ export default function SnakeLadder({ user, onBack }) {
 
         </div>
       </div>
-      
-      {/* Required CSS for Dice */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .transform-style-3d { transform-style: preserve-3d; }
-        .translate-z-5 { transform: translateZ(1.25rem); }
-        .-translate-z-5 { transform: translateZ(-1.25rem); }
-        .rotate-x-180 { transform: rotateX(180deg); }
-        .rotate-x-90 { transform: rotateX(90deg); }
-        .-rotate-x-90 { transform: rotateX(-90deg); }
-        .rotate-y-90 { transform: rotateY(90deg); }
-        .-rotate-y-90 { transform: rotateY(-90deg); }
-        
-        @keyframes roll-fast {
-           0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
-           50% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) translateY(-30px) scale(1.2); }
-           100% { transform: rotateX(1080deg) rotateY(1080deg) rotateZ(360deg) translateY(0) scale(1); }
-        }
-        .animate-roll-fast { animation: roll-fast 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-      `}} />
-
     </div>
   );
 }
