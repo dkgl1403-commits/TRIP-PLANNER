@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDashboard, onEmployeeDashboard, onNavigateTab, activeTab }) {
+function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDashboard, onEmployeeDashboard, onGames, onNavigateTab, activeTab }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
@@ -125,6 +125,12 @@ function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDas
               onClick={() => handleNav('locations')}
             >
               <span className="material-symbols-outlined text-[22px]">location_on</span> Saved Locations
+            </button>
+            <button 
+              className="flex items-center gap-3 px-4 py-3 rounded-lg font-title-md text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors"
+              onClick={() => { onGames && onGames(); setIsSidebarOpen(false); }}
+            >
+              <span className="material-symbols-outlined text-[22px]">sports_esports</span> Games
             </button>
 
             <div className="h-px bg-glass-stroke my-2"></div>
