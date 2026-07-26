@@ -322,8 +322,11 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
 // LADDER — Wooden jungle ladder
 // ==========================================
 
+// ==========================================
+// WOODEN BRIDGE — Replaces Ladder
+// ==========================================
+
 const Ladder = ({ fromTile, toTile, activePlayerPos }) => {
-  // Fog check
   const { row: pRow, col: pCol } = activePlayerPos > 0 ? getTileCoord(activePlayerPos) : { row: -3, col: 5 };
   const { row: fRow, col: fCol } = getTileCoord(fromTile);
   const { row: tRow, col: tCol } = getTileCoord(toTile);
@@ -338,75 +341,70 @@ const Ladder = ({ fromTile, toTile, activePlayerPos }) => {
   const fp = getPosition(fromTile);
   const tp = getPosition(toTile);
 
-  // Ladder floats slightly above tiles
-  const start = useMemo(() => new THREE.Vector3(fp.x, fp.y + TILE_H / 2 + 0.22, fp.z), [fromTile]);
-  const end   = useMemo(() => new THREE.Vector3(tp.x, tp.y + TILE_H / 2 + 0.22, tp.z), [toTile]);
+  const start = useMemo(() => new THREE.Vector3(fp.x, fp.y + TILE_H / 2 + 0.05, fp.z), [fromTile]);
+  const end   = useMemo(() => new THREE.Vector3(tp.x, tp.y + TILE_H / 2 + 0.05, tp.z), [toTile]);
 
   const dir    = useMemo(() => new THREE.Vector3().subVectors(end, start), [fromTile, toTile]);
   const length = dir.length();
   const midPt  = useMemo(() => new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5), [fromTile, toTile]);
 
-  // Rail offset — perpendicular to ladder direction in XZ
   const perpDir = useMemo(() => {
     const d = dir.clone().normalize();
     return new THREE.Vector3(-d.z, 0, d.x).normalize();
   }, [fromTile, toTile]);
 
-  const railQuat = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize()), [fromTile, toTile]);
-  const rungQuat = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), perpDir), [fromTile, toTile]);
+  const bridgeQuat = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize()), [fromTile, toTile]);
+  const plankQuat  = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), perpDir), [fromTile, toTile]);
 
-  const RAIL_HALF = 0.55;
-  const leftRailPt  = useMemo(() => midPt.clone().addScaledVector(perpDir,  RAIL_HALF), [fromTile, toTile]);
-  const rightRailPt = useMemo(() => midPt.clone().addScaledVector(perpDir, -RAIL_HALF), [fromTile, toTile]);
+  const ROAD_HALF = 0.75;
+  const leftRope  = useMemo(() => midPt.clone().addScaledVector(perpDir,  ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0)), [fromTile, toTile]);
+  const rightRope = useMemo(() => midPt.clone().addScaledVector(perpDir, -ROAD_HALF).add(new THREE.Vector3(0, 0.45, 0)), [fromTile, toTile]);
 
-  const numRungs = Math.max(2, Math.round(length / 1.9));
+  const numPlanks = Math.max(4, Math.round(length / 0.7));
 
-  const railMat = <meshStandardMaterial color="#8b5a2b" roughness={0.92} metalness={0.02} transparent opacity={opacity} />;
-  const rungMat = <meshStandardMaterial color="#a0672f" roughness={0.88} metalness={0.02} transparent opacity={opacity} />;
-  const goldMat = <meshStandardMaterial color="#e8c830" roughness={0.25} metalness={0.7} emissive="#ffd700" emissiveIntensity={0.35} transparent opacity={opacity} />;
+  const woodMat = <meshStandardMaterial color="#5c3a21" roughness={0.88} metalness={0.05} transparent opacity={opacity} />;
+  const ropeMat = <meshStandardMaterial color="#b38b59" roughness={0.95} metalness={0.01} transparent opacity={opacity} />;
+  const postMat = <meshStandardMaterial color="#3d2615" roughness={0.90} metalness={0.02} transparent opacity={opacity} />;
 
   return (
     <group>
-      {/* Left rail */}
-      <mesh position={leftRailPt.toArray()} quaternion={railQuat} castShadow>
-        <cylinderGeometry args={[0.16, 0.20, length, 8]} />
-        {railMat}
-      </mesh>
-
-      {/* Right rail */}
-      <mesh position={rightRailPt.toArray()} quaternion={railQuat} castShadow>
-        <cylinderGeometry args={[0.16, 0.20, length, 8]} />
-        {railMat}
-      </mesh>
-
-      {/* Rungs */}
-      {Array.from({ length: numRungs }, (_, i) => {
-        const t      = (i + 1) / (numRungs + 1);
-        const rungPt = new THREE.Vector3().lerpVectors(start, end, t);
+      {/* Planks along bridge walkway */}
+      {Array.from({ length: numPlanks }, (_, i) => {
+        const t       = i / (numPlanks - 1);
+        const plankPt = new THREE.Vector3().lerpVectors(start, end, t);
         return (
-          <mesh key={i} position={rungPt.toArray()} quaternion={rungQuat} castShadow>
-            <cylinderGeometry args={[0.075, 0.075, RAIL_HALF * 2, 6]} />
-            {rungMat}
+          <mesh key={i} position={plankPt.toArray()} quaternion={plankQuat} castShadow receiveShadow>
+            <boxGeometry args={[0.22, 0.08, ROAD_HALF * 2.2]} />
+            {woodMat}
           </mesh>
         );
       })}
 
-      {/* Bottom gold bracket */}
-      <mesh position={start.toArray()} rotation={[-Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[RAIL_HALF * 0.65, 0.075, 6, 14]} />
-        {goldMat}
+      {/* Left rope handrail */}
+      <mesh position={leftRope.toArray()} quaternion={bridgeQuat} castShadow>
+        <cylinderGeometry args={[0.06, 0.06, length, 8]} />
+        {ropeMat}
       </mesh>
 
-      {/* Top gold bracket */}
-      <mesh position={end.toArray()} rotation={[-Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[RAIL_HALF * 0.65, 0.075, 6, 14]} />
-        {goldMat}
+      {/* Right rope handrail */}
+      <mesh position={rightRope.toArray()} quaternion={bridgeQuat} castShadow>
+        <cylinderGeometry args={[0.06, 0.06, length, 8]} />
+        {ropeMat}
       </mesh>
 
-      {/* Glow at base for discoverability */}
-      {opacity > 0.5 && (
-        <pointLight color="#ffd700" intensity={1.2} distance={4} position={start.toArray()} />
-      )}
+      {/* Support posts at start & end */}
+      {[-ROAD_HALF, ROAD_HALF].map((offset, i) => (
+        <React.Fragment key={i}>
+          <mesh position={start.clone().addScaledVector(perpDir, offset).add(new THREE.Vector3(0, 0.25, 0)).toArray()} castShadow>
+            <cylinderGeometry args={[0.09, 0.09, 0.5, 8]} />
+            {postMat}
+          </mesh>
+          <mesh position={end.clone().addScaledVector(perpDir, offset).add(new THREE.Vector3(0, 0.25, 0)).toArray()} castShadow>
+            <cylinderGeometry args={[0.09, 0.09, 0.5, 8]} />
+            {postMat}
+          </mesh>
+        </React.Fragment>
+      ))}
     </group>
   );
 };
@@ -453,10 +451,10 @@ const Dice3D = ({ value, isRolling, tilePos }) => {
     }
   });
 
-  // Dice sits on the tile, offset to front-right
-  const px = tilePos.x + 2.2;
-  const py = TILE_H + 0.7;
-  const pz = tilePos.z + 1.8;
+  // Dice sits on the tile, offset to front-right, scaled down to match character proportion
+  const px = tilePos.x + 1.2;
+  const py = TILE_H + 0.35;
+  const pz = tilePos.z + 1.0;
 
   const pips = DICE_PIPS[value] || DICE_PIPS[1];
 
@@ -464,8 +462,8 @@ const Dice3D = ({ value, isRolling, tilePos }) => {
     <group position={[px, py, pz]}>
       {/* Bounce container */}
       <group ref={diceRef}>
-        {/* Dice body */}
-        <RoundedBox args={[1.28, 1.28, 1.28]} radius={0.24} smoothness={4} castShadow>
+        {/* Dice body - reduced from 1.28 to 0.48 */}
+        <RoundedBox args={[0.48, 0.48, 0.48]} radius={0.09} smoothness={4} castShadow>
           <meshPhysicalMaterial
             color="#fffff8"
             roughness={0.04}
@@ -475,33 +473,33 @@ const Dice3D = ({ value, isRolling, tilePos }) => {
           />
         </RoundedBox>
 
-        {/* TOP face pips (face 1 or whichever is rotated to top) */}
+        {/* TOP face pips */}
         {pips.map(([ox, oz], i) => (
-          <mesh key={i} position={[ox, 0.66, oz]}>
-            <sphereGeometry args={[0.09, 10, 10]} />
+          <mesh key={i} position={[ox * 0.38, 0.25, oz * 0.38]}>
+            <sphereGeometry args={[0.035, 10, 10]} />
             <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
           </mesh>
         ))}
 
-        {/* FRONT face pips — always shows value=2 for depth */}
+        {/* FRONT face pips */}
         {DICE_PIPS[2].map(([ox, oy], i) => (
-          <mesh key={`f${i}`} position={[ox, oy, 0.66]}>
-            <sphereGeometry args={[0.09, 10, 10]} />
+          <mesh key={`f${i}`} position={[ox * 0.38, oy * 0.38, 0.25]}>
+            <sphereGeometry args={[0.035, 10, 10]} />
             <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
           </mesh>
         ))}
 
         {/* RIGHT face pips */}
         {DICE_PIPS[3].map(([oy, oz], i) => (
-          <mesh key={`r${i}`} position={[0.66, oy, oz]}>
-            <sphereGeometry args={[0.09, 10, 10]} />
+          <mesh key={`r${i}`} position={[0.25, oy * 0.38, oz * 0.38]}>
+            <sphereGeometry args={[0.035, 10, 10]} />
             <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
           </mesh>
         ))}
       </group>
 
       {/* Soft golden light */}
-      <pointLight color="#ffe8a0" intensity={1.5} distance={5} position={[0, 1.2, 0]} />
+      <pointLight color="#ffe8a0" intensity={0.8} distance={3} position={[0, 0.6, 0]} />
     </group>
   );
 };
@@ -522,6 +520,7 @@ const Character = ({ player, isActive, slotIndex, visualTarget }) => {
     config: { mass: 2.2, tension: 38, friction: 18 },
   });
 
+  const prevPosRef   = useRef({ x: target.x, z: target.z });
   const charGroupRef = useRef();
   const torsoRef     = useRef();
   const leftLegRef   = useRef();
@@ -534,16 +533,23 @@ const Character = ({ player, isActive, slotIndex, visualTarget }) => {
   useFrame((state, delta) => {
     const curX    = px.get ? px.get() : target.x + slotX;
     const curZ    = pz.get ? pz.get() : target.z + slotZ;
+    
+    // Distance traveled this frame
+    const frameDist = Math.sqrt((curX - prevPosRef.current.x) ** 2 + (curZ - prevPosRef.current.z) ** 2);
+    prevPosRef.current = { x: curX, z: curZ };
+
     const tgtX    = target.x + slotX;
     const tgtZ    = target.z + slotZ;
-    const dist    = Math.sqrt((tgtX - curX) ** 2 + (tgtZ - curZ) ** 2);
-    const moving  = dist > 0.05;
+    const distToTgt = Math.sqrt((tgtX - curX) ** 2 + (tgtZ - curZ) ** 2);
+    const moving  = distToTgt > 0.05;
 
-    if (moving) {
-      walkPhase.current += delta * 4.5;
+    if (moving && frameDist > 0.001) {
+      // Leg stride is tied DIRECTLY to physical distance moved (no sliding!)
+      // Stride length ~ 0.8 units per full leg cycle (2pi radians)
+      walkPhase.current += (frameDist / 0.4);
       const dx = tgtX - curX;
       const dz = tgtZ - curZ;
-      if (Math.abs(dx) + Math.abs(dz) > 0.08) {
+      if (Math.abs(dx) + Math.abs(dz) > 0.05) {
         rotYRef.current = Math.atan2(dx, dz);
       }
     } else {
@@ -910,10 +916,25 @@ export default function SnakeLadder({ user, onBack }) {
         setPlayers([...nextPlayers]);
       } else if (LADDERS[targetPos]) {
         const dest = LADDERS[targetPos];
-        showToast(`🪜 Ladder! ${player.name} climbs ${dest - targetPos} tiles up!`);
-        await new Promise(r => setTimeout(r, 800));
-        curWorldPos = teleportVisually(player.id, dest);
-        player.pos  = dest;
+        showToast(`🌉 Wooden Bridge! ${player.name} slowly crosses to tile ${dest}!`);
+        await new Promise(r => setTimeout(r, 600));
+
+        // Walk SLOWLY across the bridge in 8 sub-steps
+        const fp = getPosition(targetPos);
+        const tp = getPosition(dest);
+        const bridgeSteps = 8;
+        for (let b = 1; b <= bridgeSteps; b++) {
+          const ratio = b / bridgeSteps;
+          const stepPos = {
+            x: fp.x + (tp.x - fp.x) * ratio,
+            y: fp.y + (tp.y - fp.y) * ratio + 0.1,
+            z: fp.z + (tp.z - fp.z) * ratio,
+          };
+          setVisualPositions(prev => ({ ...prev, [player.id]: stepPos }));
+          await new Promise(r => setTimeout(r, 220)); // Slow deliberate steps
+        }
+
+        player.pos = dest;
         nextPlayers[pIdx] = { ...player };
         setPlayers([...nextPlayers]);
       }
