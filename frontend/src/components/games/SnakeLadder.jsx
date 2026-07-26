@@ -336,65 +336,74 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
 
   return (
     <group>
-      {/* OPEN MOUTH / AGGRESSIVE HEAD */}
+      {/* OPEN MOUTH / AGGRESSIVE ORGANIC HEAD */}
       <group ref={headRef} castShadow>
-        {/* Skull / Back of head */}
-        <mesh position={[0, headR * 0.2, headR * 0.2]} castShadow>
-          <sphereGeometry args={[headR * 0.8, 16, 16]} />
+        {/* Main Skull (Sleek, flattened ellipsoid) */}
+        <mesh position={[0, headR * 0.2, headR * 0.1]} scale={[0.8, 0.45, 1.1]} castShadow>
+          <sphereGeometry args={[headR, 32, 16]} />
           {bodyMat}
         </mesh>
         
-        {/* Upper Jaw (Angled UP for bite) */}
-        <mesh position={[0, headR * 0.35, -headR * 0.65]} rotation={[-Math.PI / 2 + 0.3, 0, 0]} castShadow>
-          <cylinderGeometry args={[headR * 0.45, headR * 0.7, headR * 1.5, 12]} />
+        {/* Flared Jaw Muscles (Venom glands) */}
+        <mesh position={[-headR * 0.45, headR * 0.15, headR * 0.5]} rotation={[0, -0.3, 0]} scale={[0.5, 0.4, 0.8]} castShadow>
+          <sphereGeometry args={[headR * 0.7, 16, 16]} />
+          {bodyMat}
+        </mesh>
+        <mesh position={[headR * 0.45, headR * 0.15, headR * 0.5]} rotation={[0, 0.3, 0]} scale={[0.5, 0.4, 0.8]} castShadow>
+          <sphereGeometry args={[headR * 0.7, 16, 16]} />
           {bodyMat}
         </mesh>
         
-        {/* Lower Jaw (Angled DOWN for bite) */}
-        <mesh position={[0, -headR * 0.25, -headR * 0.55]} rotation={[-Math.PI / 2 - 0.3, 0, 0]} castShadow>
-          <cylinderGeometry args={[headR * 0.35, headR * 0.6, headR * 1.3, 12]} />
+        {/* Upper Jaw / Snout (Tapered, flattened, angled up) */}
+        <mesh position={[0, headR * 0.35, -headR * 0.75]} rotation={[-Math.PI / 2 + 0.25, 0, 0]} scale={[0.7, 1.2, 0.35]} castShadow>
+          <cylinderGeometry args={[headR * 0.35, headR * 0.8, headR * 1.6, 16]} />
           {bodyMat}
         </mesh>
         
-        {/* Inside Mouth / Throat */}
-        <mesh position={[0, headR * 0.05, -headR * 0.6]} rotation={[0, 0, 0]}>
-          <boxGeometry args={[headR * 0.7, headR * 0.6, headR * 1.1]} />
-          <meshStandardMaterial color="#2a0000" roughness={0.9} />
+        {/* Lower Jaw (Tapered, flattened, angled down) */}
+        <mesh position={[0, -headR * 0.15, -headR * 0.65]} rotation={[-Math.PI / 2 - 0.25, 0, 0]} scale={[0.6, 1.0, 0.25]} castShadow>
+          <cylinderGeometry args={[headR * 0.25, headR * 0.7, headR * 1.4, 16]} />
+          {bodyMat}
         </mesh>
         
-        {/* Long Fangs (Attached to Upper Jaw, pointing down/forward) */}
-        <mesh position={[-headR * 0.28, headR * 0.1, -headR * 1.25]} rotation={[0.4, 0, -0.1]} castShadow>
-          <coneGeometry args={[headR * 0.08, headR * 0.7, 8]} />
-          <meshStandardMaterial color="#e8eedd" roughness={0.2} metalness={0.1} />
+        {/* Inside Mouth / Dark Throat */}
+        <mesh position={[0, headR * 0.1, -headR * 0.6]} scale={[0.6, 0.4, 1.0]}>
+          <sphereGeometry args={[headR * 0.85, 16, 16]} />
+          <meshStandardMaterial color="#1a0000" roughness={0.9} />
         </mesh>
-        <mesh position={[headR * 0.28, headR * 0.1, -headR * 1.25]} rotation={[0.4, 0, 0.1]} castShadow>
-          <coneGeometry args={[headR * 0.08, headR * 0.7, 8]} />
-          <meshStandardMaterial color="#e8eedd" roughness={0.2} metalness={0.1} />
+        
+        {/* Curved Organic Fangs (Angled backwards) */}
+        <mesh position={[-headR * 0.25, headR * 0.05, -headR * 1.3]} rotation={[0.5, 0, -0.1]} scale={[0.8, 1, 0.8]} castShadow>
+          <coneGeometry args={[headR * 0.12, headR * 0.9, 12]} />
+          <meshStandardMaterial color="#f0f5e5" roughness={0.3} metalness={0.1} />
+        </mesh>
+        <mesh position={[headR * 0.25, headR * 0.05, -headR * 1.3]} rotation={[0.5, 0, 0.1]} scale={[0.8, 1, 0.8]} castShadow>
+          <coneGeometry args={[headR * 0.12, headR * 0.9, 12]} />
+          <meshStandardMaterial color="#f0f5e5" roughness={0.3} metalness={0.1} />
         </mesh>
 
-        {/* Glowing Slit Eyes */}
-        <mesh position={[-headR * 0.45, headR * 0.55, -headR * 0.35]} rotation={[0, -0.3, 0]}>
-          <boxGeometry args={[headR * 0.06, headR * 0.25, headR * 0.2]} />
+        {/* Sleek Glowing Slit Eyes (Ellipsoids) */}
+        <mesh position={[-headR * 0.45, headR * 0.45, -headR * 0.4]} rotation={[0, -0.4, 0.2]} scale={[0.15, 0.7, 0.4]}>
+          <sphereGeometry args={[headR * 0.3, 16, 16]} />
           <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={5} transparent opacity={opacity} />
         </mesh>
-        <mesh position={[headR * 0.45, headR * 0.55, -headR * 0.35]} rotation={[0, 0.3, 0]}>
-          <boxGeometry args={[headR * 0.06, headR * 0.25, headR * 0.2]} />
+        <mesh position={[headR * 0.45, headR * 0.45, -headR * 0.4]} rotation={[0, 0.4, -0.2]} scale={[0.15, 0.7, 0.4]}>
+          <sphereGeometry args={[headR * 0.3, 16, 16]} />
           <meshStandardMaterial color={color.eye} emissive={color.eye} emissiveIntensity={5} transparent opacity={opacity} />
         </mesh>
         
-        {/* Tongue stem (flicking out from throat) */}
-        <mesh position={[0, -headR * 0.1, -headR * 1.1]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
-          <cylinderGeometry args={[headR * 0.04, headR * 0.04, headR * 0.8, 6]} />
-          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
+        {/* Forked Tongue */}
+        <mesh position={[0, -headR * 0.05, -headR * 1.2]} rotation={[-Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[headR * 0.03, headR * 0.04, headR * 0.7, 6]} />
+          <meshStandardMaterial color="#dd0022" roughness={0.4} transparent opacity={opacity} />
         </mesh>
-        {/* Tongue forks */}
-        <mesh position={[-headR * 0.12, -headR * 0.1, -headR * 1.6]} rotation={[-Math.PI / 2, 0, -0.4]} castShadow>
-          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.5, 4]} />
-          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
+        <mesh position={[-headR * 0.1, -headR * 0.05, -headR * 1.65]} rotation={[-Math.PI / 2, 0, -0.4]} castShadow>
+          <cylinderGeometry args={[headR * 0.015, headR * 0.03, headR * 0.4, 6]} />
+          <meshStandardMaterial color="#dd0022" roughness={0.4} transparent opacity={opacity} />
         </mesh>
-        <mesh position={[headR * 0.12, -headR * 0.1, -headR * 1.6]} rotation={[-Math.PI / 2, 0, 0.4]} castShadow>
-          <cylinderGeometry args={[headR * 0.03, headR * 0.03, headR * 0.5, 4]} />
-          <meshStandardMaterial color="#dd0022" emissive="#bb0010" emissiveIntensity={1.8} transparent opacity={opacity} />
+        <mesh position={[headR * 0.1, -headR * 0.05, -headR * 1.65]} rotation={[-Math.PI / 2, 0, 0.4]} castShadow>
+          <cylinderGeometry args={[headR * 0.015, headR * 0.03, headR * 0.4, 6]} />
+          <meshStandardMaterial color="#dd0022" roughness={0.4} transparent opacity={opacity} />
         </mesh>
         
         <pointLight color={color.eye} intensity={isBig ? 6 : 3} distance={isBig ? 10 : 6} position={[0, headR * 0.3, -headR * 0.5]} />
