@@ -31,7 +31,6 @@ export default function SnakeLadder({ user, onBack }) {
   const [roomCode, setRoomCode] = useState('');
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [onlineStatus, setOnlineStatus] = useState('setup'); // setup, waiting, connected, error
-  const [playersJoined, setPlayersJoined] = useState(0);
   const wsRef = useRef(null);
 
   // Refs for async callbacks
@@ -47,7 +46,7 @@ export default function SnakeLadder({ user, onBack }) {
   const initializeGame = (count) => {
     const initialPlayers = [];
     for (let i = 1; i <= count; i++) {
-      let name = Player \;
+      let name = `Player ${i}`;
       if (gameMode === 'single') {
         name = i === 1 ? 'You' : 'Computer';
       }
@@ -108,15 +107,15 @@ export default function SnakeLadder({ user, onBack }) {
     if (player.jailTurns > 0) {
       if (roll === 6) {
         player.jailTurns = 0;
-        turnMessage = \ rolled a 6 and escaped Jail!;
+        turnMessage = `${player.name} rolled a 6 and escaped Jail!`;
         moveToken = true;
       } else {
         player.jailTurns++;
         if (player.jailTurns > 3) {
            player.jailTurns = 0;
-           turnMessage = \ served their time and is released!;
+           turnMessage = `${player.name} served their time and is released!`;
         } else {
-           turnMessage = \ is in Jail (Turn \/3). Needs a 6!;
+           turnMessage = `${player.name} is in Jail (Turn ${player.jailTurns}/3). Needs a 6!`;
         }
       }
     } else {
@@ -127,24 +126,24 @@ export default function SnakeLadder({ user, onBack }) {
       let targetPos = player.pos + roll;
       
       if (targetPos > 100) {
-        turnMessage = \ needs exact roll to win.;
+        turnMessage = `${player.name} needs exact roll to win.`;
         targetPos = player.pos; // Don't move
       } else {
         // Evaluate entities
         if (SNAKES[targetPos]) {
-          turnMessage = \ got bitten by a Snake!;
+          turnMessage = `${player.name} got bitten by a Snake!`;
           targetPos = SNAKES[targetPos];
         } else if (LADDERS[targetPos]) {
-          turnMessage = \ climbed a Ladder!;
+          turnMessage = `${player.name} climbed a Ladder!`;
           targetPos = LADDERS[targetPos];
         } else if (JAILS.includes(targetPos)) {
-          turnMessage = Oh no! \ landed in Jail!;
+          turnMessage = `Oh no! ${player.name} landed in Jail!`;
           player.jailTurns = 1;
         } else if (SPRINGS.includes(targetPos)) {
-          turnMessage = Boing! \ hit a Spring!;
+          turnMessage = `Boing! ${player.name} hit a Spring!`;
           targetPos = Math.min(100, targetPos + 10);
         } else if (TELEPORTS.includes(targetPos)) {
-          turnMessage = Woosh! \ teleported!;
+          turnMessage = `Woosh! ${player.name} teleported!`;
           targetPos = Math.floor(Math.random() * 98) + 2; // Random 2-99
         }
       }
@@ -164,8 +163,6 @@ export default function SnakeLadder({ user, onBack }) {
     }
 
     // Determine next player
-    // If rolled 6, gets another turn, unless they were just in jail and used it to escape.
-    // Actually, to simplify: just pass turn unless game specific rules say 6 = another turn. Let's pass turn.
     let nextCp = cp + 1;
     if (nextCp > nextPlayers.length) nextCp = 1;
     
@@ -235,7 +232,7 @@ export default function SnakeLadder({ user, onBack }) {
   // Online Multiplayer Setup
   const setupWebSocket = (code, expectedCount = 2) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(\//\/api/games/ws/\?expected_players=\);
+    const ws = new WebSocket(`${protocol}//${window.location.host}/api/games/ws/${code}?expected_players=${expectedCount}`);
     
     ws.onopen = () => {
       setOnlineStatus('waiting');
@@ -289,8 +286,6 @@ export default function SnakeLadder({ user, onBack }) {
       return;
     }
     setRoomCode(joinCodeInput.toUpperCase());
-    // Joining players don't need to specify expectedCount, the backend uses the host's count
-    // But passing 2 as fallback is fine since backend sets it on first connection.
     setupWebSocket(joinCodeInput.toUpperCase(), numPlayers);
   };
 
@@ -322,11 +317,11 @@ export default function SnakeLadder({ user, onBack }) {
         }
         
         let entitySymbol = '';
-        if (SNAKES[num]) entitySymbol = '??';
-        else if (LADDERS[num]) entitySymbol = '??';
-        else if (TELEPORTS.includes(num)) entitySymbol = '??';
-        else if (JAILS.includes(num)) entitySymbol = '??';
-        else if (SPRINGS.includes(num)) entitySymbol = '??';
+        if (SNAKES[num]) entitySymbol = '🐍';
+        else if (LADDERS[num]) entitySymbol = '🪜';
+        else if (TELEPORTS.includes(num)) entitySymbol = '🌀';
+        else if (JAILS.includes(num)) entitySymbol = '🚔';
+        else if (SPRINGS.includes(num)) entitySymbol = '🪀';
 
         row.push(
           <div key={num} className="w-10 h-10 sm:w-16 sm:h-16 border border-glass-stroke/50 flex flex-col items-center justify-center relative bg-surface-variant/20 hover:bg-surface-variant/40 transition-colors">
@@ -467,7 +462,7 @@ export default function SnakeLadder({ user, onBack }) {
           <div>
             <h1 className="font-display-lg text-3xl font-bold text-on-surface tracking-tight">Snake & Ladder</h1>
             <p className="font-label-md text-on-surface-variant">
-              {gameMode === 'single' ? 'Single Player vs AI' : gameMode === 'local' ? 'Local Multiplayer' : Online - Room }
+              {gameMode === 'single' ? 'Single Player vs AI' : gameMode === 'local' ? 'Local Multiplayer' : `Online - Room ${roomCode}`}
             </p>
           </div>
         </div>
@@ -499,7 +494,7 @@ export default function SnakeLadder({ user, onBack }) {
             
             <div className="flex flex-col gap-3">
               {players.map(p => (
-                <div key={p.id} className={lex items-center justify-between p-3 rounded-xl border transition-all }>
+                <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${currentPlayer === p.id && !winner ? 'border-white shadow-[0_0_10px_rgba(255,255,255,0.2)] bg-white/10 scale-105' : 'border-glass-stroke bg-black/20'}`}>
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full shadow-md" style={{ backgroundColor: p.color }}></div>
                     <span className="font-bold text-on-surface">{p.name}</span>
@@ -524,7 +519,7 @@ export default function SnakeLadder({ user, onBack }) {
             
             {!winner && (
               <div className="mt-8 flex flex-col items-center">
-                 <div className={w-24 h-24 flex items-center justify-center rounded-2xl bg-glass-fill border-2 border-glass-stroke text-5xl font-black mb-6 shadow-glass }>
+                 <div className={`w-24 h-24 flex items-center justify-center rounded-2xl bg-glass-fill border-2 border-glass-stroke text-5xl font-black mb-6 shadow-glass ${isRolling ? 'animate-spin' : ''}`}>
                     {diceValue}
                  </div>
                  
