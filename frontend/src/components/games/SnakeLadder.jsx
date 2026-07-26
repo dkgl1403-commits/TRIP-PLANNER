@@ -726,7 +726,7 @@ const Character = ({ player, isActive, slotIndex, visualTarget }) => {
     px: target.x + slotX,
     py: target.y + TILE_H / 2 + 0.02,
     pz: target.z + slotZ,
-    config: { mass: 2.2, tension: 38, friction: 18 },
+    config: { mass: 1, tension: 170, friction: 26 },
   });
 
   const prevPosRef   = useRef({ x: target.x, z: target.z });
@@ -1000,6 +1000,33 @@ const Fireflies = ({ activePos }) => {
 };
 
 // ==========================================
+// FADING ROLL ANNOUNCEMENT
+// ==========================================
+
+const FadingAnnouncement = ({ value, position }) => {
+  const [opacity, setOpacity] = useState(1);
+  const materialRef = useRef();
+
+  useFrame((_, delta) => {
+    if (materialRef.current && opacity > 0) {
+      materialRef.current.opacity -= delta * 0.55; // Fade over ~1.8 seconds
+      if (materialRef.current.opacity <= 0) setOpacity(0);
+    }
+  });
+
+  if (opacity <= 0) return null;
+
+  return (
+    <group position={[position.x, position.y + 4.5, position.z]} rotation={[-Math.PI / 8, 0, 0]}>
+      <Text fontSize={2.8} anchorX="center" anchorY="middle" outlineWidth={0.08} outlineColor="#2b1100" fontWeight="bold">
+        {value}
+        <meshBasicMaterial ref={materialRef} attach="material" color="#ffd700" transparent opacity={1} />
+      </Text>
+    </group>
+  );
+};
+
+// ==========================================
 // JUNGLE SCENE
 // ==========================================
 
@@ -1083,11 +1110,7 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
       
       {/* Roll Announcement */}
       {diceValue != null && !isRolling && (
-        <group position={[activePos.x, activePos.y + 4.5, activePos.z]} rotation={[-Math.PI / 8, 0, 0]}>
-          <Text fontSize={2.2} color="#ffd700" anchorX="center" anchorY="middle" outlineWidth={0.08} outlineColor="#2b1100" fontWeight="bold">
-            {diceValue}
-          </Text>
-        </group>
+        <FadingAnnouncement key={`roll-${diceValue}`} value={diceValue} position={diceWorldPos} />
       )}
 
       {/* Characters */}
@@ -1268,12 +1291,27 @@ export default function SnakeLadder({ user, onBack }) {
     } else {
       let curWorldPos = visualPositions[player.id] || getPosition(Math.max(player.pos, 0));
 
+      const pathPoints = [new THREE.Vector3(curWorldPos.x, curWorldPos.y, curWorldPos.z)];
       for (let step = player.pos + 1; step <= targetPos; step++) {
-        curWorldPos = await moveVisually(player.id, curWorldPos, step);
-        player.pos  = step;
-        nextPlayers[pIdx] = { ...player };
-        setPlayers([...nextPlayers]);
+        const pt = getPosition(step);
+        pathPoints.push(new THREE.Vector3(pt.x, pt.y, pt.z));
       }
+
+      if (pathPoints.length > 1) {
+        const curve = new THREE.CatmullRomCurve3(pathPoints);
+        const walkSteps = Math.max(15, (targetPos - player.pos) * 14); // Cinematic frame count
+        
+        for (let s = 1; s <= walkSteps; s++) {
+          const ratio = s / walkSteps;
+          const stepPt = curve.getPoint(ratio);
+          setVisualPositions(prev => ({ ...prev, [player.id]: { x: stepPt.x, y: stepPt.y, z: stepPt.z } }));
+          await new Promise(r => setTimeout(r, 45)); // Smooth interpolation
+        }
+      }
+
+      player.pos = targetPos;
+      nextPlayers[pIdx] = { ...player };
+      setPlayers([...nextPlayers]);
 
       if (snakesRef.current[targetPos]) {
         const dest = snakesRef.current[targetPos];
