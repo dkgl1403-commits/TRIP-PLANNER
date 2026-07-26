@@ -15,7 +15,9 @@ load_dotenv(dotenv_path="../.env", override=False)
 app = FastAPI(title="Event Planner API")
 
 from hr_analytics.api import router as hr_router
+from games.socket_manager import router as games_router
 app.include_router(hr_router)
+app.include_router(games_router, prefix="/api/games")
 
 @app.on_event("startup")
 def startup_event():
