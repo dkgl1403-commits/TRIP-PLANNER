@@ -26,11 +26,13 @@ export default function DotsAndBoxes({ user, onBack }) {
   const hLinesRef = useRef(hLines);
   const vLinesRef = useRef(vLines);
   const boxesRef = useRef(boxes);
+  const myPlayerIdRef = useRef(myPlayerId);
 
   // Update refs when state changes
   useEffect(() => { hLinesRef.current = hLines; }, [hLines]);
   useEffect(() => { vLinesRef.current = vLines; }, [vLines]);
   useEffect(() => { boxesRef.current = boxes; }, [boxes]);
+  useEffect(() => { myPlayerIdRef.current = myPlayerId; }, [myPlayerId]);
 
   // Helper to deep copy arrays
   const copy2D = (arr) => arr.map(row => [...row]);
@@ -217,7 +219,7 @@ export default function DotsAndBoxes({ user, onBack }) {
         setMyPlayerId(data.player);
       } else if (data.type === 'move') {
         // Apply opponent's move
-        if (data.player !== myPlayerId) {
+        if (data.player !== myPlayerIdRef.current) {
           applyMove(data.r, data.c, data.lineType, data.player);
         }
       } else if (data.type === 'player_disconnected') {
