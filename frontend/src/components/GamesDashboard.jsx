@@ -9,7 +9,7 @@ export default function GamesDashboard({ onBack }) {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-6 animate-fade-in relative z-10 overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-6 pt-28 animate-fade-in relative z-10 overflow-y-auto">
       <div className="flex items-center gap-4 mb-8">
         <button 
           onClick={onBack}

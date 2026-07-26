@@ -374,7 +374,7 @@ export default function DotsAndBoxes({ onBack }) {
 
   const renderSetupScreen = () => {
     return (
-      <div className="w-full h-full flex flex-col p-6 animate-fade-in relative z-10 overflow-y-auto">
+      <div className="w-full h-full flex flex-col p-6 pt-28 animate-fade-in relative z-10 overflow-y-auto">
         <div className="flex items-center gap-4 mb-8">
           <button onClick={onBack} className="p-2 rounded-xl bg-glass-fill border border-glass-stroke text-on-surface-variant hover:text-neon-coral hover:border-neon-coral/50 transition-all shadow-glass">
             <span className="material-symbols-outlined">arrow_back</span>
@@ -410,7 +410,7 @@ export default function DotsAndBoxes({ onBack }) {
 
   const renderOnlineSetup = () => {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center p-6 animate-fade-in relative z-10">
+      <div className="w-full h-full flex flex-col items-center justify-center p-6 pt-28 animate-fade-in relative z-10">
         <div className="bg-surface-container border border-glass-stroke rounded-3xl p-8 shadow-glass max-w-md w-full text-center">
           <h2 className="font-display-lg text-3xl font-bold mb-6">Online Multiplayer</h2>
           
@@ -473,7 +473,7 @@ export default function DotsAndBoxes({ onBack }) {
   if (gameMode === 'online' && onlineStatus !== 'connected') return renderOnlineSetup();
 
   return (
-    <div className="w-full h-full flex flex-col p-6 animate-fade-in relative z-10 overflow-y-auto">
+    <div className="w-full h-full flex flex-col p-6 pt-28 animate-fade-in relative z-10 overflow-y-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <button 
