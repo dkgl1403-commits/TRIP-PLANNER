@@ -15,13 +15,21 @@ const COLORS = ['#FF4D4D', '#3399FF', '#FFCC00', '#00CC66', '#9933FF'];
 
 // --- Helper Math: Map cell number to 3D Vector3 position ---
 const getPosition = (num) => {
+  if (num === 0) {
+    // Starting Platform (left of tile 1)
+    const x = (0 * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) - (TILE_SIZE * 0.8);
+    const z = ((9 - 0) * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) + (TILE_SIZE / 2);
+    return new THREE.Vector3(x, 0.5, z);
+  }
+
   const row = Math.floor((num - 1) / 10);
   let col = (num - 1) % 10;
   if (row % 2 !== 0) col = 9 - col; // Zig-zag logic
   
   // Center the board around 0,0,0
   const x = (col * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) + (TILE_SIZE / 2);
-  const z = (row * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) + (TILE_SIZE / 2);
+  // Invert Z so row 0 is at the bottom (positive Z) and row 9 is at the top (negative Z)
+  const z = ((9 - row) * TILE_SIZE) - (GRID_SIZE * TILE_SIZE / 2) + (TILE_SIZE / 2);
   const y = 0.5; // Height of the tile
   
   return new THREE.Vector3(x, y, z);
@@ -65,7 +73,31 @@ const Board = () => {
     return arr;
   }, []);
 
-  return <group>{tiles}</group>;
+  const startPos = getPosition(0);
+
+  return (
+    <group>
+      {tiles}
+      {/* Starting Platform */}
+      <group position={[startPos.x, startPos.y - 0.5, startPos.z]}>
+        <mesh receiveShadow>
+          <cylinderGeometry args={[2, 2, 0.5, 32]} />
+          <meshPhysicalMaterial color="#22223b" metalness={0.5} roughness={0.3} />
+        </mesh>
+        <Text
+          position={[0, 0.26, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          fontSize={0.8}
+          color="#ff006e"
+          anchorX="center"
+          anchorY="middle"
+          font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf"
+        >
+          START
+        </Text>
+      </group>
+    </group>
+  );
 };
 
 const Token = ({ player, isActive }) => {
@@ -211,7 +243,7 @@ export default function SnakeLadder({ user, onBack }) {
     for (let i = 1; i <= count; i++) {
       let name = `Player ${i}`;
       if (gameMode === 'single') name = i === 1 ? 'You' : 'Computer';
-      initialPlayers.push({ id: i, pos: 1, color: COLORS[i-1], name });
+      initialPlayers.push({ id: i, pos: 0, color: COLORS[i-1], name });
     }
     setPlayers(initialPlayers);
     setCurrentPlayer(1);
