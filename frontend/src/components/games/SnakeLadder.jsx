@@ -5,8 +5,8 @@ const GRID_SIZE = 10;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
 // Initial Entities (Only Snakes and Ladders now)
-const INITIAL_SNAKES = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
-const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
+const INITIAL_SNAKES = { 99: 12, 72: 22, 30: 10, 52: 23 };
+const LADDERS = { 3: 25, 35: 82, 48: 71, 20: 81 };
 
 const COLORS = ['#FF6B6B', '#4D9DE0', '#F9DC5C', '#84DCC6', '#A5668B'];
 
@@ -333,13 +333,13 @@ export default function SnakeLadder({ user, onBack }) {
       return (
         <g key={`snake-${start}-${end}`} className="transition-all duration-[2000ms] ease-in-out snake-group">
           {/* Shadow */}
-          <path d={dPath} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="8" transform="translate(2, 2)" className="snake-path transition-all duration-[2000ms]" />
+          <path d={dPath} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="3" transform="translate(1, 1)" className="snake-path transition-all duration-[2000ms]" />
           {/* Body */}
-          <path d={dPath} fill="none" stroke="#E63946" strokeWidth="6" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
+          <path d={dPath} fill="none" stroke="#E63946" strokeWidth="2" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
           {/* Pattern */}
-          <path d={dPath} fill="none" stroke="#FFE66D" strokeWidth="2" strokeDasharray="4 6" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
+          <path d={dPath} fill="none" stroke="#FFE66D" strokeWidth="0.5" strokeDasharray="2 3" strokeLinecap="round" className="snake-path transition-all duration-[2000ms]" />
           {/* Head */}
-          <circle cx={s.cx} cy={s.cy} r="4" fill="#E63946" className="transition-all duration-[2000ms]" />
+          <circle cx={s.cx} cy={s.cy} r="1.5" fill="#E63946" className="transition-all duration-[2000ms]" />
         </g>
       );
     });
@@ -353,8 +353,8 @@ export default function SnakeLadder({ user, onBack }) {
       const dx = e.cx - s.cx;
       const dy = e.cy - s.cy;
       const length = Math.sqrt(dx*dx + dy*dy);
-      const perpX = (-dy / length) * 2; 
-      const perpY = (dx / length) * 2;
+      const perpX = (-dy / length) * 0.5; 
+      const perpY = (dx / length) * 0.5;
 
       const rungs = [];
       const numRungs = Math.floor(length / 5);
@@ -363,14 +363,14 @@ export default function SnakeLadder({ user, onBack }) {
         const rx = s.cx + dx * ratio;
         const ry = s.cy + dy * ratio;
         rungs.push(
-          <line key={i} x1={rx - perpX} y1={ry - perpY} x2={rx + perpX} y2={ry + perpY} stroke="#8B4513" strokeWidth="2" />
+          <line key={i} x1={rx - perpX} y1={ry - perpY} x2={rx + perpX} y2={ry + perpY} stroke="#8B4513" strokeWidth="0.5" />
         );
       }
 
       return (
         <g key={`ladder-${start}`}>
-          <line x1={s.cx - perpX} y1={s.cy - perpY} x2={e.cx - perpX} y2={e.cy - perpY} stroke="#A0522D" strokeWidth="3" strokeLinecap="round" />
-          <line x1={s.cx + perpX} y1={s.cy + perpY} x2={e.cx + perpX} y2={e.cy + perpY} stroke="#A0522D" strokeWidth="3" strokeLinecap="round" />
+          <line x1={s.cx - perpX} y1={s.cy - perpY} x2={e.cx - perpX} y2={e.cy - perpY} stroke="#A0522D" strokeWidth="1" strokeLinecap="round" />
+          <line x1={s.cx + perpX} y1={s.cy + perpY} x2={e.cx + perpX} y2={e.cy + perpY} stroke="#A0522D" strokeWidth="1" strokeLinecap="round" />
           {rungs}
         </g>
       );
@@ -554,13 +554,13 @@ export default function SnakeLadder({ user, onBack }) {
           )}
           
           {!winner && (
-            <div className="mt-4 flex flex-col items-center perspective-[1000px]">
+            <div className="mt-4 flex flex-col items-center perspective-[800px]">
                {/* 3D Dice */}
-               <div className={`dice-container w-24 h-24 relative transform-style-3d transition-transform duration-1000 ease-in-out mb-8 ${isRolling && !isMigrating ? 'animate-roll' : ''}`} style={{ transform: isRolling && !isMigrating ? 'rotateX(720deg) rotateY(1080deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
+               <div className={`dice-container w-12 h-12 relative transform-style-3d transition-transform duration-700 ease-in-out mb-6 ${isRolling && !isMigrating ? 'animate-roll' : ''}`} style={{ transform: isRolling && !isMigrating ? 'rotateX(360deg) rotateY(360deg)' : `rotateX(${diceValue === 1 ? '0deg' : diceValue === 6 ? '180deg' : diceValue === 2 ? '-90deg' : diceValue === 5 ? '90deg' : '0deg'}) rotateY(${diceValue === 3 ? '-90deg' : diceValue === 4 ? '90deg' : '0deg'})` }}>
                  {[1,2,3,4,5,6].map(face => (
-                   <div key={face} className={`absolute w-full h-full bg-glass-fill border border-glass-stroke shadow-glass rounded-xl flex items-center justify-center text-4xl font-black text-on-surface
-                     ${face===1?'translate-z-12':face===6?'-translate-z-12 rotate-x-180':face===2?'rotate-x-90 translate-z-12':face===5?'-rotate-x-90 translate-z-12':face===3?'rotate-y-90 translate-z-12':'-rotate-y-90 translate-z-12'}
-                   `} style={{ transform: `rotateX(${face===2?'90deg':face===5?'-90deg':face===6?'180deg':'0deg'}) rotateY(${face===3?'90deg':face===4?'-90deg':'0deg'}) translateZ(48px)` }}>
+                   <div key={face} className={`absolute w-full h-full bg-glass-fill border border-glass-stroke shadow-glass rounded-xl flex items-center justify-center text-2xl font-black text-on-surface
+                     ${face===1?'translate-z-6':face===6?'-translate-z-6 rotate-x-180':face===2?'rotate-x-90 translate-z-6':face===5?'-rotate-x-90 translate-z-6':face===3?'rotate-y-90 translate-z-6':'-rotate-y-90 translate-z-6'}
+                   `} style={{ transform: `rotateX(${face===2?'90deg':face===5?'-90deg':face===6?'180deg':'0deg'}) rotateY(${face===3?'90deg':face===4?'-90deg':'0deg'}) translateZ(24px)` }}>
                      {isRolling && !isMigrating ? '?' : face}
                    </div>
                  ))}
@@ -579,8 +579,8 @@ export default function SnakeLadder({ user, onBack }) {
           {/* Inline styles */}
           <style dangerouslySetInnerHTML={{__html: `
             .transform-style-3d { transform-style: preserve-3d; }
-            .translate-z-12 { transform: translateZ(3rem); }
-            .-translate-z-12 { transform: translateZ(-3rem); }
+            .translate-z-6 { transform: translateZ(1.5rem); }
+            .-translate-z-6 { transform: translateZ(-1.5rem); }
             .rotate-x-180 { transform: rotateX(180deg); }
             .rotate-x-90 { transform: rotateX(90deg); }
             .-rotate-x-90 { transform: rotateX(-90deg); }
@@ -588,11 +588,12 @@ export default function SnakeLadder({ user, onBack }) {
             .-rotate-y-90 { transform: rotateY(-90deg); }
             
             @keyframes roll {
-               0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-               50% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg) translateY(-50px); }
-               100% { transform: rotateX(1080deg) rotateY(1080deg) rotateZ(360deg); }
+               0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
+               30% { transform: rotateX(180deg) rotateY(90deg) rotateZ(45deg) translateY(-20px) scale(1.1); }
+               70% { transform: rotateX(360deg) rotateY(270deg) rotateZ(90deg) translateY(-10px) scale(1.05); }
+               100% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg) translateY(0) scale(1); }
             }
-            .animate-roll { animation: roll 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+            .animate-roll { animation: roll 1s ease-out forwards; }
 
             @keyframes wriggle {
                0% { stroke-dashoffset: 0; }
