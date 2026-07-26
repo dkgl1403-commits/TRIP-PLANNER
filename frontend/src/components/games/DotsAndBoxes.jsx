@@ -20,6 +20,7 @@ export default function DotsAndBoxes({ user, onBack }) {
 
   // Online / AI Specific State
   const [myPlayerId, setMyPlayerId] = useState(1); // 1 or 2
+  const [opponentId, setOpponentId] = useState('');
   const wsRef = useRef(null);
 
   // Refs for state that is accessed in async callbacks (WebSockets, timeouts)
@@ -217,6 +218,13 @@ export default function DotsAndBoxes({ user, onBack }) {
         setOnlineStatus('connected');
       } else if (data.type === 'player_assignment') {
         setMyPlayerId(data.player);
+        if (wsRef.current && user) {
+          wsRef.current.send(JSON.stringify({ type: 'identify', player: data.player, userId: user.login_id }));
+        }
+      } else if (data.type === 'identify') {
+        if (data.player !== myPlayerIdRef.current) {
+          setOpponentId(data.userId);
+        }
       } else if (data.type === 'move') {
         // Apply opponent's move
         if (data.player !== myPlayerIdRef.current) {
@@ -610,14 +618,14 @@ export default function DotsAndBoxes({ user, onBack }) {
             <div className="flex justify-between items-center bg-black/20 p-4 rounded-xl border border-glass-stroke mb-4">
               <div className={`flex flex-col items-center ${currentPlayer === 1 ? 'text-[#FF6B6B] scale-110' : 'text-on-surface-variant'} transition-all`}>
                 <span className="font-title-lg font-bold">
-                  {gameMode === 'single' ? 'You' : gameMode === 'online' && myPlayerId === 1 ? 'You' : 'Player 1'}
+                  {gameMode === 'single' ? 'You' : gameMode === 'online' ? (myPlayerId === 1 ? (user?.login_id || 'You') : (opponentId || 'Player 1')) : 'Player 1'}
                 </span>
                 <span className="text-4xl font-display-lg">{scores[1]}</span>
               </div>
               <div className="text-xl font-bold text-on-surface-variant">VS</div>
               <div className={`flex flex-col items-center ${currentPlayer === 2 ? 'text-[#4D9DE0] scale-110' : 'text-on-surface-variant'} transition-all`}>
                 <span className="font-title-lg font-bold">
-                  {gameMode === 'single' ? 'Computer' : gameMode === 'online' && myPlayerId === 2 ? 'You' : 'Player 2'}
+                  {gameMode === 'single' ? 'Computer' : gameMode === 'online' ? (myPlayerId === 2 ? (user?.login_id || 'You') : (opponentId || 'Player 2')) : 'Player 2'}
                 </span>
                 <span className="text-4xl font-display-lg">{scores[2]}</span>
               </div>
@@ -636,7 +644,7 @@ export default function DotsAndBoxes({ user, onBack }) {
                 <h3 className="text-2xl font-display-lg text-on-surface mb-2">Game Over!</h3>
                 <p className="text-lg font-title-md">
                   {winner === 'tie' ? "It's a Tie!" : <span className={winner === 1 ? 'text-[#FF6B6B]' : 'text-[#4D9DE0]'}>
-                    {winner === myPlayerId && gameMode !== 'local' ? 'You Win!' : gameMode === 'single' ? 'Computer Wins!' : `Player ${winner} Wins!`}
+                    {winner === myPlayerId && gameMode === 'online' ? 'You Win!' : gameMode === 'single' && winner === 2 ? 'Computer Wins!' : gameMode === 'single' && winner === 1 ? 'You Win!' : gameMode === 'online' ? (opponentId ? `${opponentId} Wins!` : `Player ${winner} Wins!`) : `Player ${winner} Wins!`}
                   </span>}
                 </p>
               </div>
