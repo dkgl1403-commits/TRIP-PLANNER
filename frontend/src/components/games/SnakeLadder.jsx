@@ -13,6 +13,44 @@ const TILE_SIZE = 4.5;
 const TILE_H    = 0.55;
 const FOG_R     = 3.2;
 
+// ==========================================
+// PROCEDURAL TEXTURES
+// ==========================================
+
+const createNoiseTexture = (baseColor, isGrass) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.fillStyle = baseColor;
+  ctx.fillRect(0, 0, 256, 256);
+  
+  const count = isGrass ? 8000 : 5000;
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * 256;
+    const y = Math.random() * 256;
+    if (isGrass) {
+      ctx.fillStyle = `rgba(${20 + Math.random() * 30}, ${60 + Math.random() * 60}, ${20 + Math.random() * 30}, ${0.3 + Math.random() * 0.4})`;
+      ctx.fillRect(x, y, Math.random() * 2 + 1, Math.random() * 6 + 2);
+    } else {
+      const dark = Math.random() > 0.5;
+      ctx.fillStyle = dark ? `rgba(30, 20, 10, ${Math.random() * 0.4})` : `rgba(70, 50, 30, ${Math.random() * 0.3})`;
+      const size = Math.random() * 3 + 1;
+      ctx.fillRect(x, y, size, size);
+    }
+  }
+  
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(isGrass ? 2 : 1.5, isGrass ? 2 : 1.5);
+  return tex;
+};
+
+const grassTex = createNoiseTexture('#1b3b22', true);
+const mudTex = createNoiseTexture('#2e1f14', false);
+
 const COLORS = ['#e63946', '#4361ee', '#2dc653', '#8338ec', '#fb8500'];
 
 const LADDERS = { 4: 14, 9: 31, 20: 38, 28: 84, 40: 59, 51: 67, 63: 81, 71: 91 };
@@ -116,12 +154,11 @@ const Tile = React.memo(({ number, playerRow, playerCol, isPlayerHere }) => {
   const opacity  = dist > FOG_R - 1 ? Math.max(0.15, 1 - (dist - (FOG_R - 1))) : 1;
   const isAlt    = (row + col) % 2 === 0;
   const pos      = getPosition(number);
-  const tileCol  = isAlt ? '#1b5e2e' : '#2e3b1f';
 
   return (
     <group position={[pos.x, 0, pos.z]}>
       <RoundedBox args={[TILE_SIZE - 0.25, TILE_H, TILE_SIZE - 0.25]} radius={0.08} castShadow receiveShadow>
-        <meshStandardMaterial color={tileCol} roughness={0.65} metalness={0.08} transparent={opacity < 1} opacity={opacity} />
+        <meshStandardMaterial map={isAlt ? grassTex : mudTex} roughness={0.9} metalness={0.05} transparent={opacity < 1} opacity={opacity} />
       </RoundedBox>
 
       <mesh position={[0, TILE_H / 2 + 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -169,10 +206,28 @@ const StartPlatform = () => {
 
   return (
     <group position={pos}>
-      <RoundedBox args={[TILE_SIZE - 0.25, TILE_H * 0.7, TILE_SIZE - 0.25]} radius={0.06} castShadow receiveShadow>
-        <meshStandardMaterial color="#4a3728" roughness={0.92} metalness={0} />
-      </RoundedBox>
-      <Text position={[0, TILE_H * 0.35 + 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.72} color="#ffd700" fontWeight="bold" anchorX="center" anchorY="middle" outlineWidth={0.04} outlineColor="#000">
+      {/* Stone Dais */}
+      <mesh position={[0, TILE_H * 0.35, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[TILE_SIZE * 0.85, TILE_SIZE * 0.95, TILE_H * 0.7, 32]} />
+        <meshStandardMaterial color="#6b7075" roughness={0.9} metalness={0.1} />
+      </mesh>
+      
+      {/* Paved Stepping Stones connecting Dais to Tile 1 */}
+      {Array.from({ length: 3 }, (_, i) => {
+        const stepPos = new THREE.Vector3().lerpVectors(
+          new THREE.Vector3(0, 0, 0), 
+          new THREE.Vector3(TILE_SIZE, 0, -TILE_SIZE), 
+          (i + 1) / 4
+        );
+        return (
+          <mesh key={`step-${i}`} position={[stepPos.x, TILE_H * 0.2, stepPos.z]} rotation={[0, Math.random(), 0]} castShadow receiveShadow>
+            <boxGeometry args={[1.6, TILE_H * 0.4, 1.2]} />
+            <meshStandardMaterial color="#555a5e" roughness={0.95} />
+          </mesh>
+        );
+      })}
+
+      <Text position={[0, TILE_H * 0.7 + 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.72} color="#ffd700" fontWeight="bold" anchorX="center" anchorY="middle" outlineWidth={0.04} outlineColor="#000">
         START
       </Text>
       <pointLight position={[0, 1.8, 0]} color="#ffd700" intensity={2} distance={6} />
@@ -599,36 +654,51 @@ const Dice3D = ({ value, isRolling, tilePos }) => {
     <group position={[px, py, pz]}>
       {/* Bounce container */}
       <group ref={diceRef}>
-        {/* Dice body - reduced from 1.28 to 0.48 */}
+        {/* Dice body */}
         <RoundedBox args={[0.48, 0.48, 0.48]} radius={0.09} smoothness={4} castShadow>
-          <meshPhysicalMaterial
-            color="#fffff8"
-            roughness={0.04}
-            metalness={0.08}
-            clearcoat={1}
-            clearcoatRoughness={0.04}
-          />
+          <meshPhysicalMaterial color="#fffff8" roughness={0.04} metalness={0.08} clearcoat={1} clearcoatRoughness={0.04} />
         </RoundedBox>
 
-        {/* TOP face pips */}
-        {pips.map(([ox, oz], i) => (
-          <mesh key={i} position={[ox * 0.38, 0.25, oz * 0.38]}>
+        {/* TOP face (1) */}
+        {DICE_PIPS[1].map(([ox, oz], i) => (
+          <mesh key={`t${i}`} position={[ox * 0.38, 0.25, oz * 0.38]}>
+            <sphereGeometry args={[0.035, 10, 10]} />
+            <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
+          </mesh>
+        ))}
+        {/* BOTTOM face (6) */}
+        {DICE_PIPS[6].map(([ox, oz], i) => (
+          <mesh key={`b${i}`} position={[ox * 0.38, -0.25, oz * 0.38]}>
             <sphereGeometry args={[0.035, 10, 10]} />
             <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
           </mesh>
         ))}
 
-        {/* FRONT face pips */}
+        {/* FRONT face (2) */}
         {DICE_PIPS[2].map(([ox, oy], i) => (
           <mesh key={`f${i}`} position={[ox * 0.38, oy * 0.38, 0.25]}>
             <sphereGeometry args={[0.035, 10, 10]} />
             <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
           </mesh>
         ))}
+        {/* BACK face (5) */}
+        {DICE_PIPS[5].map(([ox, oy], i) => (
+          <mesh key={`bk${i}`} position={[ox * 0.38, oy * 0.38, -0.25]}>
+            <sphereGeometry args={[0.035, 10, 10]} />
+            <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
+          </mesh>
+        ))}
 
-        {/* RIGHT face pips */}
+        {/* RIGHT face (3) */}
         {DICE_PIPS[3].map(([oy, oz], i) => (
           <mesh key={`r${i}`} position={[0.25, oy * 0.38, oz * 0.38]}>
+            <sphereGeometry args={[0.035, 10, 10]} />
+            <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
+          </mesh>
+        ))}
+        {/* LEFT face (4) */}
+        {DICE_PIPS[4].map(([oy, oz], i) => (
+          <mesh key={`l${i}`} position={[-0.25, oy * 0.38, oz * 0.38]}>
             <sphereGeometry args={[0.035, 10, 10]} />
             <meshStandardMaterial color="#4a0e0e" roughness={0.5} />
           </mesh>
@@ -801,14 +871,15 @@ const CameraRig = ({ targetPos }) => {
 const JungleTrees = () => {
   const trees = useMemo(() => {
     const list = [];
-    // Generate surrounding trees along outer perimeter of the 10x10 board
+    // Generate surrounding trees strictly along outer perimeter of the 10x10 board
     for (let i = 0; i < 28; i++) {
       const angle = (i / 28) * Math.PI * 2;
       const dist  = 26 + (i % 3) * 4;
       const x     = Math.cos(angle) * dist;
       const z     = Math.sin(angle) * dist;
       const scale = 0.8 + (i % 4) * 0.3;
-      list.push({ x, z, scale, key: i });
+      const rotY  = -angle + Math.PI / 2; // Face towards the center (0,0,0)
+      list.push({ x, z, scale, rotY, key: i });
     }
     return list;
   }, []);
@@ -816,27 +887,70 @@ const JungleTrees = () => {
   return (
     <group>
       {trees.map(t => (
-        <group key={t.key} position={[t.x, 0, t.z]} scale={[t.scale, t.scale, t.scale]}>
-          {/* Trunk */}
-          <mesh position={[0, 6, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[0.7, 1.2, 12, 8]} />
-            <meshStandardMaterial color="#3a2312" roughness={0.95} />
-          </mesh>
-          {/* Canopy Tier 1 */}
-          <mesh position={[0, 11, 0]} castShadow>
-            <coneGeometry args={[5.5, 7, 8]} />
-            <meshStandardMaterial color="#1b4d24" roughness={0.8} />
-          </mesh>
-          {/* Canopy Tier 2 */}
-          <mesh position={[0, 14, 0]} castShadow>
-            <coneGeometry args={[4.2, 6, 8]} />
-            <meshStandardMaterial color="#2d6a36" roughness={0.75} />
-          </mesh>
-          {/* Hanging jungle vine */}
-          <mesh position={[1.5, 7, 0]} rotation={[0, 0, 0.1]}>
-            <cylinderGeometry args={[0.08, 0.05, 7, 6]} />
-            <meshStandardMaterial color="#1a3a1e" roughness={0.9} />
-          </mesh>
+        <group key={t.key} position={[t.x, 0, t.z]} scale={[t.scale, t.scale, t.scale]} rotation={[0, t.rotY, 0]}>
+          <group rotation={[-Math.PI / 10, 0, 0]}> {/* Lean inward towards the board */}
+            {/* Thin Main Trunk */}
+            <mesh position={[0, 8, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.3, 0.6, 16, 8]} />
+              <meshStandardMaterial color="#3a2312" roughness={0.95} />
+            </mesh>
+            
+            {/* Branch 1 (Leaning forward/over) */}
+            <mesh position={[0, 13, 2]} rotation={[0.4, 0, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.15, 0.3, 8, 8]} />
+              <meshStandardMaterial color="#3a2312" roughness={0.95} />
+            </mesh>
+
+            {/* Branch 2 (Leaning right/over) */}
+            <mesh position={[1.5, 11, 0]} rotation={[0, 0, -0.6]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.15, 0.25, 6, 8]} />
+              <meshStandardMaterial color="#3a2312" roughness={0.95} />
+            </mesh>
+
+            {/* Branch 3 (Leaning left) */}
+            <mesh position={[-1.2, 12, 0.5]} rotation={[0.2, 0, 0.5]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.1, 0.2, 5, 8]} />
+              <meshStandardMaterial color="#3a2312" roughness={0.95} />
+            </mesh>
+
+            {/* Main Canopy */}
+            <mesh position={[0, 16, 0]} castShadow>
+              <coneGeometry args={[4.5, 6, 8]} />
+              <meshStandardMaterial color="#1b4d24" roughness={0.8} />
+            </mesh>
+            {/* Front Canopy (Over the board) */}
+            <mesh position={[0, 15, 4.5]} castShadow>
+              <coneGeometry args={[3.5, 5, 8]} />
+              <meshStandardMaterial color="#2d6a36" roughness={0.75} />
+            </mesh>
+            {/* Side Canopies */}
+            <mesh position={[2.5, 13, 0]} castShadow>
+              <coneGeometry args={[2.5, 4, 8]} />
+              <meshStandardMaterial color="#1f5429" roughness={0.78} />
+            </mesh>
+            <mesh position={[-2, 13.5, 1.5]} castShadow>
+              <coneGeometry args={[2, 3, 8]} />
+              <meshStandardMaterial color="#1b4d24" roughness={0.78} />
+            </mesh>
+            
+            {/* Dangling jungle vines (Hanging straight down) */}
+            <mesh position={[0, 10, 3.5]} rotation={[0.4, 0, 0]}>
+              <cylinderGeometry args={[0.03, 0.03, 10, 4]} />
+              <meshStandardMaterial color="#1a3a1e" roughness={0.9} />
+            </mesh>
+            <mesh position={[1.5, 9, 1]} rotation={[0.1, 0, 0.6]}>
+              <cylinderGeometry args={[0.02, 0.02, 12, 4]} />
+              <meshStandardMaterial color="#1a3a1e" roughness={0.9} />
+            </mesh>
+            <mesh position={[-1.5, 10, 2]} rotation={[0.2, 0, -0.4]}>
+              <cylinderGeometry args={[0.04, 0.04, 8, 4]} />
+              <meshStandardMaterial color="#2d6a36" roughness={0.9} />
+            </mesh>
+            <mesh position={[0, 11, 2]} rotation={[0.3, 0, 0]}>
+              <cylinderGeometry args={[0.02, 0.02, 14, 4]} />
+              <meshStandardMaterial color="#1a3a1e" roughness={0.9} />
+            </mesh>
+          </group>
         </group>
       ))}
     </group>
@@ -961,6 +1075,15 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
       {/* Dice */}
       {diceValue != null && (
         <Dice3D value={diceValue} isRolling={isRolling} tilePos={diceWorldPos} />
+      )}
+      
+      {/* Roll Announcement */}
+      {diceValue != null && !isRolling && (
+        <group position={[activePos.x, activePos.y + 7.5, activePos.z]} rotation={[-Math.PI / 8, 0, 0]}>
+          <Text fontSize={3.5} color="#ffd700" anchorX="center" anchorY="middle" outlineWidth={0.15} outlineColor="#2b1100" fontWeight="bold">
+            {diceValue}
+          </Text>
+        </group>
       )}
 
       {/* Characters */}
@@ -1094,8 +1217,8 @@ export default function SnakeLadder({ user, onBack }) {
       setVisualPositions(prev => ({ ...prev, [playerId]: midPos }));
       setTimeout(() => {
         setVisualPositions(prev => ({ ...prev, [playerId]: toPos }));
-        setTimeout(() => resolve(toPos), 300);
-      }, 300);
+        setTimeout(() => resolve(toPos), 450); // Increased from 300
+      }, 450); // Increased from 300 to slow player movement (Task 8)
     });
   };
 
@@ -1150,9 +1273,43 @@ export default function SnakeLadder({ user, onBack }) {
 
       if (snakesRef.current[targetPos]) {
         const dest = snakesRef.current[targetPos];
-        showToast(`🐍 Snake! ${player.name} drops ${targetPos - dest} tiles back!`);
-        await new Promise(r => setTimeout(r, 800));
-        curWorldPos = teleportVisually(player.id, dest);
+        showToast(`🐍 Snake! ${player.name} slides ${targetPos - dest} tiles back!`);
+        await new Promise(r => setTimeout(r, 600));
+        
+        // SLIDE ALONG SNAKE CURVE
+        const fp = getPosition(targetPos);
+        const tp = getPosition(dest);
+        const numSegs = (targetPos - dest) >= 50 ? 45 : 30;
+        
+        const d = new THREE.Vector3().subVectors(tp, fp);
+        const len = d.length();
+        const perp = new THREE.Vector3(-d.z, 0, d.x).normalize();
+        const zigs = len * 0.45;
+        
+        const basePoints = [];
+        for (let i = 0; i <= numSegs; i++) {
+          const t = i / numSegs;
+          const basePt = new THREE.Vector3().lerpVectors(
+            new THREE.Vector3(fp.x, fp.y + 0.15, fp.z), 
+            new THREE.Vector3(tp.x, tp.y + 0.15, tp.z), 
+            t
+          );
+          const env = Math.sin(t * Math.PI); 
+          const offset = Math.sin(t * zigs * Math.PI) * env * 1.1; 
+          basePt.addScaledVector(perp, offset);
+          basePoints.push(basePt);
+        }
+        
+        const curve = new THREE.CatmullRomCurve3(basePoints);
+        const slideSteps = Math.max(15, Math.round(len * 2));
+        
+        for (let s = 1; s <= slideSteps; s++) {
+          const ratio = s / slideSteps;
+          const stepPt = curve.getPoint(ratio);
+          setVisualPositions(prev => ({ ...prev, [player.id]: { x: stepPt.x, y: stepPt.y, z: stepPt.z } }));
+          await new Promise(r => setTimeout(r, 60)); // Fast slippery slide down
+        }
+
         player.pos  = dest;
         nextPlayers[pIdx] = { ...player };
         setPlayers([...nextPlayers]);
@@ -1188,7 +1345,7 @@ export default function SnakeLadder({ user, onBack }) {
         setPlayers([...nextPlayers]);
       }
 
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, 2500)); // Cinematic pause before next turn
     }
 
     if (player.pos === 100) {
