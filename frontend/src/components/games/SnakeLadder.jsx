@@ -11,7 +11,7 @@ import confetti from 'canvas-confetti';
 
 const TILE_SIZE = 4.5;
 const TILE_H    = 0.55;
-const FOG_R     = 3.2;
+const FOG_R     = 1.5;
 
 // ==========================================
 // PROCEDURAL TEXTURES
@@ -1024,7 +1024,7 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
   return (
     <>
       <color attach="background" args={['#061206']} />
-      <fog attach="fog" args={['#0e2612', 10, 28]} />
+      <fog attach="fog" args={['#0e2612', 9, 17]} />
 
       <Sky distance={450000} sunPosition={[80, 15, 60]} turbidity={10} rayleigh={0.6} mieCoefficient={0.008} mieDirectionalG={0.8} />
 
