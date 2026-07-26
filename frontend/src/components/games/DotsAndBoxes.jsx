@@ -8,6 +8,7 @@ export default function DotsAndBoxes({ user, onBack }) {
   const [onlineStatus, setOnlineStatus] = useState(''); // 'setup', 'waiting', 'connected', 'error'
   const [roomCode, setRoomCode] = useState('');
   const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [leaderboard, setLeaderboard] = useState([]);
   
   // Game State
   const [hLines, setHLines] = useState(Array(GRID_SIZE + 1).fill().map(() => Array(GRID_SIZE).fill(false)));
@@ -73,6 +74,23 @@ export default function DotsAndBoxes({ user, onBack }) {
       console.error("Failed to save score", e);
     }
   };
+
+  useEffect(() => {
+    if (!gameMode) {
+      const fetchLeaderboard = async () => {
+        try {
+          const res = await fetch(`${window.location.protocol}//${window.location.host}/api/games/leaderboard/dots_and_boxes`);
+          if (res.ok) {
+            const data = await res.json();
+            setLeaderboard(data);
+          }
+        } catch (e) {
+          console.error("Failed to load leaderboard", e);
+        }
+      };
+      fetchLeaderboard();
+    }
+  }, [gameMode]);
 
   // AI Logic for Single Player
   useEffect(() => {
@@ -432,6 +450,51 @@ export default function DotsAndBoxes({ user, onBack }) {
             <span className="material-symbols-outlined text-5xl text-primary mb-4 group-hover:scale-110 transition-transform">public</span>
             <h3 className="font-display-lg text-2xl font-bold mb-2">Online Multiplayer</h3>
             <p className="text-on-surface-variant text-sm">Play with a friend across devices.</p>
+          </div>
+        </div>
+
+        {/* Global Leaderboard */}
+        <div className="max-w-4xl mx-auto w-full mt-12">
+          <h2 className="font-display-lg text-3xl font-bold text-on-surface mb-6 flex items-center gap-2">
+            <span className="material-symbols-outlined text-warning">trophy</span>
+            Global Leaderboard
+          </h2>
+          
+          <div className="bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass">
+            {leaderboard.length === 0 ? (
+              <p className="text-on-surface-variant text-center py-8">No games played yet. Be the first to win!</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-12 gap-4 px-4 py-2 border-b border-glass-stroke text-on-surface-variant font-title-sm uppercase tracking-wider mb-2">
+                  <div className="col-span-2 text-center">Rank</div>
+                  <div className="col-span-6">Player ID</div>
+                  <div className="col-span-4 text-center">Total Wins</div>
+                </div>
+                
+                {leaderboard.map((entry, index) => (
+                  <div 
+                    key={index} 
+                    className={`grid grid-cols-12 gap-4 px-4 py-4 rounded-xl items-center transition-all ${
+                      index === 0 ? 'bg-gradient-to-r from-warning/20 to-transparent border border-warning/30' :
+                      index === 1 ? 'bg-gradient-to-r from-on-surface-variant/20 to-transparent border border-on-surface-variant/30' :
+                      index === 2 ? 'bg-gradient-to-r from-error/20 to-transparent border border-error/30' :
+                      'bg-glass-fill border border-glass-stroke hover:bg-glass-fill/80'
+                    }`}
+                  >
+                    <div className="col-span-2 text-center font-display-lg text-2xl font-bold">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    </div>
+                    <div className="col-span-6 font-title-md font-bold text-on-surface">
+                      {entry.player_id}
+                      {user && user.login_id === entry.player_id && <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">You</span>}
+                    </div>
+                    <div className="col-span-4 text-center font-display-lg text-xl text-primary font-bold">
+                      {entry.wins}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
