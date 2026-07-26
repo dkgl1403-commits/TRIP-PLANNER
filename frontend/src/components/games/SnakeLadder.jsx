@@ -458,8 +458,8 @@ export default function SnakeLadder({ user, onBack }) {
       {/* 3D Canvas Background */}
       <div className="absolute inset-0">
         <Canvas shadows>
-          <PerspectiveCamera makeDefault position={[0, -8, 15]} fov={60} />
-          <OrbitControls target={[0, 0, 0]} maxPolarAngle={Math.PI / 1.5} />
+          <PerspectiveCamera makeDefault position={[0, 15, 14]} fov={55} />
+          <OrbitControls target={[0, 0, 2]} maxPolarAngle={Math.PI / 2.2} minPolarAngle={0} />
           
           <ambientLight intensity={0.8} />
           <directionalLight 
@@ -476,8 +476,8 @@ export default function SnakeLadder({ user, onBack }) {
           />
           <Environment preset="city" />
 
-          {/* Group tilted backward to fit the screen isometrically */}
-          <group rotation={[-Math.PI / 5, 0, 0]} position={[0, 2, -2]}>
+          {/* Group is flat, we rely on the high camera for perspective */}
+          <group position={[0, 0, 0]}>
             <Board />
             <Snakes snakesData={snakes} />
             <Ladders />
