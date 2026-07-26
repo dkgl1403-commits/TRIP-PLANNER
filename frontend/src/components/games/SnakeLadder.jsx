@@ -50,6 +50,8 @@ const createNoiseTexture = (baseColor, isGrass) => {
 
 const grassTex = createNoiseTexture('#1b3b22', true);
 const mudTex = createNoiseTexture('#2e1f14', false);
+const floorTex = createNoiseTexture('#0b170b', true);
+floorTex.repeat.set(40, 40);
 
 const COLORS = ['#e63946', '#4361ee', '#2dc653', '#8338ec', '#fb8500'];
 
@@ -874,7 +876,9 @@ const JungleTrees = () => {
     // Generate surrounding trees strictly along outer perimeter of the 10x10 board
     for (let i = 0; i < 28; i++) {
       const angle = (i / 28) * Math.PI * 2;
-      const dist  = 26 + (i % 3) * 4;
+      // Skip trees near the Start Platform (angle approx 3PI/4 or 2.35 rad)
+      if (angle > 1.9 && angle < 2.8) continue;
+      const dist  = 30 + (i % 3) * 5;
       const x     = Math.cos(angle) * dist;
       const z     = Math.sin(angle) * dist;
       const scale = 0.8 + (i % 4) * 0.3;
@@ -1039,7 +1043,7 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
       {/* Jungle floor mesh */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]} receiveShadow>
         <planeGeometry args={[300, 300]} />
-        <meshStandardMaterial color="#0b170b" roughness={0.95} />
+        <meshStandardMaterial map={floorTex} roughness={0.95} />
       </mesh>
 
       {/* Surrounding 3D Jungle Trees */}
@@ -1079,8 +1083,8 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
       
       {/* Roll Announcement */}
       {diceValue != null && !isRolling && (
-        <group position={[activePos.x, activePos.y + 7.5, activePos.z]} rotation={[-Math.PI / 8, 0, 0]}>
-          <Text fontSize={3.5} color="#ffd700" anchorX="center" anchorY="middle" outlineWidth={0.15} outlineColor="#2b1100" fontWeight="bold">
+        <group position={[activePos.x, activePos.y + 4.5, activePos.z]} rotation={[-Math.PI / 8, 0, 0]}>
+          <Text fontSize={2.2} color="#ffd700" anchorX="center" anchorY="middle" outlineWidth={0.08} outlineColor="#2b1100" fontWeight="bold">
             {diceValue}
           </Text>
         </group>
