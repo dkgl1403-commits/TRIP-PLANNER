@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const GRID_SIZE = 4; // 4x4 boxes means 5x5 dots
 
-export default function DotsAndBoxes({ onBack }) {
+export default function DotsAndBoxes({ user, onBack }) {
   // Game Setup State
   const [gameMode, setGameMode] = useState(null); // 'single', 'local', 'online'
   const [onlineStatus, setOnlineStatus] = useState(''); // 'setup', 'waiting', 'connected', 'error'
@@ -35,11 +35,42 @@ export default function DotsAndBoxes({ onBack }) {
   useEffect(() => {
     // Check for win condition
     if (scores[1] + scores[2] === GRID_SIZE * GRID_SIZE) {
-      if (scores[1] > scores[2]) setWinner(1);
-      else if (scores[2] > scores[1]) setWinner(2);
-      else setWinner('tie');
+      let finalWinner = 'tie';
+      if (scores[1] > scores[2]) finalWinner = 1;
+      else if (scores[2] > scores[1]) finalWinner = 2;
+      setWinner(finalWinner);
+      saveScore(finalWinner);
     }
   }, [scores]);
+
+  const saveScore = async (finalWinner) => {
+    if (!user) return; // Don't save if not logged in
+    try {
+      const player1Id = user.login_id;
+      let player2Id = 'Guest';
+      if (gameMode === 'single') player2Id = 'Computer';
+      if (gameMode === 'online') player2Id = 'OnlineOpponent'; // Ideally we'd get their ID from websocket
+
+      let winnerId = 'tie';
+      if (finalWinner === 1) winnerId = player1Id;
+      if (finalWinner === 2) winnerId = player2Id;
+
+      await fetch(`${window.location.protocol}//${window.location.host}/api/games/scores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_name: 'dots_and_boxes',
+          player1_id: player1Id,
+          player2_id: player2Id,
+          player1_score: scores[1],
+          player2_score: scores[2],
+          winner_id: winnerId
+        })
+      });
+    } catch (e) {
+      console.error("Failed to save score", e);
+    }
+  };
 
   // AI Logic for Single Player
   useEffect(() => {

@@ -16,8 +16,10 @@ app = FastAPI(title="Event Planner API")
 
 from hr_analytics.api import router as hr_router
 from games.socket_manager import router as games_router
+from games.api import games_api_router
 app.include_router(hr_router)
 app.include_router(games_router, prefix="/api/games")
+app.include_router(games_api_router, prefix="/api/games")
 
 @app.on_event("startup")
 def startup_event():
@@ -27,6 +29,9 @@ def startup_event():
         
         from hr_analytics.db import init_db as init_hr_db
         init_hr_db()
+        
+        from games.db import init_db as init_games_db
+        init_games_db()
         
         from finance_pipeline.scheduler import start_scheduler
         start_scheduler()

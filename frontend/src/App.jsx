@@ -163,7 +163,7 @@ function App() {
           <GlobalExpenseDashboard user={user} onBack={() => window.history.back()} />
         )}
         {currentView === 'games' && (
-          <GamesDashboard onBack={() => setCurrentView('dashboard')} />
+          <GamesDashboard user={user} onBack={() => setCurrentView('dashboard')} />
         )}
         {currentView === 'login' && (
           <Login theme={theme} onLoginSuccess={handleLoginSuccess} />
