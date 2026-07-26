@@ -190,42 +190,55 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   const headR   = isBig ? 1.25 : 0.72;
   const color   = SNAKE_PALETTE[snakeIndex % SNAKE_PALETTE.length];
 
-  const headPos = getPosition(headTile);
-  const tailPos = getPosition(tailTile);
+  const headPos = useMemo(() => getPosition(headTile), [headTile]);
+  const tailPos = useMemo(() => getPosition(tailTile), [tailTile]);
 
-  const archH = useMemo(() => {
-    const dist = Math.sqrt((headPos.x - tailPos.x) ** 2 + (headPos.z - tailPos.z) ** 2);
-    return Math.max(2.5, dist * 0.38);
-  }, [headTile, tailTile]);
+  const { dir, perp, length, zigs } = useMemo(() => {
+    const d = new THREE.Vector3().subVectors(tailPos, headPos);
+    const len = d.length();
+    return {
+      dir: d.clone().normalize(),
+      perp: new THREE.Vector3(-d.z, 0, d.x).normalize(),
+      length: len,
+      zigs: len * 0.45,
+    };
+  }, [headPos, tailPos]);
 
+  // Initial flat line points
   const basePoints = useMemo(() => {
-    const start = new THREE.Vector3(headPos.x, headPos.y + 0.55, headPos.z);
-    const end   = new THREE.Vector3(tailPos.x, tailPos.y + 0.25, tailPos.z);
-    const ctrl  = new THREE.Vector3((start.x + end.x) / 2, headPos.y + archH, (start.z + end.z) / 2);
-    return new THREE.QuadraticBezierCurve3(start, ctrl, end).getPoints(numSegs);
-  }, [headTile, tailTile, archH]);
+    const pts = [];
+    for (let i = 0; i <= numSegs; i++) {
+      const t = i / numSegs;
+      pts.push(new THREE.Vector3().lerpVectors(
+        new THREE.Vector3(headPos.x, headPos.y + 0.15, headPos.z), 
+        new THREE.Vector3(tailPos.x, tailPos.y + 0.15, tailPos.z), 
+        t
+      ));
+    }
+    return pts;
+  }, [headPos, tailPos, numSegs]);
 
-  const [curve] = useState(() => new THREE.CatmullRomCurve3(
-    basePoints.map(p => p.clone())
-  ));
+  const [curve] = useState(() => new THREE.CatmullRomCurve3(basePoints.map(p => p.clone())));
   const tubeRef = useRef();
   const headRef = useRef();
 
   useFrame(({ clock }) => {
-    const t = clock.elapsedTime * 1.4;
+    const time = clock.elapsedTime * 2.5;
 
-    // Update curve points
-    if (curve.points[0]) {
-      const w = Math.sin(t) * 0.2;
-      curve.points[0].set(basePoints[0].x, basePoints[0].y + w, basePoints[0].z);
-    }
-    for (let i = 1; i < numSegs; i++) {
-      const w = Math.sin(t + i * 0.55) * (0.15 + (i / numSegs) * 0.1);
-      curve.points[i].set(basePoints[i].x, basePoints[i].y + w, basePoints[i].z);
-    }
-    if (curve.points[numSegs]) {
-      const w = Math.sin(t + numSegs * 0.55) * 0.22;
-      curve.points[numSegs].set(basePoints[numSegs].x, basePoints[numSegs].y + w, basePoints[numSegs].z);
+    // Slither horizontally in a zigzag pattern
+    for (let i = 0; i <= numSegs; i++) {
+      const t = i / numSegs;
+      const basePt = new THREE.Vector3().lerpVectors(
+        new THREE.Vector3(headPos.x, headPos.y + 0.15, headPos.z), 
+        new THREE.Vector3(tailPos.x, tailPos.y + 0.15, tailPos.z), 
+        t
+      );
+      
+      const env = Math.sin(t * Math.PI); // Envelope to taper amplitude at head and tail
+      const offset = Math.sin(t * zigs * Math.PI + time) * env * 1.5;
+      
+      basePt.addScaledVector(perp, offset);
+      curve.points[i].copy(basePt);
     }
 
     // Orient Head
@@ -236,10 +249,36 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
       headRef.current.lookAt(lookPos);
     }
 
-    // Update Continuous Tube Geometry
+    // Update Continuous Tapered Tube Geometry
     if (tubeRef.current) {
-      tubeRef.current.geometry.dispose();
-      tubeRef.current.geometry = new THREE.TubeGeometry(curve, numSegs * 3, headR * 0.45, 10, false);
+      if (tubeRef.current.geometry) tubeRef.current.geometry.dispose();
+      
+      const tubularSegments = numSegs * 3;
+      const radialSegments = 8;
+      const geo = new THREE.TubeGeometry(curve, tubularSegments, headR * 0.45, radialSegments, false);
+      const posAttr = geo.attributes.position;
+      
+      for (let i = 0; i <= tubularSegments; i++) {
+        const tVal = i / tubularSegments;
+        // Smoothly taper thickness towards the tail
+        const taper = Math.max(0.05, 1.0 - Math.pow(tVal, 1.8));
+        const center = curve.getPoint(tVal);
+        
+        for (let j = 0; j <= radialSegments; j++) {
+          const idx = i * (radialSegments + 1) + j;
+          const px = posAttr.getX(idx);
+          const py = posAttr.getY(idx);
+          const pz = posAttr.getZ(idx);
+          
+          posAttr.setXYZ(idx,
+             center.x + (px - center.x) * taper,
+             center.y + (py - center.y) * taper,
+             center.z + (pz - center.z) * taper
+          );
+        }
+      }
+      geo.computeVertexNormals();
+      tubeRef.current.geometry = geo;
     }
   });
 
