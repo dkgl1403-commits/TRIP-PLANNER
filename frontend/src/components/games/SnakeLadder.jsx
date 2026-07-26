@@ -205,30 +205,41 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
     return new THREE.QuadraticBezierCurve3(start, ctrl, end).getPoints(numSegs);
   }, [headTile, tailTile, archH]);
 
-  // One ref per rendered object: head group + (numSegs-1) body spheres + tail
+  const [curve] = useState(() => new THREE.CatmullRomCurve3(
+    basePoints.map(p => p.clone())
+  ));
+  const tubeRef = useRef();
   const headRef = useRef();
-  const segRefs = useRef(new Array(numSegs - 1).fill(null));
-  const tailRef = useRef();
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * 1.4;
 
-    if (headRef.current && basePoints[0]) {
+    // Update curve points
+    if (curve.points[0]) {
       const w = Math.sin(t) * 0.2;
-      headRef.current.position.set(basePoints[0].x, basePoints[0].y + w, basePoints[0].z);
+      curve.points[0].set(basePoints[0].x, basePoints[0].y + w, basePoints[0].z);
+    }
+    for (let i = 1; i < numSegs; i++) {
+      const w = Math.sin(t + i * 0.55) * (0.15 + (i / numSegs) * 0.1);
+      curve.points[i].set(basePoints[i].x, basePoints[i].y + w, basePoints[i].z);
+    }
+    if (curve.points[numSegs]) {
+      const w = Math.sin(t + numSegs * 0.55) * 0.22;
+      curve.points[numSegs].set(basePoints[numSegs].x, basePoints[numSegs].y + w, basePoints[numSegs].z);
     }
 
-    segRefs.current.forEach((ref, i) => {
-      const bIdx = i + 1;
-      if (ref && basePoints[bIdx]) {
-        const w = Math.sin(t + bIdx * 0.55) * (0.15 + (bIdx / numSegs) * 0.1);
-        ref.position.set(basePoints[bIdx].x, basePoints[bIdx].y + w, basePoints[bIdx].z);
-      }
-    });
+    // Orient Head
+    if (headRef.current && curve.points[0] && curve.points[1]) {
+      headRef.current.position.copy(curve.points[0]);
+      // Look away from the body
+      const lookPos = new THREE.Vector3().subVectors(curve.points[0], curve.points[1]).add(curve.points[0]);
+      headRef.current.lookAt(lookPos);
+    }
 
-    if (tailRef.current && basePoints[numSegs]) {
-      const w = Math.sin(t + numSegs * 0.55) * 0.22;
-      tailRef.current.position.set(basePoints[numSegs].x, basePoints[numSegs].y + w, basePoints[numSegs].z);
+    // Update Continuous Tube Geometry
+    if (tubeRef.current) {
+      tubeRef.current.geometry.dispose();
+      tubeRef.current.geometry = new THREE.TubeGeometry(curve, numSegs * 3, headR * 0.45, 10, false);
     }
   });
 
@@ -309,21 +320,10 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
         <pointLight color={color.eye} intensity={isBig ? 6 : 3} distance={isBig ? 10 : 6} position={[0, headR * 0.3, -headR * 0.5]} />
       </group>
 
-      {/* BODY SEGMENTS */}
-      {Array.from({ length: numSegs - 1 }, (_, i) => {
-        const ratio  = (i + 1) / numSegs;
-        const radius = THREE.MathUtils.lerp(headR * 0.86, headR * 0.21, ratio);
-        return (
-          <mesh key={i} ref={el => { segRefs.current[i] = el; }} castShadow>
-            <sphereGeometry args={[radius, 10, 10]} />
-            {bodyMat}
-          </mesh>
-        );
-      })}
-
-      {/* TAIL — tapered cone */}
-      <mesh ref={tailRef} castShadow>
-        <coneGeometry args={[headR * 0.12, headR * 0.88, 6]} />
+      {/* CONTINUOUS BODY TUBE */}
+      <mesh ref={tubeRef} castShadow>
+        {/* Geometry is injected dynamically in useFrame */}
+        <tubeGeometry args={[curve, numSegs * 3, headR * 0.45, 10, false]} />
         {bodyMat}
       </mesh>
     </group>
@@ -652,14 +652,17 @@ const CameraRig = ({ targetPos }) => {
   const idealPos   = useRef(new THREE.Vector3());
   const lookRef    = useRef(new THREE.Vector3());
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    // Smoother interpolation using delta for frame-rate independence
     idealPos.current.set(targetPos.x, targetPos.y + 5.5, targetPos.z + 9);
     lookRef.current.set(targetPos.x, targetPos.y + 0.8, targetPos.z - 4);
-    camera.position.lerp(idealPos.current, 0.06);
+    
+    camera.position.lerp(idealPos.current, delta * 3.5);
+    
     const dir = lookRef.current.clone().sub(camera.position).normalize();
     const curDir = new THREE.Vector3();
     camera.getWorldDirection(curDir);
-    curDir.lerp(dir, 0.08);
+    curDir.lerp(dir, delta * 4.0);
     camera.lookAt(camera.position.clone().addScaledVector(curDir, 20));
   });
 
@@ -759,11 +762,21 @@ const Fireflies = ({ activePos }) => {
 
 const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValue, isRolling }) => {
   const activePl  = players.find(p => p.id === currentPlayer) || players[0];
-  const activePos = activePl
-    ? (activePl.pos <= 0 ? getPosition(0) : getPosition(activePl.pos))
-    : { x: 0, y: 0, z: 0 };
   const activePlayerPos = activePl?.pos ?? 0;
-  const diceWorldPos = activePos;
+  
+  // Track visual position directly for incredibly smooth camera follow
+  const visualPos = activePl ? visualPositions[activePl.id] : null;
+  const activePos = visualPos 
+    ? { x: visualPos.x, y: visualPos.y, z: visualPos.z } 
+    : (activePl?.pos <= 0 ? getPosition(0) : getPosition(activePl?.pos || 0));
+
+  // Dice stays at the origin of the turn start until a new turn
+  const [diceAnchor, setDiceAnchor] = useState(activePos);
+  useEffect(() => {
+    if (isRolling) setDiceAnchor(activePos);
+  }, [isRolling]);
+
+  const diceWorldPos = diceAnchor;
 
   return (
     <>
