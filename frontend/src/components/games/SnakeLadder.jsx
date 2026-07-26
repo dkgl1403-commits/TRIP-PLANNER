@@ -501,10 +501,13 @@ const Ladder = ({ fromTile, toTile, activePlayerPos }) => {
         const plankPt = curve.getPoint(t);
         const tangent = curve.getTangent(t).normalize();
         
-        // Calculate quaternion so the plank lays flat but follows the curve's slope
-        const up = new THREE.Vector3().crossVectors(perpDir, tangent).normalize();
-        const m = new THREE.Matrix4().makeBasis(perpDir, up, tangent);
-        const plankQuat = new THREE.Quaternion().setFromRotationMatrix(m);
+        // Use a dummy object to perfectly calculate the "lookAt" quaternion.
+        // This ensures the X axis (width of plank) stays perfectly horizontal
+        // while the Z axis points along the curve.
+        const dummy = new THREE.Object3D();
+        dummy.position.copy(plankPt);
+        dummy.lookAt(plankPt.clone().add(tangent));
+        const plankQuat = dummy.quaternion.clone();
         
         return (
           <mesh key={i} position={plankPt.toArray()} quaternion={plankQuat} castShadow receiveShadow>
@@ -1158,19 +1161,26 @@ export default function SnakeLadder({ user, onBack }) {
         showToast(`🌉 Wooden Bridge! ${player.name} slowly crosses to tile ${dest}!`);
         await new Promise(r => setTimeout(r, 600));
 
-        // Walk SLOWLY across the bridge in 8 sub-steps
+        // Walk SLOWLY across the arched bridge
         const fp = getPosition(targetPos);
         const tp = getPosition(dest);
-        const bridgeSteps = 8;
+        const start = new THREE.Vector3(fp.x, fp.y + 0.1, fp.z);
+        const end   = new THREE.Vector3(tp.x, tp.y + 0.1, tp.z);
+        
+        const dist = start.distanceTo(end);
+        const control = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+        control.y += Math.max(2.5, dist * 0.45); // Match the exact bridge arch height
+        
+        const curve = new THREE.QuadraticBezierCurve3(start, control, end);
+        const curveLength = curve.getLength();
+        const bridgeSteps = Math.max(10, Math.round(curveLength * 2.5));
+
         for (let b = 1; b <= bridgeSteps; b++) {
           const ratio = b / bridgeSteps;
-          const stepPos = {
-            x: fp.x + (tp.x - fp.x) * ratio,
-            y: fp.y + (tp.y - fp.y) * ratio + 0.1,
-            z: fp.z + (tp.z - fp.z) * ratio,
-          };
-          setVisualPositions(prev => ({ ...prev, [player.id]: stepPos }));
-          await new Promise(r => setTimeout(r, 220)); // Slow deliberate steps
+          const stepPt = curve.getPoint(ratio);
+          
+          setVisualPositions(prev => ({ ...prev, [player.id]: { x: stepPt.x, y: stepPt.y, z: stepPt.z } }));
+          await new Promise(r => setTimeout(r, 120)); // Smoother, faster steps along the curve
         }
 
         player.pos = dest;
