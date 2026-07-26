@@ -211,11 +211,36 @@ const Snake = ({ headTile, tailTile, snakeIndex, activePlayerPos }) => {
   const { row: pRow, col: pCol } = activePlayerPos > 0 ? getTileCoord(activePlayerPos) : { row: -3, col: 5 };
   const { row: hRow, col: hCol } = getTileCoord(headTile);
   const dHead = Math.sqrt((hRow - pRow) ** 2 + (hCol - pCol) ** 2);
-        {bodyMat}
+  const visR = isBig ? 5.5 : 4.2;
+  if (dHead > visR + 1) return null;
+
+  return (
+    <group>
+      {/* Subtle trail showing where the snake leads */}
+      <mesh position={[
+        (headPos.x + tailPos.x) / 2, 
+        0.05, 
+        (headPos.z + tailPos.z) / 2
+      ]} rotation={[-Math.PI/2, 0, angle]}>
+        <planeGeometry args={[0.3, headPos.distanceTo(tailPos)]} />
+        <meshBasicMaterial color="#ff2020" transparent opacity={0.2} />
       </mesh>
+
+      {/* The 3D GLB Snake Model */}
+      <group 
+        ref={groupRef}
+        position={[headPos.x, headPos.y, headPos.z]}
+        rotation={[0, angle, 0]}
+        scale={isBig ? 1.5 : 1.0}
+      >
+        <Clone object={scene} castShadow receiveShadow />
+      </group>
     </group>
   );
 };
+
+// Preload the GLTF to prevent stuttering
+useGLTF.preload('/models/snake_attack_animations_multiple.glb');
 
 // ==========================================
 // LADDER — Wooden jungle ladder
