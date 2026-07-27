@@ -145,6 +145,33 @@ const generateSnakes = () => {
 };
 
 // ==========================================
+// SPRING GENERATION
+// ==========================================
+
+const generateSprings = (snakes) => {
+  const springs = [];
+  const occupied = new Set([
+    ...Object.keys(LADDERS).map(String),
+    ...Object.values(LADDERS).map(String),
+    ...Object.keys(snakes).map(String),
+    ...Object.values(snakes).map(String),
+    "1", "100"
+  ]);
+
+  for (let i = 0; i < 3; i++) {
+    for (let attempt = 0; attempt < 150; attempt++) {
+      const tile = Math.floor(Math.random() * 98) + 2;
+      if (!occupied.has(String(tile))) {
+        springs.push(tile);
+        occupied.add(String(tile));
+        break;
+      }
+    }
+  }
+  return springs;
+};
+
+// ==========================================
 // TILE
 // ==========================================
 
@@ -1027,10 +1054,40 @@ const FadingAnnouncement = ({ value, position }) => {
 };
 
 // ==========================================
+// BOUNCE SPRING
+// ==========================================
+
+const BounceSpring = ({ tile }) => {
+  const pos = useMemo(() => getPosition(tile), [tile]);
+  const curve = useMemo(() => {
+    const points = [];
+    for (let i = 0; i <= 60; i++) {
+      const t = i / 60;
+      const angle = t * Math.PI * 2 * 6; // 6 coils
+      const radius = 0.35;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const y = t * 1.5;
+      points.push(new THREE.Vector3(x, y, z));
+    }
+    return new THREE.CatmullRomCurve3(points);
+  }, []);
+
+  return (
+    <group position={[pos.x, 0, pos.z]}>
+      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+        <tubeGeometry args={[curve, 80, 0.08, 10, false]} />
+        <meshStandardMaterial color="#d4d4d4" metalness={0.9} roughness={0.2} />
+      </mesh>
+    </group>
+  );
+};
+
+// ==========================================
 // JUNGLE SCENE
 // ==========================================
 
-const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValue, isRolling }) => {
+const JungleScene = ({ players, currentPlayer, visualPositions, snakes, springs, diceValue, isRolling }) => {
   const activePl  = players.find(p => p.id === currentPlayer) || players[0];
   const activePlayerPos = activePl?.pos ?? 0;
   
@@ -1081,6 +1138,11 @@ const JungleScene = ({ players, currentPlayer, visualPositions, snakes, diceValu
 
       <Board activePlayerPos={activePlayerPos} />
       <StartPlatform />
+
+      {/* Springs */}
+      {springs.map((s, idx) => (
+        <BounceSpring key={`spring-${s}-${idx}`} tile={s} />
+      ))}
 
       {/* Snakes */}
       {Object.entries(snakes).map(([head, tail], idx) => (
@@ -1171,6 +1233,7 @@ export default function SnakeLadder({ user, onBack }) {
   const [winner,         setWinner]         = useState(null);
   const [message,        setMessage]        = useState('');
   const [snakes,         setSnakes]         = useState({});
+  const [springs,        setSprings]        = useState([]);
   const [throwCount,     setThrowCount]     = useState(0);
   const [isMigrating,    setIsMigrating]    = useState(false);
   const [showTurnCut,    setShowTurnCut]    = useState(false);
@@ -1180,11 +1243,13 @@ export default function SnakeLadder({ user, onBack }) {
   const playersRef       = useRef(players);
   const currentPlayerRef = useRef(currentPlayer);
   const snakesRef        = useRef(snakes);
+  const springsRef       = useRef(springs);
   const throwCountRef    = useRef(throwCount);
 
   useEffect(() => { playersRef.current       = players;        }, [players]);
   useEffect(() => { currentPlayerRef.current = currentPlayer;  }, [currentPlayer]);
   useEffect(() => { snakesRef.current        = snakes;         }, [snakes]);
+  useEffect(() => { springsRef.current       = springs;        }, [springs]);
   useEffect(() => { throwCountRef.current    = throwCount;     }, [throwCount]);
 
   // ── Init ──────────────────────────────
@@ -1209,7 +1274,9 @@ export default function SnakeLadder({ user, onBack }) {
     setThrowCount(0);
     setIsMigrating(false);
     setShowTurnCut(false);
-    setSnakes(generateSnakes());
+    const initSnakes = generateSnakes();
+    setSnakes(initSnakes);
+    setSprings(generateSprings(initSnakes));
   }, [gameMode]);
 
   useEffect(() => {
@@ -1226,7 +1293,9 @@ export default function SnakeLadder({ user, onBack }) {
   const triggerMigration = () => {
     setIsMigrating(true);
     setTimeout(() => {
-      setSnakes(generateSnakes());
+      const newSnakes = generateSnakes();
+      setSnakes(newSnakes);
+      setSprings(generateSprings(newSnakes));
       setTimeout(() => setIsMigrating(false), 1800);
     }, 1200);
   };
@@ -1312,16 +1381,49 @@ export default function SnakeLadder({ user, onBack }) {
       player.pos = targetPos;
       nextPlayers[pIdx] = { ...player };
       setPlayers([...nextPlayers]);
+      
+      let finalPos = targetPos;
 
-      if (snakesRef.current[targetPos]) {
-        const dest = snakesRef.current[targetPos];
-        showToast(`🐍 Snake! ${player.name} slides ${targetPos - dest} tiles back!`);
+      if (springsRef.current.includes(finalPos)) {
+        const springDest = Math.floor(Math.random() * 98) + 2;
+        showToast(`💥 Boing! ${player.name} hit a Spring! Bouncing to tile ${springDest}!`);
+        await new Promise(r => setTimeout(r, 600));
+
+        const startPt = getPosition(finalPos);
+        const endPt   = getPosition(springDest);
+        
+        const midPt = new THREE.Vector3().addVectors(startPt, endPt).multiplyScalar(0.5);
+        midPt.y += 15;
+        
+        const bounceCurve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(startPt.x, startPt.y + 0.1, startPt.z),
+          midPt,
+          new THREE.Vector3(endPt.x, endPt.y + 0.1, endPt.z)
+        );
+        
+        const bounceSteps = 25;
+        for (let b = 1; b <= bounceSteps; b++) {
+          const ratio = b / bounceSteps;
+          const stepPt = bounceCurve.getPoint(ratio);
+          setVisualPositions(prev => ({ ...prev, [player.id]: { x: stepPt.x, y: stepPt.y, z: stepPt.z } }));
+          await new Promise(r => setTimeout(r, 35));
+        }
+
+        finalPos = springDest;
+        player.pos = finalPos;
+        nextPlayers[pIdx] = { ...player };
+        setPlayers([...nextPlayers]);
+      }
+
+      if (snakesRef.current[finalPos]) {
+        const dest = snakesRef.current[finalPos];
+        showToast(`🐍 Snake! ${player.name} slides ${finalPos - dest} tiles back!`);
         await new Promise(r => setTimeout(r, 600));
         
         // SLIDE ALONG SNAKE CURVE
-        const fp = getPosition(targetPos);
+        const fp = getPosition(finalPos);
         const tp = getPosition(dest);
-        const numSegs = (targetPos - dest) >= 50 ? 45 : 30;
+        const numSegs = (finalPos - dest) >= 50 ? 45 : 30;
         
         const d = new THREE.Vector3().subVectors(tp, fp);
         const len = d.length();
@@ -1355,13 +1457,13 @@ export default function SnakeLadder({ user, onBack }) {
         player.pos  = dest;
         nextPlayers[pIdx] = { ...player };
         setPlayers([...nextPlayers]);
-      } else if (LADDERS[targetPos]) {
-        const dest = LADDERS[targetPos];
+      } else if (LADDERS[finalPos]) {
+        const dest = LADDERS[finalPos];
         showToast(`🌉 Wooden Bridge! ${player.name} slowly crosses to tile ${dest}!`);
         await new Promise(r => setTimeout(r, 600));
 
         // Walk SLOWLY across the arched bridge
-        const fp = getPosition(targetPos);
+        const fp = getPosition(finalPos);
         const tp = getPosition(dest);
         const start = new THREE.Vector3(fp.x, fp.y + 0.1, fp.z);
         const end   = new THREE.Vector3(tp.x, tp.y + 0.1, tp.z);
