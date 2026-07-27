@@ -228,12 +228,41 @@ const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
 
   return (
     <RigidBody ref={rigidBodyRef} colliders="cuboid" restitution={0.8} friction={0.5} position={[0, 0.75, 0]}>
-      <RoundedBox args={[1.2, 1.2, 1.2]} radius={0.15} castShadow receiveShadow material={materials}>
-        <lineSegments>
-          <edgesGeometry args={[new THREE.BoxGeometry(1.2, 1.2, 1.2)]} />
-          <lineBasicMaterial color="#000000" linewidth={2} />
-        </lineSegments>
-      </RoundedBox>
+      <group>
+        <RoundedBox args={[1.2, 1.2, 1.2]} radius={0.15} castShadow receiveShadow>
+          <meshStandardMaterial color="#222" roughness={0.4} />
+        </RoundedBox>
+        {/* Right (0) */}
+        <mesh position={[0.61, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshStandardMaterial color={GAME_COLORS[0].hex} roughness={0.2} />
+        </mesh>
+        {/* Left (1) */}
+        <mesh position={[-0.61, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshStandardMaterial color={GAME_COLORS[1].hex} roughness={0.2} />
+        </mesh>
+        {/* Top (2) */}
+        <mesh position={[0, 0.61, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshStandardMaterial color={GAME_COLORS[2].hex} roughness={0.2} />
+        </mesh>
+        {/* Bottom (3) */}
+        <mesh position={[0, -0.61, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshStandardMaterial color={GAME_COLORS[3].hex} roughness={0.2} />
+        </mesh>
+        {/* Front (4) */}
+        <mesh position={[0, 0, 0.61]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshStandardMaterial color={GAME_COLORS[4].hex} roughness={0.2} />
+        </mesh>
+        {/* Back (5) */}
+        <mesh position={[0, 0, -0.61]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshStandardMaterial color={GAME_COLORS[5].hex} roughness={0.2} />
+        </mesh>
+      </group>
     </RigidBody>
   );
 };
@@ -338,10 +367,11 @@ export default function MemoryGame({ user, onBack }) {
             <PegColliders pegs={pegs} />
             <PhysicsDice triggerRoll={triggerRoll} onDiceSettled={handleRollComplete} />
             
-            {/* Invisible Ground Plane to catch the dice */}
-            <RigidBody type="fixed" position={[0, -2, 0]} restitution={0.5} friction={0.8}>
-              <mesh visible={false}>
-                <boxGeometry args={[200, 1, 200]} />
+            {/* Visible Ground Table to catch the dice */}
+            <RigidBody type="fixed" position={[0, -1, 0]} restitution={0.3} friction={0.8}>
+              <mesh receiveShadow>
+                <cylinderGeometry args={[30, 30, 0.5, 64]} />
+                <meshStandardMaterial color="#3e2723" roughness={0.9} />
               </mesh>
             </RigidBody>
           
