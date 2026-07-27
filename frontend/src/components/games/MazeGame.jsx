@@ -1,224 +1,524 @@
-﻿import React, { useState, useEffect, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
+import * as THREE from 'three';
 
-const BOARD_SIZE = 4;
-const DIR_POSITIONS = { N: [0, 2, -4.8], S: [0, 2, 4.8], E: [4.8, 2, 0], W: [-4.8, 2, 0] };
-const DIR_ROTATIONS = { N: [0, 0, 0], S: [0, Math.PI, 0], E: [0, -Math.PI / 2, 0], W: [0, Math.PI / 2, 0] };
+// ─── CONSTANTS ────────────────────────────────────────────────
+const HALF = 8;
+const SPEED = 5.5;
+const DOOR_DIST = 2.8;
+const TERM_DIST = 2.5;
 
-function generatePath() {
-  let x = 0, y = 0;
-  const path = [];
-  while (x < BOARD_SIZE - 1 || y < BOARD_SIZE - 1) {
-    const canE = x < BOARD_SIZE - 1, canS = y < BOARD_SIZE - 1;
-    if (canE && canS) { if (Math.random() > 0.5) { path.push('E'); x++; } else { path.push('S'); y++; } }
-    else if (canE) { path.push('E'); x++; }
-    else { path.push('S'); y++; }
+const DOOR_POS = {
+  N: [0, 0, -HALF],
+  S: [0, 0, HALF],
+  E: [HALF, 0, 0],
+  W: [-HALF, 0, 0],
+};
+const DOOR_ROT = {
+  N: [0, 0, 0],
+  S: [0, Math.PI, 0],
+  E: [0, -Math.PI / 2, 0],
+  W: [0, Math.PI / 2, 0],
+};
+
+// ─── GAME LOGIC ───────────────────────────────────────────────
+function generateSafePath() {
+  // Start: row=3 col=0 (bottom-left), End: row=0 col=3 (top-right)
+  let row = 3, col = 0;
+  const path = [{ row, col }];
+  while (row !== 0 || col !== 3) {
+    const canN = row > 0, canE = col < 3;
+    if (canN && canE) { if (Math.random() > 0.5) row--; else col++; }
+    else if (canN) row--;
+    else col++;
+    path.push({ row, col });
   }
   return path;
 }
 
-function generateRoom(x, y, correctDoor) {
-  const doorSet = new Set([correctDoor]);
-  if (y > 0) doorSet.add('N');
-  if (y < BOARD_SIZE - 1) doorSet.add('S');
-  if (x < BOARD_SIZE - 1) doorSet.add('E');
-  if (x > 0) doorSet.add('W');
-  ['N','S','E','W'].forEach(d => { if (!doorSet.has(d) && doorSet.size < 3 && Math.random() > 0.5) doorSet.add(d); });
-  const doorList = Array.from(doorSet);
-  const doorNumbers = {}, used = new Set();
-  doorList.forEach(d => { let n; do { n = Math.floor(Math.random() * 80) + 12; } while (used.has(n)); used.add(n); doorNumbers[d] = n; });
-  const target = doorNumbers[correctDoor];
-  let puzzle = '';
-  const r = Math.random();
-  if (r < 0.4) { const a = Math.max(1, Math.floor(Math.random() * (target - 2)) + 1); puzzle = `${a} + ${target - a}`; }
-  else if (r < 0.7) { const e = Math.floor(Math.random() * 40) + 5; puzzle = `${target + e} - ${e}`; }
-  else { let ok = false; for (let i = 2; i <= Math.sqrt(target); i++) { if (target % i === 0) { puzzle = `${i} x ${target / i}`; ok = true; break; } } if (!ok) { const a = Math.max(1, Math.floor(Math.random() * (target - 2)) + 1); puzzle = `${a} + ${target - a}`; } }
-  return { x, y, availableDoors: doorList, correctDoor, doorNumbers, puzzle, lockedDoors: [] };
+function getDir(from, to) {
+  if (to.row < from.row) return 'N';
+  if (to.row > from.row) return 'S';
+  if (to.col > from.col) return 'E';
+  return 'W';
 }
 
-function Door({ dir, number, isLocked, onClick }) {
-  const pos = DIR_POSITIONS[dir], rot = DIR_ROTATIONS[dir];
-  const color = isLocked ? '#ef4444' : '#22c55e';
+function getAvailableDoors(row, col) {
+  const d = [];
+  if (row > 0) d.push('N');
+  if (row < 3) d.push('S');
+  if (col < 3) d.push('E');
+  if (col > 0) d.push('W');
+  return d;
+}
+
+function makePuzzle(target) {
+  const r = Math.random();
+  if (r < 0.4) {
+    const a = Math.max(1, Math.floor(Math.random() * (target - 1)));
+    return a + ' + ' + (target - a);
+  } else if (r < 0.7) {
+    const extra = Math.floor(Math.random() * 30) + 10;
+    return (target + extra) + ' - ' + extra;
+  } else {
+    for (let i = 2; i <= Math.sqrt(target); i++) {
+      if (target % i === 0) return i + ' x ' + (target / i);
+    }
+    const a = Math.max(1, Math.floor(Math.random() * (target - 1)));
+    return a + ' + ' + (target - a);
+  }
+}
+
+function generateRoom(current, next) {
+  const { row, col } = current;
+  const isExit = !next;
+  const allDoors = getAvailableDoors(row, col);
+  const correctDoor = next ? getDir(current, next) : null;
+
+  const target = Math.floor(Math.random() * 60) + 20;
+  const doorNumbers = {};
+  const used = new Set([target]);
+
+  allDoors.forEach(d => {
+    if (d === correctDoor) {
+      doorNumbers[d] = target;
+    } else {
+      let n;
+      do { n = Math.floor(Math.random() * 60) + 20; } while (used.has(n));
+      used.add(n);
+      doorNumbers[d] = n;
+    }
+  });
+
+  return {
+    row, col, isExit,
+    availableDoors: allDoors,
+    correctDoor,
+    doorNumbers,
+    puzzle: isExit ? null : makePuzzle(target),
+  };
+}
+
+// ─── PLAYER CHARACTER ─────────────────────────────────────────
+function PlayerMesh({ meshRef }) {
+  return (
+    <group ref={meshRef}>
+      {/* Legs */}
+      <mesh position={[-0.14, 0.3, 0]}>
+        <cylinderGeometry args={[0.09, 0.09, 0.6, 8]} />
+        <meshStandardMaterial color="#1e3a5f" />
+      </mesh>
+      <mesh position={[0.14, 0.3, 0]}>
+        <cylinderGeometry args={[0.09, 0.09, 0.6, 8]} />
+        <meshStandardMaterial color="#1e3a5f" />
+      </mesh>
+      {/* Body */}
+      <mesh position={[0, 0.9, 0]}>
+        <cylinderGeometry args={[0.26, 0.23, 0.85, 10]} />
+        <meshStandardMaterial color="#3b82f6" metalness={0.1} roughness={0.7} />
+      </mesh>
+      {/* Neck */}
+      <mesh position={[0, 1.4, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.18, 8]} />
+        <meshStandardMaterial color="#f5c27a" />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, 1.65, 0]}>
+        <sphereGeometry args={[0.22, 16, 12]} />
+        <meshStandardMaterial color="#f5c27a" roughness={0.8} />
+      </mesh>
+      {/* Eyes */}
+      <mesh position={[0.09, 1.69, 0.19]}>
+        <sphereGeometry args={[0.035, 8, 8]} />
+        <meshBasicMaterial color="#111" />
+      </mesh>
+      <mesh position={[-0.09, 1.69, 0.19]}>
+        <sphereGeometry args={[0.035, 8, 8]} />
+        <meshBasicMaterial color="#111" />
+      </mesh>
+      {/* Arms */}
+      <mesh position={[-0.4, 0.88, 0]} rotation={[0, 0, 0.35]}>
+        <cylinderGeometry args={[0.065, 0.065, 0.65, 8]} />
+        <meshStandardMaterial color="#3b82f6" />
+      </mesh>
+      <mesh position={[0.4, 0.88, 0]} rotation={[0, 0, -0.35]}>
+        <cylinderGeometry args={[0.065, 0.065, 0.65, 8]} />
+        <meshStandardMaterial color="#3b82f6" />
+      </mesh>
+      {/* Shadow */}
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.35, 16]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.35} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── ROOM ENVIRONMENT ─────────────────────────────────────────
+function RoomWalls() {
+  const H = HALF;
+  const strips = [
+    { pos: [0, 7.85, -H + 0.05], size: [H * 2, 0.08, 0.06] },
+    { pos: [0, 7.85, H - 0.05], size: [H * 2, 0.08, 0.06] },
+    { pos: [H - 0.05, 7.85, 0], size: [0.06, 0.08, H * 2] },
+    { pos: [-H + 0.05, 7.85, 0], size: [0.06, 0.08, H * 2] },
+  ];
+  const corners = [[-H, -H], [H, -H], [-H, H], [H, H]];
+
+  return (
+    <group>
+      {/* Floor */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[H * 2, H * 2]} />
+        <meshStandardMaterial color="#0b0b18" metalness={0.7} roughness={0.4} />
+      </mesh>
+      <gridHelper args={[H * 2, 16, '#182818', '#0d140d']} position={[0, 0.01, 0]} />
+
+      {/* Ceiling */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 8, 0]}>
+        <planeGeometry args={[H * 2, H * 2]} />
+        <meshStandardMaterial color="#06060c" />
+      </mesh>
+
+      {/* 4 Walls */}
+      <mesh position={[0, 4, -H]}>
+        <planeGeometry args={[H * 2, 8]} />
+        <meshStandardMaterial color="#090914" metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 4, H]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[H * 2, 8]} />
+        <meshStandardMaterial color="#090914" metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[H, 4, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[H * 2, 8]} />
+        <meshStandardMaterial color="#090914" metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[-H, 4, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[H * 2, 8]} />
+        <meshStandardMaterial color="#090914" metalness={0.9} roughness={0.2} />
+      </mesh>
+
+      {/* Neon ceiling strips */}
+      {strips.map((s, i) => (
+        <mesh key={i} position={s.pos}>
+          <boxGeometry args={s.size} />
+          <meshBasicMaterial color="#22c55e" />
+        </mesh>
+      ))}
+
+      {/* Corner pillars */}
+      {corners.map(([x, z], i) => (
+        <mesh key={i} position={[x, 4, z]}>
+          <boxGeometry args={[0.4, 8, 0.4]} />
+          <meshStandardMaterial color="#111" metalness={0.95} roughness={0.1} emissive="#22c55e" emissiveIntensity={0.2} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ─── DOOR MESH ────────────────────────────────────────────────
+function DoorMesh({ dir, number, isExit }) {
+  const pos = DOOR_POS[dir];
+  const rot = DOOR_ROT[dir];
+  const color = isExit ? '#00ffaa' : '#22c55e';
+
   return (
     <group position={pos} rotation={rot}>
       <mesh>
-        <boxGeometry args={[3, 4, 0.3]} />
-        <meshStandardMaterial color={isLocked ? '#330000' : '#003300'} metalness={0.9} roughness={0.2} emissive={color} emissiveIntensity={0.15} />
+        <boxGeometry args={[3.6, 5.8, 0.3]} />
+        <meshStandardMaterial color="#040418" metalness={0.95} roughness={0.1} emissive={color} emissiveIntensity={0.1} />
       </mesh>
-      <Text position={[0, 2.8, 0.25]} fontSize={1.2} anchorX="center" anchorY="middle" color={color} outlineWidth={0.05} outlineColor="#000000">
-        {String(number)}
-      </Text>
-      {!isLocked && (
-        <mesh onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => { document.body.style.cursor = 'pointer'; }} onPointerOut={() => { document.body.style.cursor = 'auto'; }}>
-          <boxGeometry args={[3, 4, 0.7]} />
-          <meshBasicMaterial visible={false} />
-        </mesh>
+      <mesh position={[0, 0, 0.16]}>
+        <boxGeometry args={[3.7, 5.9, 0.04]} />
+        <meshBasicMaterial color={color} transparent opacity={0.12} />
+      </mesh>
+      {isExit ? (
+        <Text position={[0, 2, 0.2]} fontSize={0.7} anchorX="center" anchorY="middle" color={color} outlineWidth={0.05} outlineColor="#000">
+          EXIT
+        </Text>
+      ) : (
+        <Text position={[0, 2.4, 0.2]} fontSize={1.6} anchorX="center" anchorY="middle" color={color} outlineWidth={0.07} outlineColor="#000">
+          {String(number)}
+        </Text>
       )}
+      <pointLight position={[0, 2, 1.5]} intensity={0.7} color={color} distance={5} />
     </group>
   );
 }
 
-function Room3D({ room, onDoorClick }) {
-  const walls = [
-    { pos: [0, 4, -5], rot: [0, 0, 0] },
-    { pos: [0, 4, 5], rot: [0, Math.PI, 0] },
-    { pos: [5, 4, 0], rot: [0, -Math.PI / 2, 0] },
-    { pos: [-5, 4, 0], rot: [0, Math.PI / 2, 0] },
-  ];
+// ─── TERMINAL MESH ────────────────────────────────────────────
+function Terminal({ puzzle }) {
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="#0d0d14" metalness={0.8} roughness={0.3} />
+      <mesh position={[0, 1.4, 0]} castShadow>
+        <cylinderGeometry args={[0.55, 0.75, 2.8, 12]} />
+        <meshStandardMaterial color="#0a0a1e" metalness={0.95} roughness={0.1} />
       </mesh>
-      <gridHelper args={[10, 10, '#1a3a1a', '#111a11']} position={[0, 0.01, 0]} />
-      {walls.map((w, i) => (
-        <mesh key={i} position={w.pos} rotation={w.rot} receiveShadow>
-          <planeGeometry args={[10, 8]} />
-          <meshStandardMaterial color="#0a0a10" metalness={0.9} roughness={0.2} />
-        </mesh>
-      ))}
-      <mesh position={[0, 1, 0]} castShadow>
-        <cylinderGeometry args={[0.6, 0.8, 2, 12]} />
-        <meshStandardMaterial color="#111122" metalness={0.95} roughness={0.1} />
+      <mesh position={[0, 3.1, 0.58]} rotation={[-0.22, 0, 0]}>
+        <planeGeometry args={[1.15, 0.65]} />
+        <meshStandardMaterial color="#001200" emissive="#22c55e" emissiveIntensity={0.45} />
       </mesh>
-      <Text position={[0, 2.6, 0.7]} fontSize={0.45} anchorX="center" anchorY="middle" color="#22c55e" maxWidth={1.5}>
-        {`${room.puzzle} = ?`}
+      <Text position={[0, 3.1, 0.62]} rotation={[-0.22, 0, 0]} fontSize={0.28} anchorX="center" anchorY="middle" color="#22c55e" maxWidth={1.1}>
+        {puzzle ? puzzle + ' = ?' : 'Find the EXIT!'}
       </Text>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <ringGeometry args={[4.5, 4.7, 64]} />
-        <meshBasicMaterial color="#22c55e" transparent opacity={0.25} />
-      </mesh>
-      {room.availableDoors.map(dir => (
-        <Door key={dir} dir={dir} number={room.doorNumbers[dir]} isLocked={room.lockedDoors.includes(dir)} onClick={() => onDoorClick(dir)} />
-      ))}
+      <pointLight position={[0, 4, 0.5]} intensity={1.2} color="#22c55e" distance={5} />
     </group>
   );
 }
 
+// ─── GAME SCENE (R3F) ─────────────────────────────────────────
+function GameScene({ room, onDoorTrigger, setNearDoor, setNearTerminal }) {
+  const { camera } = useThree();
+  const keysRef = useRef({});
+  const playerRef = useRef();
+  const posRef = useRef(new THREE.Vector3(0, 0, 3));
+  const rotRef = useRef(Math.PI); // facing north (toward terminal)
+  const coolRef = useRef(false);
+
+  useEffect(() => {
+    posRef.current.set(0, 0, 4);
+    rotRef.current = Math.PI;
+  }, [room]);
+
+  useEffect(() => {
+    const dn = (e) => { keysRef.current[e.key] = true; };
+    const up = (e) => { keysRef.current[e.key] = false; };
+    window.addEventListener('keydown', dn);
+    window.addEventListener('keyup', up);
+    return () => { window.removeEventListener('keydown', dn); window.removeEventListener('keyup', up); };
+  }, []);
+
+  useFrame((_, dt) => {
+    const k = keysRef.current;
+    const spd = SPEED * dt;
+
+    if (k['ArrowLeft']  || k['a'] || k['A']) rotRef.current += 2.0 * dt;
+    if (k['ArrowRight'] || k['d'] || k['D']) rotRef.current -= 2.0 * dt;
+
+    const fwd = new THREE.Vector3(-Math.sin(rotRef.current), 0, -Math.cos(rotRef.current));
+    const pos = posRef.current;
+    if (k['ArrowUp']   || k['w'] || k['W']) pos.addScaledVector(fwd, spd);
+    if (k['ArrowDown'] || k['s'] || k['S']) pos.addScaledVector(fwd, -spd);
+
+    pos.x = Math.max(-HALF + 0.6, Math.min(HALF - 0.6, pos.x));
+    pos.z = Math.max(-HALF + 0.6, Math.min(HALF - 0.6, pos.z));
+
+    if (playerRef.current) {
+      playerRef.current.position.copy(pos);
+      playerRef.current.rotation.y = rotRef.current;
+    }
+
+    // Third-person camera behind player
+    const behind = new THREE.Vector3(-Math.sin(rotRef.current), 0, -Math.cos(rotRef.current)).multiplyScalar(-7);
+    const camTarget = pos.clone().add(behind).add(new THREE.Vector3(0, 9, 0));
+    camera.position.lerp(camTarget, 0.06);
+    camera.lookAt(pos.x, 1.5, pos.z);
+
+    // Door proximity
+    let nd = null, ndist = DOOR_DIST;
+    room.availableDoors.forEach(dir => {
+      const dp = DOOR_POS[dir];
+      const d = Math.hypot(pos.x - dp[0], pos.z - dp[2]);
+      if (d < ndist) { ndist = d; nd = dir; }
+    });
+    setNearDoor(nd);
+
+    // Terminal proximity
+    const td = Math.hypot(pos.x, pos.z);
+    setNearTerminal(td < TERM_DIST);
+
+    // E to interact with door
+    if ((k['e'] || k['E'] || k['Enter']) && nd && !coolRef.current) {
+      coolRef.current = true;
+      setTimeout(() => { coolRef.current = false; }, 700);
+      onDoorTrigger(nd);
+    }
+  });
+
+  return (
+    <>
+      <color attach="background" args={['#050510']} />
+      <fog attach="fog" args={['#050510', 14, 36]} />
+      <ambientLight intensity={0.3} color="#112211" />
+      <spotLight position={[0, 10, 0]} angle={0.85} penumbra={0.6} intensity={2.5} castShadow color="#bbffbb" />
+
+      <RoomWalls />
+      <Terminal puzzle={room.puzzle} />
+      {room.availableDoors.map(dir => (
+        <DoorMesh key={dir} dir={dir} number={room.doorNumbers[dir]} isExit={room.isExit && dir === room.correctDoor} />
+      ))}
+      <PlayerMesh meshRef={playerRef} />
+    </>
+  );
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────
 export default function MazeGame({ onBack }) {
   const [gameState, setGameState] = useState('menu');
-  const [timeRemaining, setTimeRemaining] = useState(180);
-  const [path, setPath] = useState([]);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [room, setRoom] = useState(null);
-  const [flashMsg, setFlashMsg] = useState(null);
+  const [path, setPath]           = useState([]);
+  const [stepIdx, setStepIdx]     = useState(0);
+  const [room, setRoom]           = useState(null);
+  const [timeLeft, setTimeLeft]   = useState(180);
+  const [nearDoor, setNearDoor]   = useState(null);
+  const [nearTerm, setNearTerm]   = useState(false);
+  const [showPuzzle, setShowPuzzle] = useState(false);
+  const [trapMsg, setTrapMsg]     = useState('');
 
   useEffect(() => {
     if (gameState !== 'playing') return;
-    const timer = setInterval(() => {
-      setTimeRemaining(prev => { if (prev <= 1) { setGameState('game_over'); return 0; } return prev - 1; });
+    const t = setInterval(() => {
+      setTimeLeft(p => {
+        if (p <= 1) { setGameState('game_over'); return 0; }
+        return p - 1;
+      });
     }, 1000);
-    return () => clearInterval(timer);
+    return () => clearInterval(t);
   }, [gameState]);
 
   const startGame = () => {
-    const newPath = generatePath();
-    setPath(newPath); setStepIndex(0);
-    setRoom(generateRoom(0, 0, newPath[0]));
-    setTimeRemaining(180); setFlashMsg(null);
+    const p = generateSafePath();
+    setPath(p);
+    setStepIdx(0);
+    setRoom(generateRoom(p[0], p[1]));
+    setTimeLeft(180);
+    setShowPuzzle(false);
+    setNearDoor(null);
+    setNearTerm(false);
     setGameState('playing');
   };
 
-  const showFlash = (msg, color) => { setFlashMsg({ msg, color }); setTimeout(() => setFlashMsg(null), 1400); };
-
-  const handleDoorClick = (dir) => {
+  const handleDoor = (dir) => {
     if (!room) return;
+    if (room.isExit) { setGameState('won'); return; }
     if (dir === room.correctDoor) {
-      showFlash('Correct!', 'green');
-      const nextStep = stepIndex + 1;
-      if (nextStep >= path.length) { setTimeout(() => setGameState('won'), 800); }
-      else {
-        setTimeout(() => {
-          setStepIndex(nextStep);
-          let nx = room.x, ny = room.y;
-          if (dir === 'E') nx++; if (dir === 'W') nx--;
-          if (dir === 'S') ny++; if (dir === 'N') ny--;
-          setRoom(generateRoom(nx, ny, path[nextStep]));
-        }, 600);
-      }
+      const next = stepIdx + 1;
+      setStepIdx(next);
+      setShowPuzzle(false);
+      setNearDoor(null);
+      setNearTerm(false);
+      setRoom(generateRoom(path[next], path[next + 1]));
     } else {
-      showFlash('Trap! -10s', 'red');
-      setTimeRemaining(prev => Math.max(0, prev - 10));
-      setRoom(prev => ({ ...prev, lockedDoors: [...prev.lockedDoors, dir] }));
+      setTrapMsg('You chose the wrong door!');
+      setGameState('trap');
     }
   };
 
-  const fmt = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+  const fmt = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
 
   return (
-    <div style={{ position: 'fixed', inset: '0', width: '100vw', height: '100vh', overflow: 'hidden', background: '#05050f', fontFamily: 'monospace' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, pointerEvents: 'none' }}>
-        <button onClick={onBack} style={{ pointerEvents: 'auto', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-          &#8592;
-        </button>
-        {gameState === 'playing' && (
-          <div style={{ display: 'flex', gap: '16px', pointerEvents: 'auto' }}>
-            <div style={{ background: 'rgba(0,0,0,0.7)', border: `1px solid ${timeRemaining < 30 ? '#ef4444' : 'rgba(34,197,94,0.3)'}`, color: timeRemaining < 30 ? '#ef4444' : '#22c55e', padding: '8px 16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: '10px', letterSpacing: '2px', opacity: 0.7 }}>TIME</span>
-              <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{fmt(timeRemaining)}</span>
-            </div>
-            <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '8px 16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: '10px', letterSpacing: '2px', opacity: 0.7 }}>ROOM</span>
-              <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{stepIndex + 1} / {path.length + 1}</span>
-            </div>
-          </div>
-        )}
-      </div>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#050510', fontFamily: 'monospace', overflow: 'hidden' }}>
 
-      {flashMsg && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30, pointerEvents: 'none' }}>
-          <div style={{ fontSize: '48px', fontWeight: 'bold', padding: '16px 40px', background: 'rgba(0,0,0,0.85)', border: `2px solid ${flashMsg.color === 'green' ? '#22c55e' : '#ef4444'}`, color: flashMsg.color === 'green' ? '#22c55e' : '#ef4444', borderRadius: '16px' }}>
-            {flashMsg.msg}
+      {/* HUD */}
+      {gameState === 'playing' && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, pointerEvents: 'none', background: 'linear-gradient(rgba(0,0,0,0.7), transparent)' }}>
+          <button onClick={onBack} style={{ pointerEvents: 'auto', padding: '8px 16px', borderRadius: '8px', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', cursor: 'pointer', fontFamily: 'monospace', fontSize: '13px' }}>
+            &#8592; Back
+          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid ' + (timeLeft < 30 ? '#ef4444' : 'rgba(34,197,94,0.4)'), color: timeLeft < 30 ? '#ef4444' : '#22c55e', padding: '6px 16px', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '9px', opacity: 0.6, letterSpacing: '2px' }}>TIME</div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{fmt(timeLeft)}</div>
+            </div>
+            <div style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', padding: '6px 16px', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '9px', opacity: 0.6, letterSpacing: '2px' }}>ROOM</div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stepIdx + 1}/{path.length}</div>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Interaction hint */}
+      {gameState === 'playing' && (nearDoor || nearTerm) && (
+        <div style={{ position: 'absolute', bottom: '60px', left: '50%', transform: 'translateX(-50%)', zIndex: 25, background: 'rgba(0,0,0,0.88)', border: '1px solid #22c55e', color: '#22c55e', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
+          {nearTerm && !showPuzzle && 'Press E to read terminal'}
+          {nearTerm && showPuzzle && ('PUZZLE: ' + room.puzzle + ' = ?')}
+          {nearDoor && !nearTerm && ('Press E to enter door [' + room.doorNumbers[nearDoor] + ']')}
+        </div>
+      )}
+
+      {/* Controls */}
+      {gameState === 'playing' && (
+        <div style={{ position: 'absolute', bottom: '14px', right: '18px', zIndex: 25, color: 'rgba(34,197,94,0.45)', fontSize: '11px', lineHeight: '1.7', textAlign: 'right' }}>
+          WASD / Arrows — Move<br />E — Interact
+        </div>
+      )}
+
+      {/* MENU */}
       {gameState === 'menu' && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,5,15,0.95)' }}>
-          <div style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '24px', padding: '40px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
-            <div style={{ fontSize: '64px', marginBottom: '8px' }}>&#127962;</div>
-            <h2 style={{ fontSize: '36px', fontWeight: 'bold', color: '#22c55e', marginBottom: '8px', letterSpacing: '6px' }}>THE MAZE</h2>
-            <p style={{ color: 'rgba(74,222,128,0.6)', marginBottom: '32px', lineHeight: '1.7' }}>Solve the terminal puzzle. Find the door with the matching neon number and click it. Wrong doors cost 10 seconds.</p>
-            <button onClick={startGame} style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#22c55e', fontWeight: 'bold', fontSize: '14px', letterSpacing: '4px', cursor: 'pointer' }}>ENTER THE MAZE</button>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(3,3,12,0.98)' }}>
+          <div style={{ maxWidth: '460px', width: '90%', padding: '40px', background: 'rgba(0,0,0,0.9)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '20px', textAlign: 'center', position: 'relative' }}>
+            <button onClick={onBack} style={{ position: 'absolute', top: '16px', left: '16px', padding: '6px 14px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e55', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px' }}>&#8592; Back</button>
+            <div style={{ fontSize: '56px', marginBottom: '8px' }}>&#127962;</div>
+            <h2 style={{ color: '#22c55e', fontSize: '30px', letterSpacing: '6px', margin: '0 0 4px' }}>THE MAZE</h2>
+            <p style={{ color: 'rgba(34,197,94,0.4)', fontSize: '11px', letterSpacing: '3px', marginBottom: '24px' }}>ESCAPE OR DIE TRYING</p>
+            <div style={{ background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.12)', borderRadius: '10px', padding: '16px', marginBottom: '24px', textAlign: 'left', color: 'rgba(34,197,94,0.65)', fontSize: '13px', lineHeight: '2.0' }}>
+              &#8227; Walk around the room with WASD or Arrow Keys<br />
+              &#8227; Find the terminal — press E to read the math puzzle<br />
+              &#8227; Walk to a door — press E to enter<br />
+              &#8227; Puzzle answer = safe door number<br />
+              &#8227; <span style={{ color: '#ef4444', fontWeight: 'bold' }}>Wrong door = instant Game Over</span><br />
+              &#8227; Reach the EXIT to escape. You have 3 minutes.
+            </div>
+            <button onClick={startGame} style={{ width: '100%', padding: '15px', borderRadius: '10px', background: 'rgba(34,197,94,0.08)', border: '1px solid #22c55e', color: '#22c55e', fontWeight: 'bold', fontSize: '14px', letterSpacing: '4px', cursor: 'pointer', fontFamily: 'monospace' }}>
+              ENTER THE MAZE
+            </button>
           </div>
         </div>
       )}
 
+      {/* TRAP */}
+      {gameState === 'trap' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(28,0,0,0.97)' }}>
+          <div style={{ fontSize: '72px', marginBottom: '10px', animation: 'pulse 0.5s' }}>&#9762;</div>
+          <h2 style={{ color: '#ef4444', fontSize: '50px', letterSpacing: '4px', marginBottom: '10px', textShadow: '0 0 30px #ef4444aa' }}>TRAP!</h2>
+          <p style={{ color: 'rgba(239,68,68,0.65)', fontSize: '17px', marginBottom: '36px' }}>{trapMsg}</p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={startGame} style={{ padding: '13px 30px', border: '2px solid #ef4444', color: '#ef4444', background: 'transparent', borderRadius: '10px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '13px', letterSpacing: '2px' }}>TRY AGAIN</button>
+            <button onClick={onBack} style={{ padding: '13px 30px', border: '1px solid rgba(239,68,68,0.3)', color: 'rgba(239,68,68,0.5)', background: 'transparent', borderRadius: '10px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '13px' }}>BACK</button>
+          </div>
+        </div>
+      )}
+
+      {/* GAME OVER (timeout) */}
       {gameState === 'game_over' && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(20,0,0,0.95)' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '64px', fontWeight: 'bold', color: '#ef4444', letterSpacing: '4px', marginBottom: '16px' }}>TIME&#39;S UP</h2>
-            <p style={{ color: 'rgba(239,68,68,0.6)', fontSize: '20px', marginBottom: '32px' }}>You were lost in the maze.</p>
-            <button onClick={startGame} style={{ padding: '14px 40px', borderRadius: '12px', border: '2px solid #ef4444', color: '#ef4444', background: 'transparent', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '3px' }}>TRY AGAIN</button>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(18,0,0,0.97)' }}>
+          <h2 style={{ color: '#ef4444', fontSize: '52px', letterSpacing: '4px', marginBottom: '12px' }}>TIME&#39;S UP</h2>
+          <p style={{ color: 'rgba(239,68,68,0.55)', fontSize: '17px', marginBottom: '34px' }}>The maze consumed you.</p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={startGame} style={{ padding: '13px 30px', border: '2px solid #ef4444', color: '#ef4444', background: 'transparent', borderRadius: '10px', cursor: 'pointer', fontFamily: 'monospace', letterSpacing: '2px' }}>TRY AGAIN</button>
+            <button onClick={onBack} style={{ padding: '13px 30px', border: '1px solid rgba(239,68,68,0.3)', color: 'rgba(239,68,68,0.4)', background: 'transparent', borderRadius: '10px', cursor: 'pointer', fontFamily: 'monospace' }}>BACK</button>
           </div>
         </div>
       )}
 
+      {/* WON */}
       {gameState === 'won' && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,20,0,0.95)' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '64px', fontWeight: 'bold', color: '#22c55e', letterSpacing: '4px', marginBottom: '16px' }}>ESCAPED!</h2>
-            <p style={{ color: 'rgba(34,197,94,0.6)', fontSize: '20px', marginBottom: '32px' }}>Time remaining: {fmt(timeRemaining)}</p>
-            <button onClick={startGame} style={{ padding: '14px 40px', borderRadius: '12px', border: '2px solid #22c55e', color: '#22c55e', background: 'transparent', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '3px' }}>PLAY AGAIN</button>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,14,0,0.97)' }}>
+          <div style={{ fontSize: '72px', marginBottom: '10px' }}>&#127942;</div>
+          <h2 style={{ color: '#22c55e', fontSize: '52px', letterSpacing: '4px', marginBottom: '12px', textShadow: '0 0 40px #22c55eaa' }}>ESCAPED!</h2>
+          <p style={{ color: 'rgba(34,197,94,0.55)', fontSize: '17px', marginBottom: '34px' }}>Time remaining: {fmt(timeLeft)}</p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={startGame} style={{ padding: '13px 30px', border: '2px solid #22c55e', color: '#22c55e', background: 'transparent', borderRadius: '10px', cursor: 'pointer', fontFamily: 'monospace', letterSpacing: '2px' }}>PLAY AGAIN</button>
+            <button onClick={onBack} style={{ padding: '13px 30px', border: '1px solid rgba(34,197,94,0.3)', color: 'rgba(34,197,94,0.4)', background: 'transparent', borderRadius: '10px', cursor: 'pointer', fontFamily: 'monospace' }}>BACK</button>
           </div>
         </div>
       )}
 
+      {/* 3D CANVAS */}
       {gameState === 'playing' && room && (
-        <Canvas shadows camera={{ position: [0, 9, 9], fov: 55 }} style={{ width: '100%', height: '100%' }}>
+        <Canvas shadows camera={{ position: [0, 9, 12], fov: 60 }} style={{ position: 'absolute', inset: 0 }}>
           <Suspense fallback={null}>
-            <color attach="background" args={['#05050f']} />
-            <fog attach="fog" args={['#05050f', 12, 28]} />
-            <ambientLight intensity={0.4} color="#223322" />
-            <spotLight position={[0, 9, 0]} angle={0.7} penumbra={0.5} intensity={3} castShadow color="#22c55e" />
-            <pointLight position={[0, 3, 0]} intensity={1} color="#22c55e" distance={8} />
-            <Room3D room={room} onDoorClick={handleDoorClick} />
+            <GameScene
+              room={room}
+              onDoorTrigger={handleDoor}
+              setNearDoor={setNearDoor}
+              setNearTerminal={(v) => { setNearTerm(v); if (v) setShowPuzzle(true); }}
+            />
           </Suspense>
         </Canvas>
       )}
     </div>
   );
 }
-
