@@ -148,7 +148,7 @@ export default function MazeGame({ onBack }) {
   const fmt = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#05050f', fontFamily: 'monospace' }}>
+    <div style={{ position: 'fixed', inset: '0', width: '100vw', height: '100vh', overflow: 'hidden', background: '#05050f', fontFamily: 'monospace' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, pointerEvents: 'none' }}>
         <button onClick={onBack} style={{ pointerEvents: 'auto', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
           &#8592;
@@ -221,3 +221,4 @@ export default function MazeGame({ onBack }) {
     </div>
   );
 }
+
