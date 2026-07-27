@@ -150,6 +150,29 @@ const PegColliders = ({ pegs }) => {
   );
 };
 
+const InvisibleWalls = () => {
+  return (
+    <group>
+      {/* North */}
+      <RigidBody type="fixed" position={[0, 5, -18]} restitution={0.5}>
+        <mesh visible={false}><boxGeometry args={[36, 20, 2]} /></mesh>
+      </RigidBody>
+      {/* South */}
+      <RigidBody type="fixed" position={[0, 5, 18]} restitution={0.5}>
+        <mesh visible={false}><boxGeometry args={[36, 20, 2]} /></mesh>
+      </RigidBody>
+      {/* East */}
+      <RigidBody type="fixed" position={[18, 5, 0]} restitution={0.5}>
+        <mesh visible={false}><boxGeometry args={[2, 20, 36]} /></mesh>
+      </RigidBody>
+      {/* West */}
+      <RigidBody type="fixed" position={[-18, 5, 0]} restitution={0.5}>
+        <mesh visible={false}><boxGeometry args={[2, 20, 36]} /></mesh>
+      </RigidBody>
+    </group>
+  );
+};
+
 const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
   const rigidBodyRef = useRef();
   const [isRolling, setIsRolling] = useState(false);
@@ -189,6 +212,13 @@ const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
 
   useFrame(() => {
     if (isRolling && rigidBodyRef.current) {
+      // Safety net: if it flies completely off the table
+      if (rigidBodyRef.current.translation().y < -5) {
+        setIsRolling(false);
+        onDiceSettled(Math.floor(Math.random() * 6));
+        return;
+      }
+
       const linVel = rigidBodyRef.current.linvel();
       const angVel = rigidBodyRef.current.angvel();
       const speed = Math.abs(linVel.x) + Math.abs(linVel.y) + Math.abs(linVel.z) + 
@@ -365,6 +395,7 @@ export default function MemoryGame({ user, onBack }) {
           <Physics>
             <Board />
             <PegColliders pegs={pegs} />
+            <InvisibleWalls />
             <PhysicsDice triggerRoll={triggerRoll} onDiceSettled={handleRollComplete} />
             
             {/* Visible Ground Table to catch the dice */}
