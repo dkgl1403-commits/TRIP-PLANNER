@@ -1290,14 +1290,76 @@ export default function SnakeLadder({ user, onBack }) {
     setTimeout(() => setMessage(''), 3200);
   };
 
-  const triggerMigration = () => {
+  const executeSnakeSlide = async (playerId, fromTile, toTile) => {
+    const fp = getPosition(fromTile);
+    const tp = getPosition(toTile);
+    const numSegs = (fromTile - toTile) >= 50 ? 45 : 30;
+    
+    const d = new THREE.Vector3().subVectors(tp, fp);
+    const len = d.length();
+    const perp = new THREE.Vector3(-d.z, 0, d.x).normalize();
+    const zigs = len * 0.45;
+    
+    const basePoints = [];
+    for (let i = 0; i <= numSegs; i++) {
+      const t = i / numSegs;
+      const basePt = new THREE.Vector3().lerpVectors(
+        new THREE.Vector3(fp.x, fp.y + 0.15, fp.z), 
+        new THREE.Vector3(tp.x, tp.y + 0.15, tp.z), 
+        t
+      );
+      const env = Math.sin(t * Math.PI); 
+      const offset = Math.sin(t * zigs * Math.PI) * env * 1.1; 
+      basePt.addScaledVector(perp, offset);
+      basePoints.push(basePt);
+    }
+    
+    const curve = new THREE.CatmullRomCurve3(basePoints);
+    const slideSteps = Math.max(15, Math.round(len * 2));
+    
+    for (let s = 1; s <= slideSteps; s++) {
+      const ratio = s / slideSteps;
+      const stepPt = curve.getPoint(ratio);
+      setVisualPositions(prev => ({ ...prev, [playerId]: { x: stepPt.x, y: stepPt.y, z: stepPt.z } }));
+      await new Promise(r => setTimeout(r, 60)); // Fast slippery slide down
+    }
+  };
+
+  const triggerMigration = async () => {
     setIsMigrating(true);
-    setTimeout(() => {
-      const newSnakes = generateSnakes();
-      setSnakes(newSnakes);
-      setSprings(generateSprings(newSnakes));
-      setTimeout(() => setIsMigrating(false), 1800);
-    }, 1200);
+    await new Promise(r => setTimeout(r, 1200));
+
+    const newSnakes = generateSnakes();
+    setSnakes(newSnakes);
+    setSprings(generateSprings(newSnakes));
+    
+    await new Promise(r => setTimeout(r, 600)); // Brief pause to see the new environment
+
+    let didAmbush = false;
+    let currentPlayers = [...playersRef.current];
+
+    for (let i = 0; i < currentPlayers.length; i++) {
+      const p = currentPlayers[i];
+      if (newSnakes[p.pos]) {
+        didAmbush = true;
+        const dest = newSnakes[p.pos];
+        showToast(`⚠️ Ambush! A moving snake caught ${p.name}!`);
+        await new Promise(r => setTimeout(r, 600));
+        
+        await executeSnakeSlide(p.id, p.pos, dest);
+        
+        p.pos = dest;
+      }
+    }
+    
+    if (didAmbush) {
+      setPlayers([...currentPlayers]);
+      await new Promise(r => setTimeout(r, 1000));
+    } else {
+      await new Promise(r => setTimeout(r, 1200));
+    }
+    
+    setIsMigrating(false);
   };
 
   // ── Half-tile visual movement ──────────
@@ -1420,39 +1482,7 @@ export default function SnakeLadder({ user, onBack }) {
         showToast(`🐍 Snake! ${player.name} slides ${finalPos - dest} tiles back!`);
         await new Promise(r => setTimeout(r, 600));
         
-        // SLIDE ALONG SNAKE CURVE
-        const fp = getPosition(finalPos);
-        const tp = getPosition(dest);
-        const numSegs = (finalPos - dest) >= 50 ? 45 : 30;
-        
-        const d = new THREE.Vector3().subVectors(tp, fp);
-        const len = d.length();
-        const perp = new THREE.Vector3(-d.z, 0, d.x).normalize();
-        const zigs = len * 0.45;
-        
-        const basePoints = [];
-        for (let i = 0; i <= numSegs; i++) {
-          const t = i / numSegs;
-          const basePt = new THREE.Vector3().lerpVectors(
-            new THREE.Vector3(fp.x, fp.y + 0.15, fp.z), 
-            new THREE.Vector3(tp.x, tp.y + 0.15, tp.z), 
-            t
-          );
-          const env = Math.sin(t * Math.PI); 
-          const offset = Math.sin(t * zigs * Math.PI) * env * 1.1; 
-          basePt.addScaledVector(perp, offset);
-          basePoints.push(basePt);
-        }
-        
-        const curve = new THREE.CatmullRomCurve3(basePoints);
-        const slideSteps = Math.max(15, Math.round(len * 2));
-        
-        for (let s = 1; s <= slideSteps; s++) {
-          const ratio = s / slideSteps;
-          const stepPt = curve.getPoint(ratio);
-          setVisualPositions(prev => ({ ...prev, [player.id]: { x: stepPt.x, y: stepPt.y, z: stepPt.z } }));
-          await new Promise(r => setTimeout(r, 60)); // Fast slippery slide down
-        }
+        await executeSnakeSlide(player.id, finalPos, dest);
 
         player.pos  = dest;
         nextPlayers[pIdx] = { ...player };
