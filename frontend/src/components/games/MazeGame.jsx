@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Text, RoundedBox, Html, useCursor } from '@react-three/drei';
+import React, { useState, useEffect } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 const BOARD_SIZE = 4;
@@ -24,15 +24,28 @@ function generatePath() {
 }
 
 function generateRoom(x, y, correctDoor) {
+  // Build available doors based on grid position
   const doors = [];
   if (y > 0) doors.push('N');
   if (y < BOARD_SIZE - 1) doors.push('S');
   if (x < BOARD_SIZE - 1) doors.push('E');
   if (x > 0) doors.push('W');
   
-  const doorNumbers = {};
-  let usedNumbers = new Set();
+  // Always ensure the correct door is available
+  if (!doors.includes(correctDoor)) {
+    doors.push(correctDoor);
+  }
+  // Add 1-2 random trap doors if not already maxed
+  const allPossible = ['N','S','E','W'];
+  allPossible.forEach(d => {
+    if (!doors.includes(d) && Math.random() > 0.5 && doors.length < 3) {
+      doors.push(d);
+    }
+  });
   
+  // Assign unique random numbers to each door
+  const doorNumbers = {};
+  const usedNumbers = new Set();
   doors.forEach(d => {
     let num;
     do { num = Math.floor(Math.random() * 90) + 10; } while(usedNumbers.has(num));
@@ -41,31 +54,34 @@ function generateRoom(x, y, correctDoor) {
   });
   
   const targetNum = doorNumbers[correctDoor];
-  
+  if (!targetNum) {
+    // Fallback safety
+    doorNumbers[correctDoor] = 42;
+  }
+
+  const finalTarget = doorNumbers[correctDoor];
+  let puzzleStr = "";
   const ops = ['+', '-', '*'];
   const op = ops[Math.floor(Math.random() * ops.length)];
-  let puzzleStr = "";
   if (op === '+') {
-    const a = Math.floor(Math.random() * (targetNum - 1)) + 1;
-    const b = targetNum - a;
+    const a = Math.max(1, Math.floor(Math.random() * (finalTarget - 1)));
+    const b = finalTarget - a;
     puzzleStr = `${a} + ${b}`;
   } else if (op === '-') {
-    const a = targetNum + Math.floor(Math.random() * 50) + 10;
-    const b = a - targetNum;
+    const a = finalTarget + Math.floor(Math.random() * 50) + 10;
+    const b = a - finalTarget;
     puzzleStr = `${a} - ${b}`;
-  } else if (op === '*') {
+  } else {
     const factors = [];
-    for(let i=2; i<=Math.sqrt(targetNum); i++) {
-       if (targetNum % i === 0) factors.push(i);
+    for(let i = 2; i <= Math.sqrt(finalTarget); i++) {
+       if (finalTarget % i === 0) factors.push(i);
     }
     if (factors.length > 0) {
       const a = factors[Math.floor(Math.random() * factors.length)];
-      const b = targetNum / a;
-      puzzleStr = `${a} * ${b}`;
+      puzzleStr = `${a} × ${finalTarget / a}`;
     } else {
-      const a = Math.floor(Math.random() * (targetNum - 1)) + 1;
-      const b = targetNum - a;
-      puzzleStr = `${a} + ${b}`;
+      const a = Math.max(1, Math.floor(Math.random() * (finalTarget - 1)));
+      puzzleStr = `${a} + ${finalTarget - a}`;
     }
   }
   
