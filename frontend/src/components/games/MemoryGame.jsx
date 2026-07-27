@@ -152,24 +152,11 @@ const PegColliders = ({ pegs }) => {
 
 const InvisibleWalls = () => {
   return (
-    <group>
-      {/* North */}
-      <RigidBody type="fixed" position={[0, 5, -18]} restitution={0.5}>
-        <mesh visible={false}><boxGeometry args={[36, 20, 2]} /></mesh>
-      </RigidBody>
-      {/* South */}
-      <RigidBody type="fixed" position={[0, 5, 18]} restitution={0.5}>
-        <mesh visible={false}><boxGeometry args={[36, 20, 2]} /></mesh>
-      </RigidBody>
-      {/* East */}
-      <RigidBody type="fixed" position={[18, 5, 0]} restitution={0.5}>
-        <mesh visible={false}><boxGeometry args={[2, 20, 36]} /></mesh>
-      </RigidBody>
-      {/* West */}
-      <RigidBody type="fixed" position={[-18, 5, 0]} restitution={0.5}>
-        <mesh visible={false}><boxGeometry args={[2, 20, 36]} /></mesh>
-      </RigidBody>
-    </group>
+    <RigidBody type="fixed" colliders="trimesh" restitution={0.5} position={[0, 10, 0]}>
+      <mesh visible={false}>
+        <cylinderGeometry args={[11.5, 11.5, 20, 32, 1, true]} />
+      </mesh>
+    </RigidBody>
   );
 };
 
@@ -184,18 +171,18 @@ const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
   useEffect(() => {
     if (triggerRoll && rigidBodyRef.current && !isRolling) {
       setIsRolling(true);
-      // Position dice high above center
-      rigidBodyRef.current.setTranslation({ x: 0, y: 15, z: 0 }, true);
+      // Position dice above center
+      rigidBodyRef.current.setTranslation({ x: 0, y: 8, z: 0 }, true);
       rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
       
       setTimeout(() => {
         if (!rigidBodyRef.current) return;
-        // Random impulse
+        // Random impulse (gentler toss)
         const impulse = {
-          x: (Math.random() - 0.5) * 15,
-          y: -25, // strong throw down
-          z: (Math.random() - 0.5) * 15
+          x: (Math.random() - 0.5) * 10,
+          y: -10, // throw down
+          z: (Math.random() - 0.5) * 10
         };
         // Random torque
         const torque = {
