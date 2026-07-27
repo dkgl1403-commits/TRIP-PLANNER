@@ -151,13 +151,36 @@ const PegColliders = ({ pegs }) => {
 };
 
 const InvisibleWalls = () => {
-  return (
-    <RigidBody type="fixed" colliders="trimesh" restitution={0.5} position={[0, 10, 0]}>
+  const walls = [];
+  const segments = 16;
+  const radius = 11.5;
+  const wallThickness = 5; 
+  const wallHeight = 40; 
+
+  for (let i = 0; i < segments; i++) {
+    const angle = (i / segments) * Math.PI * 2;
+    const x = Math.cos(angle) * (radius + wallThickness / 2 - 0.5);
+    const z = Math.sin(angle) * (radius + wallThickness / 2 - 0.5);
+    const width = (2 * Math.PI * radius) / segments + 2; 
+
+    walls.push(
+      <RigidBody key={`wall_${i}`} type="fixed" position={[x, wallHeight / 2 - 1, z]} rotation={[0, -angle + Math.PI / 2, 0]} restitution={0.5}>
+        <mesh visible={false}>
+          <boxGeometry args={[width, wallHeight, wallThickness]} />
+        </mesh>
+      </RigidBody>
+    );
+  }
+  
+  walls.push(
+    <RigidBody key="ceiling" type="fixed" position={[0, 20, 0]} restitution={0.5}>
       <mesh visible={false}>
-        <cylinderGeometry args={[11.5, 11.5, 20, 32, 1, true]} />
+         <boxGeometry args={[40, 2, 40]} />
       </mesh>
     </RigidBody>
   );
+
+  return <group>{walls}</group>;
 };
 
 const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
