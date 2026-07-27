@@ -1,375 +1,223 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
-import * as THREE from 'three';
 
 const BOARD_SIZE = 4;
+const DIR_POSITIONS = { N: [0, 2, -4.8], S: [0, 2, 4.8], E: [4.8, 2, 0], W: [-4.8, 2, 0] };
+const DIR_ROTATIONS = { N: [0, 0, 0], S: [0, Math.PI, 0], E: [0, -Math.PI / 2, 0], W: [0, Math.PI / 2, 0] };
 
 function generatePath() {
   let x = 0, y = 0;
-  const path = []; 
+  const path = [];
   while (x < BOARD_SIZE - 1 || y < BOARD_SIZE - 1) {
-    const canGoE = x < BOARD_SIZE - 1;
-    const canGoS = y < BOARD_SIZE - 1;
-    if (canGoE && canGoS) {
-      if (Math.random() > 0.5) { path.push('E'); x++; }
-      else { path.push('S'); y++; }
-    } else if (canGoE) {
-      path.push('E'); x++;
-    } else {
-      path.push('S'); y++;
-    }
+    const canE = x < BOARD_SIZE - 1, canS = y < BOARD_SIZE - 1;
+    if (canE && canS) { if (Math.random() > 0.5) { path.push('E'); x++; } else { path.push('S'); y++; } }
+    else if (canE) { path.push('E'); x++; }
+    else { path.push('S'); y++; }
   }
-  return path; // length 6
+  return path;
 }
 
 function generateRoom(x, y, correctDoor) {
-  // Build available doors based on grid position
-  const doors = [];
-  if (y > 0) doors.push('N');
-  if (y < BOARD_SIZE - 1) doors.push('S');
-  if (x < BOARD_SIZE - 1) doors.push('E');
-  if (x > 0) doors.push('W');
-  
-  // Always ensure the correct door is available
-  if (!doors.includes(correctDoor)) {
-    doors.push(correctDoor);
-  }
-  // Add 1-2 random trap doors if not already maxed
-  const allPossible = ['N','S','E','W'];
-  allPossible.forEach(d => {
-    if (!doors.includes(d) && Math.random() > 0.5 && doors.length < 3) {
-      doors.push(d);
-    }
-  });
-  
-  // Assign unique random numbers to each door
-  const doorNumbers = {};
-  const usedNumbers = new Set();
-  doors.forEach(d => {
-    let num;
-    do { num = Math.floor(Math.random() * 90) + 10; } while(usedNumbers.has(num));
-    usedNumbers.add(num);
-    doorNumbers[d] = num;
-  });
-  
-  const targetNum = doorNumbers[correctDoor];
-  if (!targetNum) {
-    // Fallback safety
-    doorNumbers[correctDoor] = 42;
-  }
-
-  const finalTarget = doorNumbers[correctDoor];
-  let puzzleStr = "";
-  const ops = ['+', '-', '*'];
-  const op = ops[Math.floor(Math.random() * ops.length)];
-  if (op === '+') {
-    const a = Math.max(1, Math.floor(Math.random() * (finalTarget - 1)));
-    const b = finalTarget - a;
-    puzzleStr = `${a} + ${b}`;
-  } else if (op === '-') {
-    const a = finalTarget + Math.floor(Math.random() * 50) + 10;
-    const b = a - finalTarget;
-    puzzleStr = `${a} - ${b}`;
-  } else {
-    const factors = [];
-    for(let i = 2; i <= Math.sqrt(finalTarget); i++) {
-       if (finalTarget % i === 0) factors.push(i);
-    }
-    if (factors.length > 0) {
-      const a = factors[Math.floor(Math.random() * factors.length)];
-      puzzleStr = `${a} × ${finalTarget / a}`;
-    } else {
-      const a = Math.max(1, Math.floor(Math.random() * (finalTarget - 1)));
-      puzzleStr = `${a} + ${finalTarget - a}`;
-    }
-  }
-  
-  return {
-    x, y,
-    availableDoors: doors,
-    correctDoor,
-    doorNumbers,
-    puzzle: puzzleStr,
-    lockedDoors: []
-  };
+  const doorSet = new Set([correctDoor]);
+  if (y > 0) doorSet.add('N');
+  if (y < BOARD_SIZE - 1) doorSet.add('S');
+  if (x < BOARD_SIZE - 1) doorSet.add('E');
+  if (x > 0) doorSet.add('W');
+  ['N','S','E','W'].forEach(d => { if (!doorSet.has(d) && doorSet.size < 3 && Math.random() > 0.5) doorSet.add(d); });
+  const doorList = Array.from(doorSet);
+  const doorNumbers = {}, used = new Set();
+  doorList.forEach(d => { let n; do { n = Math.floor(Math.random() * 80) + 12; } while (used.has(n)); used.add(n); doorNumbers[d] = n; });
+  const target = doorNumbers[correctDoor];
+  let puzzle = '';
+  const r = Math.random();
+  if (r < 0.4) { const a = Math.max(1, Math.floor(Math.random() * (target - 2)) + 1); puzzle = `${a} + ${target - a}`; }
+  else if (r < 0.7) { const e = Math.floor(Math.random() * 40) + 5; puzzle = `${target + e} - ${e}`; }
+  else { let ok = false; for (let i = 2; i <= Math.sqrt(target); i++) { if (target % i === 0) { puzzle = `${i} x ${target / i}`; ok = true; break; } } if (!ok) { const a = Math.max(1, Math.floor(Math.random() * (target - 2)) + 1); puzzle = `${a} + ${target - a}`; } }
+  return { x, y, availableDoors: doorList, correctDoor, doorNumbers, puzzle, lockedDoors: [] };
 }
 
-// --------------------------------------------------------
-// 3D COMPONENTS
-// --------------------------------------------------------
-
-const Door = ({ dir, number, isLocked, isHovered, onClick }) => {
-  // Map directions to positions
-  const posMap = {
-    'N': [0, 2, -5],
-    'S': [0, 2, 5],
-    'E': [5, 2, 0],
-    'W': [-5, 2, 0]
-  };
-  const rotMap = {
-    'N': [0, 0, 0],
-    'S': [0, Math.PI, 0],
-    'E': [0, -Math.PI/2, 0],
-    'W': [0, Math.PI/2, 0]
-  };
-
-  const pos = posMap[dir];
-  const rot = rotMap[dir];
-  
-  let color = isLocked ? '#ff0000' : '#22c55e';
-  let emissiveIntensity = isLocked ? 2 : (isHovered ? 2 : 1);
-
+function Door({ dir, number, isLocked, onClick }) {
+  const pos = DIR_POSITIONS[dir], rot = DIR_ROTATIONS[dir];
+  const color = isLocked ? '#ef4444' : '#22c55e';
   return (
     <group position={pos} rotation={rot}>
-      {/* Door Frame */}
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[3, 4, 0.5]} />
-        <meshStandardMaterial color={isLocked ? "#331111" : "#113311"} metalness={0.8} roughness={0.2} />
+      <mesh>
+        <boxGeometry args={[3, 4, 0.3]} />
+        <meshStandardMaterial color={isLocked ? '#330000' : '#003300'} metalness={0.9} roughness={0.2} emissive={color} emissiveIntensity={0.15} />
       </mesh>
-      {/* Neon Number */}
-      <Text
-        position={[0, 3, 0.3]}
-        fontSize={1.5}
-        color={color}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {number}
-        <meshBasicMaterial color={color} toneMapped={false} />
+      <Text position={[0, 2.8, 0.25]} fontSize={1.2} anchorX="center" anchorY="middle" color={color} outlineWidth={0.05} outlineColor="#000000">
+        {String(number)}
       </Text>
-      
-      {/* Clickable Area */}
       {!isLocked && (
-        <mesh position={[0, 0, 0.4]} onClick={onClick} onPointerOver={(e) => {e.stopPropagation(); document.body.style.cursor = 'pointer'}} onPointerOut={(e) => {e.stopPropagation(); document.body.style.cursor = 'auto'}}>
-          <boxGeometry args={[3, 4, 0.2]} />
+        <mesh onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={() => { document.body.style.cursor = 'pointer'; }} onPointerOut={() => { document.body.style.cursor = 'auto'; }}>
+          <boxGeometry args={[3, 4, 0.7]} />
           <meshBasicMaterial visible={false} />
         </mesh>
       )}
     </group>
   );
-};
+}
 
-const Room3D = ({ room, onDoorClick }) => {
+function Room3D({ room, onDoorClick }) {
+  const walls = [
+    { pos: [0, 4, -5], rot: [0, 0, 0] },
+    { pos: [0, 4, 5], rot: [0, Math.PI, 0] },
+    { pos: [5, 4, 0], rot: [0, -Math.PI / 2, 0] },
+    { pos: [-5, 4, 0], rot: [0, Math.PI / 2, 0] },
+  ];
   return (
     <group>
-      {/* Floor */}
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI/2, 0, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="#0a0a0f" roughness={0.1} metalness={0.8} />
+        <meshStandardMaterial color="#0d0d14" metalness={0.8} roughness={0.3} />
       </mesh>
-      {/* Floor Grid */}
-      <gridHelper args={[10, 10, '#22c55e', '#113311']} position={[0, 0.01, 0]} />
-      
-      {/* Ceiling */}
-      <mesh position={[0, 8, 0]} rotation={[Math.PI/2, 0, 0]} receiveShadow>
-        <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="#050505" roughness={0.9} metalness={0.1} />
-      </mesh>
-
-      {/* Walls */}
-      {/* North Wall */}
-      <mesh position={[0, 4, -5]} receiveShadow castShadow>
-        <boxGeometry args={[10, 8, 0.2]} />
-        <meshStandardMaterial color="#111" metalness={0.9} roughness={0.3} />
-      </mesh>
-      {/* South Wall */}
-      <mesh position={[0, 4, 5]} receiveShadow castShadow>
-        <boxGeometry args={[10, 8, 0.2]} />
-        <meshStandardMaterial color="#111" metalness={0.9} roughness={0.3} />
-      </mesh>
-      {/* East Wall */}
-      <mesh position={[5, 4, 0]} rotation={[0, -Math.PI/2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[10, 8, 0.2]} />
-        <meshStandardMaterial color="#111" metalness={0.9} roughness={0.3} />
-      </mesh>
-      {/* West Wall */}
-      <mesh position={[-5, 4, 0]} rotation={[0, Math.PI/2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[10, 8, 0.2]} />
-        <meshStandardMaterial color="#111" metalness={0.9} roughness={0.3} />
-      </mesh>
-      
-      {/* Center Terminal */}
-      <group position={[0, 1, 0]}>
-        <mesh castShadow receiveShadow>
-          <cylinderGeometry args={[0.5, 0.7, 2, 16]} />
-          <meshStandardMaterial color="#111" metalness={0.9} roughness={0.1} />
+      <gridHelper args={[10, 10, '#1a3a1a', '#111a11']} position={[0, 0.01, 0]} />
+      {walls.map((w, i) => (
+        <mesh key={i} position={w.pos} rotation={w.rot} receiveShadow>
+          <planeGeometry args={[10, 8]} />
+          <meshStandardMaterial color="#0a0a10" metalness={0.9} roughness={0.2} />
         </mesh>
-        <Text
-          position={[0, 1.2, 0]}
-          rotation={[-Math.PI/4, 0, 0]}
-          fontSize={0.8}
-          color="#22c55e"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {room.puzzle}
-          <meshBasicMaterial color="#22c55e" toneMapped={false} />
-        </Text>
-      </group>
-
-      {/* Doors */}
+      ))}
+      <mesh position={[0, 1, 0]} castShadow>
+        <cylinderGeometry args={[0.6, 0.8, 2, 12]} />
+        <meshStandardMaterial color="#111122" metalness={0.95} roughness={0.1} />
+      </mesh>
+      <Text position={[0, 2.6, 0.7]} fontSize={0.45} anchorX="center" anchorY="middle" color="#22c55e" maxWidth={1.5}>
+        {`${room.puzzle} = ?`}
+      </Text>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <ringGeometry args={[4.5, 4.7, 64]} />
+        <meshBasicMaterial color="#22c55e" transparent opacity={0.25} />
+      </mesh>
       {room.availableDoors.map(dir => (
-        <Door 
-          key={dir} 
-          dir={dir} 
-          number={room.doorNumbers[dir]} 
-          isLocked={room.lockedDoors.includes(dir)}
-          onClick={() => onDoorClick(dir)}
-        />
+        <Door key={dir} dir={dir} number={room.doorNumbers[dir]} isLocked={room.lockedDoors.includes(dir)} onClick={() => onDoorClick(dir)} />
       ))}
     </group>
   );
-};
+}
 
-// --------------------------------------------------------
-// MAIN COMPONENT
-// --------------------------------------------------------
-
-export default function MazeGame({ user, onBack }) {
-  const [gameState, setGameState] = useState('menu'); // menu, playing, game_over, won
-  const [timeRemaining, setTimeRemaining] = useState(60 * 3); // 3 minutes total
+export default function MazeGame({ onBack }) {
+  const [gameState, setGameState] = useState('menu');
+  const [timeRemaining, setTimeRemaining] = useState(180);
   const [path, setPath] = useState([]);
   const [stepIndex, setStepIndex] = useState(0);
   const [room, setRoom] = useState(null);
-  
-  // Timer effect
+  const [flashMsg, setFlashMsg] = useState(null);
+
   useEffect(() => {
-    let timer;
-    if (gameState === 'playing' && timeRemaining > 0) {
-      timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setGameState('game_over');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    if (gameState !== 'playing') return;
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => { if (prev <= 1) { setGameState('game_over'); return 0; } return prev - 1; });
+    }, 1000);
     return () => clearInterval(timer);
-  }, [gameState, timeRemaining]);
+  }, [gameState]);
 
   const startGame = () => {
     const newPath = generatePath();
-    setPath(newPath);
-    setStepIndex(0);
+    setPath(newPath); setStepIndex(0);
     setRoom(generateRoom(0, 0, newPath[0]));
-    setTimeRemaining(180); // 3 mins
+    setTimeRemaining(180); setFlashMsg(null);
     setGameState('playing');
   };
 
+  const showFlash = (msg, color) => { setFlashMsg({ msg, color }); setTimeout(() => setFlashMsg(null), 1400); };
+
   const handleDoorClick = (dir) => {
+    if (!room) return;
     if (dir === room.correctDoor) {
-      // Correct! Advance.
+      showFlash('Correct!', 'green');
       const nextStep = stepIndex + 1;
-      if (nextStep >= path.length) {
-        setGameState('won');
-      } else {
-        setStepIndex(nextStep);
-        let nextX = room.x;
-        let nextY = room.y;
-        if (dir === 'E') nextX++;
-        if (dir === 'S') nextY++;
-        if (dir === 'W') nextX--;
-        if (dir === 'N') nextY--;
-        setRoom(generateRoom(nextX, nextY, path[nextStep]));
+      if (nextStep >= path.length) { setTimeout(() => setGameState('won'), 800); }
+      else {
+        setTimeout(() => {
+          setStepIndex(nextStep);
+          let nx = room.x, ny = room.y;
+          if (dir === 'E') nx++; if (dir === 'W') nx--;
+          if (dir === 'S') ny++; if (dir === 'N') ny--;
+          setRoom(generateRoom(nx, ny, path[nextStep]));
+        }, 600);
       }
     } else {
-      // Trap! Lose 10s and lock door.
+      showFlash('Trap! -10s', 'red');
       setTimeRemaining(prev => Math.max(0, prev - 10));
-      setRoom(prev => ({
-        ...prev,
-        lockedDoors: [...prev.lockedDoors, dir]
-      }));
+      setRoom(prev => ({ ...prev, lockedDoors: [...prev.lockedDoors, dir] }));
     }
   };
 
-  const formatTime = (secs) => {
-    const m = Math.floor(secs / 60).toString().padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
+  const fmt = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div className="relative w-full h-full bg-[#0a0a0f] overflow-hidden font-mono text-green-400">
-      
-      {/* Top HUD */}
-      <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20 pointer-events-none">
-        <button 
-          onClick={onBack}
-          className="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full bg-black/50 border border-green-500/30 text-green-400 hover:bg-green-500/20 hover:border-green-500 transition-all backdrop-blur-md"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#05050f', fontFamily: 'monospace' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, pointerEvents: 'none' }}>
+        <button onClick={onBack} style={{ pointerEvents: 'auto', width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+          &#8592;
         </button>
-        
-        {(gameState === 'playing' || gameState === 'game_over' || gameState === 'won') && (
-          <div className="flex gap-6 pointer-events-auto">
-            <div className={`bg-black/50 border rounded-xl px-4 py-2 backdrop-blur-md flex flex-col items-center ${timeRemaining < 30 ? 'border-red-500 text-red-500 animate-pulse' : 'border-green-500/30 text-green-400'}`}>
-              <span className="text-xs opacity-70 uppercase tracking-widest">Time Remaining</span>
-              <span className="text-2xl font-bold">{formatTime(timeRemaining)}</span>
+        {gameState === 'playing' && (
+          <div style={{ display: 'flex', gap: '16px', pointerEvents: 'auto' }}>
+            <div style={{ background: 'rgba(0,0,0,0.7)', border: `1px solid ${timeRemaining < 30 ? '#ef4444' : 'rgba(34,197,94,0.3)'}`, color: timeRemaining < 30 ? '#ef4444' : '#22c55e', padding: '8px 16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span style={{ fontSize: '10px', letterSpacing: '2px', opacity: 0.7 }}>TIME</span>
+              <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{fmt(timeRemaining)}</span>
             </div>
-            <div className="bg-black/50 border border-green-500/30 rounded-xl px-4 py-2 backdrop-blur-md flex flex-col items-center">
-              <span className="text-xs text-green-500/70 uppercase tracking-widest">Room</span>
-              <span className="text-2xl font-bold">{stepIndex + 1} / 7</span>
+            <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', padding: '8px 16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span style={{ fontSize: '10px', letterSpacing: '2px', opacity: 0.7 }}>ROOM</span>
+              <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{stepIndex + 1} / {path.length + 1}</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Main Game Menu */}
-      {gameState === 'menu' && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="max-w-md w-full bg-black/60 border border-green-500/30 rounded-3xl p-8 shadow-[0_0_50px_rgba(34,197,94,0.1)] text-center">
-            <span className="material-symbols-outlined text-6xl text-green-500 mb-4 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]">meeting_room</span>
-            <h2 className="text-4xl font-bold text-green-400 mb-2 uppercase tracking-widest">The Maze</h2>
-            <p className="text-green-500/70 mb-8">
-              Navigate a 16-room grid. Solve the terminal math puzzle to find the correct door. Walk through wrong doors and lose 10 seconds. You have 3 minutes to escape.
-            </p>
-            <button 
-              onClick={startGame}
-              className="w-full py-4 rounded-xl bg-green-500/10 border border-green-500 text-green-400 font-bold uppercase tracking-widest hover:bg-green-500 hover:text-black transition-all hover:shadow-[0_0_30px_rgba(34,197,94,0.4)]"
-            >
-              Enter The Maze
-            </button>
+      {flashMsg && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30, pointerEvents: 'none' }}>
+          <div style={{ fontSize: '48px', fontWeight: 'bold', padding: '16px 40px', background: 'rgba(0,0,0,0.85)', border: `2px solid ${flashMsg.color === 'green' ? '#22c55e' : '#ef4444'}`, color: flashMsg.color === 'green' ? '#22c55e' : '#ef4444', borderRadius: '16px' }}>
+            {flashMsg.msg}
           </div>
         </div>
       )}
 
-      {/* Game Over / Won Menus */}
+      {gameState === 'menu' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,5,15,0.95)' }}>
+          <div style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '24px', padding: '40px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
+            <div style={{ fontSize: '64px', marginBottom: '8px' }}>&#127962;</div>
+            <h2 style={{ fontSize: '36px', fontWeight: 'bold', color: '#22c55e', marginBottom: '8px', letterSpacing: '6px' }}>THE MAZE</h2>
+            <p style={{ color: 'rgba(74,222,128,0.6)', marginBottom: '32px', lineHeight: '1.7' }}>Solve the terminal puzzle. Find the door with the matching neon number and click it. Wrong doors cost 10 seconds.</p>
+            <button onClick={startGame} style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', color: '#22c55e', fontWeight: 'bold', fontSize: '14px', letterSpacing: '4px', cursor: 'pointer' }}>ENTER THE MAZE</button>
+          </div>
+        </div>
+      )}
+
       {gameState === 'game_over' && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
-          <div className="text-center">
-            <h2 className="text-6xl font-bold text-red-500 mb-4 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">Time's Up</h2>
-            <p className="text-xl text-red-400/80 mb-8">You were lost to the maze forever.</p>
-            <button onClick={startGame} className="px-8 py-3 rounded-xl border-2 border-red-500 text-red-500 font-bold hover:bg-red-500 hover:text-black transition-all">Try Again</button>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(20,0,0,0.95)' }}>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ fontSize: '64px', fontWeight: 'bold', color: '#ef4444', letterSpacing: '4px', marginBottom: '16px' }}>TIME&#39;S UP</h2>
+            <p style={{ color: 'rgba(239,68,68,0.6)', fontSize: '20px', marginBottom: '32px' }}>You were lost in the maze.</p>
+            <button onClick={startGame} style={{ padding: '14px 40px', borderRadius: '12px', border: '2px solid #ef4444', color: '#ef4444', background: 'transparent', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '3px' }}>TRY AGAIN</button>
           </div>
         </div>
       )}
 
       {gameState === 'won' && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
-          <div className="text-center">
-            <h2 className="text-6xl font-bold text-green-500 mb-4 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(34,197,94,0.8)]">Escaped!</h2>
-            <p className="text-xl text-green-400/80 mb-8">You survived the maze with {formatTime(timeRemaining)} remaining.</p>
-            <button onClick={startGame} className="px-8 py-3 rounded-xl border-2 border-green-500 text-green-500 font-bold hover:bg-green-500 hover:text-black transition-all">Play Again</button>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,20,0,0.95)' }}>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ fontSize: '64px', fontWeight: 'bold', color: '#22c55e', letterSpacing: '4px', marginBottom: '16px' }}>ESCAPED!</h2>
+            <p style={{ color: 'rgba(34,197,94,0.6)', fontSize: '20px', marginBottom: '32px' }}>Time remaining: {fmt(timeRemaining)}</p>
+            <button onClick={startGame} style={{ padding: '14px 40px', borderRadius: '12px', border: '2px solid #22c55e', color: '#22c55e', background: 'transparent', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '3px' }}>PLAY AGAIN</button>
           </div>
         </div>
       )}
 
-      {/* 3D Canvas */}
       {gameState === 'playing' && room && (
-        <Canvas shadows camera={{ position: [0, 8, 8], fov: 60 }}>
-          <color attach="background" args={['#050505']} />
-          <fog attach="fog" args={['#050505', 10, 25]} />
-          
-          <ambientLight intensity={0.5} />
-          <spotLight position={[0, 10, 0]} angle={0.8} penumbra={1} intensity={2} castShadow color="#22c55e" />
-          
-          <Room3D room={room} onDoorClick={handleDoorClick} />
+        <Canvas shadows camera={{ position: [0, 9, 9], fov: 55 }} style={{ width: '100%', height: '100%' }}>
+          <Suspense fallback={null}>
+            <color attach="background" args={['#05050f']} />
+            <fog attach="fog" args={['#05050f', 12, 28]} />
+            <ambientLight intensity={0.4} color="#223322" />
+            <spotLight position={[0, 9, 0]} angle={0.7} penumbra={0.5} intensity={3} castShadow color="#22c55e" />
+            <pointLight position={[0, 3, 0]} intensity={1} color="#22c55e" distance={8} />
+            <Room3D room={room} onDoorClick={handleDoorClick} />
+          </Suspense>
         </Canvas>
       )}
-
     </div>
   );
 }
