@@ -4,9 +4,9 @@ import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const HALF = 8;          // half-room size → room is 16×16 units
+const HALF = 8;
 const SPEED = 6.0;
-const DOOR_DIST  = 2.8;  
+const DOOR_DIST  = 2.8;
 const TERM_DIST  = 2.5;
 
 const DOOR_POS = {
@@ -15,7 +15,6 @@ const DOOR_POS = {
   E: [ HALF, 0, 0],
   W: [-HALF, 0, 0],
 };
-
 const DOOR_ROT = {
   N: [0, 0, 0],
   S: [0, Math.PI, 0],
@@ -30,10 +29,10 @@ const TEXT_POS = {
   W: [-HALF + 0.4, 5.2, 0],
 };
 const TEXT_ROT = {
-  N: [0, 0, 0],             
-  S: [0, Math.PI, 0],       
-  E: [0,  Math.PI / 2, 0],  
-  W: [0, -Math.PI / 2, 0],  
+  N: [0, 0, 0],
+  S: [0, Math.PI, 0],
+  E: [0,  Math.PI / 2, 0],
+  W: [0, -Math.PI / 2, 0],
 };
 
 // ─── GAME LOGIC ───────────────────────────────────────────────────────────────
@@ -114,36 +113,30 @@ function generateRoom(current, next) {
 }
 
 // ─── PLAYER CHARACTER ────────────────────────────────────────────────────────
-// Using React.forwardRef to allow parent to animate individual parts easily.
 const PlayerMesh = React.forwardRef((props, ref) => {
   return (
     <group ref={ref}>
-      {/* Left Leg */}
       <mesh name="legL" position={[-0.14, 0.3, 0]}>
         <cylinderGeometry args={[0.09, 0.09, 0.6, 8]} />
         <meshStandardMaterial color="#1d4ed8" />
       </mesh>
-      {/* Right Leg */}
       <mesh name="legR" position={[0.14, 0.3, 0]}>
         <cylinderGeometry args={[0.09, 0.09, 0.6, 8]} />
         <meshStandardMaterial color="#1d4ed8" />
       </mesh>
-      {/* Body */}
       <mesh position={[0, 0.9, 0]}>
         <cylinderGeometry args={[0.27, 0.24, 0.9, 10]} />
         <meshStandardMaterial color="#3b82f6" />
       </mesh>
-      {/* Neck */}
       <mesh position={[0, 1.4, 0]}>
         <cylinderGeometry args={[0.1, 0.1, 0.18, 8]} />
         <meshStandardMaterial color="#fcd34d" />
       </mesh>
-      {/* Head */}
       <mesh position={[0, 1.66, 0]}>
         <sphereGeometry args={[0.23, 16, 12]} />
         <meshStandardMaterial color="#fcd34d" />
       </mesh>
-      {/* Eyes — now facing -z (forward) */}
+      {/* Eyes placed at -z to correctly face forward */}
       <mesh position={[0.09, 1.70, -0.20]}>
         <sphereGeometry args={[0.038, 8, 8]} />
         <meshBasicMaterial color="#111" />
@@ -152,7 +145,6 @@ const PlayerMesh = React.forwardRef((props, ref) => {
         <sphereGeometry args={[0.038, 8, 8]} />
         <meshBasicMaterial color="#111" />
       </mesh>
-      {/* Arms container to allow pivot from shoulder */}
       <group name="armL" position={[-0.35, 1.25, 0]}>
         <mesh position={[0, -0.35, 0]} rotation={[0, 0, 0.2]}>
           <cylinderGeometry args={[0.065, 0.065, 0.7, 8]} />
@@ -165,7 +157,6 @@ const PlayerMesh = React.forwardRef((props, ref) => {
           <meshStandardMaterial color="#3b82f6" />
         </mesh>
       </group>
-      {/* Ground shadow */}
       <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.36, 16]} />
         <meshBasicMaterial color="#000" transparent opacity={0.4} />
@@ -262,15 +253,7 @@ function Terminal({ puzzle }) {
         <planeGeometry args={[1.2, 0.7]} />
         <meshStandardMaterial color="#001200" emissive="#22c55e" emissiveIntensity={0.5} />
       </mesh>
-      <Text
-        position={[0, 3.12, 0.62]}
-        rotation={[-0.22, 0, 0]}
-        fontSize={0.28}
-        anchorX="center"
-        anchorY="middle"
-        color="#22c55e"
-        maxWidth={1.15}
-      >
+      <Text position={[0, 3.12, 0.62]} rotation={[-0.22, 0, 0]} fontSize={0.28} anchorX="center" anchorY="middle" color="#22c55e" maxWidth={1.15}>
         {puzzle ? puzzle + ' = ?' : 'Find the EXIT!'}
       </Text>
       <pointLight position={[0, 4, 0.5]} intensity={1.5} color="#22c55e" distance={6} />
@@ -278,29 +261,26 @@ function Terminal({ puzzle }) {
   );
 }
 
-// ─── MAIN 3D SCENE ────────────────────────────────────────────────────────────
+// ─── MAIN SCENE ───────────────────────────────────────────────────────────────
 function GameScene({ room, onDoorTrigger, setNearDoor, setNearTerminal }) {
   const { camera } = useThree();
   const keysRef   = useRef({});
   const playerRef = useRef();
   
   const posRef    = useRef(new THREE.Vector3(0, 0, 5.5));
-  const rotRef    = useRef(Math.PI); // 0 = -z, Math.PI = +z. Starts facing +z initially if needed, but lets face -z (North)
-  const targetRot = useRef(0);
+  const rotRef    = useRef(0); // 0 = facing north (-z)
   const coolRef   = useRef(false);
   const walkTime  = useRef(0);
 
   useEffect(() => {
     posRef.current.set(0, 0, 5.5);
     rotRef.current = 0;
-    targetRot.current = 0;
-    // Fixed camera, offset +y and +z
-    camera.position.set(0, 12, 13);
-    camera.lookAt(0, 1, 0);
+    camera.position.set(0, 10, 13);
+    camera.lookAt(0, 1.5, 0);
   }, [room, camera]);
 
   useEffect(() => {
-    const dn = (e) => { keysRef.current[e.key] = true; }; // Don't prevent default, lets avoid interfering with back buttons if not needed.
+    const dn = (e) => { keysRef.current[e.key] = true; };
     const up = (e) => { keysRef.current[e.key] = false; };
     window.addEventListener('keydown', dn);
     window.addEventListener('keyup', up);
@@ -313,39 +293,29 @@ function GameScene({ room, onDoorTrigger, setNearDoor, setNearTerminal }) {
   useFrame((_, dt) => {
     const k = keysRef.current;
     
-    // Absolute direction mapping
-    let dx = 0, dz = 0;
-    if (k['ArrowUp']   || k['w'] || k['W']) dz -= 1;
-    if (k['ArrowDown'] || k['s'] || k['S']) dz += 1;
-    if (k['ArrowLeft']  || k['a'] || k['A']) dx -= 1;
-    if (k['ArrowRight'] || k['d'] || k['D']) dx += 1;
+    // Tank Controls
+    if (k['ArrowLeft']  || k['a'] || k['A']) rotRef.current += 2.0 * dt;
+    if (k['ArrowRight'] || k['d'] || k['D']) rotRef.current -= 2.0 * dt;
 
+    // fwd = direction player is facing. 0 = -z (North)
+    const fwd = new THREE.Vector3(-Math.sin(rotRef.current), 0, -Math.cos(rotRef.current));
+    
     let isMoving = false;
-    if (dx !== 0 || dz !== 0) {
+    const pos = posRef.current;
+    const spd = SPEED * dt;
+
+    if (k['ArrowUp'] || k['w'] || k['W']) {
+      pos.addScaledVector(fwd, spd);
       isMoving = true;
-      // Normalize vector
-      const len = Math.hypot(dx, dz);
-      dx /= len; dz /= len;
-
-      targetRot.current = Math.atan2(dx, dz);
-
-      const spd = SPEED * dt;
-      posRef.current.x += dx * spd;
-      posRef.current.z += dz * spd;
+    }
+    if (k['ArrowDown'] || k['s'] || k['S']) {
+      pos.addScaledVector(fwd, -spd);
+      isMoving = true;
     }
 
-    // Smooth rotation towards target rotation
-    let diff = targetRot.current - rotRef.current;
-    while (diff < -Math.PI) diff += Math.PI * 2;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    rotRef.current += diff * 12 * dt;
-
-    const pos = posRef.current;
-    // Clamp inside room
     pos.x = Math.max(-HALF + 0.7, Math.min(HALF - 0.7, pos.x));
     pos.z = Math.max(-HALF + 0.7, Math.min(HALF - 0.7, pos.z));
 
-    // Update player mesh & animation
     if (playerRef.current) {
       playerRef.current.position.copy(pos);
       playerRef.current.rotation.y = rotRef.current;
@@ -357,35 +327,29 @@ function GameScene({ room, onDoorTrigger, setNearDoor, setNearTerminal }) {
       const armR = pGroup.getObjectByName('armR');
 
       if (isMoving) {
-        walkTime.current += dt * 15; // Animation speed
+        walkTime.current += dt * 15;
         const t = walkTime.current;
-        if(legL) legL.position.z = Math.sin(t) * 0.3;
-        if(legL) legL.position.y = 0.3 + Math.abs(Math.cos(t)) * 0.1;
-        
-        if(legR) legR.position.z = Math.sin(t + Math.PI) * 0.3;
-        if(legR) legR.position.y = 0.3 + Math.abs(Math.cos(t + Math.PI)) * 0.1;
-
-        if(armL) armL.rotation.x = Math.sin(t + Math.PI) * 0.5;
-        if(armR) armR.rotation.x = Math.sin(t) * 0.5;
-
-        // Bobbing body
+        if (legL) { legL.position.z = Math.sin(t) * 0.3; legL.position.y = 0.3 + Math.abs(Math.cos(t)) * 0.1; }
+        if (legR) { legR.position.z = Math.sin(t + Math.PI) * 0.3; legR.position.y = 0.3 + Math.abs(Math.cos(t + Math.PI)) * 0.1; }
+        if (armL) armL.rotation.x = Math.sin(t + Math.PI) * 0.5;
+        if (armR) armR.rotation.x = Math.sin(t) * 0.5;
         pGroup.position.y = pos.y + Math.abs(Math.sin(t)) * 0.05;
       } else {
-        // Return to idle
-        if(legL) { legL.position.z = THREE.MathUtils.lerp(legL.position.z, 0, 0.2); legL.position.y = 0.3; }
-        if(legR) { legR.position.z = THREE.MathUtils.lerp(legR.position.z, 0, 0.2); legR.position.y = 0.3; }
-        if(armL) armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, 0, 0.2);
-        if(armR) armR.rotation.x = THREE.MathUtils.lerp(armR.rotation.x, 0, 0.2);
+        if (legL) { legL.position.z = THREE.MathUtils.lerp(legL.position.z, 0, 0.2); legL.position.y = 0.3; }
+        if (legR) { legR.position.z = THREE.MathUtils.lerp(legR.position.z, 0, 0.2); legR.position.y = 0.3; }
+        if (armL) armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, 0, 0.2);
+        if (armR) armR.rotation.x = THREE.MathUtils.lerp(armR.rotation.x, 0, 0.2);
         pGroup.position.y = THREE.MathUtils.lerp(pGroup.position.y, pos.y, 0.2);
       }
     }
 
-    // Camera strictly follows player with fixed isometric-ish offset
-    const camTargetPos = pos.clone().add(new THREE.Vector3(0, 12, 11));
-    camera.position.lerp(camTargetPos, 0.1);
-    camera.lookAt(pos.x, 1.5, pos.z - 2); // Look slightly ahead of player
+    // Camera strictly follows behind player
+    const camOff = fwd.clone().multiplyScalar(-7.5).add(new THREE.Vector3(0, 9, 0));
+    const camTarget = pos.clone().add(camOff);
+    camera.position.lerp(camTarget, 0.12);
+    // Look slightly ahead of the player
+    camera.lookAt(pos.clone().add(fwd.multiplyScalar(2)).add(new THREE.Vector3(0, 1.5, 0)));
 
-    // Proximity checks
     let nd = null, ndist = DOOR_DIST;
     room.availableDoors.forEach(dir => {
       const dp = DOOR_POS[dir];
@@ -519,7 +483,7 @@ export default function MazeGame({ onBack }) {
 
       {gameState === 'playing' && (
         <div style={{ position: 'absolute', bottom: '14px', right: '18px', zIndex: 25, color: 'rgba(34,197,94,0.4)', fontSize: '11px', lineHeight: '1.8', textAlign: 'right' }}>
-          WASD / Arrows — Move<br />E — Enter nearby door
+          WASD / Arrows — Move &amp; Turn<br />E — Enter nearby door
         </div>
       )}
 
