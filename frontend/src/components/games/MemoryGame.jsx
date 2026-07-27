@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, useCursor, ContactShadows } from '@react-three/drei';
+import { Environment, useCursor, ContactShadows, RoundedBox } from '@react-three/drei';
 import { Physics, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
@@ -228,13 +228,12 @@ const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
 
   return (
     <RigidBody ref={rigidBodyRef} colliders="cuboid" restitution={0.8} friction={0.5} position={[0, 0.75, 0]}>
-      <mesh castShadow receiveShadow material={materials}>
-        <boxGeometry args={[1.5, 1.5, 1.5]} />
+      <RoundedBox args={[1.2, 1.2, 1.2]} radius={0.15} castShadow receiveShadow material={materials}>
         <lineSegments>
-          <edgesGeometry args={[new THREE.BoxGeometry(1.5, 1.5, 1.5)]} />
+          <edgesGeometry args={[new THREE.BoxGeometry(1.2, 1.2, 1.2)]} />
           <lineBasicMaterial color="#000000" linewidth={2} />
         </lineSegments>
-      </mesh>
+      </RoundedBox>
     </RigidBody>
   );
 };
@@ -338,6 +337,13 @@ export default function MemoryGame({ user, onBack }) {
             <Board />
             <PegColliders pegs={pegs} />
             <PhysicsDice triggerRoll={triggerRoll} onDiceSettled={handleRollComplete} />
+            
+            {/* Invisible Ground Plane to catch the dice */}
+            <RigidBody type="fixed" position={[0, -2, 0]} restitution={0.5} friction={0.8}>
+              <mesh visible={false}>
+                <boxGeometry args={[200, 1, 200]} />
+              </mesh>
+            </RigidBody>
           
             {pegs.map(peg => (
               <Peg 
