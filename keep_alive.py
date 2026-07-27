@@ -2,8 +2,8 @@ import time
 
 def main():
     print("Starting Oracle Keep-Alive Memory Allocator...")
-    # 3 GB = 3 * 1024 * 1024 * 1024 bytes
-    TARGET_BYTES = 3 * 1024 * 1024 * 1024
+    # 6 GB = 6 * 1024 * 1024 * 1024 bytes
+    TARGET_BYTES = 6 * 1024 * 1024 * 1024
     
     print(f"Allocating {TARGET_BYTES / (1024**3):.2f} GB of memory...")
     try:
