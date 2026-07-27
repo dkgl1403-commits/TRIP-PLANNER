@@ -16,8 +16,7 @@ const GAME_COLORS = [
   { id: 5, name: 'White', hex: '#ecf0f1' }
 ];
 
-const BOARD_RADIUS = 4.5;
-const HOLE_RADIUS = 3.6;
+const BOARD_RADIUS = 12;
 
 const generatePegs = () => {
   // 4 of each of the 6 colors = 24 pegs
@@ -32,15 +31,20 @@ const generatePegs = () => {
   }
 
   return colorsList.map((colorId, index) => {
-    const angle = (index * Math.PI * 2) / 24;
+    const isInner = index < 8;
+    const radius = isInner ? 5 : 10;
+    const numInRing = isInner ? 8 : 16;
+    const idxInRing = isInner ? index : index - 8;
+    
+    const angle = (idxInRing * Math.PI * 2) / numInRing;
     return {
       id: index,
       colorId,
       status: 'board', // 'board', 'p1_stash', 'p2_stash'
       basePos: new THREE.Vector3(
-        Math.cos(angle) * HOLE_RADIUS,
+        Math.cos(angle) * radius,
         0,
-        Math.sin(angle) * HOLE_RADIUS
+        Math.sin(angle) * radius
       )
     };
   });
@@ -58,14 +62,14 @@ const Peg = ({ peg, onClick, isHovered, onPointerOver, onPointerOut, isAnimating
     if (peg.status === 'board') return peg.basePos.clone();
     
     // Stash positioning
-    const stashX = peg.status === 'p1_stash' ? -8 : 8;
-    const stashZ = -4 + (peg.id % 6) * 1.5;
+    const stashX = peg.status === 'p1_stash' ? -16 : 16;
+    const stashZ = -6 + (peg.id % 6) * 1.5;
     const stashY = 0;
     
     // For p1/p2 stash, line them up neatly
     const row = Math.floor(peg.id / 6);
-    const finalZ = -4 + (peg.id % 8) * 1.1;
-    const finalX = peg.status === 'p1_stash' ? -8 - row * 1.1 : 8 + row * 1.1;
+    const finalZ = -6 + (peg.id % 8) * 1.5;
+    const finalX = peg.status === 'p1_stash' ? -16 - row * 1.5 : 16 + row * 1.5;
 
     return new THREE.Vector3(finalX, stashY, finalZ);
   }, [peg.status, peg.basePos, peg.id]);
@@ -95,18 +99,18 @@ const Peg = ({ peg, onClick, isHovered, onPointerOver, onPointerOut, isAnimating
       onPointerOut={onPointerOut}
     >
       {/* Peg Handle (Wood) */}
-      <mesh position={[0, 0.8, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.25, 0.35, 1.2, 16]} />
+      <mesh position={[0, 1.0, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.2, 0.35, 2.0, 16]} />
         <meshStandardMaterial color="#cda372" roughness={0.8} />
       </mesh>
       {/* Peg Knob */}
-      <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
-        <sphereGeometry args={[0.35, 16, 16]} />
+      <mesh position={[0, 2.0, 0]} castShadow receiveShadow>
+        <sphereGeometry args={[0.4, 16, 16]} />
         <meshStandardMaterial color="#cda372" roughness={0.8} />
       </mesh>
       {/* Peg Bottom (Hidden Color) */}
-      <mesh position={[0, -0.1, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.3, 0.3, 0.6, 16]} />
+      <mesh position={[0, -0.4, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.35, 0.35, 0.8, 16]} />
         <meshStandardMaterial color={GAME_COLORS[peg.colorId].hex} metalness={0.1} roughness={0.5} />
       </mesh>
     </group>
@@ -116,77 +120,16 @@ const Peg = ({ peg, onClick, isHovered, onPointerOver, onPointerOut, isAnimating
 const Board = () => {
   return (
     <group>
-      <mesh position={[0, -0.4, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[BOARD_RADIUS, BOARD_RADIUS, 0.8, 64]} />
+      <mesh position={[0, -0.6, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[BOARD_RADIUS, BOARD_RADIUS, 1.2, 64]} />
         <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
       </mesh>
       {/* Inner decorative circle */}
       <mesh position={[0, 0.01, 0]} receiveShadow>
-        <cylinderGeometry args={[BOARD_RADIUS * 0.7, BOARD_RADIUS * 0.7, 0.8, 32]} />
+        <cylinderGeometry args={[BOARD_RADIUS * 0.95, BOARD_RADIUS * 0.95, 1.2, 64]} />
         <meshStandardMaterial color="#6b4423" roughness={0.9} />
       </mesh>
     </group>
-  );
-};
-
-const ColorDice = ({ diceState, onRollComplete, targetColorId }) => {
-  const diceRef = useRef();
-  const [isRolling, setIsRolling] = useState(false);
-  
-  const materials = useMemo(() => {
-    return GAME_COLORS.map(c => new THREE.MeshStandardMaterial({ color: c.hex, roughness: 0.4, metalness: 0.1 }));
-  }, []);
-
-  useFrame((state, delta) => {
-    if (!diceRef.current) return;
-    
-    if (isRolling) {
-      diceRef.current.rotation.x += 15 * delta;
-      diceRef.current.rotation.y += 12 * delta;
-      diceRef.current.rotation.z += 10 * delta;
-      diceRef.current.position.y = 2 + Math.sin(state.clock.elapsedTime * 20) * 1.5;
-    } else {
-      // Settle
-      diceRef.current.position.y = THREE.MathUtils.lerp(diceRef.current.position.y, 0.5, 10 * delta);
-      
-      // Face alignments based on targetColorId
-      // Cube face material index maps to specific rotations to face UP
-      const rotations = {
-        0: [0, Math.PI / 2, 0],       // Right
-        1: [0, -Math.PI / 2, 0],      // Left
-        2: [Math.PI / 2, 0, 0],       // Top
-        3: [-Math.PI / 2, 0, 0],      // Bottom
-        4: [0, 0, 0],                 // Front
-        5: [0, Math.PI, 0]            // Back
-      };
-      
-      const targetRot = targetColorId !== null ? rotations[targetColorId] : [0, 0, 0];
-      
-      diceRef.current.rotation.x = THREE.MathUtils.lerp(diceRef.current.rotation.x, targetRot[0], 10 * delta);
-      diceRef.current.rotation.y = THREE.MathUtils.lerp(diceRef.current.rotation.y, targetRot[1], 10 * delta);
-      diceRef.current.rotation.z = THREE.MathUtils.lerp(diceRef.current.rotation.z, targetRot[2], 10 * delta);
-    }
-  });
-
-  useEffect(() => {
-    if (diceState === 'rolling') {
-      setIsRolling(true);
-      setTimeout(() => {
-        setIsRolling(false);
-        setTimeout(onRollComplete, 500);
-      }, 1500);
-    }
-  }, [diceState, onRollComplete]);
-
-  return (
-    <mesh ref={diceRef} position={[0, 0.5, 0]} castShadow receiveShadow material={materials}>
-      <boxGeometry args={[1.5, 1.5, 1.5]} />
-      {/* Edges for visual pop */}
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(1.5, 1.5, 1.5)]} />
-        <lineBasicMaterial color="#000000" linewidth={2} />
-      </lineSegments>
-    </mesh>
   );
 };
 
@@ -202,6 +145,7 @@ export default function MemoryGame({ user, onBack }) {
   const [animatingPegId, setAnimatingPegId] = useState(null);
   const [hoveredPegId, setHoveredPegId] = useState(null);
   const [message, setMessage] = useState('');
+  const [announcement, setAnnouncement] = useState(null);
   
   useCursor(hoveredPegId !== null && gameState === 'waiting_for_pick' ? 'pointer' : 'auto');
 
@@ -229,12 +173,11 @@ export default function MemoryGame({ user, onBack }) {
     const target = randomAvailablePeg.colorId;
     
     setDiceColorId(target);
-    setGameState('rolling');
-  };
-
-  const handleRollComplete = () => {
     setGameState('waiting_for_pick');
-    showToast(`Player ${currentPlayer}, find a ${GAME_COLORS[diceColorId].name} peg!`);
+    
+    // Flash giant color announcement
+    setAnnouncement(GAME_COLORS[target]);
+    setTimeout(() => setAnnouncement(null), 2500);
   };
 
   const handlePegClick = (peg) => {
@@ -270,17 +213,17 @@ export default function MemoryGame({ user, onBack }) {
       
       {/* 3D Canvas */}
       <div className="absolute inset-0">
-        <Canvas shadows camera={{ position: [0, 12, 12], fov: 45 }}>
+        <Canvas shadows camera={{ position: [0, 20, 24], fov: 45 }}>
           <color attach="background" args={['#1a2f1c']} />
           <ambientLight intensity={0.6} color="#ffe8cc" />
           <directionalLight 
-            position={[10, 15, 10]} 
+            position={[10, 20, 10]} 
             intensity={1.5} 
             castShadow 
-            shadow-camera-left={-10}
-            shadow-camera-right={10}
-            shadow-camera-top={10}
-            shadow-camera-bottom={-10}
+            shadow-camera-left={-15}
+            shadow-camera-right={15}
+            shadow-camera-top={15}
+            shadow-camera-bottom={-15}
           />
           <Environment preset="forest" />
           
@@ -292,20 +235,14 @@ export default function MemoryGame({ user, onBack }) {
               peg={peg} 
               isHovered={hoveredPegId === peg.id}
               isAnimating={animatingPegId === peg.id}
-              revealHeight={4} // Lift 4 units up to reveal color
+              revealHeight={6} // Lift 6 units up to clearly reveal color
               onPointerOver={(e) => { e.stopPropagation(); setHoveredPegId(peg.id); }}
               onPointerOut={(e) => { e.stopPropagation(); setHoveredPegId(null); }}
               onClick={(e) => { e.stopPropagation(); handlePegClick(peg); }}
             />
           ))}
 
-          <ColorDice 
-            diceState={gameState === 'rolling' ? 'rolling' : 'settled'} 
-            targetColorId={diceColorId}
-            onRollComplete={handleRollComplete}
-          />
-
-          <ContactShadows position={[0, -0.4, 0]} opacity={0.6} scale={20} blur={2.5} far={4} />
+          <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={40} blur={2.5} far={4} />
         </Canvas>
       </div>
 
@@ -337,6 +274,28 @@ export default function MemoryGame({ user, onBack }) {
         <div className="flex justify-center pointer-events-none">
           <div className={`bg-black/80 backdrop-blur-md border border-white/10 text-white px-8 py-4 rounded-full text-xl font-bold transition-all duration-300 shadow-2xl ${message ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             {message}
+          </div>
+        </div>
+
+        {/* Giant Fading Announcement Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+          <div 
+            className={`transition-all duration-700 ease-out flex flex-col items-center ${announcement ? 'opacity-100 scale-100' : 'opacity-0 scale-150'}`}
+          >
+            {announcement && (
+              <>
+                <div 
+                  className="w-32 h-32 rounded-full border-4 border-white/30 shadow-[0_0_100px_rgba(255,255,255,0.2)] mb-4"
+                  style={{ backgroundColor: announcement.hex }}
+                />
+                <h1 
+                  className="text-8xl font-black tracking-tighter"
+                  style={{ color: announcement.hex, textShadow: '0 0 40px rgba(0,0,0,0.8)' }}
+                >
+                  {announcement.name.toUpperCase()}
+                </h1>
+              </>
+            )}
           </div>
         </div>
 
