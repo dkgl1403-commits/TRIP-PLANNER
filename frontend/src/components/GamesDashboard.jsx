@@ -3,6 +3,7 @@ import DotsAndBoxes from './games/DotsAndBoxes';
 import ZeroKata from './games/ZeroKata';
 import SnakeLadder from './games/SnakeLadder';
 import MemoryGame from './games/MemoryGame';
+import MazeGame from './games/MazeGame';
 
 export default function GamesDashboard({ user, onBack }) {
   const [activeGame, setActiveGame] = useState(null);
@@ -18,6 +19,9 @@ export default function GamesDashboard({ user, onBack }) {
   }
   if (activeGame === 'memory') {
     return <MemoryGame user={user} onBack={() => setActiveGame(null)} />;
+  }
+  if (activeGame === 'maze') {
+    return <MazeGame user={user} onBack={() => setActiveGame(null)} />;
   }
 
   return (
@@ -154,6 +158,32 @@ export default function GamesDashboard({ user, onBack }) {
           <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
             <span className="text-xs font-bold text-[#e74c3c] px-2 py-1 bg-[#e74c3c]/10 rounded-md">Local Multiplayer</span>
             <span className="material-symbols-outlined text-on-surface-variant group-hover:text-[#e74c3c] transition-colors">arrow_forward</span>
+          </div>
+        </div>
+
+        {/* Maze Game Card */}
+        <div className="relative overflow-hidden bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass hover:shadow-[#22c55e]/20 hover:border-[#22c55e]/30 transition-all cursor-pointer group flex flex-col h-full" onClick={() => setActiveGame('maze')}>
+          {/* Watermark Background */}
+          <div className="absolute -bottom-8 -right-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none transform -rotate-12 scale-150">
+            <svg width="200" height="200" viewBox="0 0 100 100">
+              <rect x="20" y="20" width="60" height="60" fill="none" stroke="currentColor" strokeWidth="6" />
+              <line x1="40" y1="20" x2="40" y2="60" stroke="currentColor" strokeWidth="6" />
+              <line x1="60" y1="40" x2="60" y2="80" stroke="currentColor" strokeWidth="6" />
+              <line x1="20" y1="40" x2="40" y2="40" stroke="currentColor" strokeWidth="6" />
+              <line x1="60" y1="60" x2="80" y2="60" stroke="currentColor" strokeWidth="6" />
+            </svg>
+          </div>
+
+          <div className="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#22c55e]/20 to-[#4D9DE0]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-3xl text-[#22c55e]">meeting_room</span>
+          </div>
+          <h3 className="relative z-10 font-display-lg text-2xl font-bold mb-2 group-hover:text-[#22c55e] transition-colors">The Maze</h3>
+          <p className="relative z-10 text-on-surface-variant text-sm mb-4 flex-grow">
+            Solve math puzzles to navigate a 16-room grid and escape before time runs out.
+          </p>
+          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
+            <span className="text-xs font-bold text-[#22c55e] px-2 py-1 bg-[#22c55e]/10 rounded-md">Single Player</span>
+            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-[#22c55e] transition-colors">arrow_forward</span>
           </div>
         </div>
 
