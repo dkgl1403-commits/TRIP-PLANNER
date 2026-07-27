@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, useCursor, ContactShadows } from '@react-three/drei';
+import { Physics, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
 // ==========================================
@@ -119,17 +120,122 @@ const Peg = ({ peg, onClick, isHovered, onPointerOver, onPointerOut, isAnimating
 
 const Board = () => {
   return (
+    <RigidBody type="fixed" colliders="hull" restitution={0.8} friction={0.5}>
+      <group>
+        <mesh position={[0, -0.6, 0]} receiveShadow castShadow>
+          <cylinderGeometry args={[BOARD_RADIUS, BOARD_RADIUS, 1.2, 64]} />
+          <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
+        </mesh>
+        {/* Inner decorative circle */}
+        <mesh position={[0, 0.01, 0]} receiveShadow>
+          <cylinderGeometry args={[BOARD_RADIUS * 0.95, BOARD_RADIUS * 0.95, 1.2, 64]} />
+          <meshStandardMaterial color="#6b4423" roughness={0.9} />
+        </mesh>
+      </group>
+    </RigidBody>
+  );
+};
+
+const PegColliders = ({ pegs }) => {
+  return (
     <group>
-      <mesh position={[0, -0.6, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[BOARD_RADIUS, BOARD_RADIUS, 1.2, 64]} />
-        <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
-      </mesh>
-      {/* Inner decorative circle */}
-      <mesh position={[0, 0.01, 0]} receiveShadow>
-        <cylinderGeometry args={[BOARD_RADIUS * 0.95, BOARD_RADIUS * 0.95, 1.2, 64]} />
-        <meshStandardMaterial color="#6b4423" roughness={0.9} />
-      </mesh>
+      {pegs.filter(p => p.status === 'board').map(peg => (
+        <RigidBody key={`col_${peg.id}`} type="fixed" position={[peg.basePos.x, 1.0, peg.basePos.z]} restitution={0.8}>
+          <mesh visible={false}>
+            <cylinderGeometry args={[0.3, 0.3, 2.0, 8]} />
+          </mesh>
+        </RigidBody>
+      ))}
     </group>
+  );
+};
+
+const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
+  const rigidBodyRef = useRef();
+  const [isRolling, setIsRolling] = useState(false);
+
+  const materials = useMemo(() => {
+    return GAME_COLORS.map(c => new THREE.MeshStandardMaterial({ color: c.hex, roughness: 0.4, metalness: 0.1 }));
+  }, []);
+
+  useEffect(() => {
+    if (triggerRoll && rigidBodyRef.current && !isRolling) {
+      setIsRolling(true);
+      // Position dice high above center
+      rigidBodyRef.current.setTranslation({ x: 0, y: 15, z: 0 }, true);
+      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      
+      setTimeout(() => {
+        if (!rigidBodyRef.current) return;
+        // Random impulse
+        const impulse = {
+          x: (Math.random() - 0.5) * 15,
+          y: -25, // strong throw down
+          z: (Math.random() - 0.5) * 15
+        };
+        // Random torque
+        const torque = {
+          x: (Math.random() - 0.5) * 20,
+          y: (Math.random() - 0.5) * 20,
+          z: (Math.random() - 0.5) * 20
+        };
+        
+        rigidBodyRef.current.applyImpulse(impulse, true);
+        rigidBodyRef.current.applyTorqueImpulse(torque, true);
+      }, 50);
+    }
+  }, [triggerRoll]);
+
+  useFrame(() => {
+    if (isRolling && rigidBodyRef.current) {
+      const linVel = rigidBodyRef.current.linvel();
+      const angVel = rigidBodyRef.current.angvel();
+      const speed = Math.abs(linVel.x) + Math.abs(linVel.y) + Math.abs(linVel.z) + 
+                    Math.abs(angVel.x) + Math.abs(angVel.y) + Math.abs(angVel.z);
+      
+      if (speed < 0.1 && rigidBodyRef.current.translation().y < 2) {
+        setIsRolling(false);
+        
+        const rotation = rigidBodyRef.current.rotation();
+        const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+        
+        const normals = [
+          new THREE.Vector3(1, 0, 0),  // Right (0)
+          new THREE.Vector3(-1, 0, 0), // Left (1)
+          new THREE.Vector3(0, 1, 0),  // Top (2)
+          new THREE.Vector3(0, -1, 0), // Bottom (3)
+          new THREE.Vector3(0, 0, 1),  // Front (4)
+          new THREE.Vector3(0, 0, -1)  // Back (5)
+        ];
+        
+        let maxDot = -Infinity;
+        let topFaceIdx = 0;
+        
+        normals.forEach((normal, idx) => {
+          const worldNormal = normal.clone().applyQuaternion(quaternion);
+          const dot = worldNormal.dot(new THREE.Vector3(0, 1, 0));
+          if (dot > maxDot) {
+            maxDot = dot;
+            topFaceIdx = idx;
+          }
+        });
+        
+        onDiceSettled(topFaceIdx);
+      }
+    }
+  });
+
+  return (
+    <RigidBody ref={rigidBodyRef} colliders="cuboid" restitution={0.8} friction={0.5} position={[0, 0.75, 0]}>
+      <mesh castShadow receiveShadow material={materials}>
+        <boxGeometry args={[1.5, 1.5, 1.5]} />
+        <lineSegments>
+          <edgesGeometry args={[new THREE.BoxGeometry(1.5, 1.5, 1.5)]} />
+          <lineBasicMaterial color="#000000" linewidth={2} />
+        </lineSegments>
+      </mesh>
+    </RigidBody>
   );
 };
 
@@ -146,6 +252,7 @@ export default function MemoryGame({ user, onBack }) {
   const [hoveredPegId, setHoveredPegId] = useState(null);
   const [message, setMessage] = useState('');
   const [announcement, setAnnouncement] = useState(null);
+  const [triggerRoll, setTriggerRoll] = useState(0);
   
   useCursor(hoveredPegId !== null && gameState === 'waiting_for_pick' ? 'pointer' : 'auto');
 
@@ -164,14 +271,14 @@ export default function MemoryGame({ user, onBack }) {
 
   const handleRollDice = () => {
     if (gameState !== 'waiting_for_roll') return;
-    
-    // Ensure we roll a color that is actually still on the board to prevent unwinnable scenarios
-    const availablePegs = pegs.filter(p => p.status === 'board');
-    if (availablePegs.length === 0) return;
-    
-    const randomAvailablePeg = availablePegs[Math.floor(Math.random() * availablePegs.length)];
-    const target = randomAvailablePeg.colorId;
-    
+    setGameState('rolling');
+    setTriggerRoll(Date.now());
+  };
+
+  const handleRollComplete = (target) => {
+    // If the physics dice randomly rolled a color no longer on the board, 
+    // it technically works, but gameplay-wise they'd waste a turn. We will allow this to happen
+    // because it's a physical dice roll! Adds to the luck element!
     setDiceColorId(target);
     setGameState('waiting_for_pick');
     
@@ -227,20 +334,24 @@ export default function MemoryGame({ user, onBack }) {
           />
           <Environment preset="forest" />
           
-          <Board />
+          <Physics>
+            <Board />
+            <PegColliders pegs={pegs} />
+            <PhysicsDice triggerRoll={triggerRoll} onDiceSettled={handleRollComplete} />
           
-          {pegs.map(peg => (
-            <Peg 
-              key={peg.id} 
-              peg={peg} 
-              isHovered={hoveredPegId === peg.id}
-              isAnimating={animatingPegId === peg.id}
-              revealHeight={6} // Lift 6 units up to clearly reveal color
-              onPointerOver={(e) => { e.stopPropagation(); setHoveredPegId(peg.id); }}
-              onPointerOut={(e) => { e.stopPropagation(); setHoveredPegId(null); }}
-              onClick={(e) => { e.stopPropagation(); handlePegClick(peg); }}
-            />
-          ))}
+            {pegs.map(peg => (
+              <Peg 
+                key={peg.id} 
+                peg={peg} 
+                isHovered={hoveredPegId === peg.id}
+                isAnimating={animatingPegId === peg.id}
+                revealHeight={6} // Lift 6 units up to clearly reveal color
+                onPointerOver={(e) => { e.stopPropagation(); setHoveredPegId(peg.id); }}
+                onPointerOut={(e) => { e.stopPropagation(); setHoveredPegId(null); }}
+                onClick={(e) => { e.stopPropagation(); handlePegClick(peg); }}
+              />
+            ))}
+          </Physics>
 
           <ContactShadows position={[0, -0.6, 0]} opacity={0.6} scale={40} blur={2.5} far={4} />
         </Canvas>
