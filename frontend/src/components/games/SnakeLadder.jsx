@@ -1587,6 +1587,7 @@ export default function SnakeLadder({ user, onBack }) {
             currentPlayer={currentPlayer}
             visualPositions={visualPositions}
             snakes={snakes}
+            springs={springs}
             diceValue={diceValue}
             isRolling={isRolling}
           />
