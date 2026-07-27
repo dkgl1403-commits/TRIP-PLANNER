@@ -120,7 +120,7 @@ const Peg = ({ peg, onClick, isHovered, onPointerOver, onPointerOut, isAnimating
 
 const Board = () => {
   return (
-    <RigidBody type="fixed" colliders="hull" restitution={0.8} friction={0.5}>
+    <RigidBody type="fixed" colliders="hull" restitution={0.2} friction={0.5}>
       <group>
         <mesh position={[0, -0.6, 0]} receiveShadow castShadow>
           <cylinderGeometry args={[BOARD_RADIUS, BOARD_RADIUS, 1.2, 64]} />
@@ -140,7 +140,7 @@ const PegColliders = ({ pegs }) => {
   return (
     <group>
       {pegs.filter(p => p.status === 'board').map(peg => (
-        <RigidBody key={`col_${peg.id}`} type="fixed" position={[peg.basePos.x, 1.0, peg.basePos.z]} restitution={0.8}>
+        <RigidBody key={`col_${peg.id}`} type="fixed" position={[peg.basePos.x, 1.0, peg.basePos.z]} restitution={0.2}>
           <mesh visible={false}>
             <cylinderGeometry args={[0.3, 0.3, 2.0, 8]} />
           </mesh>
@@ -267,7 +267,7 @@ const PhysicsDice = ({ triggerRoll, onDiceSettled }) => {
   });
 
   return (
-    <RigidBody ref={rigidBodyRef} colliders="cuboid" restitution={0.8} friction={0.5} position={[0, 0.75, 0]}>
+    <RigidBody ref={rigidBodyRef} colliders="cuboid" restitution={0.2} friction={0.5} position={[0, 0.75, 0]}>
       <group>
         <RoundedBox args={[1.2, 1.2, 1.2]} radius={0.15} castShadow receiveShadow>
           <meshStandardMaterial color="#222" roughness={0.4} />
