@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DotsAndBoxes from './games/DotsAndBoxes';
 import ZeroKata from './games/ZeroKata';
 import SnakeLadder from './games/SnakeLadder';
+import MemoryGame from './games/MemoryGame';
 
 export default function GamesDashboard({ user, onBack }) {
   const [activeGame, setActiveGame] = useState(null);
@@ -14,6 +15,9 @@ export default function GamesDashboard({ user, onBack }) {
   }
   if (activeGame === 'snakeladder') {
     return <SnakeLadder user={user} onBack={() => setActiveGame(null)} />;
+  }
+  if (activeGame === 'memory') {
+    return <MemoryGame user={user} onBack={() => setActiveGame(null)} />;
   }
 
   return (
@@ -123,6 +127,33 @@ export default function GamesDashboard({ user, onBack }) {
           <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
             <span className="text-xs font-bold text-[#F9DC5C] px-2 py-1 bg-[#F9DC5C]/10 rounded-md">Local & Online (Up to 5P)</span>
             <span className="material-symbols-outlined text-on-surface-variant group-hover:text-[#F9DC5C] transition-colors">arrow_forward</span>
+          </div>
+        </div>
+
+        {/* Memory Game Card */}
+        <div className="relative overflow-hidden bg-surface-container border border-glass-stroke rounded-3xl p-6 shadow-glass hover:shadow-[#e74c3c]/20 hover:border-[#e74c3c]/30 transition-all cursor-pointer group flex flex-col h-full" onClick={() => setActiveGame('memory')}>
+          {/* Watermark Background */}
+          <div className="absolute -bottom-8 -right-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none transform -rotate-12 scale-150">
+            <svg width="200" height="200" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="6" />
+              <circle cx="30" cy="30" r="6" fill="currentColor" />
+              <circle cx="70" cy="30" r="6" fill="currentColor" />
+              <circle cx="30" cy="70" r="6" fill="currentColor" />
+              <circle cx="70" cy="70" r="6" fill="currentColor" />
+              <circle cx="50" cy="50" r="6" fill="currentColor" />
+            </svg>
+          </div>
+
+          <div className="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e74c3c]/20 to-[#4D9DE0]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-3xl text-[#e74c3c]">psychology</span>
+          </div>
+          <h3 className="relative z-10 font-display-lg text-2xl font-bold mb-2 group-hover:text-[#e74c3c] transition-colors">Memory Chess</h3>
+          <p className="relative z-10 text-on-surface-variant text-sm mb-4 flex-grow">
+            Test your memory! Pick the peg that matches the color on the dice.
+          </p>
+          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-glass-stroke">
+            <span className="text-xs font-bold text-[#e74c3c] px-2 py-1 bg-[#e74c3c]/10 rounded-md">Local Multiplayer</span>
+            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-[#e74c3c] transition-colors">arrow_forward</span>
           </div>
         </div>
 
