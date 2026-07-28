@@ -12,6 +12,7 @@ import { Briefcase, User, MapPin } from 'lucide-react';
 // '+' : Player on Target
 
 const LEVELS = [
+  // 1
   [
     "  ###  ",
     "  #.#  ",
@@ -21,6 +22,7 @@ const LEVELS = [
     "#     #",
     "#######"
   ],
+  // 2
   [
     "#####",
     "#@  #",
@@ -29,6 +31,7 @@ const LEVELS = [
     "###.#",
     "  ###"
   ],
+  // 3
   [
     "  ####",
     "###  #",
@@ -37,6 +40,74 @@ const LEVELS = [
     "# . .#",
     "#  $@#",
     "######"
+  ],
+  // 4
+  [
+    " #### ",
+    " #  # ",
+    " #$ # ",
+    "##$ ##",
+    "# .. #",
+    "# @  #",
+    "######"
+  ],
+  // 5
+  [
+    " ######",
+    " #    #",
+    " # #$ #",
+    " # .. #",
+    " # $# #",
+    " # @  #",
+    " ######"
+  ],
+  // 6
+  [
+    "  ####",
+    "###  #",
+    "#  $ #",
+    "#  # #",
+    "## . #",
+    " # @ #",
+    " #####"
+  ],
+  // 7
+  [
+    "#######",
+    "#     #",
+    "# .$. #",
+    "## $ ##",
+    " # @ # ",
+    " ##### "
+  ],
+  // 8
+  [
+    " ##### ",
+    " #   ##",
+    " # $  #",
+    "##  $ #",
+    "# . . #",
+    "#  @  #",
+    "#######"
+  ],
+  // 9
+  [
+    "  #####",
+    "  #   #",
+    "### $ #",
+    "#  $  #",
+    "# . . #",
+    "### @ #",
+    "  #####"
+  ],
+  // 10
+  [
+    "#######",
+    "# . . #",
+    "#  $  #",
+    "## $ ##",
+    " # @ # ",
+    " ##### "
   ]
 ];
 
@@ -48,7 +119,9 @@ export default function LuggagePusher({ onComplete, onBack }) {
 
   // Initialize level
   useEffect(() => {
-    const raw = LEVELS[levelIdx];
+    // Loop back to level 0 if we exceed bounds
+    const safeIdx = levelIdx % LEVELS.length;
+    const raw = LEVELS[safeIdx];
     const newBoard = [];
     let pr = 0, pc = 0;
     
@@ -82,19 +155,19 @@ export default function LuggagePusher({ onComplete, onBack }) {
     const newBoard = board.map(row => [...row]);
     let moved = false;
 
-    // Check what is in the next cell
+    // Boundary check
+    if (r1 < 0 || r1 >= board.length || c1 < 0 || c1 >= board[r1].length) return;
+
     const nextCell = newBoard[r1][c1];
 
     if (nextCell === ' ' || nextCell === '.') {
-      // Free to move
       moved = true;
     } else if (nextCell === '$' || nextCell === '*') {
-      // It's a box, can we push it?
+      if (r2 < 0 || r2 >= board.length || c2 < 0 || c2 >= board[r2].length) return;
       const beyondCell = newBoard[r2][c2];
       if (beyondCell === ' ' || beyondCell === '.') {
-        // Yes, push it
-        newBoard[r1][c1] = nextCell === '*' ? '.' : ' '; // Remove box from r1,c1
-        newBoard[r2][c2] = beyondCell === '.' ? '*' : '$'; // Place box at r2,c2
+        newBoard[r1][c1] = nextCell === '*' ? '.' : ' '; 
+        newBoard[r2][c2] = beyondCell === '.' ? '*' : '$'; 
         moved = true;
       }
     }
@@ -113,7 +186,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
     for (let r = 0; r < currentBoard.length; r++) {
       for (let c = 0; c < currentBoard[r].length; c++) {
         if (currentBoard[r][c] === '$') {
-          allBoxesOnTargets = false; // A box is not on a target
+          allBoxesOnTargets = false; 
         }
         if (currentBoard[r][c] === '*' || currentBoard[r][c] === '$') {
           boxFound = true;
@@ -152,8 +225,13 @@ export default function LuggagePusher({ onComplete, onBack }) {
           break;
         case 'r':
         case 'R':
-          // Restart level trigger (hacky way: just toggle state to force rerender)
-          setLevelIdx(prev => prev); 
+          // Force remount/reload of current level state
+          setLevelIdx(prev => prev);
+          // Small hack: if state didn't change, force it by resetting board locally to trigger effect?
+          // Actually setLevelIdx(prev=>prev) might not trigger useEffect if the primitive value is identical.
+          // Better restart mechanism:
+          setBoard([]); 
+          setTimeout(() => setLevelIdx(prev => prev), 10);
           break;
         default:
           break;
@@ -163,19 +241,19 @@ export default function LuggagePusher({ onComplete, onBack }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [movePlayer]);
 
+  const restartLevel = () => {
+    setBoard([]); 
+    setTimeout(() => setLevelIdx(prev => prev), 10);
+  };
+
   const nextLevel = () => {
-    if (levelIdx < LEVELS.length - 1) {
-      setLevelIdx(levelIdx + 1);
-    } else {
-      if (onComplete) onComplete();
-    }
+    setLevelIdx(levelIdx + 1);
   };
 
   if (board.length === 0) return null;
 
   return (
     <div className="fixed inset-0 pt-24 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
-      {/* Back Button */}
       <button 
         onClick={onBack}
         className="absolute top-24 left-6 p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-orange-500 hover:border-orange-500/50 transition-all shadow-lg z-[110]"
@@ -183,26 +261,29 @@ export default function LuggagePusher({ onComplete, onBack }) {
         <span className="material-symbols-outlined">arrow_back</span>
       </button>
 
-      <h2 className="text-4xl font-bold text-white mb-2 mt-4">Luggage Loader</h2>
+      <h2 className="text-4xl font-bold text-white mb-2 mt-4">Luggage Loader (Level {(levelIdx % LEVELS.length) + 1})</h2>
       
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-8 text-center max-w-xl">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-4 text-center max-w-xl flex flex-col items-center relative">
+        <button onClick={restartLevel} className="absolute right-4 top-4 p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-500 transition-all" title="Restart Level">
+          <span className="material-symbols-outlined text-sm">refresh</span>
+        </button>
         <p className="text-slate-300 font-medium">How to play:</p>
         <p className="text-slate-400 text-sm mt-1">1. Use <strong className="text-white">Arrow Keys</strong> or <strong className="text-white">WASD</strong> to move.</p>
         <p className="text-slate-400 text-sm">2. Push all the <strong className="text-orange-500">Luggage Blocks</strong> onto the <strong className="text-blue-500">Blue Loading Zones</strong>.</p>
-        <p className="text-slate-400 text-sm">3. If you get stuck, press <strong className="text-white">'R'</strong> to restart the level!</p>
+        <p className="text-slate-400 text-sm">3. If you get stuck, press <strong className="text-white">'R'</strong> or the refresh button to restart the level!</p>
       </div>
 
-      <div className="relative bg-slate-800 p-4 rounded-xl shadow-inner border border-slate-700">
+      <div className="relative bg-slate-800 p-4 rounded-xl shadow-inner border border-slate-700 max-h-[50vh] overflow-auto">
         {board.map((row, r) => (
           <div key={r} className="flex">
             {row.map((cell, c) => {
               const isPlayerHere = playerPos.r === r && playerPos.c === c;
               return (
-                <div key={`${r}-${c}`} className="w-12 h-12 flex items-center justify-center relative">
+                <div key={`${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center relative">
                   {/* Floor / Wall / Target */}
-                  {cell === '#' && <div className="w-full h-full bg-slate-600 rounded-sm border-2 border-slate-700" />}
+                  {cell === '#' && <div className="w-full h-full bg-slate-600 rounded-sm border-2 border-slate-700 shadow-sm" />}
                   {(cell === ' ' || cell === '.') && <div className="w-full h-full bg-slate-800 rounded-sm" />}
-                  {cell === '.' && <MapPin className="absolute w-6 h-6 text-blue-500/50" />}
+                  {cell === '.' && <MapPin className="absolute w-5 h-5 sm:w-6 sm:h-6 text-blue-500/50" />}
                   
                   {/* Box overlays */}
                   {(cell === '$' || cell === '*') && (
@@ -210,7 +291,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
                       layoutId={`box-${r}-${c}`}
                       className={`absolute inset-1 rounded-md flex items-center justify-center shadow-lg transition-colors z-10 ${cell === '*' ? 'bg-green-500' : 'bg-orange-500'}`}
                     >
-                      <Briefcase className={`w-6 h-6 ${cell === '*' ? 'text-white' : 'text-orange-900'}`} />
+                      <Briefcase className={`w-5 h-5 sm:w-6 sm:h-6 ${cell === '*' ? 'text-white' : 'text-orange-900'}`} />
                     </motion.div>
                   )}
 
@@ -220,8 +301,8 @@ export default function LuggagePusher({ onComplete, onBack }) {
                       layoutId="player"
                       className="absolute inset-0 flex items-center justify-center z-20"
                     >
-                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                         <User className="w-6 h-6 text-white" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                         <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
                     </motion.div>
                   )}
@@ -243,7 +324,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
             onClick={nextLevel}
             className="px-6 py-2 bg-green-500 text-black font-bold rounded-lg hover:bg-green-400 transition shadow-lg"
           >
-            {levelIdx < LEVELS.length - 1 ? 'Next Level' : 'Finish Game'}
+            Next Level
           </button>
         </motion.div>
       )}
