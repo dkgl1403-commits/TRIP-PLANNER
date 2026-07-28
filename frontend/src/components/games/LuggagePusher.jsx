@@ -178,76 +178,95 @@ export default function LuggagePusher({ onComplete, onBack }) {
     }
   }, [board, playerPos, won]);
 
-  const checkWin = (currentBoard) => {
-    let allBoxesOnTargets = true;
-    let boxFound = false;
+  }, [levelIdx, restartKey]);
 
-    for (let r = 0; r < currentBoard.length; r++) {
-      for (let c = 0; c < currentBoard[r].length; c++) {
-        if (currentBoard[r][c] === '$') {
-          allBoxesOnTargets = false; 
-        }
-        if (currentBoard[r][c] === '*' || currentBoard[r][c] === '$') {
-          boxFound = true;
-        }
+  useEffect(() => {
+    if (board.length === 0) return;
+    let isWon = true;
+    for (let r = 0; r < board.length; r++) {
+      for (let c = 0; c < board[r].length; c++) {
+        if (board[r][c] === '.') isWon = false;
+        if (board[r][c] === '$') isWon = false; 
       }
     }
-
-    if (boxFound && allBoxesOnTargets) {
+    if (isWon && board.length > 0) {
       setWon(true);
+      const nextIdx = levelIdx + 1;
+      localStorage.setItem('luggage_level', nextIdx);
+    }
+  }, [board]);
+
+  const restartLevel = () => {
+    setRestartKey(k => k + 1);
+  };
+
+  const movePlayer = (dr, dc) => {
+    if (won) return;
+    const newR = playerPos.r + dr;
+    const newC = playerPos.c + dc;
+    
+    const cell = board[newR][newC];
+    
+    if (cell === '#') return;
+    
+    if (cell === '$' || cell === '*') {
+      const pushR = newR + dr;
+      const pushC = newC + dc;
+      const pushCell = board[pushR][pushC];
+      
+      if (pushCell === ' ' || pushCell === '.') {
+        const newBoard = board.map(row => [...row]);
+        newBoard[newR][newC] = cell === '*' ? '.' : ' ';
+        newBoard[pushR][pushC] = pushCell === '.' ? '*' : '$';
+        
+        setBoard(newBoard);
+        setPlayerPos({ r: newR, c: newC });
+      }
+    } else {
+      setPlayerPos({ r: newR, c: newC });
     }
   };
 
-  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (won || showResumePrompt) return;
       switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          movePlayer(-1, 0);
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          movePlayer(1, 0);
-          break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          movePlayer(0, -1);
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          movePlayer(0, 1);
-          break;
-        case 'r':
-        case 'R':
-          // Force remount/reload of current level state
-          setLevelIdx(prev => prev);
-          // Small hack: if state didn't change, force it by resetting board locally to trigger effect?
-          // Actually setLevelIdx(prev=>prev) might not trigger useEffect if the primitive value is identical.
-          // Better restart mechanism:
-          setBoard([]); 
-          setTimeout(() => setLevelIdx(prev => prev), 10);
-          break;
-        default:
-          break;
+        case 'ArrowUp': case 'w': case 'W': movePlayer(-1, 0); break;
+        case 'ArrowDown': case 's': case 'S': movePlayer(1, 0); break;
+        case 'ArrowLeft': case 'a': case 'A': movePlayer(0, -1); break;
+        case 'ArrowRight': case 'd': case 'D': movePlayer(0, 1); break;
+        case 'r': case 'R': restartLevel(); break;
+        default: break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [movePlayer]);
+  }, [playerPos, board, won, showResumePrompt]);
 
-  const restartLevel = () => {
-    setBoard([]); 
-    setTimeout(() => setLevelIdx(prev => prev), 10);
-  };
-
-  const nextLevel = () => {
-    setLevelIdx(levelIdx + 1);
-  };
+  if (showResumePrompt) {
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+        <div className="bg-slate-900 p-8 rounded-xl border border-slate-700 text-center max-w-sm w-full shadow-2xl">
+          <h2 className="text-2xl font-bold text-white mb-4">Saved Progress Found</h2>
+          <p className="text-slate-300 mb-8">Do you want to resume from Level {(savedLevel % LEVELS.length) + 1} or start over?</p>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => { setLevelIdx(savedLevel); setShowResumePrompt(false); }} 
+              className="px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition shadow-lg shadow-blue-500/20"
+            >
+              Resume Level {(savedLevel % LEVELS.length) + 1}
+            </button>
+            <button 
+              onClick={() => { setLevelIdx(0); setShowResumePrompt(false); localStorage.setItem('luggage_level', 0); }} 
+              className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition"
+            >
+              Start from Level 1
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (board.length === 0) return null;
 
@@ -256,102 +275,98 @@ export default function LuggagePusher({ onComplete, onBack }) {
   const ratio = cols / rows;
 
   return (
-    <div className="fixed inset-0 pt-24 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
+    <div className="fixed inset-0 pt-16 pb-4 px-2 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
       <button 
         onClick={onBack}
-        className="absolute top-24 left-6 p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-orange-500 hover:border-orange-500/50 transition-all shadow-lg z-[110]"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 p-2 sm:p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-orange-500 hover:border-orange-500/50 transition-all shadow-lg z-[110]"
       >
-        <span className="material-symbols-outlined">arrow_back</span>
+        <span className="material-symbols-outlined text-lg sm:text-2xl">arrow_back</span>
       </button>
 
-      <h2 className="text-4xl font-bold text-white mb-2 mt-4">Luggage Loader (Level {(levelIdx % LEVELS.length) + 1})</h2>
-      
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-4 text-center max-w-xl flex flex-col items-center relative">
-        <button onClick={restartLevel} className="absolute right-4 top-4 p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-500 transition-all" title="Restart Level">
-          <span className="material-symbols-outlined text-sm">refresh</span>
-        </button>
-        <p className="text-slate-300 font-medium">How to play:</p>
-        <p className="text-slate-400 text-sm mt-1">1. Use <strong className="text-white">Arrow Keys</strong> or <strong className="text-white">WASD</strong> to move.</p>
-        <p className="text-slate-400 text-sm">2. Push all the <strong className="text-orange-500">Luggage Blocks</strong> onto the <strong className="text-blue-500">Blue Loading Zones</strong>.</p>
-        <p className="text-slate-400 text-sm">3. If you get stuck, press <strong className="text-white">'R'</strong> or the refresh button to restart the level!</p>
-      </div>
-
-      <div 
-        className="w-full mx-auto bg-slate-800 p-2 rounded-xl shadow-inner border border-slate-700 relative"
-        style={{ maxWidth: `min(90vw, 55vh * ${ratio})` }}
-      >
-        <div 
-          className="grid gap-0.5"
-          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-        >
-          {board.map((row, r) => {
-            const paddedRow = [...row];
-            while (paddedRow.length < cols) paddedRow.push(' ');
-            
-            return paddedRow.map((cell, c) => {
-              const isPlayerHere = playerPos.r === r && playerPos.c === c;
-              return (
-                <div key={`${r}-${c}`} className="w-full aspect-square flex items-center justify-center relative">
-                  {/* Floor / Wall / Target */}
-                  {cell === '#' && <div className="w-full h-full bg-slate-600 rounded-[10%] border border-slate-700 shadow-sm" />}
-                  {(cell === ' ' || cell === '.') && <div className="w-full h-full bg-slate-800 rounded-[10%]" />}
-                  {cell === '.' && <MapPin className="absolute w-[60%] h-[60%] text-blue-500/50" />}
-                  
-                  {/* Box overlays */}
-                  {(cell === '$' || cell === '*') && (
-                    <motion.div 
-                      layoutId={`box-${r}-${c}`}
-                      className={`absolute inset-[10%] rounded-md flex items-center justify-center shadow-lg transition-colors z-10 ${cell === '*' ? 'bg-green-500' : 'bg-orange-500'}`}
-                    >
-                      <Briefcase className={`w-[70%] h-[70%] ${cell === '*' ? 'text-white' : 'text-orange-900'}`} />
-                    </motion.div>
-                  )}
-
-                  {/* Player overlay */}
-                  {isPlayerHere && (
-                    <motion.div
-                      layoutId="player"
-                      className="absolute inset-[10%] flex items-center justify-center z-20"
-                    >
-                      <div className="w-full h-full bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                         <User className="w-[60%] h-[60%] text-white" />
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              );
-            });
-          })}
+      <div className="w-full flex flex-col items-center max-w-3xl shrink-0 mt-4 sm:mt-0">
+        <h2 className="text-2xl sm:text-4xl font-bold text-white mb-2">Luggage Loader (Level {(levelIdx % LEVELS.length) + 1})</h2>
+        <div className="bg-slate-900 border border-slate-700 rounded-xl p-2 sm:p-3 mb-2 w-full max-w-lg flex items-center justify-center relative text-xs sm:text-sm">
+          <p className="text-slate-400 text-center px-8">Push <strong className="text-orange-500">Luggage</strong> onto <strong className="text-blue-500">Targets</strong>. Stuck? Press <strong className="text-white">'R'</strong> or the Refresh button.</p>
+          <button onClick={restartLevel} className="absolute right-2 p-1.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-500 transition-all" title="Restart Level">
+            <span className="material-symbols-outlined text-sm sm:text-base block">refresh</span>
+          </button>
         </div>
       </div>
-
-      {/* On-Screen Mobile Controls */}
-      <div className="mt-8 flex flex-col items-center gap-2 lg:hidden z-50">
-        <button 
-          onClick={() => movePlayer(-1, 0)}
-          className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+      
+      <div className="flex flex-col landscape:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 w-full min-h-0 flex-1">
+        <div 
+          className="w-full max-w-[min(90vw,50vh)] landscape:max-w-[min(60vw,65vh)] bg-slate-800 p-1.5 sm:p-2 rounded-xl shadow-inner border border-slate-700 relative shrink-0 mx-auto"
+          style={{ aspectRatio: ratio }}
         >
-          <span className="material-symbols-outlined text-3xl">arrow_drop_up</span>
-        </button>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => movePlayer(0, -1)}
-            className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+          <div 
+            className="grid gap-0.5 w-full h-full"
+            style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
           >
-            <span className="material-symbols-outlined text-3xl">arrow_left</span>
-          </button>
+            {board.map((row, r) => {
+              const paddedRow = [...row];
+              while (paddedRow.length < cols) paddedRow.push(' ');
+              
+              return paddedRow.map((cell, c) => {
+                const isPlayerHere = playerPos.r === r && playerPos.c === c;
+                return (
+                  <div key={`${r}-${c}`} className="w-full h-full flex items-center justify-center relative">
+                    {cell === '#' && <div className="w-full h-full bg-slate-600 rounded-[10%] border border-slate-700 shadow-sm" />}
+                    {(cell === ' ' || cell === '.') && <div className="w-full h-full bg-slate-800 rounded-[10%]" />}
+                    {cell === '.' && <MapPin className="absolute w-[60%] h-[60%] text-blue-500/50" />}
+                    
+                    {(cell === '$' || cell === '*') && (
+                      <motion.div 
+                        layoutId={`box-${r}-${c}`}
+                        className={`absolute inset-[10%] rounded-md flex items-center justify-center shadow-lg transition-colors z-10 ${cell === '*' ? 'bg-green-500' : 'bg-orange-500'}`}
+                      >
+                        <Briefcase className={`w-[70%] h-[70%] ${cell === '*' ? 'text-white' : 'text-orange-900'}`} />
+                      </motion.div>
+                    )}
+
+                    {isPlayerHere && (
+                      <motion.div
+                        layoutId="player"
+                        className="absolute inset-[10%] flex items-center justify-center z-20"
+                      >
+                        <div className="w-full h-full bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                           <User className="w-[60%] h-[60%] text-white" />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                );
+              });
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-1 sm:gap-2 lg:hidden shrink-0 pb-4 landscape:pb-0">
           <button 
-            onClick={() => movePlayer(1, 0)}
-            className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+            onClick={() => movePlayer(-1, 0)}
+            className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
           >
-            <span className="material-symbols-outlined text-3xl">arrow_drop_down</span>
+            <span className="material-symbols-outlined text-2xl sm:text-3xl">arrow_drop_up</span>
           </button>
-          <button 
-            onClick={() => movePlayer(0, 1)}
-            className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
-          >
-            <span className="material-symbols-outlined text-3xl">arrow_right</span>
-          </button>
+          <div className="flex gap-1 sm:gap-2">
+            <button 
+              onClick={() => movePlayer(0, -1)}
+              className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+            >
+              <span className="material-symbols-outlined text-2xl sm:text-3xl">arrow_left</span>
+            </button>
+            <button 
+              onClick={() => movePlayer(1, 0)}
+              className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+            >
+              <span className="material-symbols-outlined text-2xl sm:text-3xl">arrow_drop_down</span>
+            </button>
+            <button 
+              onClick={() => movePlayer(0, 1)}
+              className="w-12 h-12 sm:w-14 sm:h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+            >
+              <span className="material-symbols-outlined text-2xl sm:text-3xl">arrow_right</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -359,12 +374,12 @@ export default function LuggagePusher({ onComplete, onBack }) {
         <motion.div 
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="absolute bottom-10 bg-green-500/20 backdrop-blur-md border border-green-500 text-green-400 p-6 rounded-xl text-center shadow-[0_0_30px_rgba(34,197,94,0.3)] z-50"
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-xl border border-green-500/50 m-4"
         >
-          <h3 className="text-2xl font-bold mb-4">All Luggage Loaded!</h3>
+          <h3 className="text-5xl font-black text-green-500 mb-4 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]">LEVEL CLEARED!</h3>
           <button 
-            onClick={nextLevel}
-            className="px-6 py-2 bg-green-500 text-black font-bold rounded-lg hover:bg-green-400 transition shadow-lg"
+            onClick={() => setLevelIdx(levelIdx + 1)}
+            className="px-8 py-4 bg-green-500 text-white font-bold text-xl rounded-xl hover:bg-green-400 transition shadow-[0_0_20px_rgba(34,197,94,0.5)]"
           >
             Next Level
           </button>
