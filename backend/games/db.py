@@ -30,5 +30,14 @@ class GameScore(Base):
     winner_id = Column(String, index=True) # login_id, 'AI', 'Guest', or 'tie'
     played_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+class GameProgress(Base):
+    __tablename__ = "game_progress"
+    
+    id = Column(String(36), primary_key=True, default=get_uuid)
+    player_id = Column(String, index=True) # login_id
+    game_name = Column(String, index=True)
+    level = Column(Integer, default=0)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
 def init_db():
     Base.metadata.create_all(bind=engine)

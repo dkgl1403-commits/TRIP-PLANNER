@@ -178,6 +178,72 @@ export default function LuggagePusher({ onComplete, onBack }) {
     }
   }, [board, playerPos, won]);
 
+  const [won, setWon] = useState(false);
+  const [levelIdx, setLevelIdx] = useState(0);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [savedLevel, setSavedLevel] = useState(0);
+
+  const getUserId = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        return u.login_id || u.id || 'Guest';
+      } catch(e) {}
+    }
+    return 'Guest';
+  };
+
+  const saveProgress = (levelToSave) => {
+    fetch(`/api/games/progress/luggage_loader/${getUserId()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level: levelToSave })
+    }).catch(err => console.error("Error saving progress:", err));
+  };
+
+  // Load progress on mount
+  useEffect(() => {
+    fetch(`/api/games/progress/luggage_loader/${getUserId()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.level > 0) {
+          setSavedLevel(data.level);
+          setShowResumePrompt(true);
+        }
+      })
+      .catch(err => console.error("Error loading progress:", err));
+  }, []);
+
+  // Initialize level
+  useEffect(() => {
+    // Loop back to level 0 if we exceed bounds
+    const safeIdx = levelIdx % LEVELS.length;
+    const raw = LEVELS[safeIdx];
+    
+    // Parse raw level
+    const parsedBoard = [];
+    let pPos = { r: 0, c: 0 };
+    
+    for (let r = 0; r < raw.length; r++) {
+      const row = [];
+      for (let c = 0; c < raw[r].length; c++) {
+        const char = raw[r][c];
+        if (char === '@') {
+          pPos = { r, c };
+          row.push(' ');
+        } else if (char === '+') {
+          pPos = { r, c };
+          row.push('.');
+        } else {
+          row.push(char);
+        }
+      }
+      parsedBoard.push(row);
+    }
+    setBoard(parsedBoard);
+    setPlayerPos(pPos);
+    setWon(false);
   }, [levelIdx, restartKey]);
 
   useEffect(() => {
@@ -192,7 +258,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
     if (isWon && board.length > 0) {
       setWon(true);
       const nextIdx = levelIdx + 1;
-      localStorage.setItem('luggage_level', nextIdx);
+      saveProgress(nextIdx);
     }
   }, [board]);
 
@@ -241,7 +307,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [playerPos, board, won, showResumePrompt]);
+  }, [playerPos, board, won, showResumePrompt, movePlayer]);
 
   if (showResumePrompt) {
     return (
@@ -257,7 +323,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
               Resume Level {(savedLevel % LEVELS.length) + 1}
             </button>
             <button 
-              onClick={() => { setLevelIdx(0); setShowResumePrompt(false); localStorage.setItem('luggage_level', 0); }} 
+              onClick={() => { setLevelIdx(0); setShowResumePrompt(false); saveProgress(0); }} 
               className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition"
             >
               Start from Level 1

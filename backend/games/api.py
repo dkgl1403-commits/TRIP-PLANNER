@@ -4,7 +4,7 @@ from sqlalchemy import func
 from pydantic import BaseModel
 from typing import List
 
-from .db import SessionLocal, GameScore
+from .db import SessionLocal, GameScore, GameProgress
 
 games_api_router = APIRouter()
 
@@ -52,3 +52,34 @@ def get_leaderboard(game_name: str, db: Session = Depends(get_db)):
     ).limit(10).all()
     
     return [{"player_id": r.player_id, "wins": r.wins} for r in wins]
+
+class ProgressUpdate(BaseModel):
+    level: int
+
+@games_api_router.get("/progress/{game_name}/{player_id}")
+def get_progress(game_name: str, player_id: str, db: Session = Depends(get_db)):
+    progress = db.query(GameProgress).filter(
+        GameProgress.game_name == game_name,
+        GameProgress.player_id == player_id
+    ).first()
+    return {"level": progress.level if progress else 0}
+
+@games_api_router.post("/progress/{game_name}/{player_id}")
+def update_progress(game_name: str, player_id: str, progress: ProgressUpdate, db: Session = Depends(get_db)):
+    db_progress = db.query(GameProgress).filter(
+        GameProgress.game_name == game_name,
+        GameProgress.player_id == player_id
+    ).first()
+    
+    if db_progress:
+        db_progress.level = progress.level
+    else:
+        db_progress = GameProgress(
+            game_name=game_name,
+            player_id=player_id,
+            level=progress.level
+        )
+        db.add(db_progress)
+        
+    db.commit()
+    return {"status": "success", "level": db_progress.level}
