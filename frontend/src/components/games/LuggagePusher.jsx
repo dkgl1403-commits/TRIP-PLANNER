@@ -115,73 +115,9 @@ export default function LuggagePusher({ onComplete, onBack }) {
   const [board, setBoard] = useState([]);
   const [playerPos, setPlayerPos] = useState({ r: 0, c: 0 });
   const [won, setWon] = useState(false);
-
-  // Initialize level
-  useEffect(() => {
-    // Loop back to level 0 if we exceed bounds
-    const safeIdx = levelIdx % LEVELS.length;
-    const raw = LEVELS[safeIdx];
-    const newBoard = [];
-    let pr = 0, pc = 0;
-    
-    for (let r = 0; r < raw.length; r++) {
-      const row = [];
-      for (let c = 0; c < raw[r].length; c++) {
-        const char = raw[r][c];
-        if (char === '@' || char === '+') {
-          pr = r;
-          pc = c;
-          row.push(char === '+' ? '.' : ' '); // the board stores background, player is overlay
-        } else {
-          row.push(char);
-        }
-      }
-      newBoard.push(row);
-    }
-    setBoard(newBoard);
-    setPlayerPos({ r: pr, c: pc });
-    setWon(false);
-  }, [levelIdx]);
-
-  const movePlayer = useCallback((dr, dc) => {
-    if (won || board.length === 0) return;
-
-    const r1 = playerPos.r + dr;
-    const c1 = playerPos.c + dc;
-    const r2 = playerPos.r + dr * 2;
-    const c2 = playerPos.c + dc * 2;
-
-    const newBoard = board.map(row => [...row]);
-    let moved = false;
-
-    // Boundary check
-    if (r1 < 0 || r1 >= board.length || c1 < 0 || c1 >= board[r1].length) return;
-
-    const nextCell = newBoard[r1][c1];
-
-    if (nextCell === ' ' || nextCell === '.') {
-      moved = true;
-    } else if (nextCell === '$' || nextCell === '*') {
-      if (r2 < 0 || r2 >= board.length || c2 < 0 || c2 >= board[r2].length) return;
-      const beyondCell = newBoard[r2][c2];
-      if (beyondCell === ' ' || beyondCell === '.') {
-        newBoard[r1][c1] = nextCell === '*' ? '.' : ' '; 
-        newBoard[r2][c2] = beyondCell === '.' ? '*' : '$'; 
-        moved = true;
-      }
-    }
-
-    if (moved) {
-      setBoard(newBoard);
-      setPlayerPos({ r: r1, c: c1 });
-      checkWin(newBoard);
-    }
-  }, [board, playerPos, won]);
-
-  const [won, setWon] = useState(false);
-  const [levelIdx, setLevelIdx] = useState(0);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [savedLevel, setSavedLevel] = useState(0);
+  const [restartKey, setRestartKey] = useState(0);
 
   const getUserId = () => {
     const userStr = localStorage.getItem('user');
@@ -266,32 +202,39 @@ export default function LuggagePusher({ onComplete, onBack }) {
     setRestartKey(k => k + 1);
   };
 
-  const movePlayer = (dr, dc) => {
-    if (won) return;
-    const newR = playerPos.r + dr;
-    const newC = playerPos.c + dc;
-    
-    const cell = board[newR][newC];
-    
-    if (cell === '#') return;
-    
-    if (cell === '$' || cell === '*') {
-      const pushR = newR + dr;
-      const pushC = newC + dc;
-      const pushCell = board[pushR][pushC];
-      
-      if (pushCell === ' ' || pushCell === '.') {
-        const newBoard = board.map(row => [...row]);
-        newBoard[newR][newC] = cell === '*' ? '.' : ' ';
-        newBoard[pushR][pushC] = pushCell === '.' ? '*' : '$';
-        
-        setBoard(newBoard);
-        setPlayerPos({ r: newR, c: newC });
+  const movePlayer = useCallback((dr, dc) => {
+    if (won || board.length === 0) return;
+
+    const r1 = playerPos.r + dr;
+    const c1 = playerPos.c + dc;
+    const r2 = playerPos.r + dr * 2;
+    const c2 = playerPos.c + dc * 2;
+
+    const newBoard = board.map(row => [...row]);
+    let moved = false;
+
+    // Boundary check
+    if (r1 < 0 || r1 >= board.length || c1 < 0 || c1 >= board[r1].length) return;
+
+    const nextCell = newBoard[r1][c1];
+
+    if (nextCell === ' ' || nextCell === '.') {
+      moved = true;
+    } else if (nextCell === '$' || nextCell === '*') {
+      if (r2 < 0 || r2 >= board.length || c2 < 0 || c2 >= board[r2].length) return;
+      const beyondCell = newBoard[r2][c2];
+      if (beyondCell === ' ' || beyondCell === '.') {
+        newBoard[r1][c1] = nextCell === '*' ? '.' : ' '; 
+        newBoard[r2][c2] = beyondCell === '.' ? '*' : '$'; 
+        moved = true;
       }
-    } else {
-      setPlayerPos({ r: newR, c: newC });
     }
-  };
+
+    if (moved) {
+      setBoard(newBoard);
+      setPlayerPos({ r: r1, c: c1 });
+    }
+  }, [board, playerPos, won]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
