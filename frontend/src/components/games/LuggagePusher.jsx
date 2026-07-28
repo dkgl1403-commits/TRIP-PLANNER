@@ -252,6 +252,10 @@ export default function LuggagePusher({ onComplete, onBack }) {
 
   if (board.length === 0) return null;
 
+  const cols = board.length > 0 ? Math.max(...board.map(r => r.length)) : 1;
+  const rows = board.length || 1;
+  const ratio = cols / rows;
+
   return (
     <div className="fixed inset-0 pt-24 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
       <button 
@@ -273,25 +277,34 @@ export default function LuggagePusher({ onComplete, onBack }) {
         <p className="text-slate-400 text-sm">3. If you get stuck, press <strong className="text-white">'R'</strong> or the refresh button to restart the level!</p>
       </div>
 
-      <div className="relative bg-slate-800 p-4 rounded-xl shadow-inner border border-slate-700 max-h-[50vh] overflow-auto">
-        {board.map((row, r) => (
-          <div key={r} className="flex">
-            {row.map((cell, c) => {
+      <div 
+        className="w-full mx-auto bg-slate-800 p-2 rounded-xl shadow-inner border border-slate-700 relative"
+        style={{ maxWidth: `min(90vw, 55vh * ${ratio})` }}
+      >
+        <div 
+          className="grid gap-0.5"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        >
+          {board.map((row, r) => {
+            const paddedRow = [...row];
+            while (paddedRow.length < cols) paddedRow.push(' ');
+            
+            return paddedRow.map((cell, c) => {
               const isPlayerHere = playerPos.r === r && playerPos.c === c;
               return (
-                <div key={`${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center relative">
+                <div key={`${r}-${c}`} className="w-full aspect-square flex items-center justify-center relative">
                   {/* Floor / Wall / Target */}
-                  {cell === '#' && <div className="w-full h-full bg-slate-600 rounded-sm border-2 border-slate-700 shadow-sm" />}
-                  {(cell === ' ' || cell === '.') && <div className="w-full h-full bg-slate-800 rounded-sm" />}
-                  {cell === '.' && <MapPin className="absolute w-5 h-5 sm:w-6 sm:h-6 text-blue-500/50" />}
+                  {cell === '#' && <div className="w-full h-full bg-slate-600 rounded-[10%] border border-slate-700 shadow-sm" />}
+                  {(cell === ' ' || cell === '.') && <div className="w-full h-full bg-slate-800 rounded-[10%]" />}
+                  {cell === '.' && <MapPin className="absolute w-[60%] h-[60%] text-blue-500/50" />}
                   
                   {/* Box overlays */}
                   {(cell === '$' || cell === '*') && (
                     <motion.div 
                       layoutId={`box-${r}-${c}`}
-                      className={`absolute inset-1 rounded-md flex items-center justify-center shadow-lg transition-colors z-10 ${cell === '*' ? 'bg-green-500' : 'bg-orange-500'}`}
+                      className={`absolute inset-[10%] rounded-md flex items-center justify-center shadow-lg transition-colors z-10 ${cell === '*' ? 'bg-green-500' : 'bg-orange-500'}`}
                     >
-                      <Briefcase className={`w-5 h-5 sm:w-6 sm:h-6 ${cell === '*' ? 'text-white' : 'text-orange-900'}`} />
+                      <Briefcase className={`w-[70%] h-[70%] ${cell === '*' ? 'text-white' : 'text-orange-900'}`} />
                     </motion.div>
                   )}
 
@@ -299,18 +312,18 @@ export default function LuggagePusher({ onComplete, onBack }) {
                   {isPlayerHere && (
                     <motion.div
                       layoutId="player"
-                      className="absolute inset-0 flex items-center justify-center z-20"
+                      className="absolute inset-[10%] flex items-center justify-center z-20"
                     >
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                         <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      <div className="w-full h-full bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                         <User className="w-[60%] h-[60%] text-white" />
                       </div>
                     </motion.div>
                   )}
                 </div>
               );
-            })}
-          </div>
-        ))}
+            });
+          })}
+        </div>
       </div>
 
       {won && (
