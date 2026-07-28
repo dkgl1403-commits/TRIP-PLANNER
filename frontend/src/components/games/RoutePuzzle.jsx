@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 // Connections [Top, Right, Bottom, Left]
@@ -22,8 +22,7 @@ function rotateTile(type, rotations) {
 }
 
 // Procedural Level Generator
-function generateLevel(levelIdx) {
-  const size = Math.min(10, 4 + Math.floor(levelIdx / 2));
+function generateLevel(size) {
   const rows = size;
   const cols = size;
 
@@ -129,14 +128,29 @@ function generateLevel(levelIdx) {
 
 export default function RoutePuzzle({ onComplete, onBack }) {
   const [levelIdx, setLevelIdx] = useState(0);
+  const [gridSize, setGridSize] = useState(4); // Base size
+  const [score, setScore] = useState(0);
+  
   const [level, setLevel] = useState(null);
   const [rotations, setRotations] = useState([]);
   const [powered, setPowered] = useState([]);
+  
   const [won, setWon] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [maxTime, setMaxTime] = useState(1);
+  const timerRef = useRef(null);
 
+  // Initialize Level
   useEffect(() => {
-    const newLevel = generateLevel(levelIdx);
+    const newLevel = generateLevel(gridSize);
     setLevel(newLevel);
+    
+    // Calculate time based on grid area. E.g. 16 tiles * 1.5 = 24s.
+    const calculatedTime = Math.max(15, Math.floor((gridSize * gridSize) * 1.5));
+    setMaxTime(calculatedTime);
+    setTimeLeft(calculatedTime);
     
     const initialRots = [];
     for (let r = 0; r < newLevel.rows; r++) {
@@ -153,8 +167,30 @@ export default function RoutePuzzle({ onComplete, onBack }) {
     
     setRotations(initialRots);
     setWon(false);
+    setGameOver(false);
     updatePower(initialRots, newLevel);
   }, [levelIdx]);
+
+  // Timer Tick
+  useEffect(() => {
+    if (won || gameOver || !level) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          setGameOver(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, [won, gameOver, level]);
 
   const updatePower = (currentRots, currentLevel) => {
     if (!currentLevel) return;
@@ -196,7 +232,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   };
 
   const handleTileClick = (r, c) => {
-    if (won || !level) return;
+    if (won || gameOver || !level) return;
     const type = level.grid[r][c];
     if (type === 'EMPTY') return;
 
@@ -208,7 +244,30 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   };
 
   const nextLevel = () => {
+    const timePercentage = timeLeft / maxTime;
+    let nextSize = gridSize;
+    
+    // Dynamic Difficulty Adjustment
+    if (timePercentage >= 0.5) {
+      // Speed bonus
+      nextSize = Math.min(10, gridSize + 1);
+    } else if (timePercentage < 0.15) {
+      // Struggle assist: keep size same
+      nextSize = gridSize;
+    } else {
+      // Normal: 50% chance to increase
+      if (Math.random() > 0.5) nextSize = Math.min(10, gridSize + 1);
+    }
+
+    setScore(score + 1);
+    setGridSize(nextSize);
     setLevelIdx(levelIdx + 1);
+  };
+
+  const restartArcade = () => {
+    setScore(0);
+    setGridSize(4);
+    setLevelIdx(0); // Trigger re-init
   };
 
   const renderSVG = (type, isPowered) => {
@@ -242,28 +301,54 @@ export default function RoutePuzzle({ onComplete, onBack }) {
 
   if (!level || rotations.length !== level.rows) return null;
 
+  const timerColor = timeLeft > (maxTime * 0.5) ? 'bg-green-500' : timeLeft > (maxTime * 0.2) ? 'bg-yellow-400' : 'bg-red-500';
+
   return (
-    <div className="fixed inset-0 pt-24 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
+    <div className="fixed inset-0 pt-20 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
       <button 
         onClick={onBack}
-        className="absolute top-24 left-6 p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-[#00ffaa] hover:border-[#00ffaa]/50 transition-all shadow-lg z-[110]"
+        className="absolute top-20 left-6 p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-[#00ffaa] hover:border-[#00ffaa]/50 transition-all shadow-lg z-[110]"
       >
         <span className="material-symbols-outlined">arrow_back</span>
       </button>
 
-      <h2 className="text-4xl font-bold text-white mb-2 mt-4">Route Planner (Level {levelIdx + 1})</h2>
-      
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-4 text-center max-w-xl">
-        <p className="text-slate-300 font-medium">How to play:</p>
-        <p className="text-slate-400 text-sm mt-1">1. Click the grey tiles to rotate them 90 degrees.</p>
-        <p className="text-slate-400 text-sm">2. Build an unbroken path from the <strong className="text-[#00ffaa]">Home (Circle)</strong> to the <strong className="text-[#00ffaa]">Destination (Square)</strong>.</p>
-        <p className="text-slate-400 text-sm">3. Connected paths will glow neon green!</p>
+      {/* Header Info */}
+      <div className="w-full max-w-xl flex justify-between items-center mb-4 px-4 mt-8">
+        <h2 className="text-3xl font-bold text-white">Score: {score}</h2>
+        <div className="text-right">
+          <p className="text-slate-400 text-sm">Level {levelIdx + 1}</p>
+          <p className="text-slate-500 text-xs text-right">Grid: {gridSize}x{gridSize}</p>
+        </div>
+      </div>
+
+      {/* Timer Bar */}
+      <div className="w-full max-w-xl bg-slate-800 h-4 rounded-full mb-6 overflow-hidden border border-slate-700">
+        <motion.div 
+          initial={{ width: '100%' }}
+          animate={{ width: `${(timeLeft / maxTime) * 100}%` }}
+          transition={{ ease: "linear", duration: 1 }}
+          className={`h-full ${timerColor} shadow-[0_0_10px_currentColor]`}
+        />
       </div>
 
       <div 
-        className="grid gap-1 p-2 bg-slate-800 rounded-lg shadow-inner max-h-[50vh] overflow-auto"
+        className="grid gap-1 p-2 bg-slate-800 rounded-lg shadow-inner max-h-[50vh] overflow-auto relative"
         style={{ gridTemplateColumns: `repeat(${level.cols}, minmax(0, 1fr))` }}
       >
+        {/* Game Over Overlay */}
+        {gameOver && (
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-40 flex flex-col items-center justify-center rounded-lg border border-red-500/50">
+            <h3 className="text-4xl font-black text-red-500 mb-2">TIME'S UP!</h3>
+            <p className="text-slate-300 mb-6">You survived {score} levels.</p>
+            <button 
+              onClick={restartArcade}
+              className="px-8 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-400 transition shadow-[0_0_20px_rgba(239,68,68,0.5)]"
+            >
+              Restart Arcade
+            </button>
+          </div>
+        )}
+
         {level.grid.map((row, r) => (
           row.map((type, c) => {
             const isPowered = powered[r] && powered[r][c];
@@ -274,7 +359,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
               <div 
                 key={`${r}-${c}`}
                 onClick={() => handleTileClick(r, c)}
-                className={`${sizeClass} flex items-center justify-center rounded-md cursor-pointer transition-colors ${type !== 'EMPTY' ? 'bg-slate-900 hover:bg-slate-700' : 'bg-transparent'}`}
+                className={`${sizeClass} flex items-center justify-center rounded-md cursor-pointer transition-colors ${type !== 'EMPTY' ? 'bg-slate-900 hover:bg-slate-700' : 'bg-transparent'} ${gameOver ? 'opacity-50 pointer-events-none' : ''}`}
               >
                 <motion.div
                   animate={{ rotate: rot }}
@@ -295,10 +380,11 @@ export default function RoutePuzzle({ onComplete, onBack }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           className="absolute bottom-10 bg-green-500/20 backdrop-blur-md border border-green-500 text-green-400 p-6 rounded-xl text-center shadow-[0_0_30px_rgba(34,197,94,0.3)] z-50"
         >
-          <h3 className="text-2xl font-bold mb-4">Route Connected!</h3>
+          <h3 className="text-2xl font-bold mb-1">Route Connected!</h3>
+          <p className="text-sm text-green-300 mb-4">Time Bonus: +{timeLeft}s</p>
           <button 
             onClick={nextLevel}
-            className="px-6 py-2 bg-green-500 text-black font-bold rounded-lg hover:bg-green-400 transition shadow-lg"
+            className="px-8 py-3 bg-green-500 text-black font-bold rounded-lg hover:bg-green-400 transition shadow-lg"
           >
             Next Level
           </button>
