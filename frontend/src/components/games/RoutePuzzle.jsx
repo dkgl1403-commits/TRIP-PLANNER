@@ -148,8 +148,8 @@ export default function RoutePuzzle({ onComplete, onBack }) {
     const newLevel = generateLevel(gridSize);
     setLevel(newLevel);
     
-    // Calculate time based on grid area. E.g. 16 tiles * 1.5 = 24s.
-    const calculatedTime = Math.max(15, Math.floor((gridSize * gridSize) * 1.5));
+    // Calculate time based on level index to start at 3 mins and decrease, min 20s.
+    const calculatedTime = Math.max(20, 180 - (levelIdx * 10));
     setMaxTime(calculatedTime);
     setTimeLeft(calculatedTime);
     
