@@ -330,7 +330,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
       </div>
 
       {/* Timer Bar */}
-      <div className="w-full max-w-xl bg-slate-800 h-4 rounded-full mb-6 overflow-hidden border border-slate-700">
+      <div className="w-full max-w-[min(90vw,60vh)] bg-slate-800 h-4 rounded-full mb-6 overflow-hidden border border-slate-700">
         <motion.div 
           initial={{ width: '100%' }}
           animate={{ width: `${(timeLeft / maxTime) * 100}%` }}
@@ -340,7 +340,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
       </div>
 
       <div 
-        className="grid gap-1 p-2 bg-slate-800 rounded-lg shadow-inner max-h-[50vh] overflow-auto relative"
+        className="w-full max-w-[min(90vw,60vh)] aspect-square grid gap-1 p-2 bg-slate-800 rounded-lg shadow-inner relative mx-auto"
         style={{ gridTemplateColumns: `repeat(${level.cols}, minmax(0, 1fr))` }}
       >
         {/* Game Over Overlay */}
@@ -361,13 +361,11 @@ export default function RoutePuzzle({ onComplete, onBack }) {
           row.map((type, c) => {
             const isPowered = powered[r] && powered[r][c];
             const rot = rotations[r][c] * 90;
-            // Responsive tile sizing based on grid size
-            const sizeClass = level.cols <= 5 ? "w-16 h-16 sm:w-20 sm:h-20" : level.cols <= 8 ? "w-10 h-10 sm:w-14 sm:h-14" : "w-8 h-8 sm:w-10 sm:h-10";
             return (
               <div 
                 key={`${r}-${c}`}
                 onClick={() => handleTileClick(r, c)}
-                className={`${sizeClass} flex items-center justify-center rounded-md cursor-pointer transition-colors ${type !== 'EMPTY' ? 'bg-slate-900 hover:bg-slate-700' : 'bg-transparent'} ${gameOver ? 'opacity-50 pointer-events-none' : ''}`}
+                className={`w-full h-full aspect-square flex items-center justify-center rounded-md cursor-pointer transition-colors ${type !== 'EMPTY' ? 'bg-slate-900 hover:bg-slate-700' : 'bg-transparent'} ${gameOver ? 'opacity-50 pointer-events-none' : ''}`}
               >
                 <motion.div
                   animate={{ rotate: rot }}
