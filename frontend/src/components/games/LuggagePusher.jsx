@@ -40,7 +40,7 @@ const LEVELS = [
   ]
 ];
 
-export default function LuggagePusher({ onComplete }) {
+export default function LuggagePusher({ onComplete, onBack }) {
   const [levelIdx, setLevelIdx] = useState(0);
   const [board, setBoard] = useState([]);
   const [playerPos, setPlayerPos] = useState({ r: 0, c: 0 });
@@ -174,9 +174,23 @@ export default function LuggagePusher({ onComplete }) {
   if (board.length === 0) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-slate-900 rounded-xl p-8 shadow-2xl relative overflow-hidden">
-      <h2 className="text-3xl font-bold text-white mb-2">Luggage Loader</h2>
-      <p className="text-slate-400 mb-8">Use arrow keys or WASD to push all luggage (<Briefcase className="inline w-4 h-4 text-orange-400"/>) onto the loading zones (<MapPin className="inline w-4 h-4 text-blue-400"/>). Press 'R' to restart.</p>
+    <div className="fixed inset-0 pt-24 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
+      {/* Back Button */}
+      <button 
+        onClick={onBack}
+        className="absolute top-24 left-6 p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-orange-500 hover:border-orange-500/50 transition-all shadow-lg z-[110]"
+      >
+        <span className="material-symbols-outlined">arrow_back</span>
+      </button>
+
+      <h2 className="text-4xl font-bold text-white mb-2 mt-4">Luggage Loader</h2>
+      
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-8 text-center max-w-xl">
+        <p className="text-slate-300 font-medium">How to play:</p>
+        <p className="text-slate-400 text-sm mt-1">1. Use <strong className="text-white">Arrow Keys</strong> or <strong className="text-white">WASD</strong> to move.</p>
+        <p className="text-slate-400 text-sm">2. Push all the <strong className="text-orange-500">Luggage Blocks</strong> onto the <strong className="text-blue-500">Blue Loading Zones</strong>.</p>
+        <p className="text-slate-400 text-sm">3. If you get stuck, press <strong className="text-white">'R'</strong> to restart the level!</p>
+      </div>
 
       <div className="relative bg-slate-800 p-4 rounded-xl shadow-inner border border-slate-700">
         {board.map((row, r) => (

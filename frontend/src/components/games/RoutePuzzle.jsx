@@ -60,7 +60,7 @@ function rotateTile(type, rotations) {
   return [t, r, b, l];
 }
 
-export default function RoutePuzzle({ onComplete }) {
+export default function RoutePuzzle({ onComplete, onBack }) {
   const [levelIdx, setLevelIdx] = useState(0);
   const [grid, setGrid] = useState([]);
   const [rotations, setRotations] = useState([]);
@@ -187,9 +187,23 @@ export default function RoutePuzzle({ onComplete }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-slate-900 rounded-xl p-8 shadow-2xl relative overflow-hidden">
-      <h2 className="text-3xl font-bold text-white mb-2">Route Planner</h2>
-      <p className="text-slate-400 mb-8">Connect the home (circle) to the destination (square) by rotating the tiles.</p>
+    <div className="fixed inset-0 pt-24 pb-8 px-4 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
+      {/* Back Button */}
+      <button 
+        onClick={onBack}
+        className="absolute top-24 left-6 p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-[#00ffaa] hover:border-[#00ffaa]/50 transition-all shadow-lg z-[110]"
+      >
+        <span className="material-symbols-outlined">arrow_back</span>
+      </button>
+
+      <h2 className="text-4xl font-bold text-white mb-2 mt-4">Route Planner</h2>
+      
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 mb-8 text-center max-w-xl">
+        <p className="text-slate-300 font-medium">How to play:</p>
+        <p className="text-slate-400 text-sm mt-1">1. Click the grey tiles to rotate them 90 degrees.</p>
+        <p className="text-slate-400 text-sm">2. Build an unbroken path from the <strong className="text-[#00ffaa]">Home (Circle)</strong> to the <strong className="text-[#00ffaa]">Destination (Square)</strong>.</p>
+        <p className="text-slate-400 text-sm">3. Connected paths will glow neon green!</p>
+      </div>
 
       {rotations.length > 0 && (
         <div 
