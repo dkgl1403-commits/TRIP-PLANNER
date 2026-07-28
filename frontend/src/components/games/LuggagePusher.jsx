@@ -284,17 +284,22 @@ export default function LuggagePusher({ onComplete, onBack }) {
   const ratio = cols / rows;
 
   return (
-    <div className="fixed inset-0 pt-16 pb-4 px-2 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
+    <div className="fixed inset-0 pt-16 landscape:pt-2 pb-4 px-2 flex flex-col items-center justify-center bg-slate-950 z-[100] overflow-hidden">
       <button 
         onClick={onBack}
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 p-2 sm:p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-orange-500 hover:border-orange-500/50 transition-all shadow-lg z-[110]"
+        className="absolute top-4 left-4 landscape:top-2 landscape:left-2 sm:top-6 sm:left-6 p-2 sm:p-3 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-orange-500 hover:border-orange-500/50 transition-all shadow-lg z-[110]"
       >
         <span className="material-symbols-outlined text-lg sm:text-2xl">arrow_back</span>
       </button>
 
-      <div className="w-full flex flex-col items-center max-w-3xl shrink-0 mt-4 sm:mt-0">
-        <h2 className="text-2xl sm:text-4xl font-bold text-white mb-2">Luggage Loader (Level {(levelIdx % LEVELS.length) + 1})</h2>
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-2 sm:p-3 mb-2 w-full max-w-lg flex items-center justify-center relative text-xs sm:text-sm">
+      <div className="w-full flex flex-col items-center max-w-3xl shrink-0 mt-4 sm:mt-0 landscape:mt-0">
+        <div className="flex items-center gap-4 mb-2 landscape:mb-1">
+          <h2 className="text-2xl sm:text-4xl landscape:text-xl font-bold text-white">Luggage Loader (Level {(levelIdx % LEVELS.length) + 1})</h2>
+          <button onClick={restartLevel} className="hidden landscape:block p-1.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-500 transition-all" title="Restart Level">
+            <span className="material-symbols-outlined text-base block">refresh</span>
+          </button>
+        </div>
+        <div className="bg-slate-900 border border-slate-700 rounded-xl p-2 sm:p-3 mb-2 landscape:hidden w-full max-w-lg flex items-center justify-center relative text-xs sm:text-sm">
           <p className="text-slate-400 text-center px-8">Push <strong className="text-orange-500">Luggage</strong> onto <strong className="text-blue-500">Targets</strong>. Stuck? Press <strong className="text-white">'R'</strong> or the Refresh button.</p>
           <button onClick={restartLevel} className="absolute right-2 p-1.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-500 transition-all" title="Restart Level">
             <span className="material-symbols-outlined text-sm sm:text-base block">refresh</span>
@@ -304,7 +309,7 @@ export default function LuggagePusher({ onComplete, onBack }) {
       
       <div className="flex flex-col landscape:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 w-full min-h-0 flex-1">
         <div 
-          className="w-full max-w-[min(90vw,50vh)] landscape:max-w-[min(60vw,65vh)] bg-slate-800 p-1.5 sm:p-2 rounded-xl shadow-inner border border-slate-700 relative shrink-0 mx-auto"
+          className="w-full max-w-[min(90vw,55vh)] landscape:max-w-[min(60vw,75vh)] bg-slate-800 p-1.5 sm:p-2 rounded-xl shadow-inner border border-slate-700 relative shrink-0 mx-auto"
           style={{ aspectRatio: ratio }}
         >
           <div 
