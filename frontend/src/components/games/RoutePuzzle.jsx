@@ -141,6 +141,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [maxTime, setMaxTime] = useState(1);
+  const [speedLevel, setSpeedLevel] = useState(0);
   const timerRef = useRef(null);
 
   // Initialize Level
@@ -148,8 +149,8 @@ export default function RoutePuzzle({ onComplete, onBack }) {
     const newLevel = generateLevel(gridSize);
     setLevel(newLevel);
     
-    // Calculate time based on level index to start at 3 mins and decrease, min 20s.
-    const calculatedTime = Math.max(20, 180 - (levelIdx * 10));
+    // Timer stays at 180s until grid maxes out, then decreases based on speedLevel
+    const calculatedTime = Math.max(20, 180 - (speedLevel * 10));
     setMaxTime(calculatedTime);
     setTimeLeft(calculatedTime);
     
@@ -247,29 +248,34 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   const nextLevel = () => {
     const timePercentage = timeLeft / maxTime;
     let nextSize = gridSize;
+    let nextSpeed = speedLevel;
     
     // Dynamic Difficulty Adjustment
-    if (timePercentage >= 0.5) {
-      // Speed bonus
-      nextSize = Math.min(10, gridSize + 1);
-    } else if (timePercentage < 0.15) {
-      // Struggle assist: keep size same
-      nextSize = gridSize;
+    if (gridSize < 10) {
+      if (timePercentage >= 0.5) {
+        nextSize = Math.min(10, gridSize + 1);
+      } else if (timePercentage < 0.15) {
+        nextSize = gridSize;
+      } else {
+        if (Math.random() > 0.5) nextSize = Math.min(10, gridSize + 1);
+      }
     } else {
-      // Normal: 50% chance to increase
-      if (Math.random() > 0.5) nextSize = Math.min(10, gridSize + 1);
+      // Grid is maxed out, start decreasing timer
+      nextSpeed = speedLevel + 1;
     }
 
     setScore(score + 1);
     setGridSize(nextSize);
+    setSpeedLevel(nextSpeed);
     setLevelIdx(levelIdx + 1);
   };
 
   const restartArcade = () => {
     setScore(0);
     setGridSize(4);
+    setSpeedLevel(0);
     setLevelIdx(0); 
-    setRestartKey(prev => prev + 1); // Force re-init even if levelIdx was already 0
+    setRestartKey(prev => prev + 1); // Force re-init
   };
 
   const renderSVG = (type, isPowered) => {
