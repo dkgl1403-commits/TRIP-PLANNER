@@ -80,7 +80,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
       for (let c = 0; c < level.cols; c++) {
         // Random rotation, except for START and END which are fixed (0)
         const type = level.grid[r][c];
-        if (type === 'START' || type === 'END' || type === 'EMPTY') {
+        if (type === 'EMPTY') {
           row.push(0);
         } else {
           row.push(Math.floor(Math.random() * 4));
@@ -138,7 +138,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   const handleTileClick = (r, c) => {
     if (won) return;
     const type = level.grid[r][c];
-    if (type === 'START' || type === 'END' || type === 'EMPTY') return;
+    if (type === 'EMPTY') return;
 
     const newRots = [...rotations];
     newRots[r] = [...rotations[r]];
@@ -156,7 +156,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   };
 
   const renderSVG = (type, isPowered) => {
-    const color = isPowered ? '#00ffaa' : '#334155';
+    const color = isPowered ? '#00ffaa' : '#94a3b8';
     const glow = isPowered ? 'drop-shadow(0 0 5px #00ffaa)' : 'none';
     
     if (type === 'EMPTY') return null;
