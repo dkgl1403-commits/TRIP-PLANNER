@@ -137,6 +137,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   
   const [won, setWon] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [restartKey, setRestartKey] = useState(0);
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [maxTime, setMaxTime] = useState(1);
@@ -169,7 +170,7 @@ export default function RoutePuzzle({ onComplete, onBack }) {
     setWon(false);
     setGameOver(false);
     updatePower(initialRots, newLevel);
-  }, [levelIdx]);
+  }, [levelIdx, restartKey]);
 
   // Timer Tick
   useEffect(() => {
@@ -267,7 +268,8 @@ export default function RoutePuzzle({ onComplete, onBack }) {
   const restartArcade = () => {
     setScore(0);
     setGridSize(4);
-    setLevelIdx(0); // Trigger re-init
+    setLevelIdx(0); 
+    setRestartKey(prev => prev + 1); // Force re-init even if levelIdx was already 0
   };
 
   const renderSVG = (type, isPowered) => {
