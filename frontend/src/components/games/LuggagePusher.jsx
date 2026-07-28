@@ -12,14 +12,14 @@ import { Briefcase, User, MapPin } from 'lucide-react';
 // '+' : Player on Target
 
 const LEVELS = [
-  // 1
+  // 1 (Verified Microban Level 1)
   [
-    "  ###  ",
-    "  #.#  ",
-    "  #$#  ",
-    "### @##",
-    "#.#$  #",
-    "#     #",
+    "  #### ",
+    "###  # ",
+    "#    # ",
+    "# #$ ##",
+    "# . . #",
+    "#  $@ #",
     "#######"
   ],
   // 2
