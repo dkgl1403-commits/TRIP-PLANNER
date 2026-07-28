@@ -325,6 +325,36 @@ export default function LuggagePusher({ onComplete, onBack }) {
         </div>
       </div>
 
+      {/* On-Screen Mobile Controls */}
+      <div className="mt-8 flex flex-col items-center gap-2 lg:hidden z-50">
+        <button 
+          onClick={() => movePlayer(-1, 0)}
+          className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+        >
+          <span className="material-symbols-outlined text-3xl">arrow_drop_up</span>
+        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => movePlayer(0, -1)}
+            className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+          >
+            <span className="material-symbols-outlined text-3xl">arrow_left</span>
+          </button>
+          <button 
+            onClick={() => movePlayer(1, 0)}
+            className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+          >
+            <span className="material-symbols-outlined text-3xl">arrow_drop_down</span>
+          </button>
+          <button 
+            onClick={() => movePlayer(0, 1)}
+            className="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 active:bg-slate-600 active:border-blue-500 transition shadow-lg"
+          >
+            <span className="material-symbols-outlined text-3xl">arrow_right</span>
+          </button>
+        </div>
+      </div>
+
       {won && (
         <motion.div 
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
