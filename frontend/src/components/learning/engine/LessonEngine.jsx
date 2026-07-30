@@ -61,7 +61,7 @@ function LessonEngine({ topicId, user, onBack }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-background flex justify-center items-center">
+      <div className="fixed inset-0 z-50 bg-black flex justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-coral"></div>
       </div>
     );
@@ -69,126 +69,115 @@ function LessonEngine({ topicId, user, onBack }) {
 
   if (!config) {
     return (
-      <div className="fixed inset-0 z-50 bg-background flex flex-col justify-center items-center text-error">
+      <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center text-error">
         <p>Failed to load lesson configuration.</p>
-        <button onClick={onBack} className="mt-4 px-4 py-2 bg-surface-variant text-on-surface rounded-lg">Go Back</button>
+        <button onClick={onBack} className="mt-4 px-4 py-2 bg-white text-black rounded-lg">Go Back</button>
       </div>
     );
   }
 
   const currentPart = config.parts[currentPartIdx];
-
-  const renderPart = (part) => {
-    return (
-      <div className="animate-fadeIn w-full max-w-7xl mx-auto h-full flex flex-col pt-8 pb-32">
-        <div className="flex-none mb-8 px-8">
-          <h2 className="text-4xl md:text-5xl font-display-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple mb-4">
-            {part.title}
-          </h2>
-          {part.description && <p className="text-xl text-on-surface-variant mb-6">{part.description}</p>}
-          {part.content && <p className="text-lg leading-relaxed whitespace-pre-wrap">{part.content}</p>}
-        </div>
-        
-        <div className="flex-1 w-full px-8 flex flex-col gap-8 overflow-y-auto overflow-x-hidden pb-12 custom-scrollbar">
-          {/* Render Single Widget */}
-          {part.widgetType && WidgetRegistry[part.widgetType] && (
-            <div className="w-full flex justify-center">
-              {React.createElement(WidgetRegistry[part.widgetType], { data: part.widgetData })}
-            </div>
-          )}
-
-          {/* Render Multiple Widgets if array */}
-          {part.widgets && part.widgets.length > 0 && (
-            <div className="w-full flex flex-col gap-12">
-              {part.widgets.map((w, i) => {
-                const WidgetComponent = WidgetRegistry[w.widgetType];
-                if (!WidgetComponent) return <div key={i} className="text-error">Widget {w.widgetType} not found</div>;
-                return (
-                  <div key={i} className="flex flex-col gap-4">
-                    {w.title && <h3 className="text-2xl font-bold">{w.title}</h3>}
-                    <WidgetComponent data={w.widgetData} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          
-          {currentPartIdx === config.parts.length - 1 && (
-            <div className="mt-12 text-center p-12 bg-surface-variant rounded-2xl border border-neon-purple shadow-[0_0_30px_rgba(157,78,221,0.2)]">
-              <span className="material-symbols-outlined text-8xl text-neon-purple mb-4 drop-shadow-[0_0_15px_rgba(157,78,221,0.5)]">military_tech</span>
-              <h3 className="text-4xl font-bold">Course Completed!</h3>
-              <p className="text-neon-coral text-xl mt-4">You have mastered Trigonometry.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  const isFinalScene = currentPartIdx === config.parts.length - 1;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background text-on-surface flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black text-white overflow-hidden font-sans">
       
-      {/* Top Navigation Bar */}
-      <div className="flex-none h-16 bg-surface-container-low border-b border-glass-stroke flex items-center px-4 justify-between shadow-md z-20">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors flex items-center justify-center">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className="font-bold text-xl hidden md:block">{config.topicName || "Learning Topic"}</h1>
-        </div>
+      {/* Background Graphic Engine (True Full Screen) */}
+      <div className="absolute inset-0 z-0">
+        {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
+          React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
+        ) : (
+          /* Default Ambient Background if no specific cinematic widget is assigned */
+          <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black animate-pulse opacity-50"></div>
+        )}
         
-        {/* Section Indicators */}
-        <div className="flex-1 max-w-3xl mx-8 flex items-center justify-between relative">
-          <div className="absolute left-0 right-0 h-1 bg-surface-variant top-1/2 -translate-y-1/2 -z-10"></div>
-          {config.parts.map((p, idx) => {
-            const isPast = idx < currentPartIdx;
-            const isCurrent = idx === currentPartIdx;
-            return (
+        {/* Render Multiple Widgets if array (Absolute overlaid) */}
+        {currentPart.widgets && currentPart.widgets.length > 0 && (
+          <div className="absolute inset-0">
+            {currentPart.widgets.map((w, i) => {
+              const WidgetComponent = WidgetRegistry[w.widgetType];
+              if (!WidgetComponent) return null;
+              return <WidgetComponent key={i} data={w.widgetData} part={w} />;
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Floating UI Layer - Overlaid gracefully over the cinematic background */}
+      <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between">
+        
+        {/* Floating Top Header */}
+        <div className="w-full p-8 flex justify-between items-start">
+          <button 
+            onClick={onBack} 
+            className="pointer-events-auto group flex items-center justify-center w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all border border-white/20"
+          >
+            <span className="material-symbols-outlined text-white">arrow_back</span>
+          </button>
+          
+          {/* Subtle Progress Nodes */}
+          <div className="flex gap-3 pointer-events-auto">
+            {config.parts.map((p, idx) => (
               <button 
                 key={idx}
                 onClick={() => setCurrentPartIdx(idx)}
-                className={`relative flex flex-col items-center group ${isPast || isCurrent ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
-                disabled={!(isPast || isCurrent)}
+                className={`w-12 h-2 rounded-full transition-all duration-700 ${
+                  idx === currentPartIdx ? 'bg-neon-coral shadow-[0_0_15px_rgba(255,107,107,0.8)] scale-y-150' :
+                  idx < currentPartIdx ? 'bg-white/80' : 'bg-white/20 hover:bg-white/40'
+                }`}
                 title={p.title}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
-                  isCurrent ? 'bg-neon-coral text-background scale-110 shadow-[0_0_10px_rgba(255,107,107,0.5)]' :
-                  isPast ? 'bg-neon-purple text-background' :
-                  'bg-surface-container-highest text-on-surface-variant'
-                }`}>
-                  {idx + 1}
-                </div>
-                <span className={`absolute top-10 text-[10px] whitespace-nowrap hidden md:block transition-all duration-300 ${isCurrent ? 'text-neon-coral font-bold opacity-100' : 'text-on-surface-variant opacity-0 group-hover:opacity-100'}`}>
-                  {p.title.split(' ')[0]}
-                </span>
-              </button>
-            );
-          })}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Floating Context/Narrative Text (Left-aligned, large typography, no boxes) */}
+        {(!currentPart.widgetType || (currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet')) && (
+          <div className="w-full h-full flex flex-col justify-center px-[10vw] max-w-[50vw]">
+             <h1 className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500 drop-shadow-2xl mb-8 leading-tight animate-fade-in-up">
+               {currentPart.title}
+             </h1>
+             {currentPart.description && (
+               <p className="text-3xl text-neon-coral/90 drop-shadow-lg font-light mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                 {currentPart.description}
+               </p>
+             )}
+             {currentPart.content && (
+               <div className="text-xl leading-relaxed text-gray-300 drop-shadow-md whitespace-pre-wrap animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                 {currentPart.content}
+               </div>
+             )}
+          </div>
+        )}
+        
+        {isFinalScene && (
+          <div className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none z-20">
+             <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple drop-shadow-[0_0_30px_rgba(255,107,107,0.5)] animate-bounce">
+               Module Mastered
+             </h1>
+          </div>
+        )}
+
+        {/* Floating Bottom Navigation Controls */}
+        <div className="w-full p-8 flex justify-between items-end pb-[5vh]">
+          <button 
+            onClick={handlePrev} 
+            disabled={currentPartIdx === 0}
+            className="pointer-events-auto flex items-center gap-4 text-2xl font-light text-white/50 hover:text-white disabled:opacity-0 transition-all"
+          >
+            <span className="material-symbols-outlined text-4xl">arrow_left_alt</span>
+            <span className="hidden md:inline">Previous Scene</span>
+          </button>
+          
+          <button 
+            onClick={handleNext}
+            className="pointer-events-auto flex items-center gap-4 text-3xl font-bold text-neon-coral hover:text-white hover:drop-shadow-[0_0_20px_rgba(255,107,107,1)] transition-all group"
+          >
+            <span className="hidden md:inline">{isFinalScene ? 'Complete Journey' : 'Next Scene'}</span>
+            <span className="material-symbols-outlined text-6xl group-hover:translate-x-2 transition-transform">arrow_right_alt</span>
+          </button>
         </div>
         
-        <div className="w-10"></div> {/* Spacer for symmetry */}
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 relative overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-surface-container-low via-background to-background">
-        {renderPart(currentPart)}
-      </div>
-
-      {/* Bottom Control Bar */}
-      <div className="flex-none p-4 bg-glass-fill backdrop-blur-md border-t border-glass-stroke flex justify-center gap-6 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.2)]">
-        <button 
-          onClick={handlePrev} 
-          disabled={currentPartIdx === 0}
-          className="px-8 py-3 rounded-xl font-bold bg-surface-variant text-on-surface disabled:opacity-30 transition-all hover:bg-surface-container-highest flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined">navigate_before</span> Previous
-        </button>
-        <button 
-          onClick={handleNext}
-          className="px-10 py-3 rounded-xl font-bold bg-gradient-to-r from-neon-purple to-neon-coral text-white shadow-lg shadow-neon-coral/30 hover:shadow-neon-coral/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
-        >
-          {currentPartIdx === config.parts.length - 1 ? 'Finish Module' : 'Next Section'} <span className="material-symbols-outlined">navigate_next</span>
-        </button>
       </div>
     </div>
   );
