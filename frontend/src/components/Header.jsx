@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDashboard, onEmployeeDashboard, onGames, onNavigateTab, activeTab }) {
+function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDashboard, onEmployeeDashboard, onGames, onLearning, onNavigateTab, activeTab }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
@@ -131,6 +131,12 @@ function Header({ user, onLogout, onAdminDashboard, onSystemHealth, onFinanceDas
               onClick={() => { onGames && onGames(); setIsSidebarOpen(false); }}
             >
               <span className="material-symbols-outlined text-[22px]">sports_esports</span> Games
+            </button>
+            <button 
+              className="flex items-center gap-3 px-4 py-3 rounded-lg font-title-md text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors"
+              onClick={() => { onLearning && onLearning(); setIsSidebarOpen(false); }}
+            >
+              <span className="material-symbols-outlined text-[22px]">school</span> Learning
             </button>
 
             <div className="h-px bg-glass-stroke my-2"></div>
