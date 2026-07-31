@@ -895,9 +895,195 @@ export function RealLifePanels() {
 // Placeholders for MCQEngine and CheatSheet which were already implemented 
 // (assuming they exist in another file or are handled by a generic widget factory. 
 // For this rewrite, we will stub them so the registry works).
+export function BoardSolvedExamples({ data }) {
+  const [openIdx, setOpenIdx] = useState(null);
 
-export function MCQEngine() {
-  return <div className="p-8 text-center"><h2 className="text-2xl text-neon-coral mb-4">MCQ Engine Active</h2><p className="text-gray-400">Interactive Quiz loads here.</p></div>;
+  if (!data || !data.examples) return null;
+
+  return (
+    <div className="w-full h-full overflow-y-auto p-4 md:p-8 bg-black custom-scrollbar">
+      <div className="max-w-3xl mx-auto space-y-4 pb-20">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-neon-coral mb-2">Board Exam Vault</h2>
+          <p className="text-gray-400">Master these 10 classic problems before taking the final quiz.</p>
+        </div>
+        
+        {data.examples.map((ex, idx) => (
+          <div key={idx} className={`rounded-xl border ${openIdx === idx ? 'border-neon-coral bg-gray-900/50' : 'border-white/10 bg-white/5'} overflow-hidden transition-all duration-300`}>
+            <button 
+              onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
+              className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
+              <div className="flex-1 pr-4">
+                <span className="inline-block px-2 py-1 rounded text-xs font-bold bg-neon-coral/20 text-neon-coral mb-2">{ex.year}</span>
+                <h3 className="text-lg font-medium text-white">{ex.q}</h3>
+              </div>
+              <span className={`material-symbols-outlined text-gray-400 transition-transform duration-300 ${openIdx === idx ? 'rotate-180 text-neon-coral' : ''}`}>
+                expand_more
+              </span>
+            </button>
+            
+            <div className={`px-6 overflow-hidden transition-all duration-500 ease-in-out ${openIdx === idx ? 'max-h-[800px] py-4 border-t border-white/10' : 'max-h-0 py-0'}`}>
+              <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Step-by-step Solution:</h4>
+              <ul className="space-y-3">
+                {ex.steps.map((step, sIdx) => (
+                  <li key={sIdx} className="flex gap-3 text-gray-300 items-start">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-mono text-neon-coral mt-0.5">{sIdx + 1}</span>
+                    <span dangerouslySetInnerHTML={{__html: step.replace(/([0-9A-Za-z²θ°√]+)/g, (match) => {
+                      if (['sin', 'cos', 'tan', 'sec', 'cosec', 'cot'].includes(match)) return `<strong>${match}</strong>`;
+                      return match;
+                    })}} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function MCQEngine({ data }) {
+  const [currentQIdx, setCurrentQIdx] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+
+  if (!data || !data.questions || data.questions.length === 0) return null;
+
+  const questions = data.questions;
+  const currentQ = questions[currentQIdx];
+
+  const handleSubmit = () => {
+    if (selectedOption === null) return;
+    setIsSubmitted(true);
+    if (selectedOption === currentQ.correct) {
+      setScore(prev => prev + 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentQIdx < questions.length - 1) {
+      setCurrentQIdx(prev => prev + 1);
+      setSelectedOption(null);
+      setIsSubmitted(false);
+    } else {
+      setIsFinished(true);
+    }
+  };
+
+  const handleRetry = () => {
+    setCurrentQIdx(0);
+    setSelectedOption(null);
+    setIsSubmitted(false);
+    setScore(0);
+    setIsFinished(false);
+  };
+
+  if (isFinished) {
+    const percentage = (score / questions.length) * 100;
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-black p-8 text-center">
+        <div className="w-32 h-32 rounded-full border-4 flex items-center justify-center mb-6 border-neon-coral">
+          <span className="text-4xl font-bold text-white">{score}/{questions.length}</span>
+        </div>
+        <h2 className="text-3xl font-bold text-white mb-2">Quiz Complete!</h2>
+        <p className="text-gray-400 mb-8 max-w-md">
+          {percentage >= 80 ? "Outstanding work! You've mastered these concepts." : percentage >= 50 ? "Good effort! Review the steps and try again to improve." : "Keep practicing! Trigonometry takes time to master."}
+        </p>
+        <button 
+          onClick={handleRetry}
+          className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-colors flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined">refresh</span>
+          Retry Quiz
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col bg-black overflow-hidden relative">
+      {/* Progress Header */}
+      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/50 backdrop-blur z-10">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-neon-coral">quiz</span>
+          <span className="text-white font-medium">Question {currentQIdx + 1} of {questions.length}</span>
+        </div>
+        <div className="text-sm font-mono text-gray-400">Score: {score}</div>
+      </div>
+
+      {/* Quiz Body */}
+      <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+        <div className="max-w-2xl mx-auto pb-20">
+          <h3 className="text-2xl font-bold text-white mb-10 leading-tight">
+            {currentQ.q}
+          </h3>
+
+          <div className="space-y-4">
+            {currentQ.options.map((opt, idx) => {
+              const isSelected = selectedOption === idx;
+              const isCorrect = idx === currentQ.correct;
+              
+              let btnClass = "w-full text-left px-6 py-4 rounded-xl border transition-all duration-200 flex items-center justify-between group ";
+              let icon = null;
+
+              if (!isSubmitted) {
+                btnClass += isSelected 
+                  ? "bg-electric-blue/20 border-electric-blue text-white" 
+                  : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white";
+              } else {
+                if (isCorrect) {
+                  btnClass += "bg-green-500/20 border-green-500 text-white";
+                  icon = <span className="material-symbols-outlined text-green-500">check_circle</span>;
+                } else if (isSelected && !isCorrect) {
+                  btnClass += "bg-red-500/20 border-red-500 text-white";
+                  icon = <span className="material-symbols-outlined text-red-500">cancel</span>;
+                } else {
+                  btnClass += "bg-white/5 border-white/5 text-gray-500 opacity-50";
+                }
+              }
+
+              return (
+                <button 
+                  key={idx}
+                  disabled={isSubmitted}
+                  onClick={() => setSelectedOption(idx)}
+                  className={btnClass}
+                >
+                  <span className="text-lg font-medium">{opt}</span>
+                  {icon && icon}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Action Area */}
+          <div className="mt-12 flex justify-end">
+            {!isSubmitted ? (
+              <button 
+                onClick={handleSubmit}
+                disabled={selectedOption === null}
+                className={`px-8 py-3 rounded-full font-bold transition-all ${selectedOption !== null ? 'bg-neon-coral text-white hover:scale-105 shadow-[0_0_15px_rgba(255,107,107,0.5)]' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+              >
+                Check Answer
+              </button>
+            ) : (
+              <button 
+                onClick={handleNext}
+                className="px-8 py-3 bg-white text-black rounded-full font-bold hover:bg-gray-200 transition-all flex items-center gap-2 hover:scale-105"
+              >
+                {currentQIdx < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function CheatSheet() {
@@ -925,6 +1111,7 @@ export const WidgetRegistry = {
   StandardValuesTable,
   IdentityDerivation,
   RealLifePanels,
+  BoardSolvedExamples,
   MCQEngine,
   CheatSheet
 };
