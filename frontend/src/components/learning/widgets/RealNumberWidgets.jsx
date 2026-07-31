@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // 1. History of Irrationality (Visual panel)
 export function HistoryOfIrrationality() {
