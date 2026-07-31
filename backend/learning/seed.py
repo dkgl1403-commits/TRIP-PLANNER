@@ -254,23 +254,126 @@ def seed_trigonometry():
                     }
                 },
                 {
+                    "title": "Previous Years' Board Questions",
+                    "readingTime": "~10 min review",
+                    "narrative": "<p>Before we jump into the final quiz, let's review how these concepts are tested in actual board exams (CBSE/ICSE). Review these 10 classic problems and their step-by-step solutions.</p>",
+                    "audioText": "Before we jump into the final quiz, let's review how these concepts are tested in actual board exams. Review these 10 classic problems and their step-by-step solutions.",
+                    "audioTextHinglish": "Final quiz shuru karne se pehle, chaliye dekhte hain ki board exams mein yeh concepts kaise puche jate hain. In 10 classic problems aur unke step-by-step solutions ko dhyan se review karein.",
+                    "keyInsight": "Board exams love testing your ability to combine identities. Master these patterns.",
+                    "widgetType": "BoardSolvedExamples",
+                    "widgetData": {
+                        "examples": [
+                            {
+                                "year": "CBSE 2019",
+                                "q": "Prove that: (sin A + cosec A)² + (cos A + sec A)² = 7 + tan² A + cot² A",
+                                "steps": ["Expand squares: (sin² A + cosec² A + 2sin A cosec A) + (cos² A + sec² A + 2cos A sec A)", "Since sin A * cosec A = 1 and cos A * sec A = 1, the middle terms become 2 + 2 = 4.", "Group sin² A + cos² A = 1.", "Substitute cosec² A = 1 + cot² A and sec² A = 1 + tan² A.", "Sum = 1 + 4 + (1 + cot² A) + (1 + tan² A) = 7 + tan² A + cot² A. Proved."]
+                            },
+                            {
+                                "year": "ICSE 2017",
+                                "q": "If tan θ + sin θ = m and tan θ - sin θ = n, show that m² - n² = 4√(mn)",
+                                "steps": ["LHS = m² - n² = (m+n)(m-n) = (2 tan θ)(2 sin θ) = 4 tan θ sin θ.", "RHS = 4√(mn) = 4√((tan θ + sin θ)(tan θ - sin θ)) = 4√(tan² θ - sin² θ).", "Write tan² θ as sin² θ / cos² θ.", "4√(sin² θ/cos² θ - sin² θ) = 4√(sin² θ(1/cos² θ - 1)) = 4√(sin² θ * (sec² θ - 1)).", "Since sec² θ - 1 = tan² θ, RHS = 4√(sin² θ tan² θ) = 4 sin θ tan θ. LHS = RHS."]
+                            },
+                            {
+                                "year": "CBSE 2015",
+                                "q": "Prove that: (1 + cot A - cosec A)(1 + tan A + sec A) = 2",
+                                "steps": ["Convert to sin/cos: (1 + cos A/sin A - 1/sin A)(1 + sin A/cos A + 1/cos A).", "Take LCM: [(sin A + cos A - 1)/sin A] * [(cos A + sin A + 1)/cos A].", "Numerator is of form (x-1)(x+1) where x = sin A + cos A.", "Numerator = (sin A + cos A)² - 1² = sin² A + cos² A + 2sin A cos A - 1.", "Since sin² A + cos² A = 1, Numerator = 1 + 2sin A cos A - 1 = 2sin A cos A.", "Divide by denominator (sin A cos A) = 2. Proved."]
+                            },
+                            {
+                                "year": "CBSE 2020",
+                                "q": "Evaluate: (sin² 63° + sin² 27°) / (cos² 17° + cos² 73°)",
+                                "steps": ["Notice that 63° + 27° = 90° (complementary angles).", "Write sin 27° as sin(90° - 63°) = cos 63°.", "Numerator becomes sin² 63° + cos² 63° = 1.", "Similarly, 17° + 73° = 90°.", "Write cos 73° as cos(90° - 17°) = sin 17°.", "Denominator becomes cos² 17° + sin² 17° = 1.", "Value = 1 / 1 = 1."]
+                            },
+                            {
+                                "year": "ICSE 2018",
+                                "q": "Prove that: √(1 + sin A) / (1 - sin A) = sec A + tan A",
+                                "steps": ["Rationalize the denominator inside the square root by multiplying numerator and denominator by (1 + sin A).", "Inside root: (1 + sin A)² / (1 - sin² A).", "Since 1 - sin² A = cos² A, the expression becomes (1 + sin A)² / cos² A.", "Take the square root: (1 + sin A) / cos A.", "Split the fraction: 1/cos A + sin A/cos A = sec A + tan A. Proved."]
+                            },
+                            {
+                                "year": "CBSE 2016",
+                                "q": "If sec θ + tan θ = p, prove that sin θ = (p² - 1)/(p² + 1)",
+                                "steps": ["We know sec² θ - tan² θ = 1, so (sec θ - tan θ)(sec θ + tan θ) = 1.", "Therefore, sec θ - tan θ = 1/p.", "Add the two equations: 2 sec θ = p + 1/p = (p² + 1)/p.", "Subtract them: 2 tan θ = p - 1/p = (p² - 1)/p.", "Divide the second by the first: (2 tan θ) / (2 sec θ) = [(p² - 1)/p] / [(p² + 1)/p].", "(sin θ / cos θ) / (1 / cos θ) = sin θ. Thus sin θ = (p² - 1)/(p² + 1). Proved."]
+                            },
+                            {
+                                "year": "ICSE 2019",
+                                "q": "Prove that: (sin θ - 2sin³ θ) / (2cos³ θ - cos θ) = tan θ",
+                                "steps": ["Factor out sin θ from numerator: sin θ(1 - 2sin² θ).", "Factor out cos θ from denominator: cos θ(2cos² θ - 1).", "Substitute sin² θ = 1 - cos² θ in the numerator.", "Numerator becomes sin θ(1 - 2(1 - cos² θ)) = sin θ(1 - 2 + 2cos² θ) = sin θ(2cos² θ - 1).", "The term (2cos² θ - 1) cancels out from numerator and denominator.", "Remaining term is sin θ / cos θ = tan θ. Proved."]
+                            },
+                            {
+                                "year": "CBSE 2018 (H&D)",
+                                "q": "A tree breaks due to storm and the broken part bends so that the top of the tree touches the ground making an angle 30° with it. The distance from the foot to the point where the top touches the ground is 8 m. Find the height of the tree.",
+                                "steps": ["Let the unbroken part be height 'x' and the broken part be hypotenuse 'y'. Total height = x + y.", "In the right triangle formed, base = 8 m, angle = 30°.", "tan 30° = Perpendicular / Base = x / 8.", "1/√3 = x / 8 => x = 8/√3.", "cos 30° = Base / Hypotenuse = 8 / y.", "√3/2 = 8 / y => y = 16/√3.", "Total height = x + y = 8/√3 + 16/√3 = 24/√3 = 8√3 m."]
+                            },
+                            {
+                                "year": "CBSE 2014 (H&D)",
+                                "q": "From a point on the ground, the angles of elevation of the bottom and the top of a transmission tower fixed at the top of a 20 m high building are 45° and 60° respectively. Find the height of the tower.",
+                                "steps": ["Let the height of the tower be 'h'. Total height from ground = 20 + h.", "Let the distance from the point to the building be 'x'.", "For the 45° angle to the bottom of the tower (top of building): tan 45° = 20 / x.", "1 = 20 / x => x = 20 m.", "For the 60° angle to the top of the tower: tan 60° = (20 + h) / x.", "√3 = (20 + h) / 20 => 20√3 = 20 + h.", "h = 20√3 - 20 = 20(√3 - 1) m."]
+                            },
+                            {
+                                "year": "ICSE 2015 (H&D)",
+                                "q": "The shadow of a tower standing on a level ground is found to be 40 m longer when the Sun's altitude is 30° than when it is 60°. Find the height of the tower.",
+                                "steps": ["Let the height of the tower be 'h' and the original shadow length at 60° be 'x'.", "In the smaller triangle: tan 60° = h / x => √3 = h / x => x = h / √3.", "In the larger triangle (altitude 30°), the shadow is x + 40.", "tan 30° = h / (x + 40) => 1/√3 = h / (x + 40).", "x + 40 = h√3. Substitute x = h/√3.", "h/√3 + 40 = h√3 => 40 = h√3 - h/√3 = h(3 - 1)/√3 = 2h/√3.", "20 = h/√3 => h = 20√3 m."]
+                            }
+                        ]
+                    }
+                },
+                {
                     "title": "Practice Problems",
-                    "readingTime": "~5 min practice",
-                    "narrative": "<p>Let's test what you've learned. Try these interactive multiple-choice questions.</p>",
-                    "audioText": "Let's test what you've learned. Try these interactive multiple-choice questions.",
-                    "audioTextHinglish": "Chaliye test karte hain ki aapne kya seekha. In interactive multiple-choice questions ko try karein.",
+                    "readingTime": "~10 min practice",
+                    "narrative": "<p>Let's test what you've learned. Try these 10 interactive multiple-choice questions.</p>",
+                    "audioText": "Let's test what you've learned. Try these ten interactive multiple-choice questions.",
+                    "audioTextHinglish": "Chaliye test karte hain ki aapne kya seekha. In dus interactive multiple-choice questions ko try karein.",
                     "keyInsight": "Practice makes perfect.",
                     "widgetType": "MCQEngine",
                     "widgetData": {
                         "questions": [
                             {
-                                "q": "What is the value of sin 30°?",
-                                "options": ["1/2", "√3/2", "1", "0"],
+                                "q": "The value of (sin 30° + cos 30°) - (sin 60° + cos 60°) is:",
+                                "options": ["0", "1", "-1", "2"],
                                 "correct": 0
                             },
                             {
-                                "q": "sin²θ + cos²θ = ?",
-                                "options": ["0", "1", "tan²θ", "sec²θ"],
+                                "q": "The value of tan 30° / cot 60° is:",
+                                "options": ["1/√3", "√3", "1", "1/3"],
+                                "correct": 2
+                            },
+                            {
+                                "q": "If sin A = 1/2, then the value of cot A is:",
+                                "options": ["√3", "1/√3", "√3/2", "1"],
+                                "correct": 0
+                            },
+                            {
+                                "q": "9 sec² A - 9 tan² A is equal to:",
+                                "options": ["1", "9", "8", "0"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "(sec A + tan A)(1 - sin A) is equal to:",
+                                "options": ["sec A", "sin A", "cosec A", "cos A"],
+                                "correct": 3
+                            },
+                            {
+                                "q": "If tan A = 4/3, then sin A is:",
+                                "options": ["3/5", "4/5", "3/4", "5/4"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "The maximum value of sin θ is:",
+                                "options": ["1/2", "√3/2", "1", "Infinity"],
+                                "correct": 2
+                            },
+                            {
+                                "q": "sin(90° - A) is equal to:",
+                                "options": ["sin A", "tan A", "cos A", "cosec A"],
+                                "correct": 2
+                            },
+                            {
+                                "q": "If a pole 6 m high casts a shadow 2√3 m long on the ground, then the Sun's elevation is:",
+                                "options": ["60°", "45°", "30°", "90°"],
+                                "correct": 0
+                            },
+                            {
+                                "q": "If cos A = 4/5, then tan A is:",
+                                "options": ["3/5", "3/4", "4/3", "5/3"],
                                 "correct": 1
                             }
                         ]
