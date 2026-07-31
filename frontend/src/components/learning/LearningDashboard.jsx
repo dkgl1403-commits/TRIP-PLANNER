@@ -41,7 +41,7 @@ function LearningDashboard({ user, onBack }) {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto min-h-screen pt-28 text-on-surface">
+    <div className="px-6 pb-6 pt-28 md:px-8 md:pb-8 md:pt-32 max-w-7xl mx-auto min-h-screen text-on-surface">
       <div className="flex items-center gap-4 mb-8">
         <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors">
           <span className="material-symbols-outlined text-[24px]">arrow_back</span>
