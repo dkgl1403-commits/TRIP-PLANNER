@@ -401,3 +401,95 @@ export function RealNumbersCheatSheet() {
     </div>
   );
 }
+
+// 7. Story of Pi Widget
+export function StoryOfPiWidget() {
+  const [sides, setSides] = useState(3);
+  
+  // Calculate polygon points
+  const radius = 100;
+  const center = 150;
+  
+  const getPolygonPoints = (n) => {
+    const points = [];
+    for (let i = 0; i < n; i++) {
+      const angle = (i * 2 * Math.PI) / n - Math.PI / 2; // Start at top
+      const x = center + radius * Math.cos(angle);
+      const y = center + radius * Math.sin(angle);
+      points.push(`${x},${y}`);
+    }
+    return points.join(' ');
+  };
+
+  // Calculate perimeter of inscribed polygon
+  // Side length s = 2 * r * sin(PI / n)
+  // Perimeter = n * s
+  // Since we know Circumference = 2 * PI * r, the ratio (Perimeter / 2r) approximates PI
+  const estimatedPi = (sides * Math.sin(Math.PI / sides));
+
+  return (
+    <div className="w-full max-w-3xl mx-auto bg-surface-container rounded-2xl border border-glass-stroke shadow-xl mt-6 p-6">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple mb-2">Trapping Pi: Aryabhata's Polygon</h3>
+        <p className="text-sm text-gray-400">Increase the number of sides to see how straight lines try to capture a perfect curve.</p>
+      </div>
+      
+      <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+        <div className="relative w-[300px] h-[300px] flex-shrink-0 bg-black/20 rounded-full flex items-center justify-center border border-white/5 shadow-inner">
+          <svg width="300" height="300" viewBox="0 0 300 300">
+            {/* The Perfect Circle */}
+            <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(255, 107, 74, 0.4)" strokeWidth="4" />
+            
+            {/* The Approximating Polygon */}
+            <polygon 
+              points={getPolygonPoints(sides)} 
+              fill="rgba(157, 78, 221, 0.15)" 
+              stroke="#9d4edd" 
+              strokeWidth="2"
+              className="transition-all duration-300"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-20">
+            <span className="material-symbols-outlined text-6xl text-neon-coral">change_history</span>
+          </div>
+        </div>
+        
+        <div className="flex flex-col gap-6 w-full max-w-xs">
+          <div className="bg-surface/50 p-4 rounded-xl border border-white/5 shadow-md">
+            <div className="flex justify-between text-sm mb-3 text-gray-300">
+              <span>Polygon Sides:</span>
+              <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded">{sides}</span>
+            </div>
+            <input 
+              type="range" 
+              min="3" 
+              max="384" 
+              value={sides} 
+              onChange={(e) => setSides(parseInt(e.target.value))}
+              className="w-full accent-neon-purple"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <span>Triangle (3)</span>
+              <span>Aryabhata (384)</span>
+            </div>
+          </div>
+          
+          <div className="bg-surface/50 p-4 rounded-xl border border-white/5 shadow-md text-center relative overflow-hidden">
+            <div className="absolute -inset-2 bg-gradient-to-r from-neon-purple/20 to-neon-coral/20 blur-xl opacity-50"></div>
+            <div className="relative z-10">
+              <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">Estimated Pi</div>
+              <div className="text-3xl font-mono text-neon-coral font-bold tracking-wider drop-shadow-md">
+                {estimatedPi.toFixed(6)}...
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-xs text-gray-400 italic text-center leading-relaxed">
+            <span className="text-white font-bold">Actual Pi: 3.141592...</span><br/>
+            Notice how the decimals get closer but never settle into a repeating pattern! That is the essence of an Irrational Number.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

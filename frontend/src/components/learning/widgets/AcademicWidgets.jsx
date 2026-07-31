@@ -5,7 +5,8 @@ import {
   PrimeFactorizationTree, 
   IrrationalityProofExplorer, 
   DecimalExpansionChecker, 
-  RealNumbersCheatSheet 
+  RealNumbersCheatSheet,
+  StoryOfPiWidget
 } from './RealNumberWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1238,5 +1239,6 @@ export const WidgetRegistry = {
   PrimeFactorizationTree,
   IrrationalityProofExplorer,
   DecimalExpansionChecker,
-  RealNumbersCheatSheet
+  RealNumbersCheatSheet,
+  StoryOfPiWidget
 };

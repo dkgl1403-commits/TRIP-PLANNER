@@ -119,6 +119,16 @@ def seed_real_numbers():
                     "widgetData": {}
                 },
                 {
+                    "title": "Story of Pi: The Ultimate Irrational",
+                    "readingTime": "Interactive Widget",
+                    "narrative": "<p>While &radic;2 is famously irrational, there is another superstar irrational number: <strong>&pi; (Pi)</strong>.</p><p>Ancient mathematicians, like India's Aryabhata, realized that a perfect curve can never be perfectly captured by straight lines (fractions). To estimate &pi;, Aryabhata calculated the perimeter of a polygon with <strong>384 sides</strong> inscribed in a circle.</p><p>As you increase the sides of the polygon, the approximation gets better, but the decimals go on to infinity without ever repeating. That's what makes &pi; irrational!</p>",
+                    "audioText": "While root 2 is famously irrational, there is another superstar irrational number: Pi. Ancient mathematicians, like Aryabhata, realized that a perfect curve can never be perfectly captured by straight lines or fractions. To estimate Pi, he calculated the perimeter of a polygon with 384 sides inscribed in a circle. As you increase the sides, the estimate gets better, but the decimals go on to infinity without ever repeating. That is what makes Pi truly irrational!",
+                    "audioTextHinglish": "Jaise root 2 irrational hai, waise hi ek aur superstar irrational number hai: Pi. Aryabhata jaise ancient mathematicians ko samajh aa gaya tha ki ek perfect curve ko straight lines ya fractions se perfectly capture nahi kiya ja sakta. Pi ko estimate karne ke liye unhone ek circle ke andar 384 sides wala polygon banaya. Jaise jaise aap sides badhate hain, estimation better hota hai, par decimals infinity tak bina repeat hue chalte rehte hain. Yahi toh Pi ko irrational banata hai!",
+                    "keyInsight": "Pi is the bridge between straight lines and curves. Because curves are continuous, their exact measurement can never be locked down to a neat fraction.",
+                    "widgetType": "StoryOfPiWidget",
+                    "widgetData": {}
+                },
+                {
                     "title": "Rational vs Irrational: The Decimal View",
                     "readingTime": "~2 min read",
                     "narrative": "<p>Another way to tell apart rational and irrational numbers is by looking at their decimal expansions.</p><p><strong>Rational Numbers (Fractions)</strong> do one of two things:<br/>1. They <strong>terminate</strong> (e.g., 1/4 = 0.25)<br/>2. They <strong>repeat</strong> endlessly in a pattern (e.g., 1/3 = 0.333... or 1/7 = 0.142857142857...)</p><p><strong>Irrational Numbers</strong> (like &radic;2 or &pi;) do neither! They go on forever, with completely random, non-repeating digits (e.g., 1.41421356...).</p>",
