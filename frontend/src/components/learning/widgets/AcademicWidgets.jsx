@@ -1,4 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { 
+  HistoryOfIrrationality, 
+  EuclidAlgorithmVisualizer, 
+  PrimeFactorizationTree, 
+  IrrationalityProofExplorer, 
+  DecimalExpansionChecker, 
+  RealNumbersCheatSheet 
+} from './RealNumberWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1224,5 +1232,11 @@ export const WidgetRegistry = {
   RealLifePanels,
   BoardSolvedExamples,
   MCQEngine,
-  CheatSheet
+  CheatSheet,
+  HistoryOfIrrationality,
+  EuclidAlgorithmVisualizer,
+  PrimeFactorizationTree,
+  IrrationalityProofExplorer,
+  DecimalExpansionChecker,
+  RealNumbersCheatSheet
 };
