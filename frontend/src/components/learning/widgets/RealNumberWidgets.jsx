@@ -195,12 +195,12 @@ export function IrrationalityProofExplorer() {
   ];
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-surface-container rounded-2xl border border-glass-stroke shadow-xl mt-6 overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-neon-coral/20 to-neon-purple/20 border-b border-glass-stroke">
+    <div className="w-full max-w-2xl mx-auto bg-surface-container rounded-2xl border border-glass-stroke shadow-xl mt-6 flex flex-col max-h-[75vh] overflow-hidden">
+      <div className="p-4 bg-gradient-to-r from-neon-coral/20 to-neon-purple/20 border-b border-glass-stroke shrink-0">
         <h3 className="font-bold text-lg text-white">Proof by Contradiction: √2 is Irrational</h3>
       </div>
       
-      <div className="p-6">
+      <div className="p-6 overflow-y-auto flex-grow">
         <div className="space-y-4">
           {proofSteps.slice(0, step + 1).map((s, idx) => (
             <div key={idx} className="p-4 bg-surface/50 border border-white/5 rounded-xl flex flex-col gap-2 animate-fade-in">
