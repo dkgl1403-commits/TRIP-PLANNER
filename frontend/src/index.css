@@ -72,6 +72,7 @@
   --font-body-md:      "Manrope", sans-serif;
   --font-body-lg:      "Manrope", sans-serif;
   --font-label-sm:     "JetBrains Mono", monospace;
+  --font-serif:        "Lora", serif;
 
   /* Typography - Font Sizes */
   --text-display-lg:   48px;

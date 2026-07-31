@@ -160,7 +160,7 @@ function LessonEngine({ topicId, user, onBack }) {
 
               {currentPart.narrative && (
                 <div 
-                  className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-headings:text-neon-coral prose-strong:text-white prose-strong:font-bold"
+                  className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-headings:text-neon-coral prose-strong:text-white prose-strong:font-bold font-serif"
                   dangerouslySetInnerHTML={{ __html: currentPart.narrative }}
                 />
               )}
@@ -170,9 +170,15 @@ function LessonEngine({ topicId, user, onBack }) {
               )}
               
               {currentPart.keyInsight && (
-                <div className="mt-12 p-6 rounded-r-xl border-l-4 border-neon-purple bg-neon-purple/5 text-xl font-medium text-gray-200">
-                  <span className="text-neon-purple mr-2">💡 Key Insight:</span>
-                  {currentPart.keyInsight}
+                <div className="mt-12 relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-neon-purple to-neon-coral rounded-xl blur opacity-25"></div>
+                  <div className="relative p-5 rounded-xl border border-white/10 bg-[#1a1c23]/90 shadow-2xl backdrop-blur-sm text-sm font-body-md text-gray-300 leading-relaxed transform hover:-translate-y-1 transition-all duration-300">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-neon-purple material-symbols-outlined text-sm">lightbulb</span>
+                      <span className="text-neon-purple font-bold tracking-widest uppercase text-xs">Key Insight</span>
+                    </div>
+                    {currentPart.keyInsight}
+                  </div>
                 </div>
               )}
             </div>
