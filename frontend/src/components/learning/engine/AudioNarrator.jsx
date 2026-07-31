@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
-export function AudioNarrator({ text }) {
+export function AudioNarrator({ text, language = 'en' }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState(null);
   const [utterance, setUtterance] = useState(null);
+  const [voices, setVoices] = useState([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      setSpeechSynthesis(window.speechSynthesis);
+      const synth = window.speechSynthesis;
+      setSpeechSynthesis(synth);
+      
+      const loadVoices = () => {
+        setVoices(synth.getVoices());
+      };
+      
+      loadVoices();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = loadVoices;
+      }
     }
   }, []);
 
@@ -21,6 +32,17 @@ export function AudioNarrator({ text }) {
     const newUtterance = new SpeechSynthesisUtterance(text);
     newUtterance.rate = 0.95; // Slightly slower for better comprehension
     
+    // Select appropriate voice based on language
+    if (voices.length > 0) {
+      if (language === 'hi') {
+        const hindiVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN'));
+        if (hindiVoice) newUtterance.voice = hindiVoice;
+      } else {
+        const englishVoice = voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en-US'));
+        if (englishVoice) newUtterance.voice = englishVoice;
+      }
+    }
+    
     newUtterance.onend = () => setIsPlaying(false);
     newUtterance.onerror = () => setIsPlaying(false);
 
@@ -29,7 +51,7 @@ export function AudioNarrator({ text }) {
     return () => {
       speechSynthesis.cancel();
     };
-  }, [text, speechSynthesis]);
+  }, [text, speechSynthesis, voices, language]);
 
   const togglePlay = () => {
     if (!speechSynthesis || !utterance) return;

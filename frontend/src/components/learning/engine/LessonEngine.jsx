@@ -8,6 +8,7 @@ function LessonEngine({ topicId, user, onBack }) {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPartIdx, setCurrentPartIdx] = useState(0);
+  const [audioLanguage, setAudioLanguage] = useState('en');
 
   useEffect(() => {
     fetch(`/api/learning/topic/${topicId}/config`)
@@ -114,8 +115,27 @@ function LessonEngine({ topicId, user, onBack }) {
           Step {currentPartIdx + 1} of {config.parts.length} <span className="mx-2 opacity-50">•</span> <span className="text-neon-coral">{progressPercent}%</span>
         </div>
 
-        <div>
-          {currentPart.audioText && <AudioNarrator text={currentPart.audioText} />}
+        <div className="flex items-center gap-4">
+          <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
+            <button 
+              onClick={() => setAudioLanguage('en')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${audioLanguage === 'en' ? 'bg-neon-coral text-white shadow-[0_0_8px_rgba(255,107,107,0.5)]' : 'text-gray-400 hover:text-white'}`}
+            >
+              EN
+            </button>
+            <button 
+              onClick={() => setAudioLanguage('hi')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${audioLanguage === 'hi' ? 'bg-neon-purple text-white shadow-[0_0_8px_rgba(157,78,221,0.5)]' : 'text-gray-400 hover:text-white'}`}
+            >
+              HI
+            </button>
+          </div>
+          {currentPart.audioText && (
+            <AudioNarrator 
+              text={audioLanguage === 'hi' && currentPart.audioTextHinglish ? currentPart.audioTextHinglish : currentPart.audioText} 
+              language={audioLanguage}
+            />
+          )}
         </div>
       </div>
 
