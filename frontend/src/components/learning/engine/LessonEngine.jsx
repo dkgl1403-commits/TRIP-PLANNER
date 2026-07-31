@@ -102,7 +102,7 @@ function LessonEngine({ topicId, user, onBack }) {
       </div>
 
       {/* Top Navigation Header */}
-      <div className="w-full px-2 py-1 lg:px-3 lg:py-2 flex justify-between items-center border-b border-white/10 bg-black/50 sticky top-0 z-50 backdrop-blur-md">
+      <div className="w-full px-2 py-1 lg:px-3 lg:py-2 flex justify-between items-center bg-black z-50">
         <button 
           onClick={onBack} 
           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300 text-sm"
