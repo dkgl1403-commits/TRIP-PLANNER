@@ -99,6 +99,16 @@ def seed_real_numbers():
                     "widgetData": {}
                 },
                 {
+                    "title": "Real-World Word Problems: LCM & HCF",
+                    "readingTime": "Interactive Widget",
+                    "narrative": "<p>Now that you know how to find the LCM and HCF using Prime Factorization, let's see how they solve real-world problems!</p><h3>The Golden Rules:</h3><ul><li><strong>Use LCM</strong> when you want to find when multiple recurring events will <em>sync up</em> or happen together (like athletes meeting at a start line, or bells tolling together).</li><li><strong>Use HCF</strong> when you want to divide or distribute different quantities into the <em>largest possible equal-sized groups</em> without any leftovers.</li></ul><p>Play with the interactive widget below to see these concepts in action!</p>",
+                    "audioText": "Now that you know how to find the LCM and HCF, let's see how they solve real-world problems! Here are the golden rules: Use LCM when you want to find when multiple recurring events will sync up, like athletes meeting at a start line. Use HCF when you want to divide different quantities into the largest possible equal-sized groups without any leftovers. Play with the interactive widget below to see these concepts in action!",
+                    "audioTextHinglish": "Ab jab aapko LCM aur HCF nikalna aata hai, toh dekhte hain ye real world me kahan use hote hain. Golden rules yaad rakhiye: LCM use karein jab aapko recurring events ko sync karna ho, jaise athletes ka start line par milna. HCF use karein jab alag alag quantities ko equal-sized groups me baatna ho, bina kisi bache hue hisse ke. Niche widget me ise test karein!",
+                    "keyInsight": "Synchronization = LCM (Building UP to a common multiple). Equal Grouping = HCF (Breaking DOWN into a common factor).",
+                    "widgetType": "RealWorldApplicationsWidget",
+                    "widgetData": {}
+                },
+                {
                     "title": "Revisiting Irrationality",
                     "readingTime": "~3 min read",
                     "narrative": "<p>Armed with the Fundamental Theorem of Arithmetic, we can finally solve the ancient Greek mystery: proving that &radic;2 is irrational.</p><p>To prove this, we use a brilliant technique called <strong>Proof by Contradiction</strong>.</p><ol><li>First, we <em>assume the opposite</em>: Imagine &radic;2 IS rational. So, &radic;2 = p/q (where p and q are integers with NO common factors).</li><li>Then, we follow the logical math steps.</li><li>If the math leads to an impossible contradiction, our initial assumption must have been completely wrong!</li></ol>",
@@ -119,13 +129,33 @@ def seed_real_numbers():
                     "widgetData": {}
                 },
                 {
-                    "title": "Story of Pi: The Ultimate Irrational",
+                    "title": "The Story of Pi: The Origin",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>While &radic;2 is famously irrational, there is another superstar irrational number: <strong>&pi; (Pi)</strong>.</p><p>In 499 CE, a brilliant 23-year-old mathematician named <strong>Aryabhata</strong> wrote the <em>Aryabhatiya</em>. He faced a massive conceptual problem: how do you measure a perfect curve using straight lines?</p><p>He realized that a polygon inscribed in a circle looks more like a circle as you add more sides. He started with a hexagon (6 sides) and repeatedly doubled the sides: 12, 24, 48, 96, 192, and finally <strong>384 sides</strong>!</p><p>By calculating the perimeter of this 384-sided polygon inside a circle of diameter 20,000, he arrived at 62832 / 20000 = <strong>3.1416</strong>.</p>",
+                    "audioText": "While root 2 is famously irrational, there is another superstar irrational number: Pi. In 499 CE, a 23-year-old mathematician named Aryabhata faced a massive problem: how do you measure a perfect curve using straight lines? He realized that a polygon looks more like a circle as you add more sides. He started with a hexagon and repeatedly doubled the sides: 12, 24, 48, 96, 192, and finally 384 sides! By calculating the perimeter of this 384-sided polygon, he arrived at the extraordinarily accurate value of 3.1416.",
+                    "audioTextHinglish": "Jaise root 2 irrational hai, waise hi ek aur superstar irrational number hai: Pi. 499 CE mein, Aryabhata ne ek massive problem face ki: ek perfect curve ko straight lines se kaise measure karein? Unhe samajh aya ki agar polygon ke sides badhate jayein, toh wo circle jaisa dikhne lagta hai. Unhone 6 sides se shuru kiya aur double karte gaye, aakhir me 384 sides tak! Iss 384-sided polygon ka perimeter nikal kar, unhone Pi ki value 3.1416 estimate ki.",
+                    "keyInsight": "Aryabhata explicitly stated his value was 'asanna' (an approximation), hinting that he suspected the true value could never be captured by a neat fraction.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Trapping Pi: Aryabhata's Polygon",
                     "readingTime": "Interactive Widget",
-                    "narrative": "<p>While &radic;2 is famously irrational, there is another superstar irrational number: <strong>&pi; (Pi)</strong>.</p><p>Ancient mathematicians, like India's Aryabhata, realized that a perfect curve can never be perfectly captured by straight lines (fractions). To estimate &pi;, Aryabhata calculated the perimeter of a polygon with <strong>384 sides</strong> inscribed in a circle.</p><p>As you increase the sides of the polygon, the approximation gets better, but the decimals go on to infinity without ever repeating. That's what makes &pi; irrational!</p>",
-                    "audioText": "While root 2 is famously irrational, there is another superstar irrational number: Pi. Ancient mathematicians, like Aryabhata, realized that a perfect curve can never be perfectly captured by straight lines or fractions. To estimate Pi, he calculated the perimeter of a polygon with 384 sides inscribed in a circle. As you increase the sides, the estimate gets better, but the decimals go on to infinity without ever repeating. That is what makes Pi truly irrational!",
-                    "audioTextHinglish": "Jaise root 2 irrational hai, waise hi ek aur superstar irrational number hai: Pi. Aryabhata jaise ancient mathematicians ko samajh aa gaya tha ki ek perfect curve ko straight lines ya fractions se perfectly capture nahi kiya ja sakta. Pi ko estimate karne ke liye unhone ek circle ke andar 384 sides wala polygon banaya. Jaise jaise aap sides badhate hain, estimation better hota hai, par decimals infinity tak bina repeat hue chalte rehte hain. Yahi toh Pi ko irrational banata hai!",
-                    "keyInsight": "Pi is the bridge between straight lines and curves. Because curves are continuous, their exact measurement can never be locked down to a neat fraction.",
+                    "narrative": "<p>Let's recreate Aryabhata's genius. Use the slider in the widget below to double the sides of the polygon, just like he did.</p><p>Notice how the straight edges slowly 'trap' the circle, and the estimated value of Pi gets more and more accurate as the sides increase.</p>",
+                    "audioText": "Let's recreate Aryabhata's genius. Use the slider below to double the sides of the polygon, just like he did. Notice how the straight edges slowly trap the circle, and the estimated value of Pi gets more and more accurate as the sides increase.",
+                    "audioTextHinglish": "Chaliye Aryabhata ki genius ko recreate karte hain. Niche slider use karke polygon ki sides double karein, bilkul unki tarah. Notice karein kaise straight edges circle ko trap karte hain, aur Pi ki estimate value aur accurate hoti jati hai.",
+                    "keyInsight": "The method of exhaustion proves that a circle is essentially a polygon with an infinite number of infinitely small sides.",
                     "widgetType": "StoryOfPiWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "The Endless Chase",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>Aryabhata's estimation was incredible for his time, but he suspected a deeper truth: Pi's decimals never end and never repeat.</p><p>Because a circle is a continuous curve, its exact measurement can never be locked down to a perfect fraction. This makes Pi the ultimate <strong>Irrational Number</strong>.</p><p>Today, people are still trying to find the end of Pi. Modern supercomputers have calculated Pi to over <strong>100 trillion digits</strong>, and they still haven't found a repeating pattern! This endless, chaotic chain of numbers is the definitive proof that it refuses to be confined to a simple ratio.</p>",
+                    "audioText": "Aryabhata's estimation was incredible, but he suspected a deeper truth: Pi's decimals never end and never repeat. Because a circle is a continuous curve, its exact measurement can never be locked down to a perfect fraction. This makes Pi the ultimate Irrational Number. Today, modern supercomputers have calculated Pi to over 100 trillion digits, and they still haven't found a repeating pattern! This endless chain is definitive proof of its irrationality.",
+                    "audioTextHinglish": "Aryabhata ka estimation kamal ka tha, par unhe ek sach ka andaza tha: Pi ke decimals kabhi khatam ya repeat nahi hote. Ek curve ko kabhi bhi ek perfect fraction me lock nahi kiya ja sakta. Aaj bhi log Pi ka end dhund rahe hain. Supercomputers ne Pi ko 100 trillion digits tak calculate kiya hai, par koi repeating pattern nahi mila! Ye endless chain uski irrationality ka ultimate proof hai.",
+                    "keyInsight": "It was finally proven mathematically in 1761 by Johann Lambert that Pi is indeed irrational.",
+                    "widgetType": None,
                     "widgetData": {}
                 },
                 {

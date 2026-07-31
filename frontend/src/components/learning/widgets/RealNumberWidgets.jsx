@@ -493,3 +493,205 @@ export function StoryOfPiWidget() {
     </div>
   );
 }
+
+// 8. Real World Applications (LCM & HCF) Widget
+export function RealWorldApplicationsWidget() {
+  const [activeTab, setActiveTab] = useState('lcm');
+  const [lcmTime, setLcmTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const animationRef = useRef(null);
+  
+  // LCM Track logic
+  const runners = [
+    { name: 'A', time: 12, color: '#ff6b4a' }, // neon-coral
+    { name: 'B', time: 15, color: '#9d4edd' }, // neon-purple
+    { name: 'C', time: 20, color: '#4ade80' }  // green
+  ];
+  const maxTime = 60; // LCM of 12, 15, 20
+
+  useEffect(() => {
+    if (isPlaying) {
+      animationRef.current = requestAnimationFrame(() => {
+        setLcmTime(prev => {
+          if (prev >= maxTime) {
+            setIsPlaying(false);
+            return maxTime;
+          }
+          return prev + 0.5; // speed of simulation
+        });
+      });
+    }
+    return () => cancelAnimationFrame(animationRef.current);
+  }, [isPlaying, lcmTime]);
+
+  const resetSimulation = () => {
+    setIsPlaying(false);
+    setLcmTime(0);
+  };
+
+  // HCF Grid logic
+  const group1 = 144;
+  const group2 = 180;
+  const hcf = 36;
+  const [hcfStep, setHcfStep] = useState(0);
+
+  return (
+    <div className="w-full max-w-4xl mx-auto bg-surface-container rounded-2xl border border-glass-stroke shadow-xl mt-6 overflow-hidden">
+      <div className="flex border-b border-glass-stroke bg-surface">
+        <button 
+          onClick={() => setActiveTab('lcm')}
+          className={`flex-1 py-4 font-bold text-sm tracking-widest uppercase transition-colors ${activeTab === 'lcm' ? 'bg-gradient-to-r from-neon-coral/20 to-neon-coral/5 text-neon-coral border-b-2 border-neon-coral' : 'text-gray-400 hover:text-white'}`}
+        >
+          LCM: Synchronization
+        </button>
+        <button 
+          onClick={() => setActiveTab('hcf')}
+          className={`flex-1 py-4 font-bold text-sm tracking-widest uppercase transition-colors ${activeTab === 'hcf' ? 'bg-gradient-to-r from-neon-purple/20 to-neon-purple/5 text-neon-purple border-b-2 border-neon-purple' : 'text-gray-400 hover:text-white'}`}
+        >
+          HCF: Maximum Grouping
+        </button>
+      </div>
+
+      <div className="p-6">
+        {activeTab === 'lcm' ? (
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-center animate-fade-in">
+            <div className="flex flex-col gap-4 w-full md:w-1/3">
+              <h3 className="text-xl font-bold text-white mb-2">The Track Athletes</h3>
+              <p className="text-sm text-gray-400">Three athletes take different times to run one lap. When will they meet at the start line again?</p>
+              
+              <div className="space-y-2 mt-4">
+                {runners.map(r => (
+                  <div key={r.name} className="flex justify-between items-center bg-surface/50 p-2 rounded border border-white/5">
+                    <span className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color }}></div>
+                      Athlete {r.name}
+                    </span>
+                    <span className="text-xs font-mono">{r.time} mins/lap</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-surface p-4 rounded-xl border border-glass-stroke mt-4 text-center">
+                <div className="text-sm text-gray-400 mb-1">Elapsed Time</div>
+                <div className="text-3xl font-mono font-bold text-neon-coral">
+                  {Math.floor(lcmTime)} <span className="text-base text-gray-500">mins</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-2">
+                <button 
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className={`flex-1 py-2 rounded-lg font-bold text-surface ${isPlaying ? 'bg-gray-400' : 'bg-neon-coral'}`}
+                >
+                  {isPlaying ? 'Pause' : lcmTime >= maxTime ? 'Done' : 'Play Simulation'}
+                </button>
+                <button 
+                  onClick={resetSimulation}
+                  className="px-4 py-2 bg-surface-variant text-white rounded-lg hover:bg-white/10"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <div className="relative w-[300px] h-[300px] flex-shrink-0 bg-black/20 rounded-full flex items-center justify-center border-4 border-surface-variant shadow-inner">
+              <div className="absolute top-0 w-2 h-8 bg-white/20 -mt-4"></div> {/* Start Line */}
+              <svg width="300" height="300" viewBox="0 0 300 300" className="absolute inset-0">
+                {runners.map((r, i) => {
+                  // Angle based on time: (elapsed / lapTime) * 360 degrees
+                  const progress = lcmTime / r.time;
+                  const angle = (progress * 2 * Math.PI) - (Math.PI / 2);
+                  const radius = 130 - (i * 25);
+                  const x = 150 + radius * Math.cos(angle);
+                  const y = 150 + radius * Math.sin(angle);
+                  
+                  return (
+                    <g key={r.name}>
+                      <circle cx="150" cy="150" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="15" />
+                      <circle 
+                        cx={x} 
+                        cy={y} 
+                        r="8" 
+                        fill={r.color} 
+                        className="transition-all duration-75"
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
+              {lcmTime >= maxTime && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full animate-fade-in backdrop-blur-sm">
+                  <div className="text-4xl font-bold text-neon-coral mb-2">SYNC!</div>
+                  <div className="text-sm font-mono text-white text-center">
+                    LCM(12, 15, 20) <br/>= 60 mins
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-center animate-fade-in">
+             <div className="flex flex-col gap-4 w-full md:w-1/3">
+              <h3 className="text-xl font-bold text-white mb-2">The Marching Band</h3>
+              <p className="text-sm text-gray-400">You have 144 Band members and 180 Choir members. What is the LARGEST number of students per row so that every row has the same number of people, and no groups mix?</p>
+              
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => setHcfStep(0)} className={`flex-1 py-2 rounded-lg text-sm font-bold ${hcfStep === 0 ? 'bg-neon-purple text-surface' : 'bg-surface-variant text-gray-400'}`}>Step 1: Groups</button>
+                <button onClick={() => setHcfStep(1)} className={`flex-1 py-2 rounded-lg text-sm font-bold ${hcfStep === 1 ? 'bg-neon-purple text-surface' : 'bg-surface-variant text-gray-400'}`}>Step 2: HCF</button>
+              </div>
+
+              {hcfStep === 1 && (
+                <div className="bg-surface p-4 rounded-xl border border-glass-stroke mt-4 animate-fade-in">
+                  <div className="text-sm text-gray-300 mb-2">Prime Factorization:</div>
+                  <div className="font-mono text-xs text-gray-400 space-y-1">
+                    <div>144 = 2⁴ × 3²</div>
+                    <div>180 = 2² × 3² × 5¹</div>
+                    <div className="mt-2 text-neon-purple font-bold border-t border-white/10 pt-2">
+                      HCF = 2² × 3² = 36
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="w-full md:w-2/3 bg-black/20 p-6 rounded-xl border border-white/5 shadow-inner flex flex-col gap-6">
+              <div>
+                <div className="flex justify-between text-xs text-gray-400 mb-2 font-mono">
+                  <span>Band (144)</span>
+                  {hcfStep === 1 && <span>4 Rows of 36</span>}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {Array.from({length: hcfStep === 0 ? 1 : 4}).map((_, i) => (
+                    <div key={i} className={`h-8 rounded bg-blue-500/80 flex items-center justify-center text-xs font-bold transition-all duration-500 ${hcfStep === 0 ? 'w-full' : 'w-[calc(25%-0.25rem)]'}`}>
+                      {hcfStep === 0 ? '144' : '36'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs text-gray-400 mb-2 font-mono">
+                  <span>Choir (180)</span>
+                  {hcfStep === 1 && <span>5 Rows of 36</span>}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {Array.from({length: hcfStep === 0 ? 1 : 5}).map((_, i) => (
+                    <div key={i} className={`h-8 rounded bg-purple-500/80 flex items-center justify-center text-xs font-bold transition-all duration-500 ${hcfStep === 0 ? 'w-full' : 'w-[calc(20%-0.2rem)]'}`}>
+                      {hcfStep === 0 ? '180' : '36'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {hcfStep === 1 && (
+                <div className="text-center text-sm text-gray-400 mt-2 animate-fade-in italic">
+                  By finding the HCF (36), we divide 144 into 4 equal rows, and 180 into 5 equal rows. No students are left over!
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

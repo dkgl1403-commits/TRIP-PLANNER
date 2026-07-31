@@ -6,7 +6,8 @@ import {
   IrrationalityProofExplorer, 
   DecimalExpansionChecker, 
   RealNumbersCheatSheet,
-  StoryOfPiWidget
+  StoryOfPiWidget,
+  RealWorldApplicationsWidget
 } from './RealNumberWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1240,5 +1241,6 @@ export const WidgetRegistry = {
   IrrationalityProofExplorer,
   DecimalExpansionChecker,
   RealNumbersCheatSheet,
-  StoryOfPiWidget
+  StoryOfPiWidget,
+  RealWorldApplicationsWidget
 };
