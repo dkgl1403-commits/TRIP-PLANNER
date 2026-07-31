@@ -90,7 +90,7 @@ function LessonEngine({ topicId, user, onBack }) {
   const isInteractiveStory = currentPart.widgetType && currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet';
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex flex-col">
+    <div className="h-screen bg-black text-white font-sans flex flex-col overflow-hidden">
       
       {/* Top Progress Bar Line */}
       <div className="w-full h-1 bg-gray-900">
@@ -101,7 +101,7 @@ function LessonEngine({ topicId, user, onBack }) {
       </div>
 
       {/* Top Navigation Header */}
-      <div className="w-full p-4 lg:p-6 flex justify-between items-center border-b border-white/10 bg-black/50 sticky top-0 z-50 backdrop-blur-md">
+      <div className="w-full p-2 lg:p-3 flex justify-between items-center border-b border-white/10 bg-black/50 sticky top-0 z-50 backdrop-blur-md">
         <button 
           onClick={onBack} 
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300"
@@ -120,11 +120,11 @@ function LessonEngine({ topicId, user, onBack }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col lg:flex-row">
+      <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!currentPart.widgetType || isInteractiveStory) && (
-          <div className="w-full lg:w-1/2 p-6 lg:p-12 xl:p-16 flex flex-col justify-center overflow-y-auto border-r border-white/5 bg-gray-900/20">
+          <div className="w-full lg:w-1/2 p-4 lg:p-6 xl:p-8 flex flex-col justify-start overflow-y-auto border-r border-white/5 bg-gray-900/20">
             <div className="max-w-2xl mx-auto w-full">
               
               <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-2 leading-tight">
@@ -170,11 +170,11 @@ function LessonEngine({ topicId, user, onBack }) {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="w-full p-6 flex justify-between items-center border-t border-white/10 bg-black/80 z-40">
+      <div className="w-full p-3 flex justify-between items-center border-t border-white/10 bg-black/80 z-40">
         <button 
           onClick={handlePrev} 
           disabled={currentPartIdx === 0}
-          className="flex items-center gap-3 px-6 py-3 rounded-full text-lg font-medium text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-0 transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-base font-medium text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-0 transition-all"
         >
           <span className="material-symbols-outlined">arrow_left_alt</span>
           Previous
@@ -182,7 +182,7 @@ function LessonEngine({ topicId, user, onBack }) {
         
         <button 
           onClick={handleNext}
-          className="flex items-center gap-3 px-8 py-4 bg-neon-coral text-white text-xl font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
+          className="flex items-center gap-2 px-6 py-2 bg-neon-coral text-white text-lg font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
         >
           {isFinalScene ? 'Finish Lesson' : 'Next Step'}
           <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
