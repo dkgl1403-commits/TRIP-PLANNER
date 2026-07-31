@@ -30,21 +30,24 @@ export function AudioNarrator({ text, language = 'en' }) {
     setIsPlaying(false);
 
     const newUtterance = new SpeechSynthesisUtterance(text);
-    newUtterance.rate = 0.95; // Slightly slower for better comprehension
+    newUtterance.rate = 0.85; // Slower for storytelling intensity
+    newUtterance.pitch = 0.8; // Lower pitch for a deeper, more intense voice
     
     // Select appropriate voice based on language
     if (voices.length > 0) {
       if (language === 'hi') {
-        const hindiVoice = voices.find(v => v.lang === 'hi-IN' || v.lang === 'hi') 
+        const hindiVoice = voices.find(v => (v.lang === 'hi-IN' || v.lang === 'hi') && v.name.toLowerCase().includes('male'))
+                        || voices.find(v => v.name.toLowerCase().includes('hindi') && v.name.toLowerCase().includes('male'))
+                        || voices.find(v => v.lang === 'hi-IN' || v.lang === 'hi')
                         || voices.find(v => v.name.toLowerCase().includes('hindi'))
-                        || voices.find(v => v.lang.includes('IN')); // Absolute fallback
+                        || voices.find(v => v.lang.includes('IN')); 
         if (hindiVoice) newUtterance.voice = hindiVoice;
         
         // Trick for Hinglish written in Latin: Set the lang attribute explicitly
-        // This forces some engines (like Google Chrome's) to use Hindi phonetics
         newUtterance.lang = 'hi-IN';
       } else {
-        const englishVoice = voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en-US'));
+        const englishVoice = voices.find(v => (v.lang.includes('en-GB') || v.lang.includes('en-US')) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('guy')))
+                          || voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en-US'));
         if (englishVoice) newUtterance.voice = englishVoice;
       }
     }
