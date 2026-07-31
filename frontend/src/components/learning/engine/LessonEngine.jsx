@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WidgetRegistry } from '../widgets/AcademicWidgets';
+import { AudioNarrator } from './AudioNarrator';
+import { MiniChallenge } from './MiniChallenge';
 import confetti from 'canvas-confetti';
 
 function LessonEngine({ topicId, user, onBack }) {
@@ -47,6 +49,7 @@ function LessonEngine({ topicId, user, onBack }) {
       setCurrentPartIdx(newIdx);
       const prog = Math.round((newIdx / (config.parts.length - 1)) * 100);
       updateProgress(prog, false);
+      window.scrollTo(0, 0);
     } else {
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       updateProgress(100, true);
@@ -56,12 +59,13 @@ function LessonEngine({ topicId, user, onBack }) {
   const handlePrev = () => {
     if (currentPartIdx > 0) {
       setCurrentPartIdx(currentPartIdx - 1);
+      window.scrollTo(0, 0);
     }
   };
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex justify-center items-center">
+      <div className="min-h-screen bg-black flex justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-coral"></div>
       </div>
     );
@@ -69,7 +73,7 @@ function LessonEngine({ topicId, user, onBack }) {
 
   if (!config) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center text-error">
+      <div className="min-h-screen bg-black flex flex-col justify-center items-center text-error">
         <p>Failed to load lesson configuration.</p>
         <button onClick={onBack} className="mt-4 px-4 py-2 bg-white text-black rounded-lg">Go Back</button>
       </div>
@@ -78,107 +82,113 @@ function LessonEngine({ topicId, user, onBack }) {
 
   const currentPart = config.parts[currentPartIdx];
   const isFinalScene = currentPartIdx === config.parts.length - 1;
+  const progressPercent = Math.round(((currentPartIdx + 1) / config.parts.length) * 100);
+
+  // Determine layout style based on content type
+  // True interactive storytelling uses 50/50 split. 
+  // MCQs and Cheatsheets might use full width.
+  const isInteractiveStory = currentPart.widgetType && currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet';
 
   return (
-    <div className="fixed inset-0 z-50 bg-black text-white overflow-hidden font-sans">
+    <div className="min-h-screen bg-black text-white font-sans flex flex-col">
       
-      {/* Background Graphic Engine (True Full Screen) */}
-      <div className="absolute inset-0 z-0">
-        {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
-          React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
-        ) : (
-          /* Default Ambient Background if no specific cinematic widget is assigned */
-          <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black animate-pulse opacity-50"></div>
-        )}
-        
-        {/* Render Multiple Widgets if array (Absolute overlaid) */}
-        {currentPart.widgets && currentPart.widgets.length > 0 && (
-          <div className="absolute inset-0">
-            {currentPart.widgets.map((w, i) => {
-              const WidgetComponent = WidgetRegistry[w.widgetType];
-              if (!WidgetComponent) return null;
-              return <WidgetComponent key={i} data={w.widgetData} part={w} />;
-            })}
-          </div>
-        )}
+      {/* Top Progress Bar Line */}
+      <div className="w-full h-1 bg-gray-900">
+        <div 
+          className="h-full bg-neon-coral transition-all duration-700 ease-out shadow-[0_0_10px_rgba(255,107,107,0.8)]"
+          style={{ width: `${progressPercent}%` }}
+        ></div>
       </div>
 
-      {/* Floating UI Layer - Overlaid gracefully over the cinematic background */}
-      <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between">
+      {/* Top Navigation Header */}
+      <div className="w-full p-4 lg:p-6 flex justify-between items-center border-b border-white/10 bg-black/50 sticky top-0 z-50 backdrop-blur-md">
+        <button 
+          onClick={onBack} 
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300"
+        >
+          <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <span className="hidden sm:inline">Exit Lesson</span>
+        </button>
         
-        {/* Floating Top Header */}
-        <div className="w-full p-8 flex justify-between items-start">
-          <button 
-            onClick={onBack} 
-            className="pointer-events-auto group flex items-center justify-center w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all border border-white/20"
-          >
-            <span className="material-symbols-outlined text-white">arrow_back</span>
-          </button>
-          
-          {/* Subtle Progress Nodes */}
-          <div className="flex gap-3 pointer-events-auto">
-            {config.parts.map((p, idx) => (
-              <button 
-                key={idx}
-                onClick={() => setCurrentPartIdx(idx)}
-                className={`w-12 h-2 rounded-full transition-all duration-700 ${
-                  idx === currentPartIdx ? 'bg-neon-coral shadow-[0_0_15px_rgba(255,107,107,0.8)] scale-y-150' :
-                  idx < currentPartIdx ? 'bg-white/80' : 'bg-white/20 hover:bg-white/40'
-                }`}
-                title={p.title}
-              />
-            ))}
-          </div>
+        <div className="text-gray-400 font-medium tracking-wide">
+          Step {currentPartIdx + 1} of {config.parts.length} <span className="mx-2 opacity-50">•</span> <span className="text-neon-coral">{progressPercent}%</span>
         </div>
 
-        {/* Floating Context/Narrative Text (Left-aligned, large typography, no boxes) */}
-        {(!currentPart.widgetType || (currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet')) && (
-          <div className="w-full h-full flex flex-col justify-center px-[10vw] max-w-[50vw]">
-             <h1 className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-500 drop-shadow-2xl mb-8 leading-tight animate-fade-in-up">
-               {currentPart.title}
-             </h1>
-             {currentPart.description && (
-               <p className="text-3xl text-neon-coral/90 drop-shadow-lg font-light mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                 {currentPart.description}
-               </p>
-             )}
-             {currentPart.content && (
-               <div className="text-xl leading-relaxed text-gray-300 drop-shadow-md whitespace-pre-wrap animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                 {currentPart.content}
-               </div>
-             )}
-          </div>
-        )}
-        
-        {isFinalScene && (
-          <div className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none z-20">
-             <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple drop-shadow-[0_0_30px_rgba(255,107,107,0.5)] animate-bounce">
-               Module Mastered
-             </h1>
-          </div>
-        )}
-
-        {/* Floating Bottom Navigation Controls */}
-        <div className="w-full p-8 flex justify-between items-end pb-[5vh]">
-          <button 
-            onClick={handlePrev} 
-            disabled={currentPartIdx === 0}
-            className="pointer-events-auto flex items-center gap-4 text-2xl font-light text-white/50 hover:text-white disabled:opacity-0 transition-all"
-          >
-            <span className="material-symbols-outlined text-4xl">arrow_left_alt</span>
-            <span className="hidden md:inline">Previous Scene</span>
-          </button>
-          
-          <button 
-            onClick={handleNext}
-            className="pointer-events-auto flex items-center gap-4 text-3xl font-bold text-neon-coral hover:text-white hover:drop-shadow-[0_0_20px_rgba(255,107,107,1)] transition-all group"
-          >
-            <span className="hidden md:inline">{isFinalScene ? 'Complete Journey' : 'Next Scene'}</span>
-            <span className="material-symbols-outlined text-6xl group-hover:translate-x-2 transition-transform">arrow_right_alt</span>
-          </button>
+        <div>
+          {currentPart.audioText && <AudioNarrator text={currentPart.audioText} />}
         </div>
-        
       </div>
+
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col lg:flex-row">
+        
+        {/* Left Column: Narrative Text (if applicable) */}
+        {(!currentPart.widgetType || isInteractiveStory) && (
+          <div className="w-full lg:w-1/2 p-6 lg:p-12 xl:p-16 flex flex-col justify-center overflow-y-auto border-r border-white/5 bg-gray-900/20">
+            <div className="max-w-2xl mx-auto w-full">
+              
+              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-2 leading-tight">
+                {currentPart.title}
+              </h1>
+              
+              {currentPart.readingTime && (
+                <div className="text-gray-500 font-mono text-sm mb-8 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base">schedule</span>
+                  {currentPart.readingTime}
+                </div>
+              )}
+
+              {currentPart.narrative && (
+                <div 
+                  className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-headings:text-neon-coral prose-strong:text-white prose-strong:font-bold"
+                  dangerouslySetInnerHTML={{ __html: currentPart.narrative }}
+                />
+              )}
+
+              {currentPart.miniChallenge && (
+                <MiniChallenge challenge={currentPart.miniChallenge} />
+              )}
+              
+              {currentPart.keyInsight && (
+                <div className="mt-12 p-6 rounded-r-xl border-l-4 border-neon-purple bg-neon-purple/5 text-xl font-medium text-gray-200">
+                  <span className="text-neon-purple mr-2">💡 Key Insight:</span>
+                  {currentPart.keyInsight}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Right Column: Visual Diagram / Widget */}
+        <div className={`w-full relative ${isInteractiveStory ? 'lg:w-1/2 h-[50vh] lg:h-auto' : 'w-full min-h-[80vh]'} flex justify-center items-center overflow-hidden bg-black`}>
+          {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
+            React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
+          ) : (
+            <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black opacity-30"></div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="w-full p-6 flex justify-between items-center border-t border-white/10 bg-black/80 z-40">
+        <button 
+          onClick={handlePrev} 
+          disabled={currentPartIdx === 0}
+          className="flex items-center gap-3 px-6 py-3 rounded-full text-lg font-medium text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-0 transition-all"
+        >
+          <span className="material-symbols-outlined">arrow_left_alt</span>
+          Previous
+        </button>
+        
+        <button 
+          onClick={handleNext}
+          className="flex items-center gap-3 px-8 py-4 bg-neon-coral text-white text-xl font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
+        >
+          {isFinalScene ? 'Finish Lesson' : 'Next Step'}
+          <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
+        </button>
+      </div>
+      
     </div>
   );
 }
