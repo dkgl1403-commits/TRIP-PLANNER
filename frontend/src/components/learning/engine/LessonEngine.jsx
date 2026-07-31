@@ -93,9 +93,10 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
   const progressPercent = Math.round(((currentPartIdx + 1) / config.parts.length) * 100);
 
   // Determine layout style based on content type
-  // True interactive storytelling uses 50/50 split. 
+  // True interactive storytelling uses 50/50 split if there's a visual. 
   // MCQs and Cheatsheets might use full width.
   const isInteractiveStory = currentPart.widgetType && currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet';
+  const hasVisual = !!(currentPart.widgetType && WidgetRegistry[currentPart.widgetType]) || !!currentPart.imageUrl;
 
   return (
     <div className="fixed inset-0 z-[100] bg-black text-white font-sans flex flex-col overflow-hidden">
@@ -150,9 +151,9 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
         
         {/* Left Column: Narrative Text (if applicable) */}
-        {(!currentPart.widgetType || isInteractiveStory) && (
-          <div className="w-full lg:w-1/2 px-4 pt-0 pb-4 lg:px-8 lg:pt-0 lg:pb-6 xl:px-12 xl:pt-0 xl:pb-8 flex flex-col justify-start overflow-y-auto border-r border-white/5 bg-gradient-to-b from-[#15171a] to-[#0c0e11] bg-canvas-texture shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]">
-            <div className="max-w-2xl mx-auto w-full relative z-10">
+        {(!hasVisual || isInteractiveStory) && (
+          <div className={`w-full ${hasVisual ? 'lg:w-1/2 border-r border-white/5' : 'lg:w-full'} px-4 pt-0 pb-4 lg:px-8 lg:pt-0 lg:pb-6 xl:px-12 xl:pt-0 xl:pb-8 flex flex-col justify-start overflow-y-auto bg-gradient-to-b from-[#15171a] to-[#0c0e11] bg-canvas-texture shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]`}>
+            <div className={`mx-auto w-full ${hasVisual ? 'max-w-2xl' : 'max-w-4xl'} relative z-10`}>
               
               <h1 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-1 leading-normal pt-2 pb-1">
                 {currentPart.title}
@@ -193,13 +194,15 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
         )}
 
         {/* Right Column: Visual Diagram / Widget */}
-        <div className={`w-full relative ${isInteractiveStory ? 'lg:w-1/2 h-[50vh] lg:h-auto' : 'w-full min-h-[80vh]'} flex justify-center items-center overflow-hidden bg-black`}>
-          {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
-            React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
-          ) : (
-            <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black opacity-30"></div>
-          )}
-        </div>
+        {hasVisual && (
+          <div className={`w-full relative ${isInteractiveStory ? 'lg:w-1/2 h-[50vh] lg:h-auto' : 'w-full min-h-[80vh]'} flex justify-center items-center overflow-hidden bg-black`}>
+            {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
+              React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
+            ) : currentPart.imageUrl ? (
+              <img src={currentPart.imageUrl} className="max-w-full max-h-full object-contain p-4 lg:p-8" alt={currentPart.title} />
+            ) : null}
+          </div>
+        )}
       </div>
 
       {/* Bottom Navigation */}
