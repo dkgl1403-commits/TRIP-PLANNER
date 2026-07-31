@@ -73,19 +73,39 @@ function TopicList({ user, subjectId, onBack }) {
         <div className="grid grid-cols-1 gap-4">
           {topics.map(topic => {
             const progress = getTopicProgress(topic.id);
+            const isWip = topic.is_wip;
+            const boardText = topic.board_type === 'BOTH' ? 'CBSE & ICSE' : topic.board_type;
+
             return (
               <div 
                 key={topic.id} 
-                className="bg-surface-container-high rounded-2xl p-6 border border-glass-stroke shadow-xl hover:shadow-neon-coral/20 transition-all cursor-pointer"
-                onClick={() => setSelectedTopicId(topic.id)}
+                className={`bg-surface-container-high rounded-2xl p-6 border ${isWip ? 'border-surface-variant opacity-70' : 'border-glass-stroke shadow-xl hover:shadow-neon-coral/20 cursor-pointer'} transition-all relative overflow-hidden`}
+                onClick={() => !isWip && setSelectedTopicId(topic.id)}
               >
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">{topic.name}</h3>
-                  <span className="material-symbols-outlined text-neon-coral">play_circle</span>
+                {isWip && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-10">
+                    <div className="bg-surface-container px-4 py-2 rounded-full border border-white/10 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-neon-coral text-sm">lock</span>
+                      <span className="text-sm font-bold text-white tracking-wide">WORK IN PROGRESS</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="text-neon-coral font-bold text-sm tracking-widest uppercase mb-1 block">Chapter {topic.order_idx}</span>
+                    <h3 className="text-xl font-bold">{topic.name}</h3>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="px-3 py-1 rounded-full bg-surface-variant text-xs font-bold text-on-surface-variant border border-white/5">
+                      {boardText}
+                    </span>
+                    {!isWip && <span className="material-symbols-outlined text-neon-coral mt-2">play_circle</span>}
+                  </div>
                 </div>
                 {/* Progress Bar */}
                 <div className="w-full bg-surface-variant rounded-full h-2.5">
-                  <div className="bg-gradient-to-r from-neon-purple to-neon-coral h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+                  <div className="bg-gradient-to-r from-neon-purple to-neon-coral h-2.5 rounded-full transition-all duration-1000" style={{ width: `${progress}%` }}></div>
                 </div>
                 <div className="text-right text-xs text-on-surface-variant mt-1">{progress}% Completed</div>
               </div>

@@ -26,7 +26,7 @@ def get_subjects(class_id: str, db: Session = Depends(get_db)):
 @learning_api_router.get("/topics/{subject_id}")
 def get_topics(subject_id: str, db: Session = Depends(get_db)):
     topics = db.query(LearningTopic).filter_by(subject_id=subject_id).order_by(LearningTopic.order_idx).all()
-    return {"status": "success", "topics": [{"id": t.id, "name": t.name, "order_idx": t.order_idx} for t in topics]}
+    return {"status": "success", "topics": [{"id": t.id, "name": t.name, "order_idx": t.order_idx, "board_type": t.board_type, "is_wip": not bool(t.lesson_config_json)} for t in topics]}
 
 @learning_api_router.get("/topic/{topic_id}/config")
 def get_topic_config(topic_id: str, db: Session = Depends(get_db)):

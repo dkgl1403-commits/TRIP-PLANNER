@@ -42,6 +42,7 @@ class LearningTopic(Base):
     subject_id = Column(String(36), ForeignKey('learning_subjects.id'))
     name = Column(String, index=True)
     order_idx = Column(Integer)
+    board_type = Column(String, default="BOTH")
     lesson_config_json = Column(JSON, nullable=True)
     
     subject = relationship("LearningSubject", back_populates="topics")

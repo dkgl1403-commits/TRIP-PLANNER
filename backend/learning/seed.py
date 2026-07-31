@@ -395,12 +395,203 @@ def seed_trigonometry():
         topic.lesson_config_json = config
         db.commit()
         print("Successfully seeded massive 22-step interactive Trigonometry lesson with English and Hinglish audio.")
-
-    except Exception as e:
-        db.rollback()
-        print(f"Error seeding database: {e}")
     finally:
         db.close()
 
-if __name__ == '__main__':
+def seed_curriculum():
+    db = SessionLocal()
+    
+    curriculum = [
+        {
+            "class_level": 8,
+            "class_name": "Class 8",
+            "subjects": [
+                {
+                    "name": "Mathematics",
+                    "topics": [
+                        {"name": "Rational Numbers", "board": "BOTH"},
+                        {"name": "Linear Equations in One Variable", "board": "BOTH"},
+                        {"name": "Understanding Quadrilaterals", "board": "BOTH"},
+                        {"name": "Practical Geometry", "board": "BOTH"},
+                        {"name": "Data Handling", "board": "BOTH"},
+                        {"name": "Squares and Square Roots", "board": "BOTH"},
+                        {"name": "Cubes and Cube Roots", "board": "BOTH"},
+                        {"name": "Comparing Quantities", "board": "BOTH"},
+                        {"name": "Algebraic Expressions and Identities", "board": "BOTH"},
+                        {"name": "Visualising Solid Shapes", "board": "BOTH"},
+                        {"name": "Mensuration", "board": "BOTH"},
+                        {"name": "Exponents and Powers", "board": "BOTH"},
+                        {"name": "Direct and Inverse Proportions", "board": "BOTH"},
+                        {"name": "Factorisation", "board": "BOTH"},
+                        {"name": "Introduction to Graphs", "board": "BOTH"},
+                        {"name": "Playing with Numbers", "board": "BOTH"},
+                        {"name": "Sets", "board": "ICSE"}
+                    ]
+                },
+                {
+                    "name": "Science",
+                    "topics": [
+                        {"name": "Crop Production and Management", "board": "BOTH"},
+                        {"name": "Microorganisms: Friend and Foe", "board": "BOTH"},
+                        {"name": "Synthetic Fibres and Plastics", "board": "BOTH"},
+                        {"name": "Materials: Metals and Non-Metals", "board": "BOTH"},
+                        {"name": "Coal and Petroleum", "board": "BOTH"},
+                        {"name": "Combustion and Flame", "board": "BOTH"},
+                        {"name": "Conservation of Plants and Animals", "board": "BOTH"},
+                        {"name": "Cell - Structure and Functions", "board": "BOTH"},
+                        {"name": "Reproduction in Animals", "board": "BOTH"},
+                        {"name": "Reaching the Age of Adolescence", "board": "BOTH"},
+                        {"name": "Force and Pressure", "board": "BOTH"},
+                        {"name": "Friction", "board": "BOTH"},
+                        {"name": "Sound", "board": "BOTH"},
+                        {"name": "Chemical Effects of Electric Current", "board": "BOTH"},
+                        {"name": "Some Natural Phenomena", "board": "BOTH"},
+                        {"name": "Light", "board": "BOTH"},
+                        {"name": "Stars and the Solar System", "board": "BOTH"},
+                        {"name": "Pollution of Air and Water", "board": "BOTH"}
+                    ]
+                }
+            ]
+        },
+        {
+            "class_level": 9,
+            "class_name": "Class 9",
+            "subjects": [
+                {
+                    "name": "Mathematics",
+                    "topics": [
+                        {"name": "Number Systems", "board": "BOTH"},
+                        {"name": "Polynomials", "board": "BOTH"},
+                        {"name": "Coordinate Geometry", "board": "BOTH"},
+                        {"name": "Linear Equations in Two Variables", "board": "BOTH"},
+                        {"name": "Introduction to Euclid's Geometry", "board": "CBSE"},
+                        {"name": "Lines and Angles", "board": "BOTH"},
+                        {"name": "Triangles", "board": "BOTH"},
+                        {"name": "Quadrilaterals", "board": "BOTH"},
+                        {"name": "Areas of Parallelograms and Triangles", "board": "CBSE"},
+                        {"name": "Circles", "board": "BOTH"},
+                        {"name": "Constructions", "board": "BOTH"},
+                        {"name": "Heron's Formula", "board": "BOTH"},
+                        {"name": "Surface Areas and Volumes", "board": "BOTH"},
+                        {"name": "Statistics", "board": "BOTH"},
+                        {"name": "Probability", "board": "BOTH"},
+                        {"name": "Logarithms", "board": "ICSE"},
+                        {"name": "Indices", "board": "ICSE"}
+                    ]
+                },
+                {
+                    "name": "Science",
+                    "topics": [
+                        {"name": "Matter in Our Surroundings", "board": "BOTH"},
+                        {"name": "Is Matter Around Us Pure", "board": "BOTH"},
+                        {"name": "Atoms and Molecules", "board": "BOTH"},
+                        {"name": "Structure of the Atom", "board": "BOTH"},
+                        {"name": "The Fundamental Unit of Life", "board": "BOTH"},
+                        {"name": "Tissues", "board": "BOTH"},
+                        {"name": "Diversity in Living Organisms", "board": "BOTH"},
+                        {"name": "Motion", "board": "BOTH"},
+                        {"name": "Force and Laws of Motion", "board": "BOTH"},
+                        {"name": "Gravitation", "board": "BOTH"},
+                        {"name": "Work and Energy", "board": "BOTH"},
+                        {"name": "Sound", "board": "BOTH"},
+                        {"name": "Why Do We Fall Ill", "board": "BOTH"},
+                        {"name": "Natural Resources", "board": "BOTH"},
+                        {"name": "Improvement in Food Resources", "board": "BOTH"}
+                    ]
+                }
+            ]
+        },
+        {
+            "class_level": 10,
+            "class_name": "Class 10",
+            "subjects": [
+                {
+                    "name": "Mathematics",
+                    "topics": [
+                        {"name": "Real Numbers", "board": "BOTH"},
+                        {"name": "Polynomials", "board": "BOTH"},
+                        {"name": "Pair of Linear Equations in Two Variables", "board": "BOTH"},
+                        {"name": "Quadratic Equations", "board": "BOTH"},
+                        {"name": "Arithmetic Progressions", "board": "BOTH"},
+                        {"name": "Triangles", "board": "BOTH"},
+                        {"name": "Coordinate Geometry", "board": "BOTH"},
+                        {"name": "Introduction to Trigonometry", "board": "BOTH"},
+                        {"name": "Some Applications of Trigonometry", "board": "BOTH"},
+                        {"name": "Circles", "board": "BOTH"},
+                        {"name": "Constructions", "board": "BOTH"},
+                        {"name": "Areas Related to Circles", "board": "BOTH"},
+                        {"name": "Surface Areas and Volumes", "board": "BOTH"},
+                        {"name": "Statistics", "board": "BOTH"},
+                        {"name": "Probability", "board": "BOTH"},
+                        {"name": "Matrices", "board": "ICSE"},
+                        {"name": "GST", "board": "ICSE"},
+                        {"name": "Shares and Dividends", "board": "ICSE"}
+                    ]
+                },
+                {
+                    "name": "Science",
+                    "topics": [
+                        {"name": "Chemical Reactions and Equations", "board": "BOTH"},
+                        {"name": "Acids, Bases and Salts", "board": "BOTH"},
+                        {"name": "Metals and Non-metals", "board": "BOTH"},
+                        {"name": "Carbon and its Compounds", "board": "BOTH"},
+                        {"name": "Periodic Classification of Elements", "board": "BOTH"},
+                        {"name": "Life Processes", "board": "BOTH"},
+                        {"name": "Control and Coordination", "board": "BOTH"},
+                        {"name": "How do Organisms Reproduce?", "board": "BOTH"},
+                        {"name": "Heredity and Evolution", "board": "BOTH"},
+                        {"name": "Light - Reflection and Refraction", "board": "BOTH"},
+                        {"name": "Human Eye and Colourful World", "board": "BOTH"},
+                        {"name": "Electricity", "board": "BOTH"},
+                        {"name": "Magnetic Effects of Electric Current", "board": "BOTH"},
+                        {"name": "Sources of Energy", "board": "BOTH"},
+                        {"name": "Our Environment", "board": "BOTH"},
+                        {"name": "Management of Natural Resources", "board": "BOTH"},
+                        {"name": "Electromagnetism", "board": "ICSE"},
+                        {"name": "Radioactivity", "board": "ICSE"}
+                    ]
+                }
+            ]
+        }
+    ]
+
+    try:
+        for c in curriculum:
+            c_obj = db.query(LearningClass).filter_by(level=c["class_level"], name=c["class_name"]).first()
+            if not c_obj:
+                c_obj = LearningClass(level=c["class_level"], name=c["class_name"])
+                db.add(c_obj)
+                db.flush()
+                
+            for s in c["subjects"]:
+                s_obj = db.query(LearningSubject).filter_by(name=s["name"], class_id=c_obj.id).first()
+                if not s_obj:
+                    s_obj = LearningSubject(name=s["name"], class_id=c_obj.id)
+                    db.add(s_obj)
+                    db.flush()
+                
+                order = 1
+                for t in s["topics"]:
+                    t_obj = db.query(LearningTopic).filter_by(name=t["name"], subject_id=s_obj.id).first()
+                    if not t_obj:
+                        t_obj = LearningTopic(name=t["name"], subject_id=s_obj.id, order_idx=order, board_type=t["board"])
+                        db.add(t_obj)
+                    else:
+                        t_obj.order_idx = order
+                        t_obj.board_type = t["board"]
+                    
+                    db.flush()
+                    order += 1
+
+        db.commit()
+        print("Successfully seeded extensive curriculum for Classes 8, 9, 10.")
+    except Exception as e:
+        db.rollback()
+        print(f"Error seeding database curriculum: {e}")
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    seed_curriculum()
     seed_trigonometry()
