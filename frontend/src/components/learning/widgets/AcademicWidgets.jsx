@@ -1087,7 +1087,118 @@ export function MCQEngine({ data }) {
 }
 
 export function CheatSheet() {
-  return <div className="p-8 text-center"><h2 className="text-2xl text-neon-purple mb-4">Master Cheat Sheet</h2><p className="text-gray-400">Reference formulas load here.</p></div>;
+  return (
+    <div className="w-full max-w-4xl p-4 sm:p-6 lg:p-8 bg-surface-container rounded-2xl border border-glass-stroke shadow-2xl overflow-y-auto max-h-[80vh]">
+      <div className="flex items-center gap-3 mb-8 border-b border-white/10 pb-4">
+        <span className="material-symbols-outlined text-3xl text-neon-coral">menu_book</span>
+        <h2 className="text-2xl font-bold font-serif text-white tracking-wide">Trigonometry Master Cheat Sheet</h2>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Basic Ratios */}
+        <div className="bg-surface/50 p-5 rounded-xl border border-white/5">
+          <h3 className="text-neon-coral font-bold text-sm tracking-widest uppercase mb-4 border-b border-white/5 pb-2">1. Basic Ratios (Right Triangle)</h3>
+          <ul className="space-y-3 font-mono text-sm text-gray-300">
+            <li><span className="text-white font-bold">sin θ</span> = Opposite / Hypotenuse</li>
+            <li><span className="text-white font-bold">cos θ</span> = Adjacent / Hypotenuse</li>
+            <li><span className="text-white font-bold">tan θ</span> = Opposite / Adjacent</li>
+            <li><span className="text-white font-bold">cosec θ</span> = Hypotenuse / Opposite</li>
+            <li><span className="text-white font-bold">sec θ</span> = Hypotenuse / Adjacent</li>
+            <li><span className="text-white font-bold">cot θ</span> = Adjacent / Opposite</li>
+          </ul>
+        </div>
+
+        {/* Reciprocal & Quotient */}
+        <div className="bg-surface/50 p-5 rounded-xl border border-white/5">
+          <h3 className="text-neon-purple font-bold text-sm tracking-widest uppercase mb-4 border-b border-white/5 pb-2">2. Reciprocal & Quotient Relations</h3>
+          <div className="grid grid-cols-2 gap-4 font-mono text-sm text-gray-300">
+            <ul className="space-y-3">
+              <li><span className="text-white">sin θ</span> = 1 / cosec θ</li>
+              <li><span className="text-white">cos θ</span> = 1 / sec θ</li>
+              <li><span className="text-white">tan θ</span> = 1 / cot θ</li>
+            </ul>
+            <ul className="space-y-3 border-l border-white/5 pl-4">
+              <li><span className="text-white">tan θ</span> = sin θ / cos θ</li>
+              <li><span className="text-white">cot θ</span> = cos θ / sin θ</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Pythagorean Identities */}
+        <div className="bg-surface/50 p-5 rounded-xl border border-white/5">
+          <h3 className="text-electric-blue font-bold text-sm tracking-widest uppercase mb-4 border-b border-white/5 pb-2">3. Pythagorean Identities</h3>
+          <ul className="space-y-4 font-mono text-sm text-gray-300">
+            <li className="flex items-center gap-2"><span className="p-1 bg-white/5 rounded text-white">sin²θ + cos²θ = 1</span></li>
+            <li className="flex items-center gap-2"><span className="p-1 bg-white/5 rounded text-white">1 + tan²θ = sec²θ</span></li>
+            <li className="flex items-center gap-2"><span className="p-1 bg-white/5 rounded text-white">1 + cot²θ = cosec²θ</span></li>
+          </ul>
+        </div>
+
+        {/* Complementary Angles */}
+        <div className="bg-surface/50 p-5 rounded-xl border border-white/5">
+          <h3 className="text-tertiary-fixed font-bold text-sm tracking-widest uppercase mb-4 border-b border-white/5 pb-2">4. Complementary Angles</h3>
+          <div className="grid grid-cols-2 gap-4 font-mono text-sm text-gray-300">
+            <ul className="space-y-3">
+              <li><span className="text-white">sin(90° - θ)</span> = cos θ</li>
+              <li><span className="text-white">tan(90° - θ)</span> = cot θ</li>
+              <li><span className="text-white">sec(90° - θ)</span> = cosec θ</li>
+            </ul>
+            <ul className="space-y-3 border-l border-white/5 pl-4">
+              <li><span className="text-white">cos(90° - θ)</span> = sin θ</li>
+              <li><span className="text-white">cot(90° - θ)</span> = tan θ</li>
+              <li><span className="text-white">cosec(90° - θ)</span> = sec θ</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Standard Values Table */}
+      <div className="mt-6 bg-surface/50 p-5 rounded-xl border border-white/5 overflow-x-auto">
+        <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-4 border-b border-white/5 pb-2">5. Standard Values (0° to 90°)</h3>
+        <table className="w-full text-center font-mono text-sm border-collapse min-w-[500px]">
+          <thead>
+            <tr className="bg-white/5">
+              <th className="py-2 px-3 border border-white/10 text-gray-400">Angle (θ)</th>
+              <th className="py-2 px-3 border border-white/10 text-neon-coral">0°</th>
+              <th className="py-2 px-3 border border-white/10 text-neon-coral">30°</th>
+              <th className="py-2 px-3 border border-white/10 text-neon-coral">45°</th>
+              <th className="py-2 px-3 border border-white/10 text-neon-coral">60°</th>
+              <th className="py-2 px-3 border border-white/10 text-neon-coral">90°</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-300">
+            <tr>
+              <td className="py-2 px-3 border border-white/10 font-bold text-white">sin θ</td>
+              <td className="py-2 px-3 border border-white/10">0</td>
+              <td className="py-2 px-3 border border-white/10">1/2</td>
+              <td className="py-2 px-3 border border-white/10">1/√2</td>
+              <td className="py-2 px-3 border border-white/10">√3/2</td>
+              <td className="py-2 px-3 border border-white/10">1</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 border border-white/10 font-bold text-white">cos θ</td>
+              <td className="py-2 px-3 border border-white/10">1</td>
+              <td className="py-2 px-3 border border-white/10">√3/2</td>
+              <td className="py-2 px-3 border border-white/10">1/√2</td>
+              <td className="py-2 px-3 border border-white/10">1/2</td>
+              <td className="py-2 px-3 border border-white/10">0</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 border border-white/10 font-bold text-white">tan θ</td>
+              <td className="py-2 px-3 border border-white/10">0</td>
+              <td className="py-2 px-3 border border-white/10">1/√3</td>
+              <td className="py-2 px-3 border border-white/10">1</td>
+              <td className="py-2 px-3 border border-white/10">√3</td>
+              <td className="py-2 px-3 border border-white/10 text-gray-500 italic">Not defined</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  );
 }
 
 // Full Widget Registry
