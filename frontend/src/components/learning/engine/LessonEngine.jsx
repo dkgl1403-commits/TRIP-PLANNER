@@ -91,7 +91,7 @@ function LessonEngine({ topicId, user, onBack }) {
   const isInteractiveStory = currentPart.widgetType && currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet';
 
   return (
-    <div className="h-screen bg-black text-white font-sans flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-black text-white font-sans flex flex-col overflow-hidden">
       
       {/* Top Progress Bar Line */}
       <div className="w-full h-1 bg-gray-900">
