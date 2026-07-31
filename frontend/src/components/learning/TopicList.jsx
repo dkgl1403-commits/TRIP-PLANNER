@@ -6,6 +6,7 @@ function TopicList({ user, subjectId, onBack }) {
   const [progressData, setProgressData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTopicId, setSelectedTopicId] = useState(null);
+  const [startAtQuiz, setStartAtQuiz] = useState(false);
 
   useEffect(() => {
     // Fetch Topics
@@ -42,9 +43,11 @@ function TopicList({ user, subjectId, onBack }) {
     return (
       <LessonEngine 
         topicId={selectedTopicId} 
+        startAtQuiz={startAtQuiz}
         user={user} 
         onBack={() => {
           setSelectedTopicId(null);
+          setStartAtQuiz(false);
           // Refresh progress when coming back
           if (user && user.login_id) {
             fetch(`/api/learning/progress/${user.login_id}`)
@@ -100,7 +103,17 @@ function TopicList({ user, subjectId, onBack }) {
                     <span className="px-3 py-1 rounded-full bg-surface-variant text-xs font-bold text-on-surface-variant border border-white/5">
                       {boardText}
                     </span>
-                    {!isWip && <span className="material-symbols-outlined text-neon-coral mt-2">play_circle</span>}
+                    {!isWip && (
+                      <div className="flex gap-2 mt-2">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedTopicId(topic.id); setStartAtQuiz(true); }}
+                          className="px-3 py-1 bg-surface-variant hover:bg-neon-purple text-white rounded-full text-xs font-bold transition-colors border border-white/10"
+                        >
+                          Jump to Quiz
+                        </button>
+                        <span className="material-symbols-outlined text-neon-coral">play_circle</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {/* Progress Bar */}

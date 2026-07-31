@@ -4,7 +4,7 @@ import { AudioNarrator } from './AudioNarrator';
 import { MiniChallenge } from './MiniChallenge';
 import confetti from 'canvas-confetti';
 
-function LessonEngine({ topicId, user, onBack }) {
+function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPartIdx, setCurrentPartIdx] = useState(0);
@@ -20,6 +20,13 @@ function LessonEngine({ topicId, user, onBack }) {
             try { parsedConfig = JSON.parse(parsedConfig); } catch (e) { console.error("Parse error", e); }
           }
           setConfig(parsedConfig);
+          
+          if (startAtQuiz && parsedConfig && parsedConfig.parts) {
+            const quizIdx = parsedConfig.parts.findIndex(p => p.widgetType === 'MCQEngine');
+            if (quizIdx !== -1) {
+              setCurrentPartIdx(quizIdx);
+            }
+          }
         }
         setLoading(false);
       })
@@ -27,7 +34,7 @@ function LessonEngine({ topicId, user, onBack }) {
         console.error("Error fetching config:", err);
         setLoading(false);
       });
-  }, [topicId]);
+  }, [topicId, startAtQuiz]);
 
   const updateProgress = (percentage, completed) => {
     if (user && user.login_id) {
