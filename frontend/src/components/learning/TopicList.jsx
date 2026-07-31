@@ -60,15 +60,24 @@ function TopicList({ user, subjectId, onBack }) {
   }
 
   return (
-    <div className="px-6 pb-6 pt-28 md:px-8 md:pb-8 md:pt-32 max-w-5xl mx-auto min-h-screen text-on-surface">
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors">
-          <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+    <>
+      {/* Sub-header for Back Navigation */}
+      <div className="fixed top-20 left-0 right-0 h-16 bg-surface-container/90 backdrop-blur-md border-b border-glass-stroke z-30 flex items-center px-6 md:px-8 shadow-sm">
+        <button 
+          onClick={onBack} 
+          className="flex items-center gap-2 text-on-surface-variant hover:text-neon-coral transition-colors p-2 -ml-2 rounded-lg hover:bg-white/5"
+        >
+          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="font-title-md font-medium tracking-wide">Back to Subjects</span>
         </button>
-        <h1 className="font-display-lg text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple">
-          Topics
-        </h1>
       </div>
+
+      <div className="px-6 pb-6 pt-44 md:px-8 md:pb-8 md:pt-48 max-w-5xl mx-auto min-h-screen text-on-surface">
+        <div className="flex items-center mb-8">
+          <h1 className="font-display-lg text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple">
+            Topics
+          </h1>
+        </div>
 
       {loading ? (
         <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neon-coral"></div></div>
@@ -128,6 +137,7 @@ function TopicList({ user, subjectId, onBack }) {
         </div>
       )}
     </div>
+    </>
   );
 }
 
