@@ -62,10 +62,11 @@ function TopicList({ user, subjectId, onBack }) {
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto min-h-screen pt-24 text-on-surface">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={onBack} className="p-2 bg-surface-variant text-on-surface-variant rounded-full hover:bg-neon-coral hover:text-surface transition-colors shadow-lg shadow-black/5">
+        <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 bg-surface-variant text-on-surface-variant rounded-full hover:bg-neon-coral hover:text-surface transition-colors shadow-lg shadow-black/5 font-bold">
           <span className="material-symbols-outlined">arrow_back</span>
+          <span>Back to Subjects</span>
         </button>
-        <h1 className="font-display-lg text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple">
+        <h1 className="font-display-lg text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple ml-4">
           Topics
         </h1>
       </div>
