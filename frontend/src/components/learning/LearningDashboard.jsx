@@ -41,10 +41,10 @@ function LearningDashboard({ user, onBack }) {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto min-h-screen pt-24 text-on-surface">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto min-h-screen pt-28 text-on-surface">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={onBack} className="p-2 bg-surface-variant text-on-surface-variant rounded-full hover:bg-neon-coral hover:text-surface transition-colors shadow-lg shadow-black/5">
-          <span className="material-symbols-outlined">arrow_back</span>
+        <button onClick={onBack} className="bg-transparent border-none text-neon-coral cursor-pointer flex items-center p-2 hover:bg-white/5 rounded-full transition-colors">
+          <span className="material-symbols-outlined text-[24px]">arrow_back</span>
         </button>
         <h1 className="font-display-lg text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-coral to-neon-purple">
           Learning Center
