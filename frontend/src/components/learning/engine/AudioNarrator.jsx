@@ -35,8 +35,14 @@ export function AudioNarrator({ text, language = 'en' }) {
     // Select appropriate voice based on language
     if (voices.length > 0) {
       if (language === 'hi') {
-        const hindiVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN'));
+        const hindiVoice = voices.find(v => v.lang === 'hi-IN' || v.lang === 'hi') 
+                        || voices.find(v => v.name.toLowerCase().includes('hindi'))
+                        || voices.find(v => v.lang.includes('IN')); // Absolute fallback
         if (hindiVoice) newUtterance.voice = hindiVoice;
+        
+        // Trick for Hinglish written in Latin: Set the lang attribute explicitly
+        // This forces some engines (like Google Chrome's) to use Hindi phonetics
+        newUtterance.lang = 'hi-IN';
       } else {
         const englishVoice = voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en-US'));
         if (englishVoice) newUtterance.voice = englishVoice;
