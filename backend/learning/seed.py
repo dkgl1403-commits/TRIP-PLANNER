@@ -2,6 +2,7 @@ import os
 import sys
 import json
 from db import SessionLocal, LearningClass, LearningSubject, LearningTopic, init_db
+from seed_real_numbers import seed_real_numbers
 
 def seed_trigonometry():
     init_db()
@@ -595,3 +596,4 @@ def seed_curriculum():
 if __name__ == "__main__":
     seed_curriculum()
     seed_trigonometry()
+    seed_real_numbers()
