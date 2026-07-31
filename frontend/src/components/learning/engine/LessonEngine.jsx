@@ -144,10 +144,10 @@ function LessonEngine({ topicId, user, onBack }) {
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!currentPart.widgetType || isInteractiveStory) && (
-          <div className="w-full lg:w-1/2 px-4 pt-4 pb-4 lg:px-8 lg:pt-6 lg:pb-6 xl:px-12 xl:pt-8 xl:pb-8 flex flex-col justify-start overflow-y-auto border-r border-white/5 bg-gray-900/20">
+          <div className="w-full lg:w-1/2 px-4 pt-0 pb-4 lg:px-8 lg:pt-0 lg:pb-6 xl:px-12 xl:pt-0 xl:pb-8 flex flex-col justify-start overflow-y-auto border-r border-white/5 bg-gray-900/20">
             <div className="max-w-2xl mx-auto w-full">
               
-              <h1 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-1 leading-tight py-1">
+              <h1 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-1 leading-normal pt-2 pb-1">
                 {currentPart.title}
               </h1>
               
