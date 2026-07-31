@@ -101,16 +101,16 @@ function LessonEngine({ topicId, user, onBack }) {
       </div>
 
       {/* Top Navigation Header */}
-      <div className="w-full p-2 lg:p-3 flex justify-between items-center border-b border-white/10 bg-black/50 sticky top-0 z-50 backdrop-blur-md">
+      <div className="w-full px-2 py-1 lg:px-3 lg:py-2 flex justify-between items-center border-b border-white/10 bg-black/50 sticky top-0 z-50 backdrop-blur-md">
         <button 
           onClick={onBack} 
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300 text-sm"
         >
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <span className="material-symbols-outlined text-base">arrow_back</span>
           <span className="hidden sm:inline">Exit Lesson</span>
         </button>
         
-        <div className="text-gray-400 font-medium tracking-wide">
+        <div className="text-gray-400 font-medium tracking-wide text-sm">
           Step {currentPartIdx + 1} of {config.parts.length} <span className="mx-2 opacity-50">•</span> <span className="text-neon-coral">{progressPercent}%</span>
         </div>
 
@@ -124,10 +124,10 @@ function LessonEngine({ topicId, user, onBack }) {
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!currentPart.widgetType || isInteractiveStory) && (
-          <div className="w-full lg:w-1/2 p-4 lg:p-6 xl:p-8 flex flex-col justify-start overflow-y-auto border-r border-white/5 bg-gray-900/20">
+          <div className="w-full lg:w-1/2 p-2 lg:p-4 xl:p-6 flex flex-col justify-start overflow-y-auto border-r border-white/5 bg-gray-900/20">
             <div className="max-w-2xl mx-auto w-full">
               
-              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-2 leading-tight">
+              <h1 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-2 leading-tight">
                 {currentPart.title}
               </h1>
               
@@ -170,19 +170,19 @@ function LessonEngine({ topicId, user, onBack }) {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="w-full p-3 flex justify-between items-center border-t border-white/10 bg-black/80 z-40">
+      <div className="w-full px-3 py-2 flex justify-between items-center border-t border-white/10 bg-black/80 z-40">
         <button 
           onClick={handlePrev} 
           disabled={currentPartIdx === 0}
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-base font-medium text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-0 transition-all"
+          className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-0 transition-all"
         >
-          <span className="material-symbols-outlined">arrow_left_alt</span>
+          <span className="material-symbols-outlined text-base">arrow_left_alt</span>
           Previous
         </button>
         
         <button 
           onClick={handleNext}
-          className="flex items-center gap-2 px-6 py-2 bg-neon-coral text-white text-lg font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
+          className="flex items-center gap-2 px-4 py-1.5 bg-neon-coral text-white text-base font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
         >
           {isFinalScene ? 'Finish Lesson' : 'Next Step'}
           <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
