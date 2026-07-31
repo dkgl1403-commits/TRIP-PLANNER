@@ -226,7 +226,7 @@ export function IrrationalityProofExplorer() {
             disabled={step === proofSteps.length - 1}
             className="px-6 py-2 bg-neon-coral text-surface font-bold rounded-lg disabled:opacity-50"
           >
-            {step === proofSteps.length - 1 ? "Proof Complete" : "Next Step"}
+            {step === proofSteps.length - 1 ? "Proof Complete" : "Reveal Next Logic Step"}
           </button>
         </div>
       </div>

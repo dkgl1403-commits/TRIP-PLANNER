@@ -220,7 +220,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
           onClick={handleNext}
           className="flex items-center gap-2 px-4 py-1.5 bg-neon-coral text-white text-base font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
         >
-          {isFinalScene ? 'Finish Lesson' : 'Next Step'}
+          {isFinalScene ? 'Finish Lesson' : 'Continue'}
           <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
         </button>
       </div>
