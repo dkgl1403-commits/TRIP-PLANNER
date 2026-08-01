@@ -517,7 +517,7 @@ export function RealWorldApplicationsWidget() {
             setIsPlaying(false);
             return maxTime;
           }
-          return prev + 0.5; // speed of simulation
+          return prev + 0.1; // slower speed of simulation
         });
       });
     }
@@ -579,18 +579,23 @@ export function RealWorldApplicationsWidget() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-4 mt-4 justify-center">
                   <button 
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className={`flex-1 py-2 rounded-lg font-bold text-surface ${isPlaying ? 'bg-gray-400' : 'bg-neon-coral'}`}
+                    disabled={lcmTime >= maxTime}
+                    className={`w-12 h-12 flex items-center justify-center rounded-full text-surface transition-all ${isPlaying ? 'bg-gray-400' : lcmTime >= maxTime ? 'bg-green-400' : 'bg-neon-coral shadow-lg shadow-neon-coral/30 hover:scale-105'}`}
+                    title={isPlaying ? 'Pause' : lcmTime >= maxTime ? 'Done' : 'Play Simulation'}
                   >
-                    {isPlaying ? 'Pause' : lcmTime >= maxTime ? 'Done' : 'Play Simulation'}
+                    <span className="material-symbols-outlined text-2xl">
+                      {isPlaying ? 'pause' : lcmTime >= maxTime ? 'done' : 'play_arrow'}
+                    </span>
                   </button>
                   <button 
                     onClick={resetSimulation}
-                    className="px-4 py-2 bg-surface-variant text-white rounded-lg hover:bg-white/10"
+                    className="w-12 h-12 flex items-center justify-center bg-surface-variant text-white rounded-full hover:bg-white/10 transition-all active:rotate-180"
+                    title="Reset Simulation"
                   >
-                    Reset
+                    <span className="material-symbols-outlined text-xl">refresh</span>
                   </button>
                 </div>
               </div>
@@ -612,9 +617,7 @@ export function RealWorldApplicationsWidget() {
                   })}
                 </svg>
                 {lcmTime >= maxTime && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full animate-fade-in backdrop-blur-sm">
-                    <div className="text-4xl font-bold text-neon-coral mb-2">SYNC!</div>
-                  </div>
+                  <div className="absolute inset-0 rounded-full shadow-[0_0_50px_rgba(74,222,128,0.4)] border-4 border-green-500/50 animate-pulse pointer-events-none z-10"></div>
                 )}
               </div>
             </div>
