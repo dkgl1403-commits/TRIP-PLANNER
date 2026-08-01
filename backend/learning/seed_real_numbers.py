@@ -29,6 +29,16 @@ def seed_real_numbers():
         config = {
             "parts": [
                 {
+                    "title": "Memory Sync: The Mathematical Journey",
+                    "readingTime": "Interactive Flashback",
+                    "narrative": "<p>Welcome to Class 10! Before we face the final Boss Fight of the Real Numbers chapter, we need to make sure your weapons are sharp.</p><p>You've been building up to this moment since Class 6. Every rule you learned was just a tool you will now combine.</p><p>Let's do a quick <strong>Memory Sync</strong> to remember the laws of math and the number systems you've unlocked over the years.</p>",
+                    "audioText": "Welcome to Class 10! Before we face the final Boss Fight of the Real Numbers chapter, we need to make sure your weapons are sharp. You've been building up to this moment since Class 6. Let's do a quick Memory Sync to remember the laws of math and the number systems you've unlocked over the years.",
+                    "audioTextHinglish": "Class 10 me swagat hai! Real Numbers chapter ki final Boss Fight se pehle, humein apne hathiyar sharp karne honge. Aap Class 6 se is pal ki taiyari kar rahe hain. Chaliye ek quick Memory Sync karte hain taaki pichle saalo me padhe hue math ke laws yaad aa jayein.",
+                    "keyInsight": "Mathematics is a continuous story. Every concept from Class 6 to 9 builds the foundation for Class 10.",
+                    "widgetType": "MemorySyncWidget",
+                    "widgetData": {}
+                },
+                {
                     "title": "The Quest for Precision: Measuring the Incommensurable",
                     "readingTime": "~3 min read",
                     "narrative": "<p>Long ago in ancient Greece, mathematicians believed that the universe was built entirely on whole numbers and their ratios (fractions). To them, numbers were perfect.</p><p>If you wanted to measure a distance, you could always express it as a simple fraction like 3/4 or 17/5. Everything was <strong>rational</strong>.</p><p>But then, they tried to measure the diagonal of a simple 1x1 square. According to Pythagoras' theorem, the diagonal's length is <strong>&radic;2</strong>.</p><p>They tried for years to find a fraction that exactly equaled &radic;2. They failed. Why? Because &radic;2 cannot be written as a fraction. It is <strong>incommensurable</strong>. It was a mathematical scandal that shattered their worldview.</p>",

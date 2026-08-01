@@ -1,5 +1,132 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// 0. Memory Sync (Prerequisites)
+export function MemorySyncWidget() {
+  const [activeLevel, setActiveLevel] = useState(0);
+
+  const levels = [
+    {
+      grade: "Class 6",
+      title: "The Foundations",
+      color: "from-green-500/20 to-emerald-500/10",
+      border: "border-green-500/50",
+      text: "text-green-400",
+      topics: [
+        { name: "Prime & Composite Numbers", desc: "The discovery of 'indestructible' numbers." },
+        { name: "HCF & LCM", desc: "Calculating them for the very first time using factor trees." },
+        { name: "Integers", desc: "The concept of zero and negative numbers." }
+      ],
+      hook: "The 'Caveman & Merchant' level: basic counting, sharing, and debts."
+    },
+    {
+      grade: "Class 7",
+      title: "The Rules of the Game",
+      color: "from-yellow-500/20 to-orange-500/10",
+      border: "border-yellow-500/50",
+      text: "text-yellow-400",
+      topics: [
+        { name: "Properties of Integers", desc: "The 'Laws of Math'—Closure, Commutative (a+b = b+a), Associative, and Distributive properties." }
+      ],
+      hook: "Math isn't random; it has a strict physics engine (rules) you cannot break."
+    },
+    {
+      grade: "Class 8",
+      title: "The Builder",
+      color: "from-orange-500/20 to-red-500/10",
+      border: "border-orange-500/50",
+      text: "text-orange-400",
+      topics: [
+        { name: "Rational Numbers Defined", desc: "Numbers that can be written as p/q (where q is not zero)." },
+        { name: "Fractions as Rules", desc: "Applying the Commutative, Associative, and Distributive rules to fractions." },
+        { name: "Infinite Density", desc: "Proving that between any two fractions, there are infinite other fractions." }
+      ],
+      hook: "Building blocks for more complex equations."
+    },
+    {
+      grade: "Class 9",
+      title: "The Discovery of Chaos",
+      color: "from-red-500/20 to-pink-500/10",
+      border: "border-red-500/50",
+      text: "text-red-400",
+      topics: [
+        { name: "Irrational Numbers", desc: "The plot twist! Rational Numbers don't fill up the whole number line (e.g., √2, π)." },
+        { name: "Real Numbers Formed", desc: "Real Numbers = All Rational + All Irrational Numbers." },
+        { name: "Rationalizing", desc: "Cleaning up messy fractions that have roots at the bottom (e.g. 1/√2)." },
+        { name: "Laws of Exponents", desc: "Rules for multiplying and dividing powers." }
+      ],
+      hook: "The realization that math is deeper and stranger than just fractions."
+    },
+    {
+      grade: "Class 10",
+      title: "The Boss Fight",
+      color: "from-neon-purple/20 to-neon-coral/10",
+      border: "border-neon-purple/50",
+      text: "text-neon-purple",
+      topics: [
+        { name: "Fundamental Theorem of Arithmetic", desc: "Taking simple LCM/HCF concepts from Class 6 and elevating them to advanced problem-solving tools." },
+        { name: "Proofs of Irrationality", desc: "Taking the irrationals discovered in Class 9 and formally proving them using Proof by Contradiction." }
+      ],
+      hook: "Everything you've learned culminates right here. Ready?"
+    }
+  ];
+
+  return (
+    <div className="w-full max-w-5xl mx-auto mt-6 flex flex-col md:flex-row gap-6">
+      {/* Sidebar Navigation */}
+      <div className="w-full md:w-1/3 flex flex-col gap-3">
+        {levels.map((lvl, idx) => (
+          <button 
+            key={idx}
+            onClick={() => setActiveLevel(idx)}
+            className={`p-4 rounded-xl border text-left transition-all duration-300 ${activeLevel === idx ? \`bg-gradient-to-r \${lvl.color} \${lvl.border} shadow-lg\` : 'bg-surface/50 border-white/5 hover:bg-surface'}`}
+          >
+            <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${activeLevel === idx ? lvl.text : 'text-gray-500'}`}>{lvl.grade}</div>
+            <div className={`font-bold text-lg ${activeLevel === idx ? 'text-white' : 'text-gray-400'}`}>{lvl.title}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Content Area */}
+      <div className={`w-full md:w-2/3 bg-gradient-to-br ${levels[activeLevel].color} rounded-2xl p-8 border ${levels[activeLevel].border} relative overflow-hidden transition-all duration-500 shadow-2xl`}>
+        <div className={`absolute -bottom-10 -right-10 text-[12rem] opacity-[0.03] font-black ${levels[activeLevel].text}`}>
+          {activeLevel + 6}
+        </div>
+        
+        <h3 className={`text-3xl font-bold mb-8 ${levels[activeLevel].text}`}>{levels[activeLevel].title}</h3>
+        
+        <div className="space-y-4 mb-10 relative z-10">
+          {levels[activeLevel].topics.map((topic, i) => (
+            <div key={i} className="bg-black/40 p-5 rounded-xl border border-white/10 backdrop-blur-sm">
+              <div className={`font-bold text-lg ${levels[activeLevel].text} mb-1`}>{topic.name}</div>
+              <div className="text-gray-300">{topic.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-black/60 p-5 rounded-xl border border-white/5 relative z-10">
+          <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">The Takeaway</div>
+          <div className="text-white text-base italic leading-relaxed">"{levels[activeLevel].hook}"</div>
+        </div>
+        
+        {activeLevel < levels.length - 1 && (
+          <button 
+            onClick={() => setActiveLevel(activeLevel + 1)}
+            className={`mt-8 w-full py-4 rounded-xl bg-black/50 hover:bg-black/80 border border-white/10 text-white font-bold transition-all flex items-center justify-center gap-2 group`}
+          >
+            Unlock Next Level 
+            <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+          </button>
+        )}
+        
+        {activeLevel === levels.length - 1 && (
+          <div className="mt-8 w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-neon-coral text-surface font-bold text-center text-lg shadow-[0_0_20px_rgba(182,102,210,0.5)]">
+            Memory Sync Complete! You are ready for Class 10.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 // 1. History of Irrationality (Visual panel)
 export function HistoryOfIrrationality() {
   return (
