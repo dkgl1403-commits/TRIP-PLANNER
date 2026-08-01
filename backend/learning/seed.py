@@ -2,10 +2,10 @@ import os
 import sys
 import json
 from db import SessionLocal, LearningClass, LearningSubject, LearningTopic, init_db
-from seed_real_numbers import seed_real_numbers
-from seed_number_system_class9 import seed_number_system_class9
-from seed_number_system_class8_part1 import seed_number_system_class8_part1
-from seed_trigonometry import seed_trigonometry
+from learning.seed_real_numbers import seed_real_numbers
+from learning.seed_number_system_class9 import seed_number_system_class9
+from learning.seed_number_system_class8_part1 import seed_number_system_class8_part1
+from learning.seed_trigonometry import seed_trigonometry
 
 def seed_trigonometry():
     init_db()
