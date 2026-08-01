@@ -30,9 +30,19 @@ def seed_ai_masterclass_part8():
                     "widgetData": {}
                 },
                 {
+                    "title": "Turning Words into Math (Embeddings)",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>Before an AI can read text, it must first convert it into math. Neural Networks only understand numbers, not English.</p><p>First, the AI chops words into smaller pieces called <strong>Tokens</strong>. For example, \"hamburger\" might become \"ham\" and \"burger\".</p><p>Next, it translates each token into a <strong>Vector</strong> (a list of numbers) called an <strong>Embedding</strong>. You can think of an Embedding as plotting the word on a massive, multi-dimensional map. Words with similar meanings (like \"Dog\" and \"Cat\") are plotted very close to each other on this map, while \"Dog\" and \"Car\" are far apart. This is how the AI mathematically understands the \"definition\" of a word!</p>",
+                    "audioText": "Before AI can read, it must turn words into math. It chops words into pieces called tokens, and translates them into lists of numbers called embeddings. Think of embeddings like plotting words on a map. Words with similar meanings, like dog and cat, are plotted close together. This is how AI understands definitions.",
+                    "audioTextHinglish": "Padhne se pehle, AI ko words ko math mein badalna padta hai. Woh words ko chote tukdon mein todta hai jinhe tokens kehte hain, aur phir unhe numbers ki list mein badalta hai jise embeddings kehte hain. Yeh ek map par words ko plot karne jaisa hai. 'Dog' aur 'Cat' jaise similar words ek doosre ke kareeb hote hain.",
+                    "keyInsight": "AI understands meaning by plotting words on a mathematical map (Embeddings).",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "Attention Is All You Need (2017)",
                     "readingTime": "~2 min read",
-                    "narrative": "<p>In 2017, a team of researchers at Google published a paper titled <em>\"Attention Is All You Need\"</em>. It is arguably the most important AI paper of the 21st century.</p><p>They invented a new architecture called the <strong>Transformer</strong>. Instead of reading a sentence one word at a time, the Transformer reads <em>every single word in the entire document at the exact same time</em>.</p><p>Because it reads everything at once, it is incredibly fast (perfect for GPUs). But how does it know which words are connected? It uses something called the <strong>Self-Attention Mechanism</strong>.</p>",
+                    "narrative": "<p>In 2017, a team of researchers at Google published a paper titled <em>\"Attention Is All You Need\"</em>. It is arguably the most important AI paper of the 21st century.</p><p>They invented a new architecture called the <strong>Transformer</strong>. Once words are converted into Embeddings, instead of reading them one at a time, the Transformer reads <em>every single embedding in the entire document at the exact same time</em>.</p><p>Because it reads everything at once, it is incredibly fast (perfect for GPUs). But because it reads them all at once, it loses the sequential order of the sentence. How does it know which words are connected to which? It uses something called the <strong>Self-Attention Mechanism</strong>.</p>",
                     "audioText": "In 2017, Google researchers invented the Transformer architecture. Instead of reading word by word, it reads the entire document at the exact same time. This made it incredibly fast. To understand grammar, it uses the Self-Attention mechanism.",
                     "audioTextHinglish": "2017 mein, Google ke researchers ne Transformer architecture banaya. Word by word padhne ke bajaye, yeh poore document ko ek hi time par padhta hai. Yeh bahut fast tha. Grammar samajhne ke liye, yeh Self-Attention mechanism ka use karta hai.",
                     "keyInsight": "Transformers process all words simultaneously instead of sequentially.",
@@ -59,6 +69,11 @@ def seed_ai_masterclass_part8():
                     "widgetType": "MCQEngine",
                     "widgetData": {
                         "questions": [
+                            {
+                                "q": "What is an Embedding?",
+                                "options": ["A way to chop words into pieces", "A list of numbers (a vector) that represents the mathematical meaning of a word", "The final layer of the network", "A type of recurrent neural network"],
+                                "correct": 1
+                            },
                             {
                                 "q": "What was the main problem with older language AI (like RNNs)?",
                                 "options": ["They were too fast", "They read word-by-word and forgot the beginning of the sentence", "They couldn't process images", "They hallucinated too much"],
