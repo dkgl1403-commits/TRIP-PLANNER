@@ -126,6 +126,179 @@ def seed_number_system_class9():
                     "keyInsight": "The denominator of a fractional exponent tells you the 'root', and the numerator tells you the 'power'.",
                     "widgetType": None,
                     "widgetData": {}
+                },
+                {
+                    "title": "Board Exam Vault: Solved Examples",
+                    "readingTime": "Practice",
+                    "narrative": "<p>Now that you've mastered the concepts of the Number System, it's time to put your knowledge to the test. Let's walk through 10 essential questions that cover everything from rationalizing denominators to laws of exponents.</p>",
+                    "audioText": "Now that you've mastered the concepts of the Number System, it's time to put your knowledge to the test. Let's walk through 10 essential questions that cover everything from rationalizing denominators to laws of exponents.",
+                    "audioTextHinglish": "Ab jab apne Number System ke concepts samajh liye hain, chaliye inko test karte hain. 10 important questions solve karke dekhte hain jisme sab kuch cover hoga.",
+                    "keyInsight": "Step-by-step problem solving solidifies your conceptual understanding.",
+                    "widgetType": "BoardSolvedExamples",
+                    "widgetData": {
+                        "examples": [
+                            {
+                                "year": "NCERT",
+                                "q": "Find three rational numbers between 3/5 and 4/5.",
+                                "steps": [
+                                    "Multiply the numerator and denominator of both fractions by 4 (since we need 3 numbers, n+1 = 4).",
+                                    "3/5 = (3*4)/(5*4) = 12/20 and 4/5 = (4*4)/(5*4) = 16/20.",
+                                    "The rational numbers between them are 13/20, 14/20, and 15/20."
+                                ]
+                            },
+                            {
+                                "year": "NCERT",
+                                "q": "Is zero a rational number? Can you write it in the form p/q?",
+                                "steps": [
+                                    "Yes, zero is a rational number.",
+                                    "It can be written as 0/1, 0/2, 0/5, etc.",
+                                    "Here p = 0 and q is any non-zero integer, satisfying the condition for rational numbers (q ≠ 0)."
+                                ]
+                            },
+                            {
+                                "year": "Concept",
+                                "q": "State whether true or false: Every real number is an irrational number.",
+                                "steps": [
+                                    "False.",
+                                    "Real numbers are made up of BOTH rational and irrational numbers.",
+                                    "For example, 2 is a real number but it is a rational number, not irrational."
+                                ]
+                            },
+                            {
+                                "year": "CBSE 2018",
+                                "q": "Express 0.333... in the form p/q.",
+                                "steps": [
+                                    "Let x = 0.333... (Equation 1)",
+                                    "Multiply by 10 (since 1 digit repeats): 10x = 3.333... (Equation 2)",
+                                    "Subtract Eq 1 from Eq 2: 9x = 3.",
+                                    "Therefore, x = 3/9 = 1/3."
+                                ]
+                            },
+                            {
+                                "year": "CBSE 2019",
+                                "q": "Represent \u221A3 on the number line.",
+                                "steps": [
+                                    "First construct \u221A2 by drawing a right triangle with base 1 and height 1. The hypotenuse is \u221A2.",
+                                    "Draw a perpendicular of length 1 unit at the end of the \u221A2 hypotenuse.",
+                                    "Join the center to the new point. The new hypotenuse is \u221A((\u221A2)\u00b2 + 1\u00b2) = \u221A3.",
+                                    "Use a compass to drop an arc to the number line."
+                                ]
+                            },
+                            {
+                                "year": "Concept",
+                                "q": "Check if (2 + \u221A3) + (2 - \u221A3) is rational or irrational.",
+                                "steps": [
+                                    "Add the terms: 2 + \u221A3 + 2 - \u221A3",
+                                    "The +\u221A3 and -\u221A3 cancel out.",
+                                    "Result = 4.",
+                                    "4 is a rational number."
+                                ]
+                            },
+                            {
+                                "year": "CBSE 2020",
+                                "q": "Rationalize the denominator of 1 / (7 + 3\u221A2).",
+                                "steps": [
+                                    "Multiply the numerator and denominator by the conjugate: (7 - 3\u221A2).",
+                                    "Numerator: 1 * (7 - 3\u221A2) = 7 - 3\u221A2.",
+                                    "Denominator: (7 + 3\u221A2)(7 - 3\u221A2) = 7\u00b2 - (3\u221A2)\u00b2 = 49 - 18 = 31.",
+                                    "Final Answer: (7 - 3\u221A2) / 31."
+                                ]
+                            },
+                            {
+                                "year": "NCERT",
+                                "q": "Simplify: (64)^(1/2).",
+                                "steps": [
+                                    "The fractional exponent 1/2 means the square root.",
+                                    "\u221A64 = 8.",
+                                    "Alternatively, write 64 as 8\u00b2. Then (8\u00b2)^(1/2) = 8\u00b9 = 8."
+                                ]
+                            },
+                            {
+                                "year": "Concept",
+                                "q": "Simplify: (125)^(-1/3).",
+                                "steps": [
+                                    "Write 125 as 5\u00b3.",
+                                    "Expression becomes (5\u00b3)^(-1/3).",
+                                    "Multiply exponents: 3 * (-1/3) = -1.",
+                                    "5^(-1) = 1/5."
+                                ]
+                            },
+                            {
+                                "year": "CBSE 2022",
+                                "q": "Find the value of x if 2^(x-5) * 5^(x-4) = 5.",
+                                "steps": [
+                                    "Rewrite 5 on the RHS as 2\u2070 * 5\u00b9.",
+                                    "So, 2^(x-5) * 5^(x-4) = 2\u2070 * 5\u00b9.",
+                                    "Compare the powers of 2: x - 5 = 0 \u21d2 x = 5.",
+                                    "Compare the powers of 5: x - 4 = 1 \u21d2 x = 5.",
+                                    "The value is x = 5."
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "title": "Mastery Quiz",
+                    "readingTime": "10 Questions",
+                    "narrative": "<p>You have reached the final challenge. Test your understanding of the Number System with this interactive quiz.</p>",
+                    "audioText": "You have reached the final challenge. Test your understanding of the Number System with this interactive quiz. Good luck!",
+                    "audioTextHinglish": "Aap aakhri challenge par pahunch gaye hain. Is interactive quiz se apna knowledge test karein. Best of luck!",
+                    "keyInsight": "Self-assessment is the key to true mastery.",
+                    "widgetType": "MCQEngine",
+                    "widgetData": {
+                        "questions": [
+                            {
+                                "q": "Which of the following is an irrational number?",
+                                "options": ["\u221A4", "3.1416", "\u221A12", "0.333..."],
+                                "correct": 2
+                            },
+                            {
+                                "q": "The decimal expansion of an irrational number is:",
+                                "options": ["Terminating", "Non-terminating and repeating", "Non-terminating and non-repeating", "None of the above"],
+                                "correct": 2
+                            },
+                            {
+                                "q": "Between any two rational numbers, there are:",
+                                "options": ["Exactly two rational numbers", "Infinitely many rational numbers", "No rational numbers", "Only irrational numbers"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "Which of the following is equal to x?",
+                                "options": ["x^(12/7) - x^(5/7)", "(x^4)^(1/3)", "(\u221Ax\u00b3)^(2/3)", "x^(12/7) * x^(7/12)"],
+                                "correct": 2
+                            },
+                            {
+                                "q": "The rationalizing factor of \u221A3 + \u221A2 is:",
+                                "options": ["\u221A3 - \u221A2", "\u221A3 + \u221A2", "\u221A6", "3 - 2"],
+                                "correct": 0
+                            },
+                            {
+                                "q": "Every rational number is a:",
+                                "options": ["Whole number", "Natural number", "Integer", "Real number"],
+                                "correct": 3
+                            },
+                            {
+                                "q": "Value of (256)^(0.16) * (256)^(0.09) is:",
+                                "options": ["4", "16", "64", "256.25"],
+                                "correct": 0
+                            },
+                            {
+                                "q": "If \u221A10 = 3.162, then the value of 1/\u221A10 is:",
+                                "options": ["0.3162", "3.162", "31.62", "0.03162"],
+                                "correct": 0
+                            },
+                            {
+                                "q": "What is the product of a non-zero rational number and an irrational number?",
+                                "options": ["Always rational", "Always irrational", "Sometimes rational, sometimes irrational", "An integer"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "The number 1.101001000100001... is:",
+                                "options": ["A natural number", "A rational number", "An irrational number", "A whole number"],
+                                "correct": 2
+                            }
+                        ]
+                    }
                 }
             ]
         }
