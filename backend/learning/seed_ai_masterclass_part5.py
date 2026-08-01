@@ -20,6 +20,36 @@ def seed_ai_masterclass_part5():
         config = {
             "parts": [
                 {
+                    "title": "The Credit Assignment Problem",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>By the 1970s, scientists knew how to build a basic neural network. They knew that when the AI made a prediction, it would usually be wrong, producing an <strong>Error</strong>.</p><p>But they faced an impossible hurdle: <em>The Credit Assignment Problem</em>. If an AI has 3 hidden layers and 10,000 weights (volume knobs), and it outputs the wrong answer, which of those 10,000 knobs is at fault? Who gets the blame?</p><p>Because they couldn't figure out how to assign blame to the hidden layers, they couldn't update the weights. The AI couldn't learn. This limitation directly caused the Second AI Winter, where funding dried up and neural networks were abandoned as a failure.</p>",
+                    "audioText": "In the 1970s, scientists faced the Credit Assignment Problem. When a neural network made a mistake, no one knew which of its thousands of internal weights was responsible. Because they couldn't assign blame, the AI couldn't learn. This failure caused the Second AI Winter.",
+                    "audioTextHinglish": "1970s mein, scientists ke saamne Credit Assignment Problem thi. Jab neural network galati karta tha, toh kisi ko nahi pata hota tha ki uski hazaro internal weights mein se kaunsi weight zimmedar hai. AI seekh nahi paaya, jiski wajah se Second AI Winter shuru hua.",
+                    "keyInsight": "An AI cannot learn if it doesn't know which part of its brain made the mistake.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "The 1986 Breakthrough",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>In 1986, three researchers—Geoffrey Hinton, David Rumelhart, and Ronald Williams—published a paper that would change the world. They didn't invent new math; instead, they looked back to a 17th-century mathematical tool: <strong>Calculus</strong>.</p><p>Specifically, they realized they could use the <em>Chain Rule</em> from calculus. The Chain Rule allows you to calculate the derivative (slope) of nested functions. Since a neural network is just layers of nested math functions, the Chain Rule was the perfect key.</p><p>They created an algorithm called <strong>Backpropagation</strong> (Backward Propagation of Errors). For the first time, an AI could calculate the final Error, and then pass that error <em>backwards</em> through the network, using Calculus to tell every single weight exactly how much of the blame it deserved.</p>",
+                    "audioText": "In 1986, researchers Geoffrey Hinton, David Rumelhart, and Ronald Williams solved the problem. They realized they could use the Chain Rule from Calculus to pass the error backward through the network. This algorithm, called Backpropagation, allowed the AI to assign exact blame to every single weight.",
+                    "audioTextHinglish": "1986 mein, Geoffrey Hinton aur unki team ne Calculus ke Chain Rule ka use karke is problem ko solve kiya. Unhone Backpropagation naam ka algorithm banaya jisse AI apne error ko backward bhej kar har ek weight ki exact galati nikal sakti thi.",
+                    "keyInsight": "Backpropagation is the bridge between a static neural network and a machine that can actually learn.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Analogy: The Cake Factory",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>Imagine a factory assembly line with three stations (our nested functions): The <strong>Mixer</strong> passes batter to the <strong>Oven</strong>, which passes the baked cake to the <strong>Decorator</strong>. If the final cake tastes terrible (High Error), who is to blame?</p><p>Before 1986, the AI couldn't figure it out. The Decorator blamed the Oven, and the Oven blamed the Mixer.</p><p>The Chain Rule solves this by working backwards. It calculates the Decorator's exact blame (the frosting was fine). Then it multiplies that backward to find the Oven's blame (it overbaked by 10%). Then it multiplies <em>that</em> backward to find the Mixer's blame (not enough milk).</p><p>Because the layers are nested, you must pass the error backwards through the chain to find the root cause. This is why the algorithm is called <strong>Backward Propagation of Errors</strong>!</p>",
+                    "audioText": "Imagine a cake factory where a Mixer feeds an Oven, which feeds a Decorator. If the final cake is terrible, who do you blame? The Chain Rule works backward: it checks the Decorator, then passes the blame back to the Oven, then back to the Mixer. This is exactly how Backpropagation works in an AI.",
+                    "audioTextHinglish": "Sochiye ek cake factory jahan Mixer se Oven, aur Oven se Decorator tak cake banta hai. Agar cake kharab bane, toh kiski galati hai? Chain rule backward kaam karta hai: pehle Decorator, phir Oven, aur end mein Mixer ki galati nikalta hai. Backpropagation AI mein bilkul aise hi kaam karta hai.",
+                    "keyInsight": "Because functions are nested, blame must be calculated backwards through the chain.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "The Mountain of Error",
                     "readingTime": "~2 min read",
                     "narrative": "<p>We know that an AI is a massive mathematical formula filled with millions of \"Weights\" (like volume knobs). When an AI is born, these knobs are completely random. When it tries to predict something, it gets it horribly wrong.</p><p>This \"wrongness\" is mathematically calculated into a single number called the <strong>Loss</strong> (or Error). Imagine the Loss as a physical mountain. The higher up the mountain you are, the worse the AI is performing. The goal of training an AI is to get to the very bottom of the valley where the Loss is exactly zero.</p><p>But the AI is blindfolded. It doesn't know where the bottom of the valley is. It only knows where it is right now. How does it find the bottom? It uses <strong>Calculus</strong>.</p>",
@@ -95,6 +125,16 @@ def seed_ai_masterclass_part5():
                             {
                                 "q": "What does the 'Loss' (or Error) represent in AI training?",
                                 "options": ["The physical weight of the server", "How 'wrong' the AI's current predictions are", "The financial cost of electricity", "The number of words the AI has forgotten"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "What was the 'Credit Assignment Problem' that caused the Second AI Winter?",
+                                "options": ["Scientists couldn't secure financial credit to buy computers", "Nobody knew how to determine which internal weights were to blame for an AI's error", "The computers were too slow to process algebra", "AI models refused to take credit for their correct answers"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "What mathematical concept from Calculus is the foundation of Backpropagation?",
+                                "options": ["The Pythagorean Theorem", "The Chain Rule", "The Quadratic Formula", "Linear Regression"],
                                 "correct": 1
                             },
                             {
