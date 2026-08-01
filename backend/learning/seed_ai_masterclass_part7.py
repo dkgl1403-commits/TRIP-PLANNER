@@ -30,6 +30,16 @@ def seed_ai_masterclass_part7():
                     "widgetData": {}
                 },
                 {
+                    "title": "The Artificial Neuron",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>Before we can build a brain, we need a single brain cell. The story of the artificial neuron is a rollercoaster of triumphs and failures.</p><p>It started in 1943 when Warren McCulloch and Walter Pitts proposed the first mathematical model of a neuron. Then, in 1958, Frank Rosenblatt actually built it in hardware, calling it the <strong>Perceptron</strong>.</p><p><strong>What is an artificial neuron made of?</strong> It is astonishingly simple. It is just a tiny mathematical function that does three things:<br/>1. It takes inputs.<br/>2. It multiplies those inputs by 'Weights' (volume knobs) and adds a 'Bias'.<br/>3. It passes the final sum through an 'Activation Function'—a mathematical gatekeeper that decides if the neuron should 'fire' or stay silent.</p><p>For decades, a single artificial neuron couldn't do much. It couldn't even solve basic logic problems, which led directly to the First AI Winter. We only finally succeeded in making them powerful when we figured out how to stack millions of them together into \"Layers\", train them using Backpropagation in the 1980s, and accelerate them with GPUs in 2012.</p>",
+                    "audioText": "Before building a brain, we need a single brain cell. The first artificial neuron, called the Perceptron, was built in 1958. It's just a tiny math function that multiplies inputs by weights and passes the result through an activation function. A single neuron couldn't do much on its own, which caused the First AI Winter. We only succeeded when we stacked millions of them together in layers.",
+                    "audioTextHinglish": "Dimaag banane se pehle ek single cell ki zaroorat hoti hai. Pehla artificial neuron, jise Perceptron kehte hain, 1958 mein bana tha. Yeh ek chota sa math function hai jo inputs ko weights se multiply karta hai. Ek akela neuron zyada kuch nahi kar sakta tha, isliye First AI Winter aaya. Hum tabhi successful hue jab humne lakho neurons ko ek sath layers mein joda.",
+                    "keyInsight": "An artificial neuron is just a tiny math function that decides whether to fire or not.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "The Anatomy of a Brain",
                     "readingTime": "~2 min read",
                     "narrative": "<p>A Neural Network is inspired by the human brain. It consists of layers of artificial neurons. There are three main types of layers:</p><ol><li><strong>The Input Layer:</strong> These are the \"eyes and ears\". They take in the raw data, like the pixels of an image or the words of a sentence.</li><li><strong>The Hidden Layers:</strong> This is the \"brain\". It is where all the deep thinking happens. Early hidden layers find basic patterns (like edges). Later hidden layers combine those patterns into complex concepts (like faces).</li><li><strong>The Output Layer:</strong> This is the \"mouth\". It takes the final calculations and outputs the Logits, which are then passed through Softmax to give the final prediction.</li></ol>",
@@ -59,6 +69,11 @@ def seed_ai_masterclass_part7():
                     "widgetType": "MCQEngine",
                     "widgetData": {
                         "questions": [
+                            {
+                                "q": "When was the first artificial neuron (the Perceptron) built in hardware?",
+                                "options": ["1943", "1958", "1986", "2012"],
+                                "correct": 1
+                            },
                             {
                                 "q": "Which layer of the Neural Network acts as its 'eyes', receiving the raw data?",
                                 "options": ["The Hidden Layer", "The Output Layer", "The Input Layer", "The Softmax Layer"],
