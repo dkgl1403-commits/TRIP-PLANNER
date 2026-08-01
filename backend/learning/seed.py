@@ -4,6 +4,8 @@ import json
 from db import SessionLocal, LearningClass, LearningSubject, LearningTopic, init_db
 from seed_real_numbers import seed_real_numbers
 from seed_number_system_class9 import seed_number_system_class9
+from seed_number_system_class8_part1 import seed_number_system_class8_part1
+from seed_trigonometry import seed_trigonometry
 
 def seed_trigonometry():
     init_db()
@@ -494,22 +496,21 @@ def seed_curriculum():
                 {
                     "name": "Mathematics",
                     "topics": [
-                        {"name": "Rational Numbers", "board": "BOTH"},
+                        {"name": "A Story of Numbers", "board": "BOTH"},
+                        {"name": "Number Play", "board": "BOTH"},
+                        {"name": "A Square and A Cube", "board": "BOTH"},
+                        {"name": "Power Play", "board": "BOTH"},
                         {"name": "Linear Equations in One Variable", "board": "BOTH"},
                         {"name": "Understanding Quadrilaterals", "board": "BOTH"},
                         {"name": "Practical Geometry", "board": "BOTH"},
                         {"name": "Data Handling", "board": "BOTH"},
-                        {"name": "Squares and Square Roots", "board": "BOTH"},
-                        {"name": "Cubes and Cube Roots", "board": "BOTH"},
                         {"name": "Comparing Quantities", "board": "BOTH"},
                         {"name": "Algebraic Expressions and Identities", "board": "BOTH"},
                         {"name": "Visualising Solid Shapes", "board": "BOTH"},
                         {"name": "Mensuration", "board": "BOTH"},
-                        {"name": "Exponents and Powers", "board": "BOTH"},
                         {"name": "Direct and Inverse Proportions", "board": "BOTH"},
                         {"name": "Factorisation", "board": "BOTH"},
                         {"name": "Introduction to Graphs", "board": "BOTH"},
-                        {"name": "Playing with Numbers", "board": "BOTH"},
                         {"name": "Sets", "board": "ICSE"}
                     ]
                 },
@@ -682,3 +683,4 @@ if __name__ == "__main__":
     seed_trigonometry()
     seed_real_numbers()
     seed_number_system_class9()
+    seed_number_system_class8_part1()

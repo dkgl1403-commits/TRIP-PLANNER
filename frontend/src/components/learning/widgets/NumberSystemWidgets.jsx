@@ -433,3 +433,74 @@ export function SquareRootLoreWidget() {
     </div>
   );
 }
+
+// 6. Infinite Zoom Line Widget
+export function InfiniteZoomLineWidget() {
+  const [zoomLevel, setZoomLevel] = useState(0);
+  const maxZoom = 4;
+
+  const handleZoom = () => {
+    if (zoomLevel < maxZoom) setZoomLevel(z => z + 1);
+  };
+  
+  const handleReset = () => setZoomLevel(0);
+
+  const getFractions = (zoom) => {
+    if (zoom === 0) return [{num: 1, den: 1, val: 1}, {num: 2, den: 1, val: 2}];
+    if (zoom === 1) return [{num: 10, den: 10, val: 1}, {num: 15, den: 10, val: 1.5}, {num: 20, den: 10, val: 2}];
+    if (zoom === 2) return [{num: 100, den: 100, val: 1}, {num: 150, den: 100, val: 1.5}, {num: 199, den: 100, val: 1.99}, {num: 200, den: 100, val: 2}];
+    if (zoom === 3) return [{num: 1500, den: 1000, val: 1.5}, {num: 1750, den: 1000, val: 1.75}, {num: 1990, den: 1000, val: 1.99}];
+    return [{num: '...', den: '...'}, {num: 1999, den: 1000, val: 1.999}, {num: '...', den: '...'}];
+  };
+
+  const fractions = getFractions(zoomLevel);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-neon-blue mb-6 border-b border-glass-stroke pb-2">The Infinite Abyss</h3>
+        
+        <div className="relative h-24 mb-10 mt-8 overflow-hidden rounded-lg bg-black/40 border border-white/5">
+          <div className="absolute top-1/2 left-0 right-0 h-1 bg-white/20 -translate-y-1/2"></div>
+          
+          {fractions.map((frac, idx) => {
+            const leftPercent = zoomLevel < 3 ? (idx / (fractions.length - 1)) * 90 + 5 : (idx / (fractions.length - 1)) * 60 + 20;
+            return (
+              <div key={idx} className="absolute top-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-700" style={{ left: `${leftPercent}%` }}>
+                <div className="w-3 h-3 rounded-full bg-neon-blue shadow-[0_0_10px_rgba(59,130,246,0.8)] z-10"></div>
+                <div className="mt-3 bg-black/80 px-3 py-1 rounded text-sm font-bold border border-white/10 text-white">
+                  {frac.num} / {frac.den}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-center gap-4">
+          <button 
+            onClick={handleReset}
+            disabled={zoomLevel === 0}
+            className="px-6 py-2 rounded-lg bg-surface border border-glass-stroke text-white disabled:opacity-50 transition-all hover:bg-white/5"
+          >
+            Reset
+          </button>
+          <button 
+            onClick={handleZoom}
+            disabled={zoomLevel >= maxZoom}
+            className="px-6 py-2 rounded-lg bg-gradient-to-r from-neon-blue to-neon-purple text-white font-bold disabled:opacity-50 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]"
+          >
+            Zoom In
+          </button>
+        </div>
+
+        <div className="mt-6 text-center text-gray-400 text-sm h-10">
+          {zoomLevel === 0 && "Look at 1 and 2. Is there anything between them?"}
+          {zoomLevel === 1 && "Zooming in... We can write 1 as 10/10 and 2 as 20/10. Look at 15/10!"}
+          {zoomLevel === 2 && "Let's multiply by 10 again. Now we see 199/100."}
+          {zoomLevel === 3 && "Zooming into 1.5 to 1.99. Thousands of new numbers appear."}
+          {zoomLevel === maxZoom && "The abyss never ends. Between ANY two fractions, there is always another one."}
+        </div>
+      </div>
+    </div>
+  );
+}

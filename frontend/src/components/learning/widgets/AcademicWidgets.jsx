@@ -16,7 +16,8 @@ import {
   SpiralOfTheodorusWidget,
   SuccessiveMagnificationWidget,
   RationalizerWidget,
-  SquareRootLoreWidget
+  SquareRootLoreWidget,
+  InfiniteZoomLineWidget
 } from './NumberSystemWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1259,5 +1260,6 @@ export const WidgetRegistry = {
   SpiralOfTheodorusWidget,
   SuccessiveMagnificationWidget,
   RationalizerWidget,
-  SquareRootLoreWidget
+  SquareRootLoreWidget,
+  InfiniteZoomLineWidget
 };
