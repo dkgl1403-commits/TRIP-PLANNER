@@ -405,6 +405,89 @@ def seed_curriculum():
     
     curriculum = [
         {
+            "class_level": 7,
+            "class_name": "Class 7",
+            "subjects": [
+                {
+                    "name": "Mathematics",
+                    "topics": [
+                        {"name": "Integers", "board": "BOTH"},
+                        {"name": "Fractions and Decimals", "board": "BOTH"},
+                        {"name": "Data Handling", "board": "BOTH"},
+                        {"name": "Simple Equations", "board": "BOTH"},
+                        {"name": "Lines and Angles", "board": "BOTH"},
+                        {"name": "The Triangle and its Properties", "board": "BOTH"},
+                        {"name": "Comparing Quantities", "board": "BOTH"},
+                        {"name": "Rational Numbers", "board": "BOTH"},
+                        {"name": "Perimeter and Area", "board": "BOTH"},
+                        {"name": "Algebraic Expressions", "board": "BOTH"},
+                        {"name": "Exponents and Powers", "board": "BOTH"},
+                        {"name": "Symmetry", "board": "BOTH"},
+                        {"name": "Visualising Solid Shapes", "board": "BOTH"}
+                    ]
+                },
+                {
+                    "name": "Science",
+                    "topics": [
+                        {"name": "Nutrition in Plants", "board": "BOTH"},
+                        {"name": "Nutrition in Animals", "board": "BOTH"},
+                        {"name": "Heat", "board": "BOTH"},
+                        {"name": "Acids, Bases and Salts", "board": "BOTH"},
+                        {"name": "Physical and Chemical Changes", "board": "BOTH"},
+                        {"name": "Respiration in Organisms", "board": "BOTH"},
+                        {"name": "Transportation in Animals and Plants", "board": "BOTH"},
+                        {"name": "Reproduction in Plants", "board": "BOTH"},
+                        {"name": "Motion and Time", "board": "BOTH"},
+                        {"name": "Electric Current and its Effects", "board": "BOTH"},
+                        {"name": "Light", "board": "BOTH"},
+                        {"name": "Forests: Our Lifeline", "board": "BOTH"},
+                        {"name": "Wastewater Story", "board": "BOTH"}
+                    ]
+                }
+            ]
+        },
+        {
+            "class_level": 6,
+            "class_name": "Class 6",
+            "subjects": [
+                {
+                    "name": "Mathematics",
+                    "topics": [
+                        {"name": "Knowing Our Numbers", "board": "BOTH"},
+                        {"name": "Whole Numbers", "board": "BOTH"},
+                        {"name": "Playing With Numbers", "board": "BOTH"},
+                        {"name": "Basic Geometrical Ideas", "board": "BOTH"},
+                        {"name": "Understanding Elementary Shapes", "board": "BOTH"},
+                        {"name": "Integers", "board": "BOTH"},
+                        {"name": "Fractions", "board": "BOTH"},
+                        {"name": "Decimals", "board": "BOTH"},
+                        {"name": "Data Handling", "board": "BOTH"},
+                        {"name": "Mensuration", "board": "BOTH"},
+                        {"name": "Algebra", "board": "BOTH"},
+                        {"name": "Ratio and Proportion", "board": "BOTH"},
+                        {"name": "Symmetry", "board": "BOTH"},
+                        {"name": "Practical Geometry", "board": "BOTH"}
+                    ]
+                },
+                {
+                    "name": "Science",
+                    "topics": [
+                        {"name": "Components of Food", "board": "BOTH"},
+                        {"name": "Sorting Materials into Groups", "board": "BOTH"},
+                        {"name": "Separation of Substances", "board": "BOTH"},
+                        {"name": "Getting to Know Plants", "board": "BOTH"},
+                        {"name": "Body Movements", "board": "BOTH"},
+                        {"name": "The Living Organisms and Their Surroundings", "board": "BOTH"},
+                        {"name": "Motion and Measurement of Distances", "board": "BOTH"},
+                        {"name": "Light, Shadows and Reflections", "board": "BOTH"},
+                        {"name": "Electricity and Circuits", "board": "BOTH"},
+                        {"name": "Fun with Magnets", "board": "BOTH"},
+                        {"name": "Air Around Us", "board": "BOTH"}
+                    ]
+                }
+            ]
+        },
+        {
             "class_level": 8,
             "class_name": "Class 8",
             "subjects": [
