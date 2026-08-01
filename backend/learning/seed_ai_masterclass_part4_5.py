@@ -48,6 +48,16 @@ def seed_ai_masterclass_part4_5():
                     "widgetData": {}
                 },
                 {
+                    "title": "Analogy: The Cake Factory",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>Imagine a factory assembly line with three stations (our nested functions): The <strong>Mixer</strong> passes batter to the <strong>Oven</strong>, which passes the baked cake to the <strong>Decorator</strong>. If the final cake tastes terrible (High Error), who is to blame?</p><p>Before 1986, the AI couldn't figure it out. The Decorator blamed the Oven, and the Oven blamed the Mixer.</p><p>The Chain Rule solves this by working backwards. It calculates the Decorator's exact blame (the frosting was fine). Then it multiplies that backward to find the Oven's blame (it overbaked by 10%). Then it multiplies <em>that</em> backward to find the Mixer's blame (not enough milk).</p><p>Because the layers are nested, you must pass the error backwards through the chain to find the root cause. This is why the algorithm is called <strong>Backward Propagation of Errors</strong>!</p>",
+                    "audioText": "Imagine a cake factory where a Mixer feeds an Oven, which feeds a Decorator. If the final cake is terrible, who do you blame? The Chain Rule works backward: it checks the Decorator, then passes the blame back to the Oven, then back to the Mixer. This is exactly how Backpropagation works in an AI.",
+                    "audioTextHinglish": "Sochiye ek cake factory jahan Mixer se Oven, aur Oven se Decorator tak cake banta hai. Agar cake kharab bane, toh kiski galati hai? Chain rule backward kaam karta hai: pehle Decorator, phir Oven, aur end mein Mixer ki galati nikalta hai. Backpropagation AI mein bilkul aise hi kaam karta hai.",
+                    "keyInsight": "Because functions are nested, blame must be calculated backwards through the chain.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "Mastery Quiz",
                     "readingTime": "2 Questions",
                     "narrative": "<p>Test your understanding of the history of Backpropagation.</p>",
