@@ -7,6 +7,8 @@ from seed_number_system_class9 import seed_number_system_class9
 from seed_number_system_class8_part1 import seed_number_system_class8_part1
 
 from seed_ai_masterclass_part1 import seed_ai_masterclass_part1
+from seed_ai_masterclass_part2 import seed_ai_masterclass_part2
+from seed_ai_masterclass_part3 import seed_ai_masterclass_part3
 
 def seed_trigonometry():
     init_db()
@@ -712,3 +714,5 @@ if __name__ == "__main__":
     seed_number_system_class9()
     seed_number_system_class8_part1()
     seed_ai_masterclass_part1()
+    seed_ai_masterclass_part2()
+    seed_ai_masterclass_part3()
