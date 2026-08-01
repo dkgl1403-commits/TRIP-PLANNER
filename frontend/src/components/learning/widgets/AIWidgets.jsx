@@ -140,3 +140,144 @@ export function FirstNeuronWidget() {
     </div>
   );
 }
+
+// 2. CPU vs GPU Interactive Visualizer
+export function CpuVsGpuWidget() {
+  const [isRunning, setIsRunning] = useState(false);
+  const [mode, setMode] = useState('CPU'); // 'CPU' or 'GPU'
+  const [progress, setProgress] = useState(0); // 0 to 100
+  const [timeMs, setTimeMs] = useState(0);
+  
+  // Simulation parameters
+  const TOTAL_TASKS = 64; // A grid of 8x8 pixels to process
+  
+  React.useEffect(() => {
+    let interval;
+    if (isRunning) {
+      const startTime = Date.now();
+      
+      interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        setTimeMs(elapsed);
+        
+        let currentProgress = 0;
+        
+        if (mode === 'CPU') {
+          // CPU processes fast (e.g. 4 cores = 4 items at a time), but has to do 64 items
+          // Say it takes 50ms per batch of 4.
+          const batchesDone = Math.floor(elapsed / 50);
+          currentProgress = Math.min(100, (batchesDone * 4 / TOTAL_TASKS) * 100);
+        } else {
+          // GPU processes slow (e.g. 64 cores = 64 items at a time), but does them all at once!
+          // Say it takes 200ms to process, but it processes EVERYTHING in that one go.
+          currentProgress = elapsed >= 200 ? 100 : 0;
+        }
+        
+        setProgress(currentProgress);
+        
+        if (currentProgress >= 100) {
+          setIsRunning(false);
+          clearInterval(interval);
+        }
+      }, 16); // 60fps
+    }
+    
+    return () => clearInterval(interval);
+  }, [isRunning, mode]);
+
+  const startSimulation = (selectedMode) => {
+    setMode(selectedMode);
+    setProgress(0);
+    setTimeMs(0);
+    setIsRunning(true);
+  };
+
+  // Generate grid cells
+  const cells = Array.from({ length: TOTAL_TASKS }, (_, i) => i);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-neon-blue mb-2 border-b border-glass-stroke pb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined">memory</span>
+          The Hardware Revolution
+        </h3>
+        <p className="text-gray-400 text-sm mb-6">
+          Watch how a CPU and a GPU process a grid of 64 pixels (matrix math). The CPU is very fast but can only process 4 pixels at a time (like a sports car). The GPU is slower per task, but has 64 cores processing them all simultaneously (like a fleet of buses)!
+        </p>
+        
+        <div className="flex gap-4 mb-6">
+          <button 
+            onClick={() => startSimulation('CPU')}
+            disabled={isRunning}
+            className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${mode === 'CPU' && !isRunning ? 'bg-blue-600 text-white' : 'bg-surface hover:bg-surface-light border border-white/10'}`}
+          >
+            <span className="material-symbols-outlined">directions_car</span>
+            Test CPU (Sequential)
+          </button>
+          
+          <button 
+            onClick={() => startSimulation('GPU')}
+            disabled={isRunning}
+            className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${mode === 'GPU' && !isRunning ? 'bg-green-600 text-white' : 'bg-surface hover:bg-surface-light border border-white/10'}`}
+          >
+            <span className="material-symbols-outlined">directions_bus</span>
+            Test GPU (Parallel)
+          </button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Visualization Grid */}
+          <div className="flex-1 bg-black/40 p-6 rounded-xl border border-white/5 flex flex-col items-center">
+            <div className="text-sm text-gray-500 mb-4 font-mono">Processing Grid (64 calculations)</div>
+            <div className="grid grid-cols-8 gap-1">
+              {cells.map(i => {
+                const isProcessed = (i / TOTAL_TASKS) * 100 < progress;
+                return (
+                  <div 
+                    key={i} 
+                    className={`w-6 h-6 rounded-sm transition-colors duration-100 ${isProcessed ? (mode === 'CPU' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]') : 'bg-gray-800'}`}
+                  ></div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Stats Panel */}
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="bg-surface p-4 rounded-xl border border-white/10 flex flex-col justify-center h-full">
+              <div className="text-sm text-gray-400 mb-1">Architecture Mode</div>
+              <div className={`text-2xl font-bold mb-4 ${mode === 'CPU' ? 'text-blue-400' : 'text-green-400'}`}>
+                {mode === 'CPU' ? 'Central Processing Unit' : 'Graphics Processing Unit'}
+              </div>
+              
+              <div className="flex justify-between items-end border-b border-white/10 pb-2 mb-4">
+                <div className="text-sm text-gray-400">Time Elapsed</div>
+                <div className="text-3xl font-mono">{timeMs} <span className="text-sm text-gray-500">ms</span></div>
+              </div>
+              
+              <div className="flex justify-between items-end">
+                <div className="text-sm text-gray-400">Progress</div>
+                <div className="text-xl font-mono">{Math.floor(progress)}%</div>
+              </div>
+              
+              {/* Progress bar line */}
+              <div className="w-full h-2 bg-gray-800 rounded-full mt-2 overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-75 ${mode === 'CPU' ? 'bg-blue-500' : 'bg-green-500'}`}
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              
+              {progress >= 100 && (
+                <div className="mt-4 text-center text-sm font-bold text-yellow-400 animate-pulse">
+                  Calculation Complete!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

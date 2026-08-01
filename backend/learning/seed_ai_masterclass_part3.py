@@ -30,6 +30,16 @@ def seed_ai_masterclass_part3():
                     "widgetData": {}
                 },
                 {
+                    "title": "CPU vs GPU (The Hardware Revolution)",
+                    "readingTime": "Interactive Widget",
+                    "narrative": "<p>Why are GPUs so important for AI? To understand this, we need to compare a CPU to a GPU.</p><p>A <strong>CPU (Central Processing Unit)</strong> is like a sports car. It is incredibly fast, but it only has a few seats. It executes complex tasks one by one, very quickly.</p><p>A <strong>GPU (Graphics Processing Unit)</strong> is like a fleet of 10,000 buses. Each bus is slower than the sports car, but together, they can transport massive amounts of data simultaneously.</p><p>AI relies on <em>Matrix Multiplication</em> (calculating thousands of weights and inputs at once). A CPU calculates these one by one. A GPU calculates them all at exactly the same time (Parallel Processing).</p>",
+                    "audioText": "Why are GPUs so important for AI? A CPU is like a sports car: extremely fast but it only has a few seats. It does complex tasks one by one. A GPU is like a fleet of 10,000 buses. Each bus is slower, but they move massive amounts of data at the same time. AI requires Matrix Multiplication, which GPUs can do in parallel.",
+                    "audioTextHinglish": "AI ke liye GPUs itne important kyun hain? CPU ek sports car jaisa hai, bahut fast par seats kam hain. Yeh ek baar mein ek complex task karta hai. GPU 10,000 buses ke fleet jaisa hai, jo ek saath bahut saara data move kar sakta hai. AI ko Matrix Multiplication chahiye, jo GPUs parallel mein kar sakte hain.",
+                    "keyInsight": "AI doesn't need complex math; it needs simple math done millions of times simultaneously.",
+                    "widgetType": "CpuVsGpuWidget",
+                    "widgetData": {}
+                },
+                {
                     "title": "The Turning Point: AlexNet",
                     "readingTime": "~2 min read",
                     "narrative": "<p>In 2012, an annual competition called <strong>ImageNet</strong> challenged researchers to build software that could recognize objects in pictures. For years, teams using traditional, hand-coded rules barely improved.</p><p>Then, a team from the University of Toronto entered a Deep Neural Network called <strong>AlexNet</strong>. Instead of coding rules, they just fed millions of images into a neural network running on two gamer GPUs.</p><p>AlexNet destroyed the competition. It didn't just win; it crushed the human-coded algorithms by a margin no one thought possible. The world woke up. Deep Learning actually worked.</p>",

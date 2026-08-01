@@ -21,7 +21,8 @@ import {
 } from './NumberSystemWidgets';
 
 import {
-  FirstNeuronWidget
+  FirstNeuronWidget,
+  CpuVsGpuWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1268,5 +1269,6 @@ export const WidgetRegistry = {
   InfiniteZoomLineWidget,
   
   // AI Masterclass
-  FirstNeuronWidget
+  FirstNeuronWidget,
+  CpuVsGpuWidget
 };
