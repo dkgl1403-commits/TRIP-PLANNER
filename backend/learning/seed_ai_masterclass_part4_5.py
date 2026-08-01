@@ -19,7 +19,8 @@ def seed_ai_masterclass_part4_5():
             # Actually, seed scripts are run in order.
             topic = LearningTopic(
                 subject_id=ai_subject.id,
-                name=topic_name
+                name=topic_name,
+                order_idx=5
             )
             db.add(topic)
             db.commit()
