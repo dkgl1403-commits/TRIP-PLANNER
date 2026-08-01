@@ -109,8 +109,8 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
         ></div>
       </div>
 
-      {/* Top Navigation Header */}
-      <div className="w-full px-2 py-1 lg:px-3 lg:py-2 flex justify-between items-center bg-black z-50">
+      {/* Top Navigation Header (Floating) */}
+      <div className="absolute top-0 left-0 w-full px-4 py-2 flex justify-between items-center z-50">
         <button 
           onClick={onBack} 
           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300 text-sm"
@@ -148,7 +148,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
+      <div className="flex-grow flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden pt-12 relative z-10">
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!hasVisual || isInteractiveStory) && (
@@ -195,7 +195,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
 
         {/* Right Column: Visual Diagram / Widget */}
         {hasVisual && (
-          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} flex justify-center items-start lg:items-center bg-black lg:overflow-y-auto py-8 lg:py-0`}>
+          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} flex justify-center items-start bg-black lg:overflow-y-auto py-8 lg:py-16`}>
             {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
               React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
             ) : currentPart.imageUrl ? (
@@ -205,20 +205,22 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="w-full px-3 py-2 flex justify-between items-center border-t border-white/10 bg-black/80 z-40">
+      {/* Floating Bottom Navigation */}
+      <div className="absolute bottom-6 left-6 z-50">
         <button 
           onClick={handlePrev} 
           disabled={currentPartIdx === 0}
-          className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-0 transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/80 backdrop-blur border border-white/10 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-0 transition-all shadow-lg"
         >
           <span className="material-symbols-outlined text-base">arrow_left_alt</span>
           Previous
         </button>
-        
+      </div>
+      
+      <div className="absolute bottom-6 right-6 z-50">
         <button 
           onClick={handleNext}
-          className="flex items-center gap-2 px-4 py-1.5 bg-neon-coral text-white text-base font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group"
+          className="flex items-center gap-2 px-6 py-3 bg-neon-coral text-white text-base font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group shadow-xl"
         >
           {isFinalScene ? 'Finish Lesson' : 'Continue'}
           <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
