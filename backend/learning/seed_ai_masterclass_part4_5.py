@@ -19,8 +19,7 @@ def seed_ai_masterclass_part4_5():
             # Actually, seed scripts are run in order.
             topic = LearningTopic(
                 subject_id=ai_subject.id,
-                name=topic_name,
-                order_index=5 # Assuming 4 is Linear Algebra, 6 is Calculus Gradient descent (will adjust)
+                name=topic_name
             )
             db.add(topic)
             db.commit()
