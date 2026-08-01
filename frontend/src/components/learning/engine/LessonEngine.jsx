@@ -148,11 +148,11 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-grow flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!hasVisual || isInteractiveStory) && (
-          <div className={`w-full ${hasVisual ? 'lg:w-1/2 border-r border-white/5' : 'lg:w-full'} px-4 pt-0 pb-4 lg:px-8 lg:pt-0 lg:pb-6 xl:px-12 xl:pt-0 xl:pb-8 flex flex-col justify-start overflow-y-auto bg-gradient-to-b from-[#15171a] to-[#0c0e11] bg-canvas-texture shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]`}>
+          <div className={`w-full shrink-0 ${hasVisual ? 'lg:w-1/2 lg:border-r border-white/5' : 'lg:w-full'} px-4 pt-6 pb-6 lg:px-8 lg:pt-8 xl:px-12 flex flex-col justify-start lg:overflow-y-auto bg-gradient-to-b from-[#15171a] to-[#0c0e11] bg-canvas-texture shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]`}>
             <div className={`mx-auto w-full ${hasVisual ? 'max-w-2xl' : 'max-w-4xl'} relative z-10`}>
               
               <h1 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-1 leading-normal pt-2 pb-1">
@@ -195,7 +195,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
 
         {/* Right Column: Visual Diagram / Widget */}
         {hasVisual && (
-          <div className={`w-full relative ${isInteractiveStory ? 'lg:w-1/2 h-[50vh] lg:h-auto' : 'w-full min-h-[80vh]'} flex justify-center items-center overflow-hidden bg-black`}>
+          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} flex justify-center items-start lg:items-center bg-black lg:overflow-y-auto py-8 lg:py-0`}>
             {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
               React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
             ) : currentPart.imageUrl ? (
