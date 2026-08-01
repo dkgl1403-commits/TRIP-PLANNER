@@ -22,7 +22,8 @@ import {
 
 import {
   FirstNeuronWidget,
-  CpuVsGpuWidget
+  CpuVsGpuWidget,
+  VectorGalaxyWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1270,5 +1271,6 @@ export const WidgetRegistry = {
   
   // AI Masterclass
   FirstNeuronWidget,
-  CpuVsGpuWidget
+  CpuVsGpuWidget,
+  VectorGalaxyWidget
 };

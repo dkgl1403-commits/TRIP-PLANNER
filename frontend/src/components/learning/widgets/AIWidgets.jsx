@@ -281,3 +281,135 @@ export function CpuVsGpuWidget() {
     </div>
   );
 }
+
+// 3. The Vector Galaxy (Word Embeddings)
+export function VectorGalaxyWidget() {
+  const [step, setStep] = useState(0);
+
+  // Define points in a simplified 2D semantic space
+  // X-axis: Gender (0 = Male, 10 = Female)
+  // Y-axis: Royalty (0 = Peasant, 10 = Royal)
+  const points = {
+    man: { x: 2, y: 2, label: 'Man' },
+    woman: { x: 8, y: 2, label: 'Woman' },
+    king: { x: 2, y: 8, label: 'King' },
+    queen: { x: 8, y: 8, label: 'Queen' },
+  };
+
+  // Helper to map coordinates to percentages for CSS positioning
+  const toPos = (val) => `${val * 10}%`;
+
+  const nextStep = () => {
+    setStep(prev => (prev < 4 ? prev + 1 : 0));
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-neon-blue mb-2 border-b border-glass-stroke pb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined">scatter_plot</span>
+          The Vector Galaxy (2D Simplified)
+        </h3>
+        <p className="text-gray-400 text-sm mb-6">
+          Words are mapped to numbers. Let's look at 2 dimensions: <strong>Gender</strong> (X-axis) and <strong>Royalty</strong> (Y-axis). Because they are just points, we can do math with them to find meaning.
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-8 items-center">
+          
+          {/* Controls */}
+          <div className="flex-1 w-full bg-surface p-6 rounded-xl border border-white/10">
+            <h4 className="text-lg font-bold mb-4">Vector Math</h4>
+            
+            <div className="space-y-4 font-mono text-lg">
+              <div className={`p-3 rounded-lg border transition-all ${step >= 1 ? 'border-blue-500 bg-blue-500/10 text-white' : 'border-white/10 text-gray-600'}`}>
+                1. Start at [King]
+              </div>
+              <div className={`p-3 rounded-lg border transition-all ${step >= 2 ? 'border-red-500 bg-red-500/10 text-white' : 'border-white/10 text-gray-600'}`}>
+                2. Subtract [Man]
+              </div>
+              <div className={`p-3 rounded-lg border transition-all ${step >= 3 ? 'border-green-500 bg-green-500/10 text-white' : 'border-white/10 text-gray-600'}`}>
+                3. Add [Woman]
+              </div>
+              <div className={`p-3 rounded-lg border transition-all ${step >= 4 ? 'border-purple-500 bg-purple-500/20 text-neon-purple font-bold shadow-[0_0_15px_rgba(192,132,252,0.3)]' : 'border-white/10 text-gray-600'}`}>
+                = [Queen]!
+              </div>
+            </div>
+
+            <button 
+              onClick={nextStep}
+              className="mt-6 w-full py-3 bg-neon-blue text-black font-bold rounded-lg hover:bg-blue-400 transition-colors"
+            >
+              {step === 0 ? 'Start Calculation' : step < 4 ? 'Next Step' : 'Reset'}
+            </button>
+          </div>
+
+          {/* Graph */}
+          <div className="flex-1 w-full aspect-square bg-black/50 border-l-2 border-b-2 border-gray-500 relative rounded-tr-xl">
+            {/* Axis Labels */}
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-gray-400">Gender (Male &rarr; Female)</div>
+            <div className="absolute top-1/2 -left-6 -translate-y-1/2 -rotate-90 text-xs text-gray-400">Royalty</div>
+
+            {/* Grid Lines */}
+            {[2,4,6,8].map(i => (
+              <React.Fragment key={i}>
+                <div className="absolute left-0 right-0 border-t border-white/5" style={{ bottom: toPos(i) }}></div>
+                <div className="absolute top-0 bottom-0 border-l border-white/5" style={{ left: toPos(i) }}></div>
+              </React.Fragment>
+            ))}
+
+            {/* Render Points */}
+            {Object.values(points).map((pt, idx) => (
+              <div 
+                key={idx}
+                className={`absolute w-3 h-3 rounded-full -ml-1.5 -mb-1.5 transition-all duration-500 z-10
+                  ${pt.label === 'Queen' && step === 4 ? 'bg-neon-purple shadow-[0_0_15px_#c084fc] scale-150' : 'bg-gray-400'}
+                  ${pt.label === 'King' && step >= 1 ? 'bg-blue-400 scale-125' : ''}
+                `}
+                style={{ left: toPos(pt.x), bottom: toPos(pt.y) }}
+              >
+                <span className="absolute top-3 left-1/2 -translate-x-1/2 text-sm font-bold text-white whitespace-nowrap">
+                  {pt.label}
+                </span>
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-mono text-gray-500 whitespace-nowrap">
+                  [{pt.x}, {pt.y}]
+                </span>
+              </div>
+            ))}
+
+            {/* Render Vectors (SVG Lines) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{ transform: 'scaleY(-1)' }}>
+              {/* Step 2: King to (King - Man) = (2,8) - (2,2) = (0,6) relative. Point is (0,6). */}
+              {step >= 2 && (
+                <path 
+                  d="M 20% 80% L 0% 60%" 
+                  fill="none" stroke="#ef4444" strokeWidth="2" strokeDasharray="4,4" className="animate-dash"
+                  markerEnd="url(#arrowhead-red)"
+                />
+              )}
+              
+              {/* Step 3: (0,6) + Woman(8,2) = (8,8) */}
+              {step >= 3 && (
+                <path 
+                  d="M 0% 60% L 80% 80%" 
+                  fill="none" stroke="#22c55e" strokeWidth="2" strokeDasharray="4,4" className="animate-dash"
+                  markerEnd="url(#arrowhead-green)"
+                />
+              )}
+
+              <defs>
+                <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444" />
+                </marker>
+                <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e" />
+                </marker>
+              </defs>
+            </svg>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
