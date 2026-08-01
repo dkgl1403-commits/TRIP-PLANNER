@@ -30,6 +30,16 @@ def seed_ai_masterclass_part4():
                     "widgetData": {}
                 },
                 {
+                    "title": "What is Linear Algebra?",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>You now know what a <strong>Vector</strong> is (a list of numbers representing one concept). But what is <strong>Linear Algebra</strong>?</p><p>Linear Algebra is simply the branch of mathematics that deals with Vectors and <strong>Matrices</strong> (massive grids of numbers). If a Vector represents a single word, a Matrix can represent an entire sentence, or all the weights in a neural network layer.</p><p>Why is this used in AI? Because a neural network requires billions of calculations. If the computer calculated each number one by one (using standard algebra), generating one word would take weeks. <em>Linear Algebra</em> provides the mathematical rules to add, subtract, and multiply massive grids of numbers <strong>all at once</strong>. It is the language that allows GPUs to process data in parallel.</p>",
+                    "audioText": "What is Linear Algebra? It is the branch of math that deals with vectors and matrices, which are massive grids of numbers. Instead of calculating numbers one by one, Linear Algebra provides the rules to multiply massive grids of numbers all at once. This is what allows GPUs to process AI models so incredibly fast.",
+                    "audioTextHinglish": "Linear Algebra kya hai? Yeh math ki aisi branch hai jo vectors aur matrices, yaani massive grids of numbers, se deal karti hai. Numbers ko ek-ek karke calculate karne ke bajaye, Linear Algebra rules deta hai jisse massive grids ko ek saath multiply kiya ja sake. Isi wajah se GPUs AI models ko itna fast process kar paate hain.",
+                    "keyInsight": "Linear Algebra is the mathematical engine that allows AI to calculate billions of probabilities simultaneously.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "The High-Dimensional Galaxy",
                     "readingTime": "~2 min read",
                     "narrative": "<p>In our fruit example, we used 2 dimensions (Sweetness and Hardness). But humans understand thousands of abstract concepts. To capture true meaning, a modern AI like GPT-4 uses over <strong>10,000 dimensions</strong> to represent a single word!</p><p>Imagine a 10,000-dimensional galaxy. Every word you know is a star in this galaxy. Words with similar meanings (like 'Dog' and 'Puppy') orbit very closely to each other. Words with unrelated meanings (like 'Dog' and 'Taxation') are galaxies apart.</p><p>Because words are now just coordinates, we can do <em>math with words</em>. The most famous example in AI history is:<br/><br/><strong>[King] - [Man] + [Woman] = [Queen]</strong></p><p>If you take the coordinate for King, subtract the 'maleness' vector, and add the 'femaleness' vector, you land exactly on the coordinate for Queen!</p>",
@@ -105,6 +115,11 @@ def seed_ai_masterclass_part4():
                                 "q": "What happens to words with similar meanings in a high-dimensional vector space?",
                                 "options": ["They crash the system", "They are pushed far apart to avoid confusion", "They are placed very close to each other (clustered together)", "They are deleted to save space"],
                                 "correct": 2
+                            },
+                            {
+                                "q": "Why is Linear Algebra essential for Artificial Intelligence?",
+                                "options": ["It allows the AI to calculate one number at a time accurately", "It provides the rules for GPUs to multiply massive grids of numbers (matrices) all at once", "It is the only math language that can be spoken out loud", "It is used to design the hardware chassis of the server"],
+                                "correct": 1
                             },
                             {
                                 "q": "What is the result of the famous vector equation: [King] - [Man] + [Woman]?",
