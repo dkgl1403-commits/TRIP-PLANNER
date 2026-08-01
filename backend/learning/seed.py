@@ -6,6 +6,8 @@ from seed_real_numbers import seed_real_numbers
 from seed_number_system_class9 import seed_number_system_class9
 from seed_number_system_class8_part1 import seed_number_system_class8_part1
 
+from seed_ai_masterclass_part1 import seed_ai_masterclass_part1
+
 def seed_trigonometry():
     init_db()
     
@@ -406,6 +408,32 @@ def seed_curriculum():
     
     curriculum = [
         {
+            "class_level": 11,
+            "class_name": "Masterclass",
+            "subjects": [
+                {
+                    "name": "Artificial Intelligence",
+                    "topics": [
+                        {"name": "The Dream of the Thinking Machine", "board": "BOTH"},
+                        {"name": "The AI Winters", "board": "BOTH"},
+                        {"name": "The Big Bang", "board": "BOTH"},
+                        {"name": "Linear Algebra & Vectors", "board": "BOTH"},
+                        {"name": "Calculus & Gradient Descent", "board": "BOTH"},
+                        {"name": "Probability & Statistics", "board": "BOTH"},
+                        {"name": "The Neural Network", "board": "BOTH"},
+                        {"name": "The Transformer Engine", "board": "BOTH"},
+                        {"name": "The Three Stages of Training", "board": "BOTH"},
+                        {"name": "The Compute Hierarchy", "board": "BOTH"},
+                        {"name": "Datacenters & Scalability", "board": "BOTH"},
+                        {"name": "The Ecosystem Map", "board": "BOTH"},
+                        {"name": "Beyond Chatbots", "board": "BOTH"},
+                        {"name": "Multi-Agent Swarms", "board": "BOTH"},
+                        {"name": "The Cutting Edge", "board": "BOTH"}
+                    ]
+                }
+            ]
+        },
+        {
             "class_level": 7,
             "class_name": "Class 7",
             "subjects": [
@@ -683,3 +711,4 @@ if __name__ == "__main__":
     seed_real_numbers()
     seed_number_system_class9()
     seed_number_system_class8_part1()
+    seed_ai_masterclass_part1()

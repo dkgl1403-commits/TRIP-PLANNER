@@ -20,6 +20,10 @@ import {
   InfiniteZoomLineWidget
 } from './NumberSystemWidgets';
 
+import {
+  FirstNeuronWidget
+} from './AIWidgets';
+
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
   const [starBPos, setStarBPos] = useState({ x: 80, y: 20 });
@@ -1261,5 +1265,8 @@ export const WidgetRegistry = {
   SuccessiveMagnificationWidget,
   RationalizerWidget,
   SquareRootLoreWidget,
-  InfiniteZoomLineWidget
+  InfiniteZoomLineWidget,
+  
+  // AI Masterclass
+  FirstNeuronWidget
 };
