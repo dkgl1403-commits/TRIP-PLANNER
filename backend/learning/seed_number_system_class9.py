@@ -130,7 +130,7 @@ def seed_number_system_class9():
             ]
         }
 
-        topic.config = json.dumps(config)
+        topic.lesson_config_json = json.dumps(config)
         db.commit()
         print("Seeded Class 9 Number Systems successfully!")
 
