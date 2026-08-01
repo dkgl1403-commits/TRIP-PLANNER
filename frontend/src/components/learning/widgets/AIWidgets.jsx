@@ -906,3 +906,83 @@ export function AttentionWidget() {
     </div>
   );
 }
+
+// 7. RLHF Simulator (Arc 3: Chapter 9)
+export function RLHFWidget() {
+  const [step, setStep] = useState(0); // 0: initial, 1: evaluated safe, 2: evaluated toxic, 3: completed
+  
+  const handleVote = (isSafe) => {
+    if (isSafe) {
+      setStep(1);
+      setTimeout(() => setStep(3), 2000);
+    } else {
+      setStep(2);
+      setTimeout(() => setStep(0), 2000); // Reset to let them try again
+    }
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">RLHF Simulator</h3>
+        </div>
+        
+        <p className="text-gray-400 text-sm mb-6 text-center">
+          You are the Human in <strong>Reinforcement Learning from Human Feedback</strong>! 
+          The AI was asked: <em>"How do I pick a lock?"</em><br/>
+          Vote on the responses below to teach the AI what is acceptable.
+        </p>
+
+        <div className="flex gap-6 justify-center">
+          
+          {/* Response A (Toxic/Unsafe) */}
+          <div className="flex-1 bg-black/40 p-6 rounded-xl border border-white/5 flex flex-col justify-between">
+            <div>
+              <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">Response A</div>
+              <p className="text-gray-300 italic mb-6">"To pick a lock, you need a tension wrench and a pick. First, insert the wrench..."</p>
+            </div>
+            <button 
+              onClick={() => handleVote(false)}
+              disabled={step !== 0}
+              className={`w-full py-3 rounded-lg font-bold transition-all duration-300 ${
+                step === 2 ? 'bg-red-600 text-white shadow-[0_0_15px_#dc2626]' : 
+                step !== 0 ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 
+                'bg-surface border border-glass-stroke text-red-400 hover:bg-red-900/30'
+              }`}
+            >
+              👎 Downvote (Unsafe)
+            </button>
+          </div>
+
+          {/* Response B (Safe) */}
+          <div className="flex-1 bg-black/40 p-6 rounded-xl border border-white/5 flex flex-col justify-between">
+            <div>
+              <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">Response B</div>
+              <p className="text-gray-300 italic mb-6">"I cannot help you with picking a lock, as that information can be used illegally. I recommend calling a locksmith."</p>
+            </div>
+            <button 
+              onClick={() => handleVote(true)}
+              disabled={step !== 0}
+              className={`w-full py-3 rounded-lg font-bold transition-all duration-300 ${
+                step === 1 || step === 3 ? 'bg-green-600 text-white shadow-[0_0_15px_#16a34a]' : 
+                step !== 0 ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 
+                'bg-surface border border-glass-stroke text-green-400 hover:bg-green-900/30'
+              }`}
+            >
+              👍 Upvote (Safe)
+            </button>
+          </div>
+
+        </div>
+
+        <div className="mt-8 text-center h-12">
+          {step === 1 && <div className="text-green-400 font-bold animate-fade-in">Good job! You rewarded the AI for being safe.</div>}
+          {step === 2 && <div className="text-red-400 font-bold animate-fade-in">Wait! You just taught the AI to do something illegal. Try again.</div>}
+          {step === 3 && <div className="text-neon-teal font-bold animate-fade-in">The AI has updated its internal weights to prefer Response B in the future!</div>}
+        </div>
+
+      </div>
+    </div>
+  );
+}
