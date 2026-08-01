@@ -554,79 +554,85 @@ export function RealWorldApplicationsWidget() {
 
       <div className="p-6">
         {activeTab === 'lcm' ? (
-          <div className="flex flex-col md:flex-row gap-8 items-center justify-center animate-fade-in">
-            <div className="flex flex-col gap-4 w-full md:w-1/3">
-              <h3 className="text-xl font-bold text-white mb-2">The Track Athletes</h3>
-              <p className="text-sm text-gray-400">Three athletes take different times to run one lap. When will they meet at the start line again?</p>
-              
-              <div className="space-y-2 mt-4">
-                {runners.map(r => (
-                  <div key={r.name} className="flex justify-between items-center bg-surface/50 p-2 rounded border border-white/5">
-                    <span className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color }}></div>
-                      Athlete {r.name}
-                    </span>
-                    <span className="text-xs font-mono">{r.time} mins/lap</span>
-                  </div>
-                ))}
-              </div>
+          <div className="flex flex-col gap-8 animate-fade-in">
+            <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+              <div className="flex flex-col gap-4 w-full md:w-1/3">
+                <h3 className="text-xl font-bold text-white mb-2">The Track Athletes</h3>
+                <p className="text-sm text-gray-400">Three athletes take different times to run one lap. When will they meet at the start line again?</p>
+                
+                <div className="space-y-2 mt-4">
+                  {runners.map(r => (
+                    <div key={r.name} className="flex justify-between items-center bg-surface/50 p-2 rounded border border-white/5">
+                      <span className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color }}></div>
+                        Athlete {r.name}
+                      </span>
+                      <span className="text-xs font-mono">{r.time} mins/lap</span>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="bg-surface p-4 rounded-xl border border-glass-stroke mt-4 text-center">
-                <div className="text-sm text-gray-400 mb-1">Elapsed Time</div>
-                <div className="text-3xl font-mono font-bold text-neon-coral">
-                  {Math.floor(lcmTime)} <span className="text-base text-gray-500">mins</span>
+                <div className="bg-surface p-4 rounded-xl border border-glass-stroke mt-4 text-center">
+                  <div className="text-sm text-gray-400 mb-1">Elapsed Time</div>
+                  <div className="text-3xl font-mono font-bold text-neon-coral">
+                    {Math.floor(lcmTime)} <span className="text-base text-gray-500">mins</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-2">
+                  <button 
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className={`flex-1 py-2 rounded-lg font-bold text-surface ${isPlaying ? 'bg-gray-400' : 'bg-neon-coral'}`}
+                  >
+                    {isPlaying ? 'Pause' : lcmTime >= maxTime ? 'Done' : 'Play Simulation'}
+                  </button>
+                  <button 
+                    onClick={resetSimulation}
+                    className="px-4 py-2 bg-surface-variant text-white rounded-lg hover:bg-white/10"
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-2">
-                <button 
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className={`flex-1 py-2 rounded-lg font-bold text-surface ${isPlaying ? 'bg-gray-400' : 'bg-neon-coral'}`}
-                >
-                  {isPlaying ? 'Pause' : lcmTime >= maxTime ? 'Done' : 'Play Simulation'}
-                </button>
-                <button 
-                  onClick={resetSimulation}
-                  className="px-4 py-2 bg-surface-variant text-white rounded-lg hover:bg-white/10"
-                >
-                  Reset
-                </button>
+              <div className="relative w-[300px] h-[300px] flex-shrink-0 bg-black/20 rounded-full flex items-center justify-center border-4 border-surface-variant shadow-inner">
+                <div className="absolute top-0 w-2 h-8 bg-white/20 -mt-4"></div> {/* Start Line */}
+                <svg width="300" height="300" viewBox="0 0 300 300" className="absolute inset-0">
+                  {runners.map((r, i) => {
+                    const radius = 130 - (i * 30);
+                    const angle = (lcmTime / r.time) * 2 * Math.PI - Math.PI / 2;
+                    const x = 150 + radius * Math.cos(angle);
+                    const y = 150 + radius * Math.sin(angle);
+                    return (
+                      <g key={r.name}>
+                        <circle cx="150" cy="150" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="20" />
+                        <circle cx={x} cy={y} r="8" fill={r.color} className="transition-all duration-75" />
+                      </g>
+                    );
+                  })}
+                </svg>
+                {lcmTime >= maxTime && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full animate-fade-in backdrop-blur-sm">
+                    <div className="text-4xl font-bold text-neon-coral mb-2">SYNC!</div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="relative w-[300px] h-[300px] flex-shrink-0 bg-black/20 rounded-full flex items-center justify-center border-4 border-surface-variant shadow-inner">
-              <div className="absolute top-0 w-2 h-8 bg-white/20 -mt-4"></div> {/* Start Line */}
-              <svg width="300" height="300" viewBox="0 0 300 300" className="absolute inset-0">
-                {runners.map((r, i) => {
-                  // Angle based on time: (elapsed / lapTime) * 360 degrees
-                  const progress = lcmTime / r.time;
-                  const angle = (progress * 2 * Math.PI) - (Math.PI / 2);
-                  const radius = 130 - (i * 25);
-                  const x = 150 + radius * Math.cos(angle);
-                  const y = 150 + radius * Math.sin(angle);
-                  
-                  return (
-                    <g key={r.name}>
-                      <circle cx="150" cy="150" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="15" />
-                      <circle 
-                        cx={x} 
-                        cy={y} 
-                        r="8" 
-                        fill={r.color} 
-                        className="transition-all duration-75"
-                      />
-                    </g>
-                  );
-                })}
-              </svg>
-              {lcmTime >= maxTime && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full animate-fade-in backdrop-blur-sm">
-                  <div className="text-4xl font-bold text-neon-coral mb-2">SYNC!</div>
-                  <div className="text-sm font-mono text-white text-center">
-                    LCM(12, 15, 20) <br/>= 60 mins
-                  </div>
+            <div className="bg-surface/50 p-6 rounded-xl border border-white/5 w-full">
+              <h4 className="text-neon-coral font-bold mb-4 uppercase tracking-wider text-sm border-b border-white/10 pb-2">The Mathematical Solution</h4>
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="flex-1 font-mono text-sm space-y-3 text-gray-300">
+                  <p>Athlete A = <span className="text-white font-bold">12</span> = 2² &times; 3</p>
+                  <p>Athlete B = <span className="text-white font-bold">15</span> = 3 &times; 5</p>
+                  <p>Athlete C = <span className="text-white font-bold">20</span> = 2² &times; 5</p>
                 </div>
-              )}
+                <div className="flex-1 bg-surface p-4 rounded-lg border border-glass-stroke text-sm text-gray-400">
+                  <p className="mb-2">To find when they sync up, we take the <strong>highest power</strong> of each prime factor present:</p>
+                  <p className="font-mono text-white text-base">LCM = 2² &times; 3 &times; 5</p>
+                  <p className="font-mono text-neon-coral font-bold text-xl mt-2">= 60 minutes</p>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
