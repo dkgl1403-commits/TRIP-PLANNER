@@ -20,12 +20,22 @@ def seed_ai_masterclass_part9():
         config = {
             "parts": [
                 {
-                    "title": "Stage 1: Pre-training (Reading the Internet)",
+                    "title": "The Blank Brain & The Objective",
                     "readingTime": "~2 min read",
-                    "narrative": "<p>When a Neural Network is first built, it is a blank slate. The weights are totally random. It doesn't even know English.</p><p>In Stage 1, we give the AI a massive amount of data (basically the entire public internet) and ask it to do one simple task: <strong>\"Guess the next word\"</strong>.</p><p>It does this trillions of times. Over months, it learns grammar, facts, reasoning, and programming. However, at the end of Stage 1, it is just a \"document completer\". If you say <em>\"Write a poem\"</em>, it might just complete the sentence with <em>\"about a dog\"</em> instead of actually writing a poem.</p>",
-                    "audioText": "When first built, an AI is completely blank. In Stage 1, Pre-training, we feed it the entire internet and ask it to guess the next word trillions of times. It learns facts and grammar, but it's just an auto-completer, not an assistant.",
-                    "audioTextHinglish": "Shuru mein AI bilkul khali hota hai. Stage 1, yani Pre-training mein, hum ise poora internet padhate hain aur agla word guess karne ko kehte hain. Yeh facts aur grammar seekh jata hai, par abhi sirf ek auto-completer hai, assistant nahi.",
-                    "keyInsight": "Pre-training teaches the AI raw knowledge and reasoning, but not how to be helpful.",
+                    "narrative": "<p>When a Neural Network is first built, it is a blank slate. Its billions of internal \"volume knobs\" (Weights) are set to completely random numbers. If you ask it a question, it will just output gibberish.</p><p>To teach it, we start <strong>Stage 1: Pre-training</strong>. We give the AI a massive dataset—essentially the entire public internet (Wikipedia, books, articles). But we don't just ask it to read; we turn it into a game.</p><p>The game is simple: we hide the last word of a sentence and ask the AI to guess it. For example, we show it: <em>\"The cat sat on the [BLANK]\"</em>. Because its weights are random, the AI might guess <em>\"moon\"</em>.</p>",
+                    "audioText": "When first built, an AI is completely blank with random weights. In Stage 1, we feed it the entire internet and play a game: guess the hidden word. For example, 'The cat sat on the blank'. Since it's random, it might guess 'moon'.",
+                    "audioTextHinglish": "Shuru mein AI bilkul khali hota hai aur uske weights random hote hain. Stage 1 mein hum use poora internet dete hain aur ek game khilate hain: chupa hua word guess karo. Jaise, 'The cat sat on the blank'. Random hone ki wajah se, shayad woh 'moon' guess kare.",
+                    "keyInsight": "The AI learns by playing a massive game of 'guess the missing word'.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Stage 1: Auto-Adjusting the Weights",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>So the AI guessed <em>\"moon\"</em>, but the actual word in the text was <em>\"mat\"</em>. What happens next is the magic of training.</p><p>The AI calculates exactly how wrong its guess was (the <strong>Error</strong>). Then, it uses the Calculus we learned in Chapter 5 (<strong>Backpropagation</strong> and <strong>Gradient Descent</strong>). The error signal travels backward through the network, automatically tweaking the billions of random volume knobs (Weights) just a tiny bit.</p><p>Because of this tiny tweak, the next time the AI sees \"The cat sat on the...\", it is 0.001% more likely to guess \"mat\". The AI repeats this process <strong>trillions</strong> of times across the entire internet. Slowly, over months on thousands of GPUs, these billions of volume knobs perfectly align to encode human grammar, facts, and reasoning.</p><p>However, at the end of Stage 1, it is just a \"document completer\". If you say <em>\"Write a poem\"</em>, it might just complete the sentence with <em>\"about a dog\"</em> instead of actually writing a poem.</p>",
+                    "audioText": "When the AI guesses wrong, it calculates the error. Using Backpropagation from chapter 5, it automatically tweaks its billions of weights so it's slightly more accurate next time. Over trillions of guesses, it perfectly learns grammar and facts. But, it's still just an auto-completer.",
+                    "audioTextHinglish": "Jab AI galat guess karta hai, toh woh apni galti calculate karta hai. Chapter 5 ke Backpropagation ko use karke, woh apne billions weights ko thoda sa adjust karta hai taaki agli baar behtar guess kare. Trillions of guesses ke baad, woh grammar aur facts seekh jata hai. Par abhi bhi, woh sirf ek auto-completer hai.",
+                    "keyInsight": "By measuring its error and adjusting its weights via Calculus trillions of times, the AI learns facts and grammar.",
                     "widgetType": None,
                     "widgetData": {}
                 },
@@ -60,9 +70,9 @@ def seed_ai_masterclass_part9():
                     "widgetData": {
                         "questions": [
                             {
-                                "q": "What is the primary task the AI does during Stage 1: Pre-training?",
-                                "options": ["Guess the next word", "Write poetry", "Read user feedback", "Solve calculus problems"],
-                                "correct": 0
+                                "q": "How does the AI auto-adjust its weights when it guesses the wrong word during Stage 1?",
+                                "options": ["A human manually changes the knobs", "It uses Calculus (Backpropagation) to tweak the weights based on the error", "It randomly scrambles the weights again", "It deletes the incorrect word from the internet"],
+                                "correct": 1
                             },
                             {
                                 "q": "Why is Stage 2 (Supervised Fine-Tuning) necessary?",
