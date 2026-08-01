@@ -11,6 +11,13 @@ import {
   MemorySyncWidget
 } from './RealNumberWidgets';
 
+import {
+  RationalDensityWidget,
+  SpiralOfTheodorusWidget,
+  SuccessiveMagnificationWidget,
+  RationalizerWidget
+} from './NumberSystemWidgets';
+
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
   const [starBPos, setStarBPos] = useState({ x: 80, y: 20 });
@@ -1244,5 +1251,11 @@ export const WidgetRegistry = {
   RealNumbersCheatSheet,
   StoryOfPiWidget,
   RealWorldApplicationsWidget,
-  MemorySyncWidget
+  MemorySyncWidget,
+  
+  // Class 9 Number Systems
+  RationalDensityWidget,
+  SpiralOfTheodorusWidget,
+  SuccessiveMagnificationWidget,
+  RationalizerWidget
 };
