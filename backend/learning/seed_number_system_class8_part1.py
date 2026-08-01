@@ -1,5 +1,5 @@
 import json
-from .db import SessionLocal, LearningClass, LearningSubject, LearningTopic
+from db import SessionLocal, LearningClass, LearningSubject, LearningTopic
 
 def seed_number_system_class8_part1():
     db = SessionLocal()
