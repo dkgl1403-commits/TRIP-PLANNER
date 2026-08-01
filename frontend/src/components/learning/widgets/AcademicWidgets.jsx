@@ -24,7 +24,8 @@ import {
   FirstNeuronWidget,
   CpuVsGpuWidget,
   VectorGalaxyWidget,
-  BlindSkierWidget
+  BlindSkierWidget,
+  SoftmaxWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1274,5 +1275,6 @@ export const WidgetRegistry = {
   FirstNeuronWidget,
   CpuVsGpuWidget,
   VectorGalaxyWidget,
-  BlindSkierWidget
+  BlindSkierWidget,
+  SoftmaxWidget
 };

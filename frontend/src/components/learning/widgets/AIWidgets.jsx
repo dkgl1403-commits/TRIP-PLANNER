@@ -601,3 +601,101 @@ export function BlindSkierWidget() {
     </div>
   );
 }
+
+// 4. Softmax Widget (Probability & Confidence)
+export function SoftmaxWidget() {
+  const [logit1, setLogit1] = useState(2.5);
+  const [logit2, setLogit2] = useState(-1.0);
+  const [logit3, setLogit3] = useState(0.8);
+  const [temperature, setTemperature] = useState(1.0);
+
+  const classes = ["Cat", "Dog", "Bird"];
+  const logits = [logit1, logit2, logit3];
+  
+  // Calculate Softmax
+  const expValues = logits.map(l => Math.exp(l / temperature));
+  const sumExp = expValues.reduce((a, b) => a + b, 0);
+  const probabilities = expValues.map(e => e / sumExp);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-neon-teal mb-6 border-b border-glass-stroke pb-2">Softmax Sandbox</h3>
+        <p className="text-gray-400 text-sm mb-8">
+          The AI spits out raw, messy numbers called <strong>Logits</strong>. Adjust the Logits and the Temperature below to see how the <strong>Softmax Math</strong> turns them into clean, 100% probabilities.
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-8 bg-black/40 p-6 rounded-xl border border-white/5">
+          
+          {/* Controls */}
+          <div className="flex flex-col gap-6 w-full md:w-1/2">
+            <h4 className="text-white font-semibold">1. Raw Output (Logits)</h4>
+            
+            <div className="flex flex-col gap-4">
+              {[
+                { label: classes[0], val: logit1, setVal: setLogit1, color: 'bg-blue-500' },
+                { label: classes[1], val: logit2, setVal: setLogit2, color: 'bg-green-500' },
+                { label: classes[2], val: logit3, setVal: setLogit3, color: 'bg-purple-500' },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className="w-16 text-gray-300 text-sm">{item.label}</div>
+                  <input 
+                    type="range" min="-5" max="5" step="0.1" 
+                    value={item.val} onChange={(e) => item.setVal(parseFloat(e.target.value))}
+                    className="flex-grow accent-neon-teal"
+                  />
+                  <div className="w-12 text-right text-neon-teal font-mono">{item.val.toFixed(1)}</div>
+                </div>
+              ))}
+            </div>
+
+            <h4 className="text-white font-semibold mt-4">2. Temperature (T)</h4>
+            <div className="flex items-center gap-4">
+              <span className="text-2xl">🧊</span>
+              <input 
+                type="range" min="0.1" max="3.0" step="0.1" 
+                value={temperature} onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="flex-grow accent-neon-pink"
+              />
+              <span className="text-2xl">🔥</span>
+            </div>
+            <div className="text-center text-neon-pink font-mono">T = {temperature.toFixed(1)}</div>
+            <p className="text-xs text-gray-500 text-center">
+              Low T makes AI overconfident (greedy). High T makes AI unsure (creative).
+            </p>
+          </div>
+
+          {/* Visualization */}
+          <div className="flex flex-col gap-6 w-full md:w-1/2 border-l border-white/10 pl-8">
+            <h4 className="text-white font-semibold">3. Final Probability (Confidence)</h4>
+            
+            <div className="flex flex-col gap-6 justify-center h-full pb-4">
+              {probabilities.map((prob, idx) => {
+                const isMax = prob === Math.max(...probabilities);
+                return (
+                  <div key={idx} className="flex flex-col gap-1">
+                    <div className="flex justify-between text-sm">
+                      <span className={isMax ? "text-white font-bold" : "text-gray-400"}>{classes[idx]}</span>
+                      <span className={isMax ? "text-neon-teal font-bold font-mono" : "text-gray-400 font-mono"}>
+                        {(prob * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden relative">
+                      <div 
+                        className={`h-full transition-all duration-500 ease-out ${
+                          idx === 0 ? 'bg-blue-500' : idx === 1 ? 'bg-green-500' : 'bg-purple-500'
+                        } ${isMax ? 'shadow-[0_0_10px_currentColor]' : ''}`}
+                        style={{ width: `${prob * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
