@@ -40,6 +40,49 @@ def seed_ai_masterclass_part5():
                     "widgetData": {}
                 },
                 {
+                    "title": "The Architect's Vault: Calculus Examples",
+                    "readingTime": "Practice",
+                    "narrative": "<p>Let's look at exactly how the math works when an AI takes a step down the mountain.</p>",
+                    "audioText": "Let's look at exactly how the math works when an AI takes a step down the mountain.",
+                    "audioTextHinglish": "Chaliye dekhte hain ki jab AI pahad se neeche step leta hai toh math actually kaise kaam karta hai.",
+                    "keyInsight": "Derivatives give us the direction, and the Learning Rate gives us the distance.",
+                    "widgetType": "BoardSolvedExamples",
+                    "widgetData": {
+                        "examples": [
+                            {
+                                "year": "Derivatives",
+                                "q": "If the Error curve is y = x² and our current weight x = 3, how do we know which way to step?",
+                                "steps": [
+                                    "In Calculus, the 'derivative' tells us the slope of a curve. The derivative of y = x² is exactly y' = 2x.",
+                                    "We plug in our current position: y' = 2(3) = 6.",
+                                    "The slope is positive (+6), which means the mountain is going UP if we move to the right.",
+                                    "Because we want to go DOWN the mountain to minimize error, we must move in the opposite direction (to the left, subtracting from x)."
+                                ]
+                            },
+                            {
+                                "year": "Learning Rate",
+                                "q": "With a slope of +6 and a learning rate of 0.1, what is the AI's new weight?",
+                                "steps": [
+                                    "The Gradient Descent formula is: New Weight = Old Weight - (Learning Rate × Slope).",
+                                    "We plug in our numbers: New Weight = 3 - (0.1 × 6).",
+                                    "New Weight = 3 - 0.6 = 2.4.",
+                                    "The AI has successfully updated its weight from x = 3 to x = 2.4, bringing it closer to the perfect answer at the bottom of the valley (x = 0)!"
+                                ]
+                            },
+                            {
+                                "year": "Backpropagation",
+                                "q": "A neural network isn't a simple curve; it's billions of interconnected equations. How does calculus handle that?",
+                                "steps": [
+                                    "Calculus uses the 'Chain Rule', which allows us to find the derivative of equations nested inside other equations.",
+                                    "In AI, this process is called Backpropagation.",
+                                    "The AI calculates the error at the final output, and then uses the Chain Rule to pass that error backward through every layer of the network.",
+                                    "This calculates the exact slope for every single one of the billions of weights simultaneously."
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
                     "title": "Mastery Quiz",
                     "readingTime": "4 Questions",
                     "narrative": "<p>Test your knowledge of Calculus and Gradient Descent in AI.</p>",
