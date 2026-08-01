@@ -623,17 +623,37 @@ export function RealWorldApplicationsWidget() {
             </div>
 
             <div className="bg-surface/50 p-6 rounded-xl border border-white/5 w-full">
-              <h4 className="text-neon-coral font-bold mb-4 uppercase tracking-wider text-sm border-b border-white/10 pb-2">The Mathematical Solution</h4>
-              <div className="flex flex-col md:flex-row gap-8 items-start">
-                <div className="flex-1 font-mono text-sm space-y-3 text-gray-300">
-                  <p>Athlete A = <span className="text-white font-bold">12</span> = 2² &times; 3</p>
-                  <p>Athlete B = <span className="text-white font-bold">15</span> = 3 &times; 5</p>
-                  <p>Athlete C = <span className="text-white font-bold">20</span> = 2² &times; 5</p>
+              <h4 className="text-neon-coral font-bold mb-4 uppercase tracking-wider text-sm border-b border-white/10 pb-2">How do we calculate the exact meeting time?</h4>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Method 1: Listing */}
+                <div className="bg-surface p-4 rounded-lg border border-glass-stroke">
+                  <h5 className="text-white font-bold text-sm mb-3">Method 1: Listing Lap Times (Intuitive)</h5>
+                  <div className="font-mono text-xs space-y-2 text-gray-400">
+                    <p><span className="text-[#ff6b4a]">A (12m):</span> 12, 24, 36, 48, <span className="text-green-400 font-bold text-sm border-b border-green-400 pb-0.5">60</span>, 72...</p>
+                    <p><span className="text-[#9d4edd]">B (15m):</span> 15, 30, 45, <span className="text-green-400 font-bold text-sm border-b border-green-400 pb-0.5">60</span>, 75...</p>
+                    <p><span className="text-[#4ade80]">C (20m):</span> 20, 40, <span className="text-green-400 font-bold text-sm border-b border-green-400 pb-0.5">60</span>, 80...</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+                    If we list out the exact minute each athlete crosses the start line, 60 is the very first number that appears in all three lists!
+                  </p>
                 </div>
-                <div className="flex-1 bg-surface p-4 rounded-lg border border-glass-stroke text-sm text-gray-400">
-                  <p className="mb-2">To find when they sync up, we take the <strong>highest power</strong> of each prime factor present:</p>
-                  <p className="font-mono text-white text-base">LCM = 2² &times; 3 &times; 5</p>
-                  <p className="font-mono text-neon-coral font-bold text-xl mt-2">= 60 minutes</p>
+
+                {/* Method 2: LCM */}
+                <div className="bg-surface p-4 rounded-lg border border-glass-stroke">
+                  <h5 className="text-white font-bold text-sm mb-3">Method 2: Prime Factorization (Faster)</h5>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="font-mono text-xs space-y-1 text-gray-400 shrink-0">
+                      <p>12 = <span className="text-white">2²</span> &times; <span className="text-white">3</span></p>
+                      <p>15 = <span className="text-white">3</span> &times; <span className="text-white">5</span></p>
+                      <p>20 = <span className="text-white">2²</span> &times; <span className="text-white">5</span></p>
+                    </div>
+                    <div className="text-xs text-gray-400 border-l border-white/10 pl-4">
+                      <p className="mb-2">To find the Lowest Common Multiple directly, we multiply the <strong>highest power</strong> of each prime factor present:</p>
+                      <p className="font-mono text-white">LCM = 2² &times; 3 &times; 5</p>
+                      <p className="font-mono text-green-400 font-bold text-base mt-1">= 60 minutes</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
