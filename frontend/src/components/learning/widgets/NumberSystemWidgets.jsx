@@ -304,3 +304,132 @@ export function RationalizerWidget() {
     </div>
   );
 }
+
+// 5. Cinematic Lore Widget
+export function SquareRootLoreWidget() {
+  const [activeTab, setActiveTab] = useState(0);
+
+  const tabs = [
+    { id: 0, title: "1. The Concept", subtitle: "Babylon, 1800 BCE" },
+    { id: 1, title: "2. The Name", subtitle: "Arabic Golden Age, 800 CE" },
+    { id: 2, title: "3. The Symbol", subtitle: "Germany, 1525 CE" }
+  ];
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 md:p-8 border border-glass-stroke shadow-xl">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 mb-2">Cinematic Lore: Origin of the Square Root</h2>
+          <p className="text-gray-400">Discover how a real-world problem turned into the famous radical symbol.</p>
+        </div>
+
+        {/* Custom Tabs */}
+        <div className="flex flex-col sm:flex-row gap-2 mb-8 bg-black/40 p-2 rounded-xl border border-white/5">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-3 px-4 rounded-lg flex flex-col items-center justify-center transition-all duration-300 ${activeTab === tab.id ? 'bg-white/10 shadow-lg border border-white/20' : 'hover:bg-white/5 border border-transparent'}`}
+            >
+              <span className={`font-bold text-sm ${activeTab === tab.id ? 'text-amber-300' : 'text-gray-400'}`}>{tab.title}</span>
+              <span className={`text-xs ${activeTab === tab.id ? 'text-amber-100/70' : 'text-gray-600'}`}>{tab.subtitle}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Scene 1: The Clay Tablet */}
+        {activeTab === 0 && (
+          <div className="flex flex-col md:flex-row gap-8 items-center animate-fade-in">
+            <div className="flex-1 space-y-4">
+              <h3 className="text-xl font-bold text-amber-300">The Builders of Babylon</h3>
+              <p className="text-gray-300 leading-relaxed">
+                The square root wasn't invented by a philosopher sitting in a room; it was invented by ancient architects and farmers.
+              </p>
+              <p className="text-gray-300 leading-relaxed">
+                If a builder is designing a diagonal ramp across a 1x1 square base, the area of the new square formed by that diagonal is exactly 2. What number, multiplied by itself, equals exactly 2?
+              </p>
+            </div>
+            <div className="flex-1 w-full bg-[#8c6b4a] rounded-full aspect-square max-w-[250px] shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3)] flex items-center justify-center relative border-4 border-[#7a5c3e] overflow-hidden">
+              {/* Babylonian Tablet Mockup */}
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjOGM2YjRhIi8+CjxwYXRoIGQ9Ik0wIDRMMCAwTDEgME0zIDRMMiA0TDIgMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2E1YzNlIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+')] opacity-40 mix-blend-multiply"></div>
+              <svg width="200" height="200" viewBox="0 0 200 200" className="z-10 opacity-70">
+                <rect x="50" y="50" width="100" height="100" fill="none" stroke="#3b2b1a" strokeWidth="4" transform="rotate(45 100 100)" />
+                <line x1="100" y1="29.2" x2="100" y2="170.7" stroke="#3b2b1a" strokeWidth="3" />
+                <line x1="29.2" y1="100" x2="170.7" y2="100" stroke="#3b2b1a" strokeWidth="3" />
+                <text x="110" y="90" fill="#3b2b1a" fontSize="14" fontWeight="bold" transform="rotate(-45 110 90)">1.414212...</text>
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {/* Scene 2: The Math Tree */}
+        {activeTab === 1 && (
+          <div className="flex flex-col md:flex-row gap-8 items-center animate-fade-in">
+            <div className="flex-1 space-y-4">
+              <h3 className="text-xl font-bold text-green-400">The Tree of Math</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Why do we call it a "Root"? When medieval Arabic mathematicians (like Al-Khwarizmi, the father of Algebra) wrote about math, they used a botanical analogy.
+              </p>
+              <p className="text-gray-300 leading-relaxed">
+                They viewed a number like 9 as a tree. The fundamental "seed" hidden underground that this tree grew out of was 3 (because 3 &times; 3 = 9). They called this the <em>jadhir</em> (Arabic for "root of a plant").
+              </p>
+              <p className="text-gray-300 leading-relaxed">
+                European scholars translated <em>jadhir</em> literally into the Latin word for plant root: <strong>Radix</strong>. (This is also where we get the word Radish!).
+              </p>
+            </div>
+            <div className="flex-1 w-full bg-gradient-to-b from-sky-900 to-amber-900/50 rounded-2xl h-[250px] relative overflow-hidden flex flex-col border border-white/10">
+              <div className="flex-1 flex justify-center items-end pb-2 relative z-10">
+                {/* Tree */}
+                <div className="relative flex flex-col items-center group">
+                  <div className="w-32 h-32 bg-green-500/20 border border-green-500/50 rounded-lg shadow-[0_0_20px_rgba(74,222,128,0.3)] flex items-center justify-center transition-all duration-1000 group-hover:scale-110">
+                    <span className="text-4xl font-bold text-green-400">9</span>
+                  </div>
+                  <div className="w-4 h-16 bg-[#5c4033] mt-[-5px]"></div>
+                </div>
+              </div>
+              {/* Underground */}
+              <div className="h-16 bg-[#3a271d] w-full border-t-2 border-green-800 flex justify-center items-center relative z-10">
+                <div className="px-4 py-1 bg-amber-600/30 border border-amber-500/50 rounded-full text-amber-200 font-bold text-sm shadow-[0_0_15px_rgba(217,119,6,0.5)] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">energy_savings_leaf</span>
+                  Radix = 3
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Scene 3: The Symbol */}
+        {activeTab === 2 && (
+          <div className="flex flex-col md:flex-row gap-8 items-center animate-fade-in">
+            <div className="flex-1 space-y-4">
+              <h3 className="text-xl font-bold text-neon-purple">The Lazy Mathematician</h3>
+              <p className="text-gray-300 leading-relaxed">
+                For centuries, mathematicians had to write it out in full Latin: <em>Radix 2</em>. This took too much time.
+              </p>
+              <p className="text-gray-300 leading-relaxed">
+                In 1525, a German mathematician named Christoff Rudolff published a textbook. To write equations faster, he took the lowercase cursive letter 'r' (for radix) and stretched its tail out like a roof to cover the numbers underneath.
+              </p>
+              <p className="text-gray-300 leading-relaxed">
+                The magical &radic; symbol isn't a magical rune; it's just a 500-year-old cursive letter 'r'!
+              </p>
+            </div>
+            <div className="flex-1 w-full bg-slate-900 rounded-2xl h-[250px] relative flex flex-col items-center justify-center border border-white/10 group overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-950"></div>
+              
+              <div className="relative z-10 h-20 overflow-hidden text-center flex flex-col items-center justify-center w-full">
+                <div className="text-4xl font-serif text-white/50 transition-all duration-1000 transform group-hover:-translate-y-20 opacity-100 group-hover:opacity-0 absolute">
+                  radix 2
+                </div>
+                <div className="text-6xl font-serif text-white transition-all duration-1000 transform translate-y-20 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 absolute flex items-center">
+                  <span className="text-neon-purple mr-1 scale-y-125 transform origin-bottom font-serif italic relative -top-1">&radic;</span>
+                  <span className="border-t-[3px] border-neon-purple pt-1 -ml-1">2</span>
+                </div>
+              </div>
+              <p className="absolute bottom-4 text-xs text-gray-500 font-mono">Hover to see the evolution</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
