@@ -71,47 +71,47 @@ export function MemorySyncWidget() {
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto mt-6 flex flex-col md:flex-row gap-6">
+    <div className="w-full max-w-5xl mx-auto mt-2 flex flex-col md:flex-row gap-4">
       {/* Sidebar Navigation */}
-      <div className="w-full md:w-1/3 flex flex-col gap-3">
+      <div className="w-full md:w-1/3 flex flex-col gap-2">
         {levels.map((lvl, idx) => (
           <button 
             key={idx}
             onClick={() => setActiveLevel(idx)}
-            className={`p-4 rounded-xl border text-left transition-all duration-300 ${activeLevel === idx ? 'bg-gradient-to-r ' + lvl.color + ' ' + lvl.border + ' shadow-lg' : 'bg-surface/50 border-white/5 hover:bg-surface'}`}
+            className={`p-3 rounded-xl border text-left transition-all duration-300 ${activeLevel === idx ? 'bg-gradient-to-r ' + lvl.color + ' ' + lvl.border + ' shadow-lg' : 'bg-surface/50 border-white/5 hover:bg-surface'}`}
           >
-            <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${activeLevel === idx ? lvl.text : 'text-gray-500'}`}>{lvl.grade}</div>
-            <div className={`font-bold text-lg ${activeLevel === idx ? 'text-white' : 'text-gray-400'}`}>{lvl.title}</div>
+            <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${activeLevel === idx ? lvl.text : 'text-gray-500'}`}>{lvl.grade}</div>
+            <div className={`font-bold text-base ${activeLevel === idx ? 'text-white' : 'text-gray-400'}`}>{lvl.title}</div>
           </button>
         ))}
       </div>
 
       {/* Content Area */}
-      <div className={`w-full md:w-2/3 bg-gradient-to-br ${levels[activeLevel].color} rounded-2xl p-8 border ${levels[activeLevel].border} relative overflow-hidden transition-all duration-500 shadow-2xl`}>
+      <div className={`w-full md:w-2/3 bg-gradient-to-br ${levels[activeLevel].color} rounded-2xl p-6 border ${levels[activeLevel].border} relative overflow-hidden transition-all duration-500 shadow-xl`}>
         <div className={`absolute -bottom-10 -right-10 text-[12rem] opacity-[0.03] font-black ${levels[activeLevel].text}`}>
           {activeLevel + 6}
         </div>
         
-        <h3 className={`text-3xl font-bold mb-8 ${levels[activeLevel].text}`}>{levels[activeLevel].title}</h3>
+        <h3 className={`text-2xl font-bold mb-4 ${levels[activeLevel].text}`}>{levels[activeLevel].title}</h3>
         
-        <div className="space-y-4 mb-10 relative z-10">
+        <div className="space-y-3 mb-6 relative z-10">
           {levels[activeLevel].topics.map((topic, i) => (
-            <div key={i} className="bg-black/40 p-5 rounded-xl border border-white/10 backdrop-blur-sm">
-              <div className={`font-bold text-lg ${levels[activeLevel].text} mb-1`}>{topic.name}</div>
-              <div className="text-gray-300">{topic.desc}</div>
+            <div key={i} className="bg-black/40 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
+              <div className={`font-bold text-base ${levels[activeLevel].text} mb-1`}>{topic.name}</div>
+              <div className="text-gray-300 text-sm">{topic.desc}</div>
             </div>
           ))}
         </div>
 
-        <div className="bg-black/60 p-5 rounded-xl border border-white/5 relative z-10">
-          <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">The Takeaway</div>
-          <div className="text-white text-base italic leading-relaxed">"{levels[activeLevel].hook}"</div>
+        <div className="bg-black/60 p-4 rounded-xl border border-white/5 relative z-10">
+          <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-bold">The Takeaway</div>
+          <div className="text-white text-sm italic leading-relaxed">"{levels[activeLevel].hook}"</div>
         </div>
         
         {activeLevel < levels.length - 1 && (
           <button 
             onClick={() => setActiveLevel(activeLevel + 1)}
-            className={`mt-8 w-full py-4 rounded-xl bg-black/50 hover:bg-black/80 border border-white/10 text-white font-bold transition-all flex items-center justify-center gap-2 group`}
+            className={`mt-6 w-full py-3 rounded-xl bg-black/50 hover:bg-black/80 border border-white/10 text-white font-bold transition-all flex items-center justify-center gap-2 group text-sm`}
           >
             Unlock Next Level 
             <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
@@ -119,7 +119,7 @@ export function MemorySyncWidget() {
         )}
         
         {activeLevel === levels.length - 1 && (
-          <div className="mt-8 w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-neon-coral text-surface font-bold text-center text-lg shadow-[0_0_20px_rgba(182,102,210,0.5)]">
+          <div className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-neon-purple to-neon-coral text-surface font-bold text-center text-base shadow-[0_0_20px_rgba(182,102,210,0.5)]">
             Memory Sync Complete! You are ready for Class 10.
           </div>
         )}
