@@ -12,6 +12,7 @@ from seed_ai_masterclass_part3 import seed_ai_masterclass_part3
 from seed_ai_masterclass_part4 import seed_ai_masterclass_part4
 from seed_ai_masterclass_part5 import seed_ai_masterclass_part5
 from seed_ai_masterclass_part6 import seed_ai_masterclass_part6
+from seed_ai_masterclass_part7 import seed_ai_masterclass_part7
 
 def seed_trigonometry():
     init_db()
@@ -722,3 +723,4 @@ if __name__ == "__main__":
     seed_ai_masterclass_part4()
     seed_ai_masterclass_part5()
     seed_ai_masterclass_part6()
+    seed_ai_masterclass_part7()

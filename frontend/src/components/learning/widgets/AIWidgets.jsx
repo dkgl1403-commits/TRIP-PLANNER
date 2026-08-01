@@ -699,3 +699,127 @@ export function SoftmaxWidget() {
     </div>
   );
 }
+
+// 5. Neural Network Visualizer (Arc 3: Chapter 7)
+export function NeuralNetworkWidget() {
+  const [step, setStep] = useState(0); // 0: Input, 1: Hidden 1, 2: Hidden 2, 3: Output
+
+  const inputNodes = [0, 1, 2];
+  const hidden1Nodes = [0, 1, 2, 3];
+  const hidden2Nodes = [0, 1, 2, 3];
+  const outputNodes = [0, 1];
+
+  const handleNextStep = () => {
+    setStep((prev) => (prev + 1) % 5);
+  };
+
+  const getOpacity = (layerIdx) => {
+    if (step === 0) return layerIdx === 0 ? 'opacity-100' : 'opacity-20';
+    if (step === 1) return layerIdx <= 1 ? 'opacity-100' : 'opacity-20';
+    if (step === 2) return layerIdx <= 2 ? 'opacity-100' : 'opacity-20';
+    if (step >= 3) return 'opacity-100';
+    return 'opacity-20';
+  };
+
+  const getNodeColor = (layerIdx, nodeIdx) => {
+    if (step < layerIdx) return 'bg-gray-700 shadow-none';
+    
+    // Once activated, give them glowing colors
+    if (layerIdx === 0) return 'bg-blue-500 shadow-[0_0_15px_#3b82f6]';
+    if (layerIdx === 1) return 'bg-purple-500 shadow-[0_0_15px_#a855f7]';
+    if (layerIdx === 2) return 'bg-pink-500 shadow-[0_0_15px_#ec4899]';
+    if (layerIdx === 3) {
+      if (step === 4 && nodeIdx === 0) return 'bg-green-500 shadow-[0_0_25px_#22c55e] scale-125'; // Final Answer
+      if (step === 4 && nodeIdx === 1) return 'bg-red-500 shadow-[0_0_5px_#ef4444] opacity-50'; // Rejected
+      return 'bg-neon-teal shadow-[0_0_15px_#14b8a6]';
+    }
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">The Neural Network</h3>
+          <button 
+            onClick={handleNextStep}
+            className="px-4 py-2 bg-neon-purple text-white rounded-full font-bold hover:bg-purple-600 transition-colors shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+          >
+            {step === 0 ? "1. Feed Input" : step === 1 ? "2. Process Layer 1" : step === 2 ? "3. Process Layer 2" : step === 3 ? "4. Calculate Softmax" : "Reset"}
+          </button>
+        </div>
+        
+        <p className="text-gray-400 text-sm mb-8 text-center h-12">
+          {step === 0 && "The Input Layer acts as the AI's 'eyes'. It receives the raw data (like pixels of an image)."}
+          {step === 1 && "Hidden Layer 1 starts finding basic patterns, like edges and lines in the image."}
+          {step === 2 && "Hidden Layer 2 combines edges to find complex shapes, like ears and eyes."}
+          {step === 3 && "The Output Layer adds up all the math to produce the final raw Logits."}
+          {step === 4 && "Softmax turns the Logits into percentages! The AI is 95% confident it's a Cat."}
+        </p>
+
+        <div className="relative flex justify-between items-center bg-black/40 p-8 rounded-xl border border-white/5 h-80">
+          
+          {/* Layer 0: Input */}
+          <div className={`flex flex-col gap-6 z-10 transition-opacity duration-500 ${getOpacity(0)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Input Layer</div>
+            {inputNodes.map(i => (
+              <div key={`in-${i}`} className={`w-8 h-8 rounded-full transition-all duration-300 ${getNodeColor(0, i)}`}></div>
+            ))}
+          </div>
+
+          {/* Lines 0->1 */}
+          <svg className="absolute left-0 top-0 w-full h-full pointer-events-none z-0" style={{opacity: step >= 1 ? 0.3 : 0.05}}>
+            {inputNodes.map(i => hidden1Nodes.map(h => (
+              <line key={`l0-${i}-${h}`} x1="8%" y1={`${20 + i * 30}%`} x2="35%" y2={`${15 + h * 23}%`} stroke="#a855f7" strokeWidth="1" />
+            )))}
+          </svg>
+
+          {/* Layer 1: Hidden */}
+          <div className={`flex flex-col gap-4 z-10 transition-opacity duration-500 ${getOpacity(1)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Hidden Layer 1</div>
+            {hidden1Nodes.map(i => (
+              <div key={`h1-${i}`} className={`w-8 h-8 rounded-full transition-all duration-300 ${getNodeColor(1, i)}`}></div>
+            ))}
+          </div>
+
+          {/* Lines 1->2 */}
+          <svg className="absolute left-0 top-0 w-full h-full pointer-events-none z-0" style={{opacity: step >= 2 ? 0.3 : 0.05}}>
+            {hidden1Nodes.map(i => hidden2Nodes.map(h => (
+              <line key={`l1-${i}-${h}`} x1="38%" y1={`${15 + i * 23}%`} x2="63%" y2={`${15 + h * 23}%`} stroke="#ec4899" strokeWidth="1" />
+            )))}
+          </svg>
+
+          {/* Layer 2: Hidden */}
+          <div className={`flex flex-col gap-4 z-10 transition-opacity duration-500 ${getOpacity(2)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Hidden Layer 2</div>
+            {hidden2Nodes.map(i => (
+              <div key={`h2-${i}`} className={`w-8 h-8 rounded-full transition-all duration-300 ${getNodeColor(2, i)}`}></div>
+            ))}
+          </div>
+
+          {/* Lines 2->3 */}
+          <svg className="absolute left-0 top-0 w-full h-full pointer-events-none z-0" style={{opacity: step >= 3 ? 0.3 : 0.05}}>
+            {hidden2Nodes.map(i => outputNodes.map(h => (
+              <line key={`l2-${i}-${h}`} x1="66%" y1={`${15 + i * 23}%`} x2="92%" y2={`${30 + h * 40}%`} stroke="#14b8a6" strokeWidth="1" />
+            )))}
+          </svg>
+
+          {/* Layer 3: Output */}
+          <div className={`flex flex-col gap-12 z-10 transition-opacity duration-500 ${getOpacity(3)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Output Layer</div>
+            {outputNodes.map(i => (
+              <div key={`out-${i}`} className="flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white transition-all duration-500 ${getNodeColor(3, i)}`}>
+                  {step === 4 ? (i === 0 ? "95%" : "5%") : ""}
+                </div>
+                <div className={`text-sm font-bold ${step === 4 && i === 0 ? 'text-green-400' : 'text-gray-400'}`}>
+                  {i === 0 ? "Cat" : "Dog"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
