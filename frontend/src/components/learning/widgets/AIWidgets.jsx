@@ -413,3 +413,191 @@ export function VectorGalaxyWidget() {
     </div>
   );
 }
+
+// 4. Gradient Descent: The Blind Skier
+export function BlindSkierWidget() {
+  const [learningRate, setLearningRate] = useState(0.1);
+  const [position, setPosition] = useState(-4); // X-coordinate on the mountain (-4 to 4)
+  const [history, setHistory] = useState([{x: -4, y: 16}]); // Trail of where the skier has been
+  const [isSimulating, setIsSimulating] = useState(false);
+  
+  // The Mountain Function: y = x^2 (Loss function)
+  // The goal is to reach x=0 (the bottom of the valley where y=0)
+  const f = (x) => x * x;
+  
+  // The Derivative: dy/dx = 2x
+  // Tells us the slope of the mountain at any given point
+  const df = (x) => 2 * x;
+
+  const reset = () => {
+    setPosition(-4);
+    setHistory([{x: -4, y: 16}]);
+    setIsSimulating(false);
+  };
+
+  const takeStep = () => {
+    setPosition(prev => {
+      // Gradient Descent Formula: x_new = x_old - (learningRate * derivative)
+      const gradient = df(prev);
+      let newX = prev - (learningRate * gradient);
+      
+      // Cap at extremes so they don't fly off screen infinitely
+      if (newX > 5) newX = 5;
+      if (newX < -5) newX = -5;
+      
+      const newY = f(newX);
+      setHistory(h => [...h, {x: newX, y: newY}]);
+      return newX;
+    });
+  };
+
+  React.useEffect(() => {
+    let interval;
+    if (isSimulating) {
+      interval = setInterval(() => {
+        takeStep();
+      }, 500); // Take a step every 0.5s
+    }
+    return () => clearInterval(interval);
+  }, [isSimulating, learningRate]);
+
+  // Convert logical coordinates (-5 to 5, 0 to 25) to CSS percentages
+  const toCSS = (x, y) => {
+    // X axis: -5 is 0%, 5 is 100%
+    const left = ((x + 5) / 10) * 100;
+    // Y axis: 0 is 100% (bottom), 25 is 0% (top)
+    const bottom = (y / 25) * 100;
+    return { left: `${left}%`, bottom: `${bottom}%` };
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-neon-blue mb-2 border-b border-glass-stroke pb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined">downhill_skiing</span>
+          Gradient Descent (The Blind Skier)
+        </h3>
+        <p className="text-gray-400 text-sm mb-6">
+          The AI starts at the top of a mountain (high error). Using calculus (derivatives), it feels the slope under its feet and takes a step downwards. Adjust the <strong>Learning Rate</strong> (step size) and see how it impacts training!
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-8">
+          
+          {/* Controls */}
+          <div className="flex-1 w-full max-w-sm bg-surface p-6 rounded-xl border border-white/10 flex flex-col justify-center">
+            
+            <div className="mb-6">
+              <label className="flex justify-between text-sm font-bold mb-2">
+                Learning Rate (Step Size)
+                <span className="text-neon-blue">{learningRate.toFixed(2)}</span>
+              </label>
+              <input 
+                type="range" 
+                min="0.01" 
+                max="1.1" 
+                step="0.05"
+                value={learningRate}
+                onChange={(e) => setLearningRate(parseFloat(e.target.value))}
+                disabled={isSimulating}
+                className="w-full accent-neon-blue"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Tiny Steps</span>
+                <span>Massive Leaps</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button 
+                onClick={() => setIsSimulating(!isSimulating)}
+                className={`w-full py-3 font-bold rounded-lg transition-colors flex justify-center items-center gap-2 ${isSimulating ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-neon-blue text-black hover:bg-blue-400'}`}
+              >
+                <span className="material-symbols-outlined">
+                  {isSimulating ? 'stop' : 'play_arrow'}
+                </span>
+                {isSimulating ? 'Stop Training' : 'Start Auto-Training'}
+              </button>
+              
+              <button 
+                onClick={takeStep}
+                disabled={isSimulating}
+                className="w-full py-3 bg-surface-light border border-white/10 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Take 1 Step
+              </button>
+              
+              <button 
+                onClick={reset}
+                className="w-full py-3 text-gray-400 hover:text-white text-sm font-bold underline"
+              >
+                Reset Skier
+              </button>
+            </div>
+            
+            <div className="mt-6 p-4 bg-black/40 rounded-lg border border-white/5 font-mono text-sm">
+              <div className="text-gray-500 mb-1">Current State:</div>
+              <div>Error (Loss): <span className="text-red-400">{f(position).toFixed(2)}</span></div>
+              <div className="mt-2 text-xs text-gray-500">
+                {f(position) < 0.1 ? '🎉 AI is fully trained!' : f(position) > 20 ? '🚨 AI is out of control!' : 'Training in progress...'}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Visualization Mountain */}
+          <div className="flex-[2] aspect-video bg-black/50 border-l-2 border-b-2 border-gray-500 relative rounded-tr-xl overflow-hidden">
+            <div className="absolute top-2 right-4 text-gray-500 text-xs">Loss / Error Mountain</div>
+            
+            {/* Draw the Mountain Curve (y = x^2) using SVG */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ transform: 'scaleY(-1)' }}>
+              <path 
+                d={`M 0,100 Q 50,-100 100,100`} // Approximation of parabola for viewBox
+                fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5" 
+              />
+              <path 
+                d="M 0,100 L 100,100" // Valley floor
+                fill="none" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="1" strokeDasharray="2,2"
+              />
+            </svg>
+
+            {/* Render actual curve points with CSS */}
+            {Array.from({length: 41}, (_, i) => -5 + i*0.25).map((x, i) => {
+              const pos = toCSS(x, f(x));
+              return (
+                <div key={`curve-${i}`} className="absolute w-1 h-1 bg-white/10 rounded-full" style={pos}></div>
+              );
+            })}
+
+            {/* Trail */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+              {history.length > 1 && (
+                <polyline 
+                  points={history.map(h => {
+                    // SVG coordinates (0,0 is top left)
+                    const x = ((h.x + 5) / 10) * 100;
+                    const y = 100 - ((h.y / 25) * 100);
+                    return `${x}%,${y}%`;
+                  }).join(' ')}
+                  fill="none" stroke="rgba(59, 130, 246, 0.5)" strokeWidth="2" strokeDasharray="4,4"
+                />
+              )}
+            </svg>
+
+            {/* The Skier */}
+            <div 
+              className="absolute w-6 h-6 -ml-3 -mb-3 rounded-full bg-neon-blue shadow-[0_0_15px_rgba(59,130,246,0.8)] z-10 transition-all duration-300 flex items-center justify-center text-[10px]"
+              style={toCSS(position, f(position))}
+            >
+              🎿
+            </div>
+
+            {/* Target marker */}
+            <div className="absolute left-1/2 bottom-0 w-8 h-8 -ml-4 border-2 border-green-500 rounded-full animate-ping opacity-50 z-0"></div>
+            <div className="absolute left-1/2 bottom-0 w-2 h-2 -ml-1 -mb-1 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e] z-0"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
