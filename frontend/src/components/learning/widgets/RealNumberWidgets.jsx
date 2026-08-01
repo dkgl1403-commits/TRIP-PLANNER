@@ -78,7 +78,7 @@ export function MemorySyncWidget() {
           <button 
             key={idx}
             onClick={() => setActiveLevel(idx)}
-            className={`p-4 rounded-xl border text-left transition-all duration-300 ${activeLevel === idx ? \`bg-gradient-to-r \${lvl.color} \${lvl.border} shadow-lg\` : 'bg-surface/50 border-white/5 hover:bg-surface'}`}
+            className={`p-4 rounded-xl border text-left transition-all duration-300 ${activeLevel === idx ? 'bg-gradient-to-r ' + lvl.color + ' ' + lvl.border + ' shadow-lg' : 'bg-surface/50 border-white/5 hover:bg-surface'}`}
           >
             <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${activeLevel === idx ? lvl.text : 'text-gray-500'}`}>{lvl.grade}</div>
             <div className={`font-bold text-lg ${activeLevel === idx ? 'text-white' : 'text-gray-400'}`}>{lvl.title}</div>
