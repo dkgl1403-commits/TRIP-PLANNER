@@ -823,3 +823,86 @@ export function NeuralNetworkWidget() {
     </div>
   );
 }
+
+// 6. Attention Visualizer (Arc 3: Chapter 8)
+export function AttentionWidget() {
+  const [activeWord, setActiveWord] = useState(null);
+
+  const sentence = ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", "tired"];
+
+  // Attention scores when "it" is selected (index 7)
+  const itAttention = {
+    1: 0.9, // animal
+    5: 0.1, // street
+    10: 0.3 // tired
+  };
+
+  // Attention scores when "animal" is selected (index 1)
+  const animalAttention = {
+    7: 0.9, // it
+    10: 0.5 // tired
+  };
+
+  const getAttention = (sourceIdx, targetIdx) => {
+    if (sourceIdx === 7) return itAttention[targetIdx] || 0;
+    if (sourceIdx === 1) return animalAttention[targetIdx] || 0;
+    return 0;
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">Self-Attention Mechanism</h3>
+        </div>
+        
+        <p className="text-gray-400 text-sm mb-8 text-center">
+          Click on the word <strong>"it"</strong> to see how the Transformer understands context. 
+          Notice how it connects "it" strongly to "animal" rather than "street".
+        </p>
+
+        <div className="relative bg-black/40 p-12 rounded-xl border border-white/5 min-h-64 flex flex-col items-center justify-center">
+          
+          <div className="flex flex-wrap justify-center gap-4 z-10 relative">
+            {sentence.map((word, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveWord(activeWord === idx ? null : idx)}
+                className={`px-4 py-2 rounded-lg text-lg font-mono transition-all duration-300 ${
+                  activeWord === idx 
+                    ? 'bg-neon-teal text-white shadow-[0_0_15px_#14b8a6] transform scale-110' 
+                    : 'bg-surface border border-glass-stroke text-gray-300 hover:bg-gray-800'
+                }`}
+              >
+                {word}
+              </button>
+            ))}
+          </div>
+
+          {/* Visualization lines (simulated using absolute positioned divs for simplicity in standard layout) */}
+          <div className="mt-12 text-center h-24">
+            {activeWord === 7 ? (
+              <div className="flex flex-col items-center animate-fade-in">
+                <div className="text-neon-teal font-bold text-xl mb-2">Attention Focus: 90% "animal"</div>
+                <div className="text-gray-400 text-sm">The model uses math to calculate that "it" refers to the animal, not the street, because animals get tired.</div>
+              </div>
+            ) : activeWord === 1 ? (
+              <div className="flex flex-col items-center animate-fade-in">
+                <div className="text-neon-purple font-bold text-xl mb-2">Attention Focus: 90% "it"</div>
+                <div className="text-gray-400 text-sm">The word "animal" looks forward in the sentence to see it is referred to later.</div>
+              </div>
+            ) : activeWord !== null ? (
+              <div className="flex flex-col items-center animate-fade-in">
+                <div className="text-gray-500 font-bold text-xl mb-2">Weak Attention</div>
+                <div className="text-gray-400 text-sm">This word doesn't have strong complex contextual links in this specific example. Try clicking "it".</div>
+              </div>
+            ) : (
+              <div className="text-gray-600 italic">Select a word above...</div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
