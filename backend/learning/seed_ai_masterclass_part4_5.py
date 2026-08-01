@@ -20,7 +20,6 @@ def seed_ai_masterclass_part4_5():
             topic = LearningTopic(
                 subject_id=ai_subject.id,
                 name=topic_name,
-                description="The history of how Calculus solved the AI Winter.",
                 order_index=5 # Assuming 4 is Linear Algebra, 6 is Calculus Gradient descent (will adjust)
             )
             db.add(topic)
