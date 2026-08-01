@@ -759,8 +759,8 @@ export function NeuralNetworkWidget() {
         <div className="relative flex justify-between items-center bg-black/40 p-8 rounded-xl border border-white/5 h-80">
           
           {/* Layer 0: Input */}
-          <div className={`flex flex-col gap-6 z-10 transition-opacity duration-500 ${getOpacity(0)}`}>
-            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Input Layer</div>
+          <div className={`relative flex flex-col gap-6 z-10 transition-opacity duration-500 ${getOpacity(0)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0 whitespace-nowrap">Input Layer</div>
             {inputNodes.map(i => (
               <div key={`in-${i}`} className={`w-8 h-8 rounded-full transition-all duration-300 ${getNodeColor(0, i)}`}></div>
             ))}
@@ -774,8 +774,8 @@ export function NeuralNetworkWidget() {
           </svg>
 
           {/* Layer 1: Hidden */}
-          <div className={`flex flex-col gap-4 z-10 transition-opacity duration-500 ${getOpacity(1)}`}>
-            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Hidden Layer 1</div>
+          <div className={`relative flex flex-col gap-4 z-10 transition-opacity duration-500 ${getOpacity(1)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0 whitespace-nowrap">Hidden Layer 1</div>
             {hidden1Nodes.map(i => (
               <div key={`h1-${i}`} className={`w-8 h-8 rounded-full transition-all duration-300 ${getNodeColor(1, i)}`}></div>
             ))}
@@ -789,8 +789,8 @@ export function NeuralNetworkWidget() {
           </svg>
 
           {/* Layer 2: Hidden */}
-          <div className={`flex flex-col gap-4 z-10 transition-opacity duration-500 ${getOpacity(2)}`}>
-            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Hidden Layer 2</div>
+          <div className={`relative flex flex-col gap-4 z-10 transition-opacity duration-500 ${getOpacity(2)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0 whitespace-nowrap">Hidden Layer 2</div>
             {hidden2Nodes.map(i => (
               <div key={`h2-${i}`} className={`w-8 h-8 rounded-full transition-all duration-300 ${getNodeColor(2, i)}`}></div>
             ))}
@@ -804,8 +804,8 @@ export function NeuralNetworkWidget() {
           </svg>
 
           {/* Layer 3: Output */}
-          <div className={`flex flex-col gap-12 z-10 transition-opacity duration-500 ${getOpacity(3)}`}>
-            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0">Output Layer</div>
+          <div className={`relative flex flex-col gap-12 z-10 transition-opacity duration-500 ${getOpacity(3)}`}>
+            <div className="text-xs text-gray-500 text-center uppercase tracking-widest absolute -top-6 w-full left-0 whitespace-nowrap">Output Layer</div>
             {outputNodes.map(i => (
               <div key={`out-${i}`} className="flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white transition-all duration-500 ${getNodeColor(3, i)}`}>
