@@ -2612,6 +2612,12 @@ export function DataCenterAnatomyWidget() {
           Inside the Fortress
         </h3>
 
+        <img 
+          src="/ai_data_center.png" 
+          alt="AI Data Center Interior" 
+          className="w-full h-64 object-cover rounded-xl mb-6 border border-gray-800 shadow-2xl"
+        />
+
         <div className="flex flex-col md:flex-row gap-6">
           {/* Visual Map */}
           <div className="flex-1 flex flex-col gap-3 relative p-4 bg-gray-900 rounded-xl border border-gray-800">
