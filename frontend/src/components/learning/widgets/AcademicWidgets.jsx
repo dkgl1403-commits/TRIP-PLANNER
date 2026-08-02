@@ -40,7 +40,9 @@ import {
   DiffusionWidget,
   RAGvsFineTuningWidget,
   QuantizationWidget,
-  MoEWidget
+  MoEWidget,
+  CpuVsGpuCoreWidget,
+  DataCenterWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1306,5 +1308,7 @@ export const WidgetRegistry = {
   DiffusionWidget,
   RAGvsFineTuningWidget,
   QuantizationWidget,
-  MoEWidget
+  MoEWidget,
+  CpuVsGpuCoreWidget,
+  DataCenterWidget
 };

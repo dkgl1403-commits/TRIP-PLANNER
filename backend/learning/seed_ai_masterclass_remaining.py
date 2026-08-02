@@ -259,23 +259,69 @@ def seed_ai_remaining():
                 "name": "The Brains of AI (CPU vs GPU)",
                 "parts": [
                     {
-                        "title": "Why Nvidia is Worth Trillions",
-                        "narrative": "<p>Your laptop's CPU is like a genius professor—it can do very complex math, but only one problem at a time (Sequential).</p><p>A <strong>GPU (Graphics Processing Unit)</strong> is like 10,000 middle schoolers—they can only do basic addition, but they can do 10,000 problems at the exact same time (Parallel). Because neural networks are just billions of simple additions and multiplications, GPUs are required to train AI. This is why Nvidia is so incredibly valuable.</p>",
-                        "audioText": "CPUs do complex math sequentially. GPUs do simple math massively in parallel, which is exactly what neural networks need.",
-                        "audioTextHinglish": "CPU math sequential karta hai. GPU simple math ek saath hazaro baar kar sakta hai, jo AI ko chahiye. Isiliye Nvidia itna valuable hai.",
-                        "keyInsight": "AI requires parallel processing, which is what GPUs are designed to do."
+                        "title": "The Tale of Two Brains: Ram vs Shyam",
+                        "readingTime": "~3 min read",
+                        "narrative": "<p>To understand why AI exploded in the 2010s, we have to look at hardware. Think of a <strong>CPU (Central Processing Unit)</strong> as \"Ram\"—a genius professor. Ram is brilliant. He can solve complex calculus, manage an entire operating system, and predict what you're going to do next. But he can only solve <em>one problem at a time</em> (Sequential Processing).</p><p>Now meet \"Shyam\"—the <strong>GPU (Graphics Processing Unit)</strong>. Shyam is like an army of 10,000 middle schoolers. None of them are geniuses. They can only do basic addition and multiplication. But because there are 10,000 of them, they can solve 10,000 basic math problems at the exact same time (Parallel Processing).</p>",
+                        "audioText": "Think of a CPU as a genius professor who works alone sequentially. A GPU is like ten thousand middle schoolers working in parallel.",
+                        "audioTextHinglish": "CPU ek genius professor ki tarah hai jo akele sequential kaam karta hai. GPU hazaron middle schoolers jaisa hai jo ek saath parallel kaam karte hain.",
+                        "keyInsight": "CPUs are designed for complex sequential tasks. GPUs are designed for massive parallel math.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "The Anatomy of a Core",
+                        "readingTime": "~4 min read",
+                        "narrative": "<p>When you buy a laptop, it might have a \"Quad-Core\" CPU. That means it has 4 \"Genius\" brains. A CPU core is massive and incredibly complex. It has advanced logic (like branch prediction) and huge amounts of fast local memory (Cache) so it can run Windows or macOS smoothly.</p><p>A GPU core, however, is tiny and \"dumb.\" It has almost no cache and no advanced logic. Because they are so small, engineers can pack <em>thousands</em> of them onto a single piece of silicon. A modern Nvidia GPU might have over 10,000 cores.</p>",
+                        "audioText": "A CPU core is massive, complex, and handles operating systems. A GPU core is tiny and simple, allowing engineers to pack thousands of them onto one chip.",
+                        "audioTextHinglish": "CPU core bohot bada aur complex hota hai. GPU core chota aur simple hota hai, isiliye ek chip par hazaron aa jate hain.",
+                        "keyInsight": "CPU cores maximize complexity. GPU cores maximize sheer quantity.",
+                        "widgetType": "CpuVsGpuCoreWidget",
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "The Plot Twist of 2012",
+                        "readingTime": "~3 min read",
+                        "narrative": "<p>For decades, CPUs ran the world. GPUs were only used by gamers to draw millions of pixels on a screen. But in 2012, AI researchers made a shocking discovery: <strong>training a Neural Network is mathematically identical to drawing pixels in a video game</strong>.</p><p>A neural network is just billions of simple additions and multiplications. The \"Genius\" CPU is terrible at this; it takes forever to do a billion simple math problems sequentially. The \"Middle School Army\" GPU crushes this task instantly in parallel. Overnight, the GPU accidentally became the most powerful engine for AI, making Nvidia the most valuable company in the world.</p><p><em>(Manufacturing note: Both chips are made by melting sand into silicon ingots, slicing them into wafers, and using ultraviolet photolithography to print microscopic transistors at the nanometer scale!)</em></p>",
+                        "audioText": "In 2012, researchers realized that neural network math is identical to video game math. Overnight, GPUs became the ultimate engines for AI.",
+                        "audioTextHinglish": "2012 mein pata chala ki AI ka math aur video game ka math same hai. Raaton raat GPU AI ka sabse bada engine ban gaya.",
+                        "keyInsight": "AI didn't invent the GPU; it hijacked hardware originally built for video games.",
+                        "widgetType": None,
+                        "widgetData": {}
                     }
                 ]
             },
             {
-                "name": "The Data Center & Power Wall",
+                "name": "The Physical Reality of the Cloud",
                 "parts": [
                     {
-                        "title": "The Physical Reality of the Cloud",
-                        "narrative": "<p>AI doesn't float in the air. It lives in <strong>Data Centers</strong>—massive warehouses filled with tens of thousands of GPUs.</p><p>These GPUs generate so much heat that air conditioning isn't enough; they require liquid coolant pumped directly over the chips. The biggest roadblock to future AI isn't math—it's the <strong>Power Wall</strong>. Training the next generation of models will require so much electricity that tech companies are investing in nuclear power plants just to keep the servers running.</p>",
-                        "audioText": "AI lives in massive Data Centers. The biggest roadblock to future AI is the Power Wall: we are running out of electricity to power the GPUs.",
-                        "audioTextHinglish": "AI Data Centers mein rehta hai. Future AI ke liye sabse badi problem Power Wall hai, yani in servers ko chalane ke liye bijli ki kami.",
-                        "keyInsight": "The scale of modern AI is limited by physical energy and cooling, not just code."
+                        "title": "Stadiums of Silicon",
+                        "readingTime": "~3 min read",
+                        "narrative": "<p>AI does not live in a magical \"cloud\" in the sky. It lives in <strong>Data Centers</strong>. To understand the scale, a single server rack is the size of a large kitchen fridge. A standard AI data center contains thousands of these racks and is the physical size of a massive <strong>football stadium</strong>.</p><p>There are over 10,000 of these massive concrete and steel structures worldwide. They are the physical, beating heart of the internet and modern AI.</p>",
+                        "audioText": "AI lives in massive physical data centers, many of which are the size of football stadiums filled with server racks.",
+                        "audioTextHinglish": "AI asmaan mein nahi, massive data centers mein rehta hai jo football stadiums jitne bade hote hain.",
+                        "keyInsight": "The \"Cloud\" is just millions of computers sitting in massive warehouses.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "The Data Appetite (KB to PB)",
+                        "readingTime": "~3 min read",
+                        "narrative": "<p>Why are they so big? Because AI requires unfathomable amounts of data. Let's scale it up:</p><ul><li><strong>Kilobyte (KB):</strong> A short paragraph of text.</li><li><strong>Megabyte (MB):</strong> A small novel.</li><li><strong>Gigabyte (GB):</strong> A pickup truck filled with books.</li><li><strong>Terabyte (TB):</strong> An entire library.</li><li><strong>Petabyte (PB):</strong> 500 billion pages of standard text.</li></ul><p>Frontier AI models train on <em>Petabytes</em> of data. Storing this requires endless aisles of high-density hard drives. <em>(Note: While GPUs do the math, the Data Center relies heavily on CPUs to act as the managers, retrieving this massive data and feeding it to the GPUs over the network.)</em></p>",
+                        "audioText": "AI models train on Petabytes of data—equivalent to hundreds of billions of pages of text. CPUs act as the managers to feed this data to the GPUs.",
+                        "audioTextHinglish": "AI models Petabytes data par train hote hain. CPU is data ko manage karke GPUs tak pahunchata hai.",
+                        "keyInsight": "CPUs orchestrate the massive data flow; GPUs execute the AI math.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "The Four Constraints of AI",
+                        "readingTime": "~5 min read",
+                        "narrative": "<p>Running these stadiums of silicon creates extreme physical challenges. The AI industry is currently choking on four massive constraints:</p><ol><li><strong>Semiconductors:</strong> Companies like TSMC are struggling to manufacture enough 3-nanometer chips. The supply chain is bottlenecked.</li><li><strong>Rare Earth Minerals:</strong> High-end electronics require massive amounts of lithium, cobalt, and copper, leading to geopolitical tension.</li><li><strong>Electricity:</strong> A single data center can require 100 to 300 Megawatts—enough to power a small city! Training one AI model can cost hundreds of millions in electricity alone. National grids are straining.</li><li><strong>Drinking Water:</strong> Millions of GPUs generate catastrophic heat. Air conditioning isn't enough; they use liquid cooling. A single data center can evaporate millions of gallons of fresh drinking water every day just to prevent the servers from melting.</li></ol>",
+                        "audioText": "AI is constrained by physical reality: semiconductor manufacturing, rare earth minerals, massive electricity demands, and millions of gallons of water for cooling.",
+                        "audioTextHinglish": "AI physical limits se ruka hua hai: chips banana, minerals, bohot sari electricity, aur servers ko thanda rakhne ke liye lakho gallon paani.",
+                        "keyInsight": "The future of AI is bottlenecked by power, water, and supply chains, not software.",
+                        "widgetType": "DataCenterWidget",
+                        "widgetData": {}
                     }
                 ]
             },

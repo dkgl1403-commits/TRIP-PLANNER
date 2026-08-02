@@ -2288,3 +2288,275 @@ export function MoEWidget() {
     </div>
   );
 }
+
+// 18. CPU vs GPU Core Anatomy (Arc 7: Chapter 20)
+export function CpuVsGpuCoreWidget() {
+  const [mode, setMode] = useState('diagram'); // diagram, race
+  const [raceState, setRaceState] = useState('idle'); // idle, complex, simple
+  const [cpuProgress, setCpuProgress] = useState(0);
+  const [gpuProgress, setGpuProgress] = useState(0);
+  const [timer, setTimer] = useState(null);
+
+  const startRace = (type) => {
+    if (timer) clearInterval(timer);
+    setCpuProgress(0);
+    setGpuProgress(0);
+    setRaceState(type);
+    
+    let c = 0;
+    let g = 0;
+    
+    const interval = setInterval(() => {
+      if (type === 'complex') {
+        c += 100; // CPU instantly finishes 1 complex task
+        g += 5;   // GPU struggles with complex sequential logic
+      } else {
+        c += 2;   // CPU slowly churns through 1 million simple tasks sequentially
+        g += 100; // GPU instantly parallel processes 1 million simple tasks
+      }
+      
+      setCpuProgress(Math.min(c, 100));
+      setGpuProgress(Math.min(g, 100));
+      
+      if (c >= 100 && g >= 100) clearInterval(interval);
+    }, 50);
+    
+    setTimer(interval);
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 text-white">
+      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span className="text-2xl">🔬</span> The Anatomy of a Core
+      </h3>
+
+      <div className="flex gap-2 mb-6 p-1 bg-gray-900 rounded-lg">
+        <button 
+          onClick={() => { setMode('diagram'); setRaceState('idle'); }}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'diagram' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          Anatomy
+        </button>
+        <button 
+          onClick={() => setMode('race')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'race' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          The Math Race
+        </button>
+      </div>
+
+      <div className="bg-gray-900 p-6 rounded-lg border border-gray-700 min-h-[350px]">
+        {mode === 'diagram' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+            {/* CPU */}
+            <div className="flex flex-col items-center">
+              <div className="text-lg font-bold text-blue-400 mb-2">CPU (The Genius)</div>
+              <div className="text-xs text-gray-400 mb-4 text-center">Optimized for low-latency sequential logic</div>
+              <div className="w-48 h-48 bg-gray-800 border-2 border-blue-500/50 rounded-lg p-2 grid grid-cols-2 gap-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-blue-900/30 border border-blue-500/30 rounded flex flex-col items-center justify-center p-2 relative overflow-hidden group">
+                     <div className="absolute inset-0 bg-blue-500/10 group-hover:bg-blue-500/30 transition-colors"></div>
+                     <div className="text-xl mb-1">🧠</div>
+                     <div className="text-[10px] text-blue-300 text-center leading-tight">Massive Core<br/>+ Huge Cache<br/>+ Branch Predictor</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-sm">Example: 4 to 16 Cores</div>
+            </div>
+
+            {/* GPU */}
+            <div className="flex flex-col items-center">
+              <div className="text-lg font-bold text-green-400 mb-2">GPU (The Army)</div>
+              <div className="text-xs text-gray-400 mb-4 text-center">Optimized for high-throughput parallel math</div>
+              <div className="w-48 h-48 bg-gray-800 border-2 border-green-500/50 rounded-lg p-2 flex flex-col">
+                <div className="flex-1 grid grid-cols-10 grid-rows-10 gap-px">
+                  {[...Array(100)].map((_, i) => (
+                    <div key={i} className="bg-green-500/40 hover:bg-green-400 transition-colors rounded-sm"></div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 text-sm">Example: 10,000+ Cores</div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col h-full justify-between">
+            <div className="flex justify-center gap-4 mb-8">
+              <button 
+                onClick={() => startRace('complex')}
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm transition-colors border border-gray-600"
+              >
+                Solve 1 Complex Logic Puzzle
+              </button>
+              <button 
+                onClick={() => startRace('simple')}
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm transition-colors border border-gray-600"
+              >
+                Solve 1 Million Simple Math Equations (AI)
+              </button>
+            </div>
+
+            <div className="flex-1 flex flex-col gap-8 justify-center">
+              {/* CPU Track */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-blue-400 font-bold">CPU (Sequential)</span>
+                  <span className="text-gray-400">{cpuProgress === 100 ? 'Finished!' : raceState !== 'idle' ? 'Processing...' : ''}</span>
+                </div>
+                <div className="h-4 bg-gray-800 rounded-full overflow-hidden border border-gray-700 relative">
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-75"
+                    style={{ width: `${cpuProgress}%` }}
+                  ></div>
+                  {raceState === 'simple' && cpuProgress > 0 && cpuProgress < 100 && (
+                    <div className="absolute inset-0 flex items-center px-2 text-[10px] text-white whitespace-nowrap">
+                       1... 2... 3... 4... (Solving one by one)
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* GPU Track */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-green-400 font-bold">GPU (Parallel)</span>
+                  <span className="text-gray-400">{gpuProgress === 100 ? 'Finished!' : raceState !== 'idle' ? 'Processing...' : ''}</span>
+                </div>
+                <div className="h-4 bg-gray-800 rounded-full overflow-hidden border border-gray-700 relative">
+                  <div 
+                    className="h-full bg-green-500 transition-all duration-75"
+                    style={{ width: `${gpuProgress}%` }}
+                  ></div>
+                  {raceState === 'simple' && gpuProgress > 0 && gpuProgress < 100 && (
+                    <div className="absolute inset-0 flex items-center px-2 text-[10px] text-white whitespace-nowrap">
+                       Solving all 1,000,000 simultaneously!
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// 19. Data Center (Arc 7: Chapter 21)
+export function DataCenterWidget() {
+  const [prompt, setPrompt] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const [metrics, setMetrics] = useState({
+    watts: 0,
+    joules: 0,
+    waterLiters: 0,
+    costCents: 0,
+    gpus: 0
+  });
+
+  const handlePrompt = () => {
+    if (!prompt.trim() || isProcessing) return;
+    
+    setIsProcessing(true);
+    setMetrics({ watts: 0, joules: 0, waterLiters: 0, costCents: 0, gpus: 0 });
+
+    const charCount = prompt.length;
+    // Arbitrary scale just for visualization
+    const targetGpus = Math.max(1, Math.min(8, Math.floor(charCount / 10)));
+    const targetWatts = targetGpus * 700; // 700W per H100
+    const targetJoules = targetWatts * 2.5; // 2.5 seconds of compute
+    const targetWater = (targetJoules / 10000).toFixed(2);
+    const targetCost = ((targetWatts / 1000) * 0.15 * (targetGpus / 2)).toFixed(2); // very rough estimate
+
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 0.1;
+      if (current >= 1) {
+        clearInterval(interval);
+        setMetrics({
+          watts: targetWatts,
+          joules: targetJoules,
+          waterLiters: targetWater,
+          costCents: targetCost,
+          gpus: targetGpus
+        });
+        setIsProcessing(false);
+      } else {
+        setMetrics({
+          watts: Math.floor(targetWatts * current),
+          joules: Math.floor(targetJoules * current),
+          waterLiters: (targetWater * current).toFixed(2),
+          costCents: (targetCost * current).toFixed(2),
+          gpus: Math.max(1, Math.floor(targetGpus * current))
+        });
+      }
+    }, 100);
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 text-white relative overflow-hidden">
+      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span className="text-2xl">🏭</span> The Cost of a Prompt
+      </h3>
+
+      <div className="flex gap-2 mb-6">
+        <input 
+          type="text" 
+          value={prompt}
+          onChange={e => setPrompt(e.target.value)}
+          placeholder="Type a prompt for the AI..."
+          className="flex-1 bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+          onKeyDown={e => e.key === 'Enter' && handlePrompt()}
+        />
+        <button 
+          onClick={handlePrompt}
+          disabled={isProcessing}
+          className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 px-4 py-2 rounded text-sm font-bold transition-colors"
+        >
+          Send to Data Center
+        </button>
+      </div>
+
+      <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 relative">
+        {/* The Connection */}
+        <div className="flex items-center justify-between mb-8 relative">
+          <div className="text-3xl z-10 bg-gray-900 p-2 rounded-full">💻</div>
+          <div className="flex-1 h-1 mx-4 relative overflow-hidden bg-gray-800">
+            {isProcessing && (
+              <div className="absolute inset-0 bg-blue-500 w-1/4 animate-[pulse_0.5s_ease-in-out_infinite] blur-sm"></div>
+            )}
+          </div>
+          <div className="text-4xl z-10">🏟️</div>
+        </div>
+
+        {/* Metrics Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gray-800 p-3 rounded border border-gray-600 flex flex-col items-center">
+            <div className="text-xs text-gray-400 mb-1">GPUs Activated</div>
+            <div className="text-2xl font-bold text-green-400">{metrics.gpus}</div>
+            <div className="text-[10px] text-gray-500 mt-1">H100 Tensor Cores</div>
+          </div>
+          
+          <div className="bg-gray-800 p-3 rounded border border-gray-600 flex flex-col items-center">
+            <div className="text-xs text-gray-400 mb-1">Electricity Use</div>
+            <div className="text-2xl font-bold text-yellow-400">{metrics.watts}</div>
+            <div className="text-[10px] text-gray-500 mt-1">Watts consumed</div>
+          </div>
+
+          <div className="bg-gray-800 p-3 rounded border border-gray-600 flex flex-col items-center">
+            <div className="text-xs text-gray-400 mb-1">Water Evaporated</div>
+            <div className="text-2xl font-bold text-blue-400">{metrics.waterLiters}</div>
+            <div className="text-[10px] text-gray-500 mt-1">Liters (for cooling)</div>
+          </div>
+
+          <div className="bg-gray-800 p-3 rounded border border-gray-600 flex flex-col items-center">
+            <div className="text-xs text-gray-400 mb-1">Estimated Cost</div>
+            <div className="text-2xl font-bold text-red-400">{metrics.costCents}¢</div>
+            <div className="text-[10px] text-gray-500 mt-1">Cents (OpEx)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
