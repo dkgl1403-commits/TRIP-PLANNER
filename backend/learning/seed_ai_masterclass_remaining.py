@@ -44,11 +44,50 @@ def seed_ai_remaining():
                 "name": "Tokenization & Embeddings",
                 "parts": [
                     {
-                        "title": "How Computers Read Words",
-                        "narrative": "<p>Computers don't understand English; they only understand numbers. To feed text into a neural network, we must break sentences down into chunks called <strong>Tokens</strong>, and assign each token a number.</p><p>But a number isn't enough. We map each token to a multi-dimensional coordinate in a mathematical space called <strong>Latent Space</strong>. This coordinate is called an <strong>Embedding</strong>. Words with similar meanings are placed physically close together in this mathematical space.</p>",
-                        "audioText": "Computers only understand numbers. We break words into Tokens, and map them to coordinates called Embeddings so the AI understands meaning.",
-                        "audioTextHinglish": "Computers sirf numbers samajhte hain. Hum words ko Tokens mein todte hain aur unhe mathematical space mein map karte hain jise Embeddings kehte hain.",
-                        "keyInsight": "Embeddings allow AI to understand the 'meaning' of words mathematically."
+                        "title": "Part 1: The Alphabet of AI (Tokenization)",
+                        "narrative": "<p>Computers do not understand English. They do not know what the word \"Hamburger\" means, nor do they know the letters H-A-M. They only understand numbers.</p><p>To feed text into a neural network, we must first break the sentences down into chunks called <strong>Tokens</strong>. A token might be a whole word, or just a piece of a word. For example, the AI might slice \"Hamburger\" into two tokens: `Ham` (ID: 452) and `burger` (ID: 8910).</p><p>This is why AI is so bad at spelling words backwards or counting the number of 'r's in strawberry—it doesn't actually see the letters, it only sees the mathematical Token IDs.</p>",
+                        "audioText": "Computers only understand numbers, so we break words down into chunks called Tokens. For example, Hamburger might become two tokens: Ham and burger.",
+                        "audioTextHinglish": "Computers sirf numbers samajhte hain, isliye hum words ko Tokens mein todte hain. Jaise Hamburger ko Ham aur burger mein.",
+                        "keyInsight": "Tokenization is the process of translating human words into numbers so the AI can read them."
+                    },
+                    {
+                        "title": "Part 2: The Coordinate System of Meaning (Embeddings)",
+                        "narrative": "<p>Giving a word an ID number (like 452) isn't enough. The number 452 doesn't tell the AI that a Hamburger is a type of food.</p><p>To solve this, researchers created <strong>Embeddings</strong>. Instead of a single ID, every token is mapped to a massive list of numbers (usually 1,000+ numbers). You can think of this list of numbers as coordinates on a giant 1000-dimensional map called <strong>Latent Space</strong>.</p><p>On this map, words with similar meanings are placed physically close together. 'Apple' and 'Banana' are close. 'Dog' and 'Cat' are close.</p>",
+                        "audioText": "To give words meaning, we assign them a massive list of coordinates called an Embedding. Words with similar meanings are placed physically close together in Latent Space.",
+                        "audioTextHinglish": "Words ko meaning dene ke liye hum unhe coordinates dete hain jise Embedding kehte hain. Latent Space mein ek jaise meaning wale words paas paas hote hain.",
+                        "keyInsight": "Embeddings translate the abstract 'meaning' of a word into a physical location in a mathematical space."
+                    },
+                    {
+                        "title": "Part 3: The Math of Meaning",
+                        "narrative": "<p>Because words are now just coordinates on a map, we can actually do math on them! This was one of the biggest breakthroughs in AI history (Word2Vec).</p><p>If you take the coordinate for <strong>King</strong>, subtract the coordinate for <strong>Man</strong>, and add the coordinate for <strong>Woman</strong>, the resulting coordinate lands almost exactly on the word <strong>Queen</strong>.</p><p><strong>King - Man + Woman = Queen.</strong> The AI has mathematically learned the concept of gender and royalty just by reading billions of pages of text.</p>",
+                        "audioText": "Because words are coordinates, we can do math on them. If you take King, minus Man, plus Woman, you mathematically land exactly on Queen.",
+                        "audioTextHinglish": "Kyunki words coordinates ban gaye hain, hum unpar math kar sakte hain. King minus Man plus Woman equals Queen.",
+                        "keyInsight": "By turning words into geometry, AI can learn deep, logical relationships between concepts without human programming."
+                    },
+                    {
+                        "title": "Interactive Latent Space Visualizer",
+                        "narrative": "<p>Let's look at a 2D slice of this massive 1000-dimensional Latent Space. Notice how the AI has automatically clustered Animals together, Food together, and Vehicles together, even though nobody explicitly programmed it to do so.</p><p>Hover over the points to see the actual math (the Embedding vectors) behind the words!</p>",
+                        "widgetType": "EmbeddingsWidget",
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "Mastery Quiz",
+                        "narrative": "<p>Test your knowledge on Tokenization and Embeddings.</p>",
+                        "widgetType": "MCQEngine",
+                        "widgetData": {
+                            "questions": [
+                                {
+                                    "q": "Why does an AI often fail if you ask it 'How many letters are in the word Apple?'",
+                                    "options": ["It doesn't know math", "It sees the word as a single numerical Token, not individual letters", "It is hallucinating", "It needs more internet access"],
+                                    "correct": 1
+                                },
+                                {
+                                    "q": "What happens in Latent Space?",
+                                    "options": ["Words are deleted", "Words with similar meanings are placed physically close together as coordinate clusters", "The AI hallucinates", "The model shrinks in size"],
+                                    "correct": 1
+                                }
+                            ]
+                        }
                     }
                 ]
             },

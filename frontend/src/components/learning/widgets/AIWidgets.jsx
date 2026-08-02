@@ -1659,3 +1659,125 @@ export function TaxonomyWidget() {
     </div>
   );
 }
+
+// 12. Embeddings Visualizer (Arc 3: Chapter 8)
+export function EmbeddingsWidget() {
+  const [activeWord, setActiveWord] = useState(null);
+
+  // Simulated 2D projection of 1000-dimensional Latent Space
+  const wordPoints = [
+    // Animals cluster
+    { word: "Dog", x: 20, y: 80, cluster: "animals", vector: [0.82, -0.45, 0.12] },
+    { word: "Cat", x: 25, y: 75, cluster: "animals", vector: [0.78, -0.42, 0.15] },
+    { word: "Wolf", x: 15, y: 85, cluster: "animals", vector: [0.85, -0.50, 0.08] },
+    
+    // Food cluster
+    { word: "Apple", x: 75, y: 20, cluster: "food", vector: [-0.34, 0.88, 0.22] },
+    { word: "Banana", x: 80, y: 25, cluster: "food", vector: [-0.30, 0.85, 0.25] },
+    { word: "Orange", x: 70, y: 15, cluster: "food", vector: [-0.38, 0.90, 0.18] },
+
+    // Vehicles cluster
+    { word: "Car", x: 80, y: 80, cluster: "vehicles", vector: [0.12, 0.15, 0.92] },
+    { word: "Truck", x: 85, y: 85, cluster: "vehicles", vector: [0.15, 0.18, 0.95] },
+    { word: "Bus", x: 75, y: 75, cluster: "vehicles", vector: [0.10, 0.12, 0.88] },
+
+    // Royal cluster
+    { word: "King", x: 20, y: 20, cluster: "royal", vector: [-0.75, -0.65, 0.40] },
+    { word: "Queen", x: 25, y: 25, cluster: "royal", vector: [-0.72, -0.62, 0.45] },
+    { word: "Prince", x: 15, y: 15, cluster: "royal", vector: [-0.78, -0.68, 0.38] }
+  ];
+
+  const getClusterColor = (cluster) => {
+    switch(cluster) {
+      case 'animals': return 'bg-amber-500 border-amber-300';
+      case 'food': return 'bg-green-500 border-green-300';
+      case 'vehicles': return 'bg-blue-500 border-blue-300';
+      case 'royal': return 'bg-purple-500 border-purple-300';
+      default: return 'bg-gray-500 border-gray-300';
+    }
+  };
+
+  const getVectorString = (vector) => {
+    return `[${vector[0].toFixed(2)}, ${vector[1].toFixed(2)}, ${vector[2].toFixed(2)}, ...]`;
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">Latent Space (Embedding Visualizer)</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Left Column: Graph */}
+          <div className="col-span-2 relative bg-black/60 border border-white/10 rounded-xl aspect-square md:aspect-auto overflow-hidden custom-scrollbar">
+            {/* Grid Lines */}
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '10% 10%' }}></div>
+            
+            {/* Plot Points */}
+            {wordPoints.map((wp, i) => (
+              <div 
+                key={i}
+                className={`absolute w-3 h-3 rounded-full border shadow-[0_0_10px_currentColor] cursor-pointer transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 hover:scale-150 ${getClusterColor(wp.cluster)} ${activeWord?.word === wp.word ? 'scale-150 ring-2 ring-white ring-offset-2 ring-offset-black' : ''}`}
+                style={{ left: `${wp.x}%`, top: `${wp.y}%` }}
+                onClick={() => setActiveWord(wp)}
+                onMouseEnter={() => setActiveWord(wp)}
+              >
+                {/* Label */}
+                <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-bold px-2 py-1 rounded bg-black/80 pointer-events-none transition-opacity ${activeWord?.word === wp.word ? 'opacity-100 text-white' : 'opacity-70 text-gray-300'}`}>
+                  {wp.word}
+                </div>
+              </div>
+            ))}
+
+            <div className="absolute bottom-2 left-2 text-[10px] text-gray-500 font-mono">
+              * 2D Projection of 1000-D Space
+            </div>
+          </div>
+
+          {/* Right Column: Details */}
+          <div className="col-span-1 space-y-4">
+            <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl">
+              <h4 className="text-sm font-bold text-blue-400 uppercase mb-2">How it works</h4>
+              <p className="text-xs text-gray-300 leading-relaxed">
+                Hover over the dots on the left. The AI maps words with similar meanings physically close together in mathematical space. Notice how Animals cluster in the top left, and Food in the bottom right!
+              </p>
+            </div>
+
+            {activeWord ? (
+              <div className="bg-black/40 border border-white/20 p-4 rounded-xl animate-fade-in">
+                <div className="text-center mb-4">
+                  <span className="text-3xl font-black text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                    "{activeWord.word}"
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Semantic Cluster</div>
+                    <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getClusterColor(activeWord.cluster)} bg-opacity-20`}>
+                      {activeWord.cluster.toUpperCase()}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Vector Coordinates (Embedding)</div>
+                    <div className="font-mono text-xs text-green-400 bg-black/60 p-2 rounded border border-green-500/30 break-all">
+                      {getVectorString(activeWord.vector)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-48 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-500 text-sm text-center p-4">
+                Hover over a point to inspect its mathematical embedding vector.
+              </div>
+            )}
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}
