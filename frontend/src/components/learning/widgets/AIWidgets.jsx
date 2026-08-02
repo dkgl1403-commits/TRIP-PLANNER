@@ -1152,3 +1152,159 @@ export function ContextWindowWidget() {
     </div>
   );
 }
+
+// 8.2 RAG Visualizer (Arc 4: Chapter 11)
+export function RAGWidget() {
+  const [query, setQuery] = useState("");
+  const [retrieved, setRetrieved] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [output, setOutput] = useState("");
+  const [asked, setAsked] = useState(false);
+
+  const knowledgeBase = [
+    { id: 1, title: "HR Policy", text: "The company refund policy is strictly 30 days with a receipt." },
+    { id: 2, title: "Leadership", text: "The CEO of the company is John Doe. The CTO is Jane Smith." },
+    { id: 3, title: "Tech Stack", text: "Our backend is built with Python and FastAPI, frontend is React." }
+  ];
+
+  const handleAsk = () => {
+    if (!query) return;
+    setAsked(true);
+    
+    // Simulate Retrieval
+    let found = null;
+    if (query.toLowerCase().includes("refund") || query.toLowerCase().includes("policy") || query.toLowerCase().includes("hr")) found = knowledgeBase[0];
+    else if (query.toLowerCase().includes("ceo") || query.toLowerCase().includes("cto") || query.toLowerCase().includes("john") || query.toLowerCase().includes("leader")) found = knowledgeBase[1];
+    else if (query.toLowerCase().includes("tech") || query.toLowerCase().includes("backend") || query.toLowerCase().includes("frontend") || query.toLowerCase().includes("stack")) found = knowledgeBase[2];
+
+    setRetrieved(found);
+    setGenerating(true);
+    setOutput("");
+
+    // Simulate Generation Delay
+    setTimeout(() => {
+      setGenerating(false);
+      if (found?.id === 1) setOutput("Based on the HR Policy document, the company refund policy is 30 days with a receipt.");
+      else if (found?.id === 2) setOutput("According to the Leadership document, the CEO is John Doe and the CTO is Jane Smith.");
+      else if (found?.id === 3) setOutput("Our tech stack consists of Python and FastAPI for the backend, and React for the frontend.");
+      else setOutput("I'm sorry, but I couldn't find the answer to your question in the provided documents.");
+    }, 1500);
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-5xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">RAG (Retrieval-Augmented Generation) Simulator</h3>
+        </div>
+
+        <p className="text-gray-400 text-sm mb-6 text-center">
+          Ask a question about the company. Watch how the system <strong>Retrieves</strong> the correct document from the Library, pastes it into the <strong>Context Window</strong>, and <strong>Generates</strong> a factual answer!
+        </p>
+
+        <div className="flex gap-6 flex-col md:flex-row">
+          
+          {/* Step 1: The Library */}
+          <div className="flex-1 bg-black/40 p-4 rounded-xl border border-blue-500/30">
+            <div className="text-xs text-blue-400 uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
+              <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center">1</span> 
+              Knowledge Base
+            </div>
+            <div className="space-y-3">
+              {knowledgeBase.map(doc => (
+                <div key={doc.id} className={`p-3 rounded border text-sm transition-all duration-500 ${retrieved?.id === doc.id ? 'bg-blue-900/50 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)] scale-105' : 'bg-white/5 border-white/10 opacity-70'}`}>
+                  <div className="font-bold text-gray-300 mb-1">{doc.title}</div>
+                  <div className="text-gray-400">{doc.text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 2 & 3: Retrieval & Generation */}
+          <div className="flex-[1.5] flex flex-col gap-4">
+            
+            {/* User Input */}
+            <div className="bg-black/40 p-4 rounded-xl border border-white/10 relative">
+               <div className="text-xs text-gray-400 uppercase tracking-widest mb-2 font-bold flex justify-between">
+                 <span>User Query</span>
+                 <span className="text-gray-500 text-[10px]">Try: "Who is the CEO?"</span>
+               </div>
+               <div className="flex gap-2">
+                 <input 
+                   type="text" 
+                   value={query} 
+                   onChange={(e) => setQuery(e.target.value)}
+                   onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+                   placeholder="e.g., What is the refund policy?"
+                   className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-blue-400"
+                 />
+                 <button onClick={handleAsk} disabled={generating || !query} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded transition-colors font-medium">
+                   Ask
+                 </button>
+               </div>
+            </div>
+
+            {/* Context Window Assembly */}
+            <div className={`flex-1 p-4 rounded-xl border transition-all duration-500 flex flex-col ${asked ? 'bg-purple-900/20 border-purple-500/50' : 'bg-black/40 border-white/5'}`}>
+              <div className="text-xs text-purple-400 uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
+                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center">2</span> 
+                Context Window Assembly
+              </div>
+              
+              {!asked ? (
+                <div className="flex-1 flex items-center justify-center text-gray-600 italic text-sm">
+                  Waiting for a query to retrieve documents...
+                </div>
+              ) : (
+                <div className="space-y-3 animate-fade-in">
+                  <div className="text-xs text-gray-400 uppercase">System Prompt</div>
+                  <div className="bg-black/50 p-3 rounded text-sm text-gray-300 border border-white/5">
+                    "Answer the user's question using ONLY the following context."
+                  </div>
+                  
+                  <div className="text-xs text-purple-300 uppercase mt-2">Retrieved Context</div>
+                  {retrieved ? (
+                    <div className="bg-purple-900/40 p-3 rounded text-sm text-white border border-purple-500/30 font-mono">
+                      {retrieved.text}
+                    </div>
+                  ) : (
+                    <div className="bg-red-900/20 p-3 rounded text-sm text-red-300 border border-red-500/30 font-mono italic">
+                      [NO RELEVANT DOCUMENTS FOUND IN KNOWLEDGE BASE]
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-400 uppercase mt-2">User Question</div>
+                  <div className="bg-blue-900/20 p-3 rounded text-sm text-blue-200 border border-blue-500/30">
+                    "{query}"
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Final AI Output */}
+            <div className={`p-4 rounded-xl border transition-all duration-500 min-h-[100px] flex flex-col justify-center ${output ? 'bg-gradient-to-br from-green-900/20 to-black border-green-500/50' : 'bg-black/40 border-white/5'}`}>
+              <div className="text-xs text-green-400 uppercase tracking-widest mb-2 font-bold flex items-center gap-2">
+                <span className="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center">3</span> 
+                AI Output
+              </div>
+              {generating ? (
+                <div className="flex items-center gap-2 text-green-400 animate-pulse">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-green-400 rounded-full animation-delay-200"></div>
+                  <div className="w-2 h-2 bg-green-400 rounded-full animation-delay-400"></div>
+                  <span className="ml-2 text-sm font-mono">Reading context & generating...</span>
+                </div>
+              ) : output ? (
+                <div className="text-white text-lg font-medium">{output}</div>
+              ) : (
+                <div className="text-gray-600 italic text-sm">Waiting for context...</div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
