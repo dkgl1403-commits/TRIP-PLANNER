@@ -168,7 +168,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
 
               {currentPart.narrative && (
                 <div 
-                  className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-headings:text-neon-coral prose-strong:text-white prose-strong:font-bold font-serif"
+                  className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-headings:text-neon-coral prose-strong:text-white prose-strong:font-bold"
                   dangerouslySetInnerHTML={{ __html: currentPart.narrative }}
                 />
               )}
