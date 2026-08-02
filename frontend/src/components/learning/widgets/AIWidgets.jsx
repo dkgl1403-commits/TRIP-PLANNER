@@ -986,3 +986,91 @@ export function RLHFWidget() {
     </div>
   );
 }
+
+// 8. Prompt Engineering (Arc 4: Chapter 10)
+export function PromptingWidget() {
+  const [examples, setExamples] = useState(0);
+  
+  const getOutput = () => {
+    if (examples === 0) return "Hello, how can I help you today?";
+    if (examples === 1) return "Ahoy matey! How can I be of service to ye today, arrr!";
+    return "Ahoy there, ye scurvy dog! What brings ye to my ship today? Speak yer mind or walk the plank! Arrr!";
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">In-Context Learning Simulator</h3>
+        </div>
+        
+        <p className="text-gray-400 text-sm mb-6 text-center">
+          Teach the AI to talk like a Pirate <strong>without changing its underlying weights</strong>! Add examples to the "Context Window" and watch the output adapt.
+        </p>
+
+        <div className="flex gap-6">
+          {/* Prompt Section */}
+          <div className="flex-1 space-y-4">
+            <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+              <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">System Prompt</div>
+              <p className="text-gray-300">Translate the following English sentence to Pirate.</p>
+            </div>
+
+            <div className="bg-black/40 p-4 rounded-xl border border-white/5 min-h-[120px] transition-all">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Few-Shot Examples</div>
+                <button 
+                  onClick={() => setExamples(Math.min(2, examples + 1))}
+                  disabled={examples >= 2}
+                  className="bg-neon-teal/20 text-neon-teal px-2 py-1 rounded text-xs hover:bg-neon-teal/40 disabled:opacity-50"
+                >
+                  + Add Example
+                </button>
+              </div>
+              
+              {examples === 0 && <p className="text-gray-500 italic text-sm">No examples provided (Zero-Shot)</p>}
+              
+              {examples >= 1 && (
+                <div className="text-sm text-gray-400 mb-2 p-2 bg-white/5 rounded">
+                  <span className="text-blue-400">User:</span> Hello friend<br/>
+                  <span className="text-green-400">Assistant:</span> Ahoy matey!
+                </div>
+              )}
+              {examples >= 2 && (
+                <div className="text-sm text-gray-400 p-2 bg-white/5 rounded">
+                  <span className="text-blue-400">User:</span> Look at that boat<br/>
+                  <span className="text-green-400">Assistant:</span> Avast ye! Look at that fine vessel!
+                </div>
+              )}
+              
+              {examples > 0 && (
+                <button 
+                  onClick={() => setExamples(0)}
+                  className="mt-2 text-red-400 text-xs hover:underline"
+                >
+                  Clear Examples
+                </button>
+              )}
+            </div>
+
+            <div className="bg-black/40 p-4 rounded-xl border border-blue-500/30">
+              <div className="text-xs text-blue-400 uppercase tracking-widest mb-2 font-bold">User Input</div>
+              <p className="text-white">"Hello, how can I help you today?"</p>
+            </div>
+          </div>
+
+          {/* AI Output Section */}
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 bg-gradient-to-br from-green-900/20 to-black p-6 rounded-xl border border-green-500/30 flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute top-4 left-4 text-xs text-green-400 uppercase tracking-widest font-bold">AI Output</div>
+              <p className="text-white text-lg font-medium relative z-10 transition-all duration-300">
+                {getOutput()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

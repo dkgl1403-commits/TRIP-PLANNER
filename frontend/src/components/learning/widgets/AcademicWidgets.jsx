@@ -28,7 +28,8 @@ import {
   SoftmaxWidget,
   NeuralNetworkWidget,
   AttentionWidget,
-  RLHFWidget
+  RLHFWidget,
+  PromptingWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1282,5 +1283,6 @@ export const WidgetRegistry = {
   SoftmaxWidget,
   NeuralNetworkWidget,
   AttentionWidget,
-  RLHFWidget
+  RLHFWidget,
+  PromptingWidget
 };
