@@ -164,11 +164,34 @@ def seed_ai_remaining():
                 "name": "Fine-Tuning vs RAG",
                 "parts": [
                     {
-                        "title": "Teaching an Old Dog New Tricks",
-                        "narrative": "<p>If you want an AI to know about your company's private data, you have two choices.</p><p>1. <strong>Fine-Tuning:</strong> You actually change the AI's internal brain by doing more training on your data. This is expensive but changes how the AI <em>behaves</em>.</p><p>2. <strong>RAG (Retrieval-Augmented Generation):</strong> You just give the AI a search engine to look up your documents before it answers. This is cheap and perfect for <em>factual knowledge</em>.</p>",
-                        "audioText": "To teach an AI private data, you can either Fine-Tune it to change its behavior, or use RAG to give it a search engine for facts.",
-                        "audioTextHinglish": "AI ko private data sikhane ke liye ya toh aap Fine-Tune kar sakte hain, ya RAG use karke usko ek search engine de sakte hain.",
-                        "keyInsight": "Use Fine-Tuning for style and behavior. Use RAG for facts and knowledge."
+                        "title": "The Knowledge Problem",
+                        "readingTime": "~2 min read",
+                        "narrative": "<p>Imagine an AI model as a brilliant student who just woke up from a coma. They know everything up to the year they were trained, but they know absolutely nothing about what happened yesterday, or about your company's private, secret documents.</p><p>If you want the AI to answer questions about your private data, you have two choices: <strong>RAG</strong> or <strong>Fine-Tuning</strong>.</p>",
+                        "audioText": "An AI's knowledge is frozen in time. To teach it new, private information, you must use either RAG or Fine-Tuning.",
+                        "audioTextHinglish": "AI ki knowledge ek point par freeze ho jati hai. Nayi aur private information sikhane ke liye RAG ya Fine-Tuning use karna padta hai.",
+                        "keyInsight": "AI models are static. You must explicitly give them new knowledge.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "RAG (Retrieval-Augmented Generation)",
+                        "readingTime": "~2 min read",
+                        "narrative": "<p><strong>RAG</strong> is like giving the AI an open-book test. You do NOT change the AI's brain. Instead, when you ask a question, a separate system quickly searches your company's documents, finds the relevant paragraph, and pastes it into the prompt along with your question.</p><p>The AI then reads the paragraph and answers your question. It's cheap, fast, and ensures the AI doesn't hallucinate because it's reading the exact facts.</p>",
+                        "audioText": "RAG is like an open book test. You give the AI a search engine to look up documents before it answers. It's fast and cheap.",
+                        "audioTextHinglish": "RAG ek open book test ki tarah hai. Aap AI ko search engine dete hain taki wo documents padhkar answer de. Ye sasta aur tez hai.",
+                        "keyInsight": "RAG is best for giving the AI factual, up-to-date knowledge without changing its brain.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "Fine-Tuning & LoRA",
+                        "readingTime": "~3 min read",
+                        "narrative": "<p><strong>Fine-Tuning</strong> is like sending the student back to school. You actually perform more Gradient Descent (calculus) to physically alter the billions of weights in the AI's brain.</p><p>This is extremely expensive. However, engineers invented a breakthrough called <strong>LoRA (Low-Rank Adaptation)</strong>. Instead of retraining the massive brain, LoRA \"freezes\" the original brain and just adds a tiny, highly-specialized \"adapter\" module on the side. This makes training 10,000x cheaper!</p><p>Fine-Tuning isn't great for teaching facts, but it is perfect for teaching <em>style</em> (e.g., teaching the AI to talk exactly like a lawyer or a pirate).</p>",
+                        "audioText": "Fine-Tuning physically alters the AI's brain. Engineers invented LoRA, which freezes the main brain and only trains a tiny adapter to save costs. Fine-Tuning is best for teaching style, not facts.",
+                        "audioTextHinglish": "Fine-Tuning AI ke dimaag ko change karta hai. LoRA ek technique hai jo main brain ko freeze karke sirf ek chota adapter train karti hai jisse paise bachte hain. Fine-Tuning style sikhane ke liye best hai.",
+                        "keyInsight": "Use Fine-Tuning/LoRA to change behavior and style. Use RAG to inject factual knowledge.",
+                        "widgetType": "RAGvsFineTuningWidget",
+                        "widgetData": {}
                     }
                 ]
             },
@@ -176,11 +199,34 @@ def seed_ai_remaining():
                 "name": "Quantization & SLMs",
                 "parts": [
                     {
-                        "title": "Running AI on Your Phone",
-                        "narrative": "<p>GPT-4 is massive and requires giant data centers to run. To run AI locally on your phone or laptop, researchers use <strong>Quantization</strong>.</p><p>Quantization compresses the model (like turning a high-res photo into a low-res JPEG). It rounds off the complex math numbers to save space. We also have <strong>SLMs (Small Language Models)</strong> which are built from the ground up to be tiny but highly efficient for specific tasks.</p>",
-                        "audioText": "To run AI on your phone, we use Quantization to compress the model, or we build Small Language Models designed to be tiny and efficient.",
-                        "audioTextHinglish": "Phone par AI chalane ke liye hum Quantization use karte hain model ko compress karne ke liye, ya Small Language Models banate hain.",
-                        "keyInsight": "Quantization compresses big models so they can run locally without the cloud."
+                        "title": "The Memory Bottleneck",
+                        "readingTime": "~2 min read",
+                        "narrative": "<p>A large AI model like GPT-4 or Llama 3 (70 Billion parameters) requires over 140 Gigabytes of VRAM just to load into memory. No smartphone or laptop in the world has that much memory. So how do we run AI locally on our phones without relying on the cloud?</p><p>The answer is <strong>Quantization</strong>.</p>",
+                        "audioText": "Massive AI models require hundreds of gigabytes of memory, which laptops don't have. To run AI locally, we must compress it.",
+                        "audioTextHinglish": "Bade AI models ko chalane ke liye hundreds of gigabytes memory chahiye. Local phone par chalane ke liye unhe compress karna padta hai.",
+                        "keyInsight": "Memory (VRAM), not processing speed, is the main bottleneck for running local AI.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "Quantization (Compressing the Brain)",
+                        "readingTime": "~3 min read",
+                        "narrative": "<p>Inside a neural network, every weight is a very precise decimal number, like <code>3.14159265</code>. This is called FP16 (16-bit precision). Quantization is the math of rounding off these decimals.</p><p>If we round it to just <code>3</code> (INT4 or 4-bit precision), the number takes up 75% less space in memory! The crazy part? The AI barely loses any intelligence. By rounding off the math, we can fit massive models onto a standard Macbook.</p>",
+                        "audioText": "Quantization rounds off the highly precise decimal numbers inside the AI's brain. By chopping off the decimals, we save 75% of the memory space while barely losing any intelligence.",
+                        "audioTextHinglish": "Quantization AI ke andar ke precise numbers ko round off karta hai. Decimals hatane se 75% space bachta hai aur AI ki intelligence bhi kam nahi hoti.",
+                        "keyInsight": "Quantization is the process of reducing the precision of the weights to save memory.",
+                        "widgetType": "QuantizationWidget",
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "Small Language Models (SLMs)",
+                        "readingTime": "~1 min read",
+                        "narrative": "<p>Even with Quantization, sometimes we just want a smaller model. <strong>SLMs (Small Language Models)</strong> like Microsoft's <em>Phi-3</em> are built from the ground up to be tiny (only 3-8 billion parameters).</p><p>Instead of reading the entire internet, they are trained on highly curated, textbook-quality data. They run flawlessly on iPhones and are the future of edge computing.</p>",
+                        "audioText": "Small Language Models are built from the ground up to be tiny but highly efficient. They run flawlessly on edge devices like iPhones.",
+                        "audioTextHinglish": "Small Language Models shuru se hi chote banaye jate hain. Ye iPhones jaisi devices par perfectly chalte hain.",
+                        "keyInsight": "Curated, high-quality data allows Small Language Models to punch far above their weight class.",
+                        "widgetType": None,
+                        "widgetData": {}
                     }
                 ]
             },
@@ -188,11 +234,24 @@ def seed_ai_remaining():
                 "name": "Mixture of Experts (MoE)",
                 "parts": [
                     {
+                        "title": "The Problem with Dense Models",
+                        "readingTime": "~2 min read",
+                        "narrative": "<p>Every time you ask ChatGPT a question, electricity flows through every single parameter in its brain. If it has 1 Trillion parameters, that means a massive amount of math (and electricity) is used for every single word it generates.</p><p>This is called a <strong>Dense Model</strong>. It is incredibly expensive and slow to run at scale.</p>",
+                        "audioText": "In a dense model, electricity flows through every single parameter for every word generated. This is incredibly expensive and slow.",
+                        "audioTextHinglish": "Dense model mein har word generate karne ke liye poore dimaag ki electricity use hoti hai. Ye bohot mehenga aur slow hota hai.",
+                        "keyInsight": "Activating the entire brain for every single word is computationally wasteful.",
+                        "widgetType": None,
+                        "widgetData": {}
+                    },
+                    {
                         "title": "The Secret Architecture of GPT-4",
-                        "narrative": "<p>GPT-4 isn't one giant brain—it's a <strong>Mixture of Experts (MoE)</strong>.</p><p>Inside an MoE model, there are several smaller \"expert\" neural networks (e.g., one for math, one for coding, one for French). When you ask a question, a \"router\" looks at your prompt and only wakes up the two experts that are best suited to answer it. This saves massive amounts of electricity and makes the AI much faster.</p>",
-                        "audioText": "GPT-4 uses a Mixture of Experts. It's actually several smaller brains, and a router only wakes up the experts needed for your specific question.",
-                        "audioTextHinglish": "GPT-4 Mixture of Experts use karta hai. Isme alag alag chote brains hote hain aur sirf wahi jagte hain jinki zarurat hoti hai.",
-                        "keyInsight": "MoE saves compute by only activating a fraction of the neural network for each word."
+                        "readingTime": "~3 min read",
+                        "narrative": "<p>To solve this, researchers invented <strong>Mixture of Experts (MoE)</strong>. GPT-4 is not one giant brain—it is actually 8 (or more) smaller \"expert\" networks inside a trench coat.</p><p>There is a <strong>Router Gate</strong>. When you send a prompt, the Router looks at it and decides which experts to wake up. If you ask a coding question in French, the Router wakes up the <em>Coding Expert</em> and the <em>French Expert</em>, while the other 6 experts stay asleep!</p><p>This means the model can have 1 Trillion total parameters (massive knowledge), but only activates 250 Billion parameters at a time. It saves 75% of the compute cost while retaining all the intelligence!</p>",
+                        "audioText": "GPT-4 is a Mixture of Experts. A router analyzes your prompt and only wakes up the specific expert neural networks needed to answer, while the rest stay asleep to save power.",
+                        "audioTextHinglish": "GPT-4 ek Mixture of Experts hai. Ek router aapke question ko dekhta hai aur sirf zaruri experts ko jagata hai, baki sab sote rehte hain power bachane ke liye.",
+                        "keyInsight": "MoE uses a Router to only activate a fraction of the neural network, drastically reducing compute costs.",
+                        "widgetType": "MoEWidget",
+                        "widgetData": {}
                     }
                 ]
             },

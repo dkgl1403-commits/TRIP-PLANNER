@@ -37,7 +37,10 @@ import {
   TaxonomyWidget,
   EmbeddingsWidget,
   GenerativeWidget,
-  DiffusionWidget
+  DiffusionWidget,
+  RAGvsFineTuningWidget,
+  QuantizationWidget,
+  MoEWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1300,5 +1303,8 @@ export const WidgetRegistry = {
   TaxonomyWidget,
   EmbeddingsWidget,
   GenerativeWidget,
-  DiffusionWidget
+  DiffusionWidget,
+  RAGvsFineTuningWidget,
+  QuantizationWidget,
+  MoEWidget
 };

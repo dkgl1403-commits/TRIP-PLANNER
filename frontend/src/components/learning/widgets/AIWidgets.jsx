@@ -2025,3 +2025,266 @@ export function DiffusionWidget() {
     </div>
   );
 }
+
+// 15. RAG vs Fine-Tuning (Arc 6: Chapter 17)
+export function RAGvsFineTuningWidget() {
+  const [mode, setMode] = useState('base'); // base, rag, finetuned
+  
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 text-white">
+      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span className="text-2xl">🧠</span> Knowledge Architecture
+      </h3>
+      
+      <div className="flex gap-2 mb-6 p-1 bg-gray-900 rounded-lg">
+        <button 
+          onClick={() => setMode('base')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'base' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          Base Model
+        </button>
+        <button 
+          onClick={() => setMode('rag')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'rag' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          RAG
+        </button>
+        <button 
+          onClick={() => setMode('finetuned')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${mode === 'finetuned' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          Fine-Tuned (LoRA)
+        </button>
+      </div>
+
+      <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 min-h-[300px] flex flex-col justify-between relative overflow-hidden">
+        {/* User Prompt */}
+        <div className="flex gap-4">
+          <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">👤</div>
+          <div className="bg-blue-900/40 p-3 rounded-lg border border-blue-500/30 text-blue-100 flex-1">
+            "What is our company's secret Q3 revenue?"
+          </div>
+        </div>
+
+        {/* Processing Visualization */}
+        <div className="flex-1 py-6 flex flex-col items-center justify-center relative">
+          
+          {mode === 'base' && (
+            <div className="flex flex-col items-center animate-pulse">
+              <div className="text-4xl mb-2">🧠</div>
+              <div className="text-sm text-gray-400 text-center">Base Brain<br/>(Only knows public internet)</div>
+            </div>
+          )}
+
+          {mode === 'rag' && (
+            <div className="flex w-full items-center justify-center gap-8">
+              <div className="flex flex-col items-center animate-fade-in-up">
+                <div className="text-4xl mb-2 text-green-400">🔍</div>
+                <div className="text-sm text-green-400/70 text-center">Search Engine<br/>(Finds Q3 doc)</div>
+              </div>
+              <div className="h-0.5 w-16 bg-green-500/30 relative">
+                <div className="absolute inset-0 bg-green-400 animate-pulse"></div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-4xl mb-2">🧠</div>
+                <div className="text-sm text-gray-400 text-center">Base Brain<br/>(Reads the doc)</div>
+              </div>
+            </div>
+          )}
+
+          {mode === 'finetuned' && (
+            <div className="flex flex-col items-center relative animate-fade-in-up">
+              <div className="text-4xl mb-2">🧠</div>
+              <div className="absolute -top-2 -right-4 bg-purple-500 text-xs px-2 py-1 rounded-full animate-bounce">LoRA Adapter</div>
+              <div className="text-sm text-purple-400/70 text-center mt-2">Upgraded Brain<br/>(Trained on private data)</div>
+            </div>
+          )}
+          
+        </div>
+
+        {/* AI Response */}
+        <div className="flex gap-4 items-end">
+          <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">🤖</div>
+          <div className="bg-gray-800 p-3 rounded-lg border border-gray-600 text-gray-200 flex-1 relative overflow-hidden">
+            {mode === 'base' && (
+              <span className="text-red-400 italic">"I'm sorry, I don't have access to your private company data."</span>
+            )}
+            {mode === 'rag' && (
+              <span className="text-green-400">"According to the retrieved document, Q3 revenue was $4.2M."</span>
+            )}
+            {mode === 'finetuned' && (
+              <span className="text-purple-400">"Our Q3 revenue was $4.2M, beating expectations by 15%."</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// 16. Quantization (Arc 6: Chapter 18)
+export function QuantizationWidget() {
+  const [precision, setPrecision] = useState(16); // 16, 8, 4
+
+  const getWeightText = () => {
+    if (precision === 16) return "3.141592653589";
+    if (precision === 8) return "3.14159";
+    return "3.14";
+  };
+
+  const getMemoryUsage = () => {
+    if (precision === 16) return 140;
+    if (precision === 8) return 70;
+    return 35;
+  };
+
+  const getIntelligence = () => {
+    if (precision === 16) return 100;
+    if (precision === 8) return 99.2;
+    return 96.5;
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 text-white">
+      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span className="text-2xl">🗜️</span> Model Compression (Quantization)
+      </h3>
+      
+      <div className="mb-8">
+        <div className="flex justify-between mb-2 text-sm text-gray-400">
+          <span>Max Quality (FP16)</span>
+          <span>Medium (INT8)</span>
+          <span>Max Compression (INT4)</span>
+        </div>
+        <input 
+          type="range" 
+          min="0" max="2" step="1"
+          value={precision === 16 ? 0 : precision === 8 ? 1 : 2}
+          onChange={(e) => {
+            const val = parseInt(e.target.value);
+            setPrecision(val === 0 ? 16 : val === 1 ? 8 : 4);
+          }}
+          className="w-full accent-blue-500 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Memory Bar */}
+        <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col justify-center">
+          <div className="text-sm text-gray-400 mb-2">VRAM Required</div>
+          <div className="text-3xl font-bold text-white mb-2">{getMemoryUsage()} GB</div>
+          <div className="w-full bg-gray-800 rounded-full h-2.5">
+            <div className={`h-2.5 rounded-full transition-all duration-500 ${precision === 16 ? 'bg-red-500' : precision === 8 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${(getMemoryUsage() / 140) * 100}%` }}></div>
+          </div>
+          <div className="text-xs text-gray-500 mt-2">
+            {precision === 16 ? "Needs cloud servers" : precision === 8 ? "Fits on Mac Studio" : "Fits on iPhone"}
+          </div>
+        </div>
+
+        {/* Intelligence Bar */}
+        <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col justify-center">
+          <div className="text-sm text-gray-400 mb-2">Model Intelligence</div>
+          <div className="text-3xl font-bold text-white mb-2">{getIntelligence()}%</div>
+          <div className="w-full bg-gray-800 rounded-full h-2.5">
+            <div className="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${getIntelligence()}%` }}></div>
+          </div>
+          <div className="text-xs text-gray-500 mt-2">
+            Minimal intelligence loss for massive memory savings
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 bg-black/40 p-4 rounded-lg font-mono text-center flex flex-col items-center justify-center min-h-[100px]">
+        <div className="text-xs text-gray-500 mb-1">Internal Math Weight (Truncated)</div>
+        <div className="text-2xl text-green-400 transition-all duration-300">
+          {getWeightText()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// 17. Mixture of Experts (Arc 6: Chapter 19)
+export function MoEWidget() {
+  const [activeExperts, setActiveExperts] = useState([0, 1]); // default
+
+  const experts = [
+    { id: 0, name: "Grammar", icon: "📝" },
+    { id: 1, name: "Math", icon: "🧮" },
+    { id: 2, name: "Coding", icon: "💻" },
+    { id: 3, name: "French", icon: "🥖" },
+    { id: 4, name: "History", icon: "🏛️" },
+    { id: 5, name: "Medical", icon: "⚕️" },
+    { id: 6, name: "Logic", icon: "🧩" },
+    { id: 7, name: "Physics", icon: "⚛️" }
+  ];
+
+  const simulatePrompt = (promptType) => {
+    if (promptType === 'code') setActiveExperts([2, 6]);
+    else if (promptType === 'french_history') setActiveExperts([3, 4]);
+    else if (promptType === 'medical_math') setActiveExperts([1, 5]);
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 text-white">
+      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span className="text-2xl">👔</span> Mixture of Experts (MoE)
+      </h3>
+      
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => simulatePrompt('code')} className="flex-1 py-2 px-2 bg-gray-700 hover:bg-gray-600 rounded text-xs">"Write Python code"</button>
+        <button onClick={() => simulatePrompt('french_history')} className="flex-1 py-2 px-2 bg-gray-700 hover:bg-gray-600 rounded text-xs">"History of Paris (in French)"</button>
+        <button onClick={() => simulatePrompt('medical_math')} className="flex-1 py-2 px-2 bg-gray-700 hover:bg-gray-600 rounded text-xs">"Calculate drug dosage"</button>
+      </div>
+
+      <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
+        
+        {/* Router */}
+        <div className="flex justify-center mb-8 relative">
+          <div className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-[0_0_15px_rgba(37,99,235,0.5)] z-10">
+            Router Gate
+          </div>
+          {/* Beams */}
+          <div className="absolute top-1/2 left-0 right-0 h-32 pointer-events-none flex justify-center">
+             <div className="w-full flex justify-around mt-4 opacity-30">
+                {experts.map(e => (
+                  <div key={e.id} className={`w-0.5 h-16 transition-all duration-300 ${activeExperts.includes(e.id) ? 'bg-blue-400 h-24 shadow-[0_0_8px_#60a5fa]' : 'bg-transparent'}`}></div>
+                ))}
+             </div>
+          </div>
+        </div>
+
+        {/* Experts */}
+        <div className="grid grid-cols-4 gap-4 mt-8">
+          {experts.map(expert => {
+            const isActive = activeExperts.includes(expert.id);
+            return (
+              <div 
+                key={expert.id} 
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all duration-500 ${
+                  isActive 
+                    ? 'bg-blue-900/40 border-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.3)] scale-110' 
+                    : 'bg-gray-800 border-gray-700 opacity-40 scale-95'
+                }`}
+              >
+                <div className="text-3xl mb-1">{expert.icon}</div>
+                <div className={`text-xs font-bold ${isActive ? 'text-blue-300' : 'text-gray-500'}`}>{expert.name}</div>
+                <div className="text-[10px] mt-1 text-gray-500">{isActive ? 'ACTIVE' : 'SLEEPING'}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Power Saved */}
+        <div className="mt-8 text-center text-sm">
+          <span className="text-gray-400">Compute Cost: </span>
+          <span className="text-green-400 font-bold ml-2">75% Power Saved</span>
+          <div className="text-xs text-gray-500 mt-1">(Only 2 out of 8 experts activated for this word)</div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
