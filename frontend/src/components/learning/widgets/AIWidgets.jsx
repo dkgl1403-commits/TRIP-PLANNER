@@ -1308,3 +1308,132 @@ export function RAGWidget() {
     </div>
   );
 }
+
+// 9. Reasoning Visualizer (Arc 4: Chapter 12)
+export function ReasoningWidget() {
+  const [mode, setMode] = useState(null); // 'fast' or 'deep'
+  const [step, setStep] = useState(0); // For deep mode animation
+
+  const puzzle = "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?";
+
+  const handleFast = () => {
+    setMode('fast');
+    setStep(1); // Immediate output
+  };
+
+  const handleDeep = () => {
+    setMode('deep');
+    setStep(0);
+    // Simulate chain of thought steps
+    setTimeout(() => setStep(1), 800);
+    setTimeout(() => setStep(2), 2000);
+    setTimeout(() => setStep(3), 3200);
+    setTimeout(() => setStep(4), 4500);
+    setTimeout(() => setStep(5), 5500); // Final output
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">System 1 vs System 2 Thinking</h3>
+        </div>
+
+        <div className="bg-black/30 p-4 rounded-xl border border-white/10 mb-6 text-center">
+          <div className="text-xs text-gray-400 uppercase tracking-widest mb-2 font-bold">The Puzzle</div>
+          <div className="text-lg text-white font-medium italic">"{puzzle}"</div>
+        </div>
+
+        <div className="flex justify-center gap-4 mb-8">
+          <button 
+            onClick={handleFast}
+            className={`px-6 py-3 rounded-lg font-bold transition-all ${mode === 'fast' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'bg-red-900/30 text-red-300 hover:bg-red-800/50 border border-red-500/30'}`}
+          >
+            ⚡ Fast Generation (System 1)
+          </button>
+          <button 
+            onClick={handleDeep}
+            className={`px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2 ${mode === 'deep' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-blue-900/30 text-blue-300 hover:bg-blue-800/50 border border-blue-500/30'}`}
+          >
+            🧠 Deep Reasoning (System 2)
+          </button>
+        </div>
+
+        <div className="min-h-[250px] transition-all duration-500 relative">
+          
+          {/* Fast Mode Output */}
+          {mode === 'fast' && step >= 1 && (
+            <div className="absolute inset-0 animate-fade-in flex flex-col items-center justify-center">
+              <div className="bg-red-900/20 border border-red-500/50 rounded-xl p-6 w-full max-w-2xl text-center shadow-lg">
+                <div className="text-xs text-red-400 uppercase tracking-widest mb-4 font-bold flex justify-center items-center gap-2">
+                  <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">!</span>
+                  Instant Intuitive Answer (Hallucination)
+                </div>
+                <div className="text-2xl text-white font-medium mb-4">
+                  "The ball costs 10 cents."
+                </div>
+                <div className="text-sm text-red-300/80 italic">
+                  (Why? The model instantly subtracted $1.00 from $1.10. It didn't pause to realize that if the ball is $0.10, the bat is $1.10, making the total $1.20!)
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Deep Mode Output */}
+          {mode === 'deep' && (
+            <div className="absolute inset-0 animate-fade-in flex flex-col gap-4 max-w-3xl mx-auto w-full">
+              
+              {/* Scratchpad */}
+              <div className="flex-1 bg-black/60 border border-blue-500/30 rounded-xl p-4 font-mono text-sm relative overflow-hidden">
+                <div className="text-xs text-blue-400 uppercase tracking-widest mb-3 font-bold border-b border-blue-900/50 pb-2">
+                  Hidden AI Scratchpad (Chain of Thought)
+                </div>
+                
+                <div className="space-y-2 text-gray-300 h-[120px]">
+                  {step >= 1 && <div className="animate-fade-in text-blue-200">Let's think step by step.</div>}
+                  {step >= 2 && <div className="animate-fade-in text-red-300">Intuition says 10 cents. But wait, if ball = $0.10, and bat is $1.00 more, bat = $1.10. Total = $1.20. That is incorrect.</div>}
+                  {step >= 3 && <div className="animate-fade-in">Let's use algebra. Let 'x' be the cost of the ball.</div>}
+                  {step >= 4 && <div className="animate-fade-in">The bat costs 'x + 1.00'.<br/>Total cost: x + (x + 1.00) = 1.10<br/>2x + 1.00 = 1.10<br/>2x = 0.10<br/>x = 0.05</div>}
+                </div>
+
+                {/* Loading indicator */}
+                {step > 0 && step < 5 && (
+                  <div className="absolute bottom-4 right-4 flex gap-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce animation-delay-200"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce animation-delay-400"></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Final Output */}
+              <div className={`transition-all duration-500 ${step >= 5 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <div className="bg-green-900/20 border border-green-500/50 rounded-xl p-4 text-center shadow-lg">
+                  <div className="text-xs text-green-400 uppercase tracking-widest mb-2 font-bold flex justify-center items-center gap-2">
+                    <span className="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center">✓</span>
+                    Verified Final Answer
+                  </div>
+                  <div className="text-xl text-white font-medium">
+                    "The ball costs 5 cents."
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {!mode && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-gray-500 italic text-center max-w-md">
+                Select a generation mode above to see how the AI processes the puzzle.
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      </div>
+    </div>
+  );
+}

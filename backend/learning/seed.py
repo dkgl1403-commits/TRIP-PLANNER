@@ -17,6 +17,7 @@ from seed_ai_masterclass_part8 import seed_ai_masterclass_part8
 from seed_ai_masterclass_part9 import seed_ai_masterclass_part9
 from seed_ai_masterclass_part10 import seed_ai_masterclass_part10
 from seed_ai_masterclass_part11 import seed_ai_masterclass_part11
+from seed_ai_masterclass_part12 import seed_ai_masterclass_part12
 
 def seed_trigonometry():
     init_db()
@@ -434,7 +435,8 @@ def seed_curriculum():
                         {"name": "The Transformer Engine", "board": "BOTH"},
                         {"name": "The Three Stages of Training", "board": "BOTH"},
                         {"name": "Prompts & In-Context Learning", "board": "BOTH"},
-                        {"name": "Retrieval-Augmented Generation (RAG)", "board": "BOTH"}
+                        {"name": "Retrieval-Augmented Generation (RAG)", "board": "BOTH"},
+                        {"name": "Hallucinations & Reasoning", "board": "BOTH"}
                     ]
                 }
             ]
@@ -728,3 +730,4 @@ if __name__ == "__main__":
     seed_ai_masterclass_part9()
     seed_ai_masterclass_part10()
     seed_ai_masterclass_part11()
+    seed_ai_masterclass_part12()

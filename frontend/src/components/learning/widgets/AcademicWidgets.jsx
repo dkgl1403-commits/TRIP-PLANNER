@@ -31,7 +31,8 @@ import {
   RLHFWidget,
   PromptingWidget,
   ContextWindowWidget,
-  RAGWidget
+  RAGWidget,
+  ReasoningWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1288,5 +1289,6 @@ export const WidgetRegistry = {
   RLHFWidget,
   PromptingWidget,
   ContextWindowWidget,
-  RAGWidget
+  RAGWidget,
+  ReasoningWidget
 };
