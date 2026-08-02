@@ -20,6 +20,7 @@ from seed_ai_masterclass_part11 import seed_ai_masterclass_part11
 from seed_ai_masterclass_part12 import seed_ai_masterclass_part12
 from seed_ai_masterclass_part13 import seed_ai_masterclass_part13
 from seed_ai_taxonomy import seed_ai_taxonomy
+from seed_ai_masterclass_remaining import seed_ai_remaining
 
 def seed_trigonometry():
     init_db()
@@ -430,17 +431,31 @@ def seed_curriculum():
                         {"name": "The Dream of the Thinking Machine", "board": "BOTH"},
                         {"name": "The AI Winters", "board": "BOTH"},
                         {"name": "The Taxonomy of Intelligence", "board": "BOTH"},
-                        {"name": "The Big Bang", "board": "BOTH"},
+                        {"name": "Discriminative vs Generative AI", "board": "BOTH"},
                         {"name": "Linear Algebra & Vectors", "board": "BOTH"},
                         {"name": "Calculus & Gradient Descent", "board": "BOTH"},
                         {"name": "Probability & Statistics", "board": "BOTH"},
+                        {"name": "Tokenization & Embeddings", "board": "BOTH"},
                         {"name": "The Neural Network", "board": "BOTH"},
                         {"name": "The Transformer Engine", "board": "BOTH"},
+                        {"name": "Diffusion Models", "board": "BOTH"},
                         {"name": "The Three Stages of Training", "board": "BOTH"},
                         {"name": "Prompts & In-Context Learning", "board": "BOTH"},
                         {"name": "Retrieval-Augmented Generation (RAG)", "board": "BOTH"},
                         {"name": "Hallucinations & Reasoning", "board": "BOTH"},
-                        {"name": "AI Agents & Tool Use", "board": "BOTH"}
+                        {"name": "AI Agents & Tool Use", "board": "BOTH"},
+                        {"name": "Fine-Tuning vs RAG", "board": "BOTH"},
+                        {"name": "Quantization & SLMs", "board": "BOTH"},
+                        {"name": "Mixture of Experts (MoE)", "board": "BOTH"},
+                        {"name": "The Brains of AI (CPU vs GPU)", "board": "BOTH"},
+                        {"name": "The Data Center & Power Wall", "board": "BOTH"},
+                        {"name": "The Titans of AI", "board": "BOTH"},
+                        {"name": "The Infrastructure Layer", "board": "BOTH"},
+                        {"name": "Embodied Robotics", "board": "BOTH"},
+                        {"name": "Real-World Industries", "board": "BOTH"},
+                        {"name": "Current Roadblocks", "board": "BOTH"},
+                        {"name": "The Road to AGI", "board": "BOTH"},
+                        {"name": "Superintelligence (ASI)", "board": "BOTH"}
                     ]
                 }
             ]
@@ -737,3 +752,4 @@ if __name__ == "__main__":
     seed_ai_masterclass_part11()
     seed_ai_masterclass_part12()
     seed_ai_masterclass_part13()
+    seed_ai_remaining()

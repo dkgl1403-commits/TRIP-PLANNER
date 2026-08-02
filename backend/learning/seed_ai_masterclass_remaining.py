@@ -1,0 +1,243 @@
+import json
+from db import SessionLocal, LearningClass, LearningSubject, LearningTopic
+
+def seed_ai_remaining():
+    db = SessionLocal()
+    try:
+        class_11 = db.query(LearningClass).filter_by(level=11, name="Masterclass").first()
+        if not class_11:
+            return
+
+        ai_subject = db.query(LearningSubject).filter_by(name="Artificial Intelligence", class_id=class_11.id).first()
+        if not ai_subject:
+            return
+
+        # List of all remaining chapters
+        remaining_topics = [
+            {
+                "name": "Discriminative vs Generative AI",
+                "parts": [
+                    {
+                        "title": "What does 'Generative' mean?",
+                        "narrative": "<p>For decades, AI was mostly <strong>Discriminative</strong>. This means the AI was trained to categorize or 'discriminate' between things. For example, looking at a photo and deciding if it is a hotdog or not a hotdog.</p><p><strong>Generative AI</strong> is different. Instead of categorizing existing data, it creates entirely <em>new</em> data that has never existed before (like writing a new poem, or drawing a picture of a cat riding a skateboard).</p>",
+                        "audioText": "For decades AI was Discriminative, meaning it categorized things. Generative AI creates entirely new things that never existed before.",
+                        "audioTextHinglish": "Pehla AI Discriminative tha, yani wo cheezon ko categorize karta tha. Generative AI bilkul nayi cheezein banata hai jo pehle nahi thi.",
+                        "keyInsight": "Discriminative AI categorizes. Generative AI creates."
+                    },
+                    {
+                        "title": "Mastery Quiz",
+                        "narrative": "<p>Test your knowledge on Discriminative vs Generative AI.</p>",
+                        "widgetType": "MCQEngine",
+                        "widgetData": {
+                            "questions": [
+                                {
+                                    "q": "An AI that flags spam emails is what type of AI?",
+                                    "options": ["Generative", "Discriminative", "Symbolic", "AGI"],
+                                    "correct": 1
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Tokenization & Embeddings",
+                "parts": [
+                    {
+                        "title": "How Computers Read Words",
+                        "narrative": "<p>Computers don't understand English; they only understand numbers. To feed text into a neural network, we must break sentences down into chunks called <strong>Tokens</strong>, and assign each token a number.</p><p>But a number isn't enough. We map each token to a multi-dimensional coordinate in a mathematical space called <strong>Latent Space</strong>. This coordinate is called an <strong>Embedding</strong>. Words with similar meanings are placed physically close together in this mathematical space.</p>",
+                        "audioText": "Computers only understand numbers. We break words into Tokens, and map them to coordinates called Embeddings so the AI understands meaning.",
+                        "audioTextHinglish": "Computers sirf numbers samajhte hain. Hum words ko Tokens mein todte hain aur unhe mathematical space mein map karte hain jise Embeddings kehte hain.",
+                        "keyInsight": "Embeddings allow AI to understand the 'meaning' of words mathematically."
+                    }
+                ]
+            },
+            {
+                "name": "Diffusion Models",
+                "parts": [
+                    {
+                        "title": "Generating Images and Video",
+                        "narrative": "<p>LLMs generate text one word at a time. But how does AI generate an image? It uses <strong>Diffusion Models</strong>.</p><p>A diffusion model is trained by taking a perfect image (like a dog) and slowly adding static \"noise\" until it's completely scrambled. The AI is then trained to <em>reverse</em> the process—it learns how to look at pure static and \"un-scramble\" it back into a dog based on a text prompt.</p>",
+                        "audioText": "Diffusion models generate images by learning how to take pure static noise and un-scramble it into a beautiful picture based on your prompt.",
+                        "audioTextHinglish": "Diffusion models images banate hain pure static noise ko un-scramble karke, aapke prompt ke hisaab se.",
+                        "keyInsight": "Sora and Midjourney use Diffusion, not next-word prediction."
+                    }
+                ]
+            },
+            {
+                "name": "Fine-Tuning vs RAG",
+                "parts": [
+                    {
+                        "title": "Teaching an Old Dog New Tricks",
+                        "narrative": "<p>If you want an AI to know about your company's private data, you have two choices.</p><p>1. <strong>Fine-Tuning:</strong> You actually change the AI's internal brain by doing more training on your data. This is expensive but changes how the AI <em>behaves</em>.</p><p>2. <strong>RAG (Retrieval-Augmented Generation):</strong> You just give the AI a search engine to look up your documents before it answers. This is cheap and perfect for <em>factual knowledge</em>.</p>",
+                        "audioText": "To teach an AI private data, you can either Fine-Tune it to change its behavior, or use RAG to give it a search engine for facts.",
+                        "audioTextHinglish": "AI ko private data sikhane ke liye ya toh aap Fine-Tune kar sakte hain, ya RAG use karke usko ek search engine de sakte hain.",
+                        "keyInsight": "Use Fine-Tuning for style and behavior. Use RAG for facts and knowledge."
+                    }
+                ]
+            },
+            {
+                "name": "Quantization & SLMs",
+                "parts": [
+                    {
+                        "title": "Running AI on Your Phone",
+                        "narrative": "<p>GPT-4 is massive and requires giant data centers to run. To run AI locally on your phone or laptop, researchers use <strong>Quantization</strong>.</p><p>Quantization compresses the model (like turning a high-res photo into a low-res JPEG). It rounds off the complex math numbers to save space. We also have <strong>SLMs (Small Language Models)</strong> which are built from the ground up to be tiny but highly efficient for specific tasks.</p>",
+                        "audioText": "To run AI on your phone, we use Quantization to compress the model, or we build Small Language Models designed to be tiny and efficient.",
+                        "audioTextHinglish": "Phone par AI chalane ke liye hum Quantization use karte hain model ko compress karne ke liye, ya Small Language Models banate hain.",
+                        "keyInsight": "Quantization compresses big models so they can run locally without the cloud."
+                    }
+                ]
+            },
+            {
+                "name": "Mixture of Experts (MoE)",
+                "parts": [
+                    {
+                        "title": "The Secret Architecture of GPT-4",
+                        "narrative": "<p>GPT-4 isn't one giant brain—it's a <strong>Mixture of Experts (MoE)</strong>.</p><p>Inside an MoE model, there are several smaller \"expert\" neural networks (e.g., one for math, one for coding, one for French). When you ask a question, a \"router\" looks at your prompt and only wakes up the two experts that are best suited to answer it. This saves massive amounts of electricity and makes the AI much faster.</p>",
+                        "audioText": "GPT-4 uses a Mixture of Experts. It's actually several smaller brains, and a router only wakes up the experts needed for your specific question.",
+                        "audioTextHinglish": "GPT-4 Mixture of Experts use karta hai. Isme alag alag chote brains hote hain aur sirf wahi jagte hain jinki zarurat hoti hai.",
+                        "keyInsight": "MoE saves compute by only activating a fraction of the neural network for each word."
+                    }
+                ]
+            },
+            {
+                "name": "The Brains of AI (CPU vs GPU)",
+                "parts": [
+                    {
+                        "title": "Why Nvidia is Worth Trillions",
+                        "narrative": "<p>Your laptop's CPU is like a genius professor—it can do very complex math, but only one problem at a time (Sequential).</p><p>A <strong>GPU (Graphics Processing Unit)</strong> is like 10,000 middle schoolers—they can only do basic addition, but they can do 10,000 problems at the exact same time (Parallel). Because neural networks are just billions of simple additions and multiplications, GPUs are required to train AI. This is why Nvidia is so incredibly valuable.</p>",
+                        "audioText": "CPUs do complex math sequentially. GPUs do simple math massively in parallel, which is exactly what neural networks need.",
+                        "audioTextHinglish": "CPU math sequential karta hai. GPU simple math ek saath hazaro baar kar sakta hai, jo AI ko chahiye. Isiliye Nvidia itna valuable hai.",
+                        "keyInsight": "AI requires parallel processing, which is what GPUs are designed to do."
+                    }
+                ]
+            },
+            {
+                "name": "The Data Center & Power Wall",
+                "parts": [
+                    {
+                        "title": "The Physical Reality of the Cloud",
+                        "narrative": "<p>AI doesn't float in the air. It lives in <strong>Data Centers</strong>—massive warehouses filled with tens of thousands of GPUs.</p><p>These GPUs generate so much heat that air conditioning isn't enough; they require liquid coolant pumped directly over the chips. The biggest roadblock to future AI isn't math—it's the <strong>Power Wall</strong>. Training the next generation of models will require so much electricity that tech companies are investing in nuclear power plants just to keep the servers running.</p>",
+                        "audioText": "AI lives in massive Data Centers. The biggest roadblock to future AI is the Power Wall: we are running out of electricity to power the GPUs.",
+                        "audioTextHinglish": "AI Data Centers mein rehta hai. Future AI ke liye sabse badi problem Power Wall hai, yani in servers ko chalane ke liye bijli ki kami.",
+                        "keyInsight": "The scale of modern AI is limited by physical energy and cooling, not just code."
+                    }
+                ]
+            },
+            {
+                "name": "The Titans of AI",
+                "parts": [
+                    {
+                        "title": "The Key Players",
+                        "narrative": "<p>The AI race is dominated by a few major players:</p><p><strong>OpenAI:</strong> Creators of ChatGPT. Closed-source, heavily backed by Microsoft.</p><p><strong>Anthropic:</strong> Creators of Claude. Focused heavily on AI safety and alignment.</p><p><strong>Meta (Facebook):</strong> Creators of LLaMA. They open-source their models so anyone can download and run them for free.</p><p><strong>Google:</strong> Creators of Gemini. Deeply integrating AI into the world's information infrastructure.</p>",
+                        "audioText": "The major players in AI are OpenAI with ChatGPT, Anthropic with Claude, Meta with the open-source LLaMA, and Google with Gemini.",
+                        "audioTextHinglish": "AI ke major players hain OpenAI, Anthropic, Meta jo open-source LLaMA banata hai, aur Google jiska model Gemini hai.",
+                        "keyInsight": "The industry is split between Closed-Source (OpenAI/Google) and Open-Source (Meta)."
+                    }
+                ]
+            },
+            {
+                "name": "The Infrastructure Layer",
+                "parts": [
+                    {
+                        "title": "The Shovels of the AI Gold Rush",
+                        "narrative": "<p>In a gold rush, the people who make the most money are the ones selling shovels. In AI, this is the Infrastructure Layer.</p><p>Companies like <strong>TSMC</strong> manufacture the silicon chips. Cloud providers like <strong>AWS and Azure</strong> rent the servers. And software frameworks like <strong>LangChain</strong> and <strong>HuggingFace</strong> provide the tools for developers to build applications.</p>",
+                        "audioText": "The Infrastructure layer is the shovels of the AI gold rush, including chip makers like TSMC, cloud providers, and hubs like HuggingFace.",
+                        "audioTextHinglish": "AI gold rush mein shovels bechne wale hain Infrastructure layer. Jaise chip maker TSMC, cloud providers, aur HuggingFace.",
+                        "keyInsight": "The AI ecosystem relies entirely on hardware manufacturing and cloud distribution."
+                    }
+                ]
+            },
+            {
+                "name": "Embodied Robotics",
+                "parts": [
+                    {
+                        "title": "AI Enters the Physical World",
+                        "narrative": "<p>Until now, AI has been a \"brain in a jar.\" But companies like Tesla (Optimus) and Figure (Figure 01) are putting these brains into humanoid robots.</p><p>By combining Vision models (to see), LLMs (to reason), and reinforcement learning (to move), we are on the verge of <strong>Embodied AI</strong>—robots that can understand verbal commands, look at a messy room, and figure out how to clean it without step-by-step programming.</p>",
+                        "audioText": "Embodied AI puts the AI brain into a physical robot body. These humanoid robots can see, reason, and act in the physical world.",
+                        "audioTextHinglish": "Embodied AI ek physical robot body mein AI dimaag daalta hai, jisse robots real world mein dekh, soch aur kaam kar sakte hain.",
+                        "keyInsight": "Embodied AI merges language reasoning with physical robotic actuators."
+                    }
+                ]
+            },
+            {
+                "name": "Real-World Industries",
+                "parts": [
+                    {
+                        "title": "Transforming the Planet",
+                        "narrative": "<p>AI isn't just for chatting. In <strong>Farming</strong>, computer vision lasers shoot weeds without harming crops. In <strong>Medicine</strong>, AI designs new proteins (AlphaFold) and detects cancer in X-rays faster than humans. In <strong>Education</strong>, personalized AI tutors adapt to a student's exact learning pace.</p>",
+                        "audioText": "AI is transforming real industries. It shoots weeds in farming, discovers drugs in medicine, and acts as personalized tutors in education.",
+                        "audioTextHinglish": "AI real industries badal raha hai. Farming mein weeds hatana, medicine mein drug discovery, aur education mein personal tutors ka kaam karna.",
+                        "keyInsight": "The true value of AI lies in its application to physical, real-world problems."
+                    }
+                ]
+            },
+            {
+                "name": "Current Roadblocks",
+                "parts": [
+                    {
+                        "title": "The Data Wall and Alignment",
+                        "narrative": "<p>AI progress might stall because of the <strong>Data Wall</strong>: we have basically used up all the high-quality text on the internet to train models. Researchers are now trying to use \"Synthetic Data\" (AI training on AI-generated data).</p><p>Another massive roadblock is <strong>Alignment</strong>: how do we ensure that an AI system vastly smarter than us actually shares human values and doesn't decide we are an obstacle?</p>",
+                        "audioText": "AI faces roadblocks like the Data Wall, where we run out of internet text, and Alignment, which means ensuring the AI shares human values.",
+                        "audioTextHinglish": "AI ke saamne badi mushkilein hain jaise Data Wall, jahan internet par data khatam ho raha hai, aur Alignment, yani AI humare values samjhe.",
+                        "keyInsight": "Scaling up AI further requires solving fundamental data and safety problems."
+                    }
+                ]
+            },
+            {
+                "name": "The Road to AGI",
+                "parts": [
+                    {
+                        "title": "Artificial General Intelligence",
+                        "narrative": "<p><strong>AGI (Artificial General Intelligence)</strong> is the holy grail: an AI that can perform <em>any</em> intellectual task that a human can, at the same or better level.</p><p>Many researchers believe AGI is achievable within the next 5 to 10 years (2030-2035). When AI can reason deeply, self-correct, write perfect code, and conduct novel scientific research autonomously, the world economy will fundamentally transform.</p>",
+                        "audioText": "AGI is an AI that can do any intellectual task a human can. Many experts believe we will reach this milestone within the next 10 years.",
+                        "audioTextHinglish": "AGI ka matlab hai ek aisi AI jo insaan ka koi bhi dimaagi kaam kar sake. Experts maante hain ye agle 10 saal mein possible hai.",
+                        "keyInsight": "AGI marks the point where AI can do any economic labor a human can do."
+                    }
+                ]
+            },
+            {
+                "name": "Superintelligence (ASI)",
+                "parts": [
+                    {
+                        "title": "The Next 100 Years",
+                        "narrative": "<p>If we achieve AGI, that AI can then be tasked with building an even smarter AI. This leads to an intelligence explosion resulting in <strong>ASI (Artificial Superintelligence)</strong>—an intellect much smarter than the best human brains in practically every field.</p><p>In a 100-year vision, ASI could solve nuclear fusion, cure all biological aging, manage a post-scarcity global economy, and lead humanity into deep space exploration. It is the final invention humanity will ever need to make.</p>",
+                        "audioText": "ASI is Artificial Superintelligence, far smarter than any human. In the next 100 years, ASI could cure diseases, solve energy, and change humanity forever.",
+                        "audioTextHinglish": "ASI yani Artificial Superintelligence, kisi bhi insaan se laakh guna smart. Agle 100 saalon mein ye humari duniya aur science ko hamesha ke liye badal dega.",
+                        "keyInsight": "ASI is the ultimate end-game of AI research, capable of solving humanity's hardest physics and biology problems."
+                    }
+                ]
+            }
+        ]
+
+        for topic_data in remaining_topics:
+            topic_name = topic_data["name"]
+            topic = db.query(LearningTopic).filter_by(subject_id=ai_subject.id, name=topic_name).first()
+            if not topic:
+                topic = LearningTopic(subject_id=ai_subject.id, name=topic_name)
+                db.add(topic)
+                db.flush()
+
+            # Construct config
+            config = {"parts": []}
+            for part in topic_data["parts"]:
+                p = {
+                    "title": part["title"],
+                    "readingTime": "~2 min read",
+                    "narrative": part["narrative"],
+                    "audioText": part.get("audioText", ""),
+                    "audioTextHinglish": part.get("audioTextHinglish", ""),
+                    "keyInsight": part.get("keyInsight", ""),
+                    "widgetType": part.get("widgetType", None),
+                    "widgetData": part.get("widgetData", {})
+                }
+                config["parts"].append(p)
+            
+            topic.lesson_config_json = json.dumps(config)
+        
+        db.commit()
+    except Exception as e:
+        print(f"Error seeding remaining AI topics: {e}")
+        db.rollback()
+    finally:
+        db.close()
