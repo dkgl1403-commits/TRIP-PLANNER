@@ -2560,3 +2560,93 @@ export function DataCenterWidget() {
     </div>
   );
 }
+
+// 4. Data Center Anatomy Widget
+export function DataCenterAnatomyWidget() {
+  const [activeLayer, setActiveLayer] = useState(0);
+
+  const layers = [
+    {
+      id: "servers",
+      title: "1. Server Racks",
+      icon: "dns",
+      color: "text-blue-400",
+      bgColor: "bg-blue-500/20",
+      borderColor: "border-blue-500",
+      description: "The core brains. Massive 'fridge-sized' metal cabinets packed with CPUs to manage data flow, GPUs to crunch the math, and high-density SSDs to store Petabytes of training data. A single rack can weigh over a ton.",
+    },
+    {
+      id: "cooling",
+      title: "2. Cooling Infrastructure",
+      icon: "ac_unit",
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/20",
+      borderColor: "border-cyan-500",
+      description: "AI chips run so hot they would melt themselves in seconds. Instead of just air conditioning, modern AI centers use Direct-to-Chip Liquid Cooling—piping cold water directly over the processors, which then loops out to massive evaporation cooling towers on the roof.",
+    },
+    {
+      id: "power",
+      title: "3. Power Substation & Generators",
+      icon: "bolt",
+      color: "text-yellow-400",
+      bgColor: "bg-yellow-500/20",
+      borderColor: "border-yellow-500",
+      description: "Data centers consume as much electricity as small cities (100-300 Megawatts). They require their own dedicated high-voltage electrical substations connected directly to the national grid, plus rows of massive diesel backup generators to ensure 100% uptime if the grid fails.",
+    },
+    {
+      id: "networking",
+      title: "4. Networking & Fiber Optics",
+      icon: "cable",
+      color: "text-purple-400",
+      bgColor: "bg-purple-500/20",
+      borderColor: "border-purple-500",
+      description: "AI training requires thousands of GPUs to talk to each other in milliseconds. This requires miles of ultra-high-speed fiber-optic cables running under the raised floors and over the ceiling, connecting every single server in a massive spiderweb.",
+    }
+  ];
+
+  return (
+    <div className="w-full flex justify-center py-8 text-white">
+      <div className="w-full max-w-4xl bg-gray-950 rounded-2xl p-6 border border-gray-800 shadow-xl">
+        <h3 className="text-xl font-bold text-gray-200 mb-6 border-b border-gray-800 pb-2 flex items-center gap-2">
+          <span className="text-2xl material-symbols-outlined">domain</span> 
+          Inside the Fortress
+        </h3>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Visual Map */}
+          <div className="flex-1 flex flex-col gap-3 relative p-4 bg-gray-900 rounded-xl border border-gray-800">
+            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none rounded-xl"></div>
+            
+            {layers.map((layer, idx) => (
+              <button 
+                key={layer.id}
+                onClick={() => setActiveLayer(idx)}
+                className={`relative z-10 w-full text-left p-4 rounded-lg border-2 transition-all duration-300 flex items-center gap-4 ${
+                  activeLayer === idx 
+                    ? `${layer.borderColor} ${layer.bgColor} shadow-[0_0_15px_rgba(255,255,255,0.1)] scale-[1.02]` 
+                    : 'border-gray-700 bg-gray-800 hover:border-gray-500 opacity-70 hover:opacity-100'
+                }`}
+              >
+                <div className={`material-symbols-outlined text-4xl ${layer.color}`}>
+                  {layer.icon}
+                </div>
+                <div className="font-bold text-lg">{layer.title}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Details Panel */}
+          <div className="flex-1 bg-gray-900 rounded-xl border border-gray-700 p-6 flex flex-col justify-center">
+            <div className={`material-symbols-outlined text-6xl mb-4 ${layers[activeLayer].color}`}>
+              {layers[activeLayer].icon}
+            </div>
+            <h4 className="text-2xl font-bold mb-4">{layers[activeLayer].title}</h4>
+            <p className="text-gray-300 leading-relaxed text-lg">
+              {layers[activeLayer].description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
