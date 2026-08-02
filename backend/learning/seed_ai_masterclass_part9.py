@@ -60,6 +60,16 @@ def seed_ai_masterclass_part9():
                     "widgetData": {}
                 },
                 {
+                    "title": "Stage 3 (Modern): DPO (Direct Preference Optimization)",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>While RLHF is powerful, it is extremely complicated. It requires building a second, separate AI (a \"Reward Model\") just to judge the first AI. This makes training slow and unstable.</p><p>Recently, researchers invented a breakthrough called <strong>Direct Preference Optimization (DPO)</strong>.</p><p>Instead of building a separate judging AI, DPO simplifies the math. You just show the AI a good answer and a bad answer side-by-side, and use a mathematical formula that directly punishes the bad behavior and rewards the good behavior inside the original AI's brain. It's faster, cheaper, and is now the industry standard for models like Llama 3.</p>",
+                    "audioText": "RLHF is complicated because it requires a second AI to act as a judge. Recently, researchers invented DPO, or Direct Preference Optimization. With DPO, you just show the AI a good answer and a bad answer side-by-side, and it learns directly without needing a separate judge.",
+                    "audioTextHinglish": "RLHF thoda complicated hai kyunki usme ek aur AI ko judge banana padta hai. Isliye DPO yani Direct Preference Optimization banaya gaya. Isme AI ko seedha ek acha aur ek bura answer dikhaya jata hai jisse wo directly seekh jata hai.",
+                    "keyInsight": "DPO is the modern, faster alternative to RLHF that doesn't require a separate reward model.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "Mastery Quiz",
                     "readingTime": "3 Questions",
                     "narrative": "<p>Test your knowledge on the Three Stages of Training.</p>",
@@ -83,6 +93,11 @@ def seed_ai_masterclass_part9():
                                 "q": "What does RLHF stand for in Stage 3?",
                                 "options": ["Real-time Learning from Human Feedback", "Robotic Learning with Hard Facts", "Reinforcement Learning from Human Feedback", "Recurrent Logic and Human Formatting"],
                                 "correct": 2
+                            },
+                            {
+                                "q": "Why is DPO (Direct Preference Optimization) replacing RLHF as the modern standard?",
+                                "options": ["Because DPO doesn't require humans", "Because DPO simplifies the math and removes the need to build a second 'judge' AI", "Because DPO trains the AI to guess the next word", "Because DPO generates images instead of text"],
+                                "correct": 1
                             }
                         ]
                     }
