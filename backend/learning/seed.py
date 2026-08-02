@@ -432,6 +432,7 @@ def seed_curriculum():
                         {"name": "The Neural Network", "board": "BOTH"},
                         {"name": "The Transformer Engine", "board": "BOTH"},
                         {"name": "The Three Stages of Training", "board": "BOTH"},
+                        {"name": "Prompts & In-Context Learning", "board": "BOTH"},
                         {"name": "The Compute Hierarchy", "board": "BOTH"},
                         {"name": "Datacenters & Scalability", "board": "BOTH"},
                         {"name": "The Ecosystem Map", "board": "BOTH"},

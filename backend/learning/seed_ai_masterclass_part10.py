@@ -16,11 +16,9 @@ def seed_ai_masterclass_part10():
         topic = db.query(LearningTopic).filter_by(subject_id=ai_subject.id, name=topic_name).first()
         if not topic:
             # We are entering Arc 4, we might need to create the topic if it doesn't exist
-            topic = LearningTopic(subject_id=ai_subject.id, name=topic_name, order_idx=10)
+            topic = LearningTopic(subject_id=ai_subject.id, name=topic_name)
             db.add(topic)
-        else:
-            topic.order_idx = 10
-        db.commit()
+            db.commit()
 
         config = {
             "parts": [
