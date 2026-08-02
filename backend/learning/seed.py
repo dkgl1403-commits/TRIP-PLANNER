@@ -19,6 +19,8 @@ from seed_ai_masterclass_part10 import seed_ai_masterclass_part10
 from seed_ai_masterclass_part11 import seed_ai_masterclass_part11
 from seed_ai_masterclass_part12 import seed_ai_masterclass_part12
 from seed_ai_masterclass_part13 import seed_ai_masterclass_part13
+from seed_ai_masterclass_part14 import seed_ai_masterclass_part14
+from seed_ai_masterclass_part15 import seed_ai_masterclass_part15
 from seed_ai_taxonomy import seed_ai_taxonomy
 from seed_ai_masterclass_remaining import seed_ai_remaining
 
@@ -753,3 +755,5 @@ if __name__ == "__main__":
     seed_ai_masterclass_part12()
     seed_ai_masterclass_part13()
     seed_ai_remaining()
+    seed_ai_masterclass_part14()
+    seed_ai_masterclass_part15()
