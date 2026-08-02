@@ -43,6 +43,16 @@ def seed_ai_masterclass_part10():
                     "widgetData": {}
                 },
                 {
+                    "title": "Tokens & The Context Window",
+                    "readingTime": "Interactive Widget",
+                    "narrative": "<p>When you send a prompt, the AI doesn't read words like humans do. It chops the text into chunks called <strong>Tokens</strong>. A token can be a word, a part of a word, or even punctuation.</p><p>These tokens are placed into the AI's short-term memory, known as the <strong>Context Window</strong>. This window has a strict mathematical limit.</p><p>If your conversation exceeds this limit, the oldest tokens \"fall out\" of the window, and the AI forgets them!</p>",
+                    "audioText": "When you send a prompt, the AI chops it into chunks called Tokens. These go into its short-term memory, called the Context Window. This window has a limit. If you exceed it, the oldest tokens fall out and the AI forgets them.",
+                    "audioTextHinglish": "Jab aap prompt bhejte hain, AI use Tokens mein tod deta hai. Ye tokens uski short-term memory mein jate hain, jise Context Window kehte hain. Iski ek limit hoti hai. Agar aap limit cross karte hain, toh sabse purane tokens bahar nikal jate hain aur AI unhe bhool jata hai.",
+                    "keyInsight": "The Context Window is the AI's limited short-term memory. It forgets anything that falls outside of it.",
+                    "widgetType": "ContextWindowWidget",
+                    "widgetData": {}
+                },
+                {
                     "title": "In-Context Learning (Few-Shot)",
                     "readingTime": "Interactive Widget",
                     "narrative": "<p>What if you want the AI to do a completely new task, like translate English to Pirate? You don't need to re-train the model! This is called <strong>In-Context Learning</strong>.</p><p>The AI has a short-term memory called a <strong>Context Window</strong>. If you provide a few examples of English-to-Pirate translation *inside* your prompt, the AI will mathematically lock onto the pattern and perfectly translate the next sentence.</p><p>Try the <strong>Few-Shot Prompting</strong> simulator below to see how giving examples changes the output!</p>",

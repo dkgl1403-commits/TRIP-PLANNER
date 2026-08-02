@@ -1074,3 +1074,81 @@ export function PromptingWidget() {
     </div>
   );
 }
+
+// 8.1 Context Window Visualizer (Arc 4: Chapter 10)
+export function ContextWindowWidget() {
+  const [inputText, setInputText] = useState("Explain quantum physics to a 5 year old.");
+  const MAX_TOKENS = 12;
+
+  // Simple pseudo-tokenizer (splits by spaces and keeps punctuation)
+  const tokens = inputText.trim() ? inputText.match(/[\w]+|[^\s\w]/g) || [] : [];
+  
+  const isOverflow = tokens.length > MAX_TOKENS;
+  const visibleTokens = tokens.slice(-MAX_TOKENS);
+  const droppedTokensCount = Math.max(0, tokens.length - MAX_TOKENS);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-4 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">The Context Window</h3>
+        </div>
+        
+        <p className="text-gray-400 text-sm mb-6 text-center">
+          When you send a prompt, the AI chops it into <strong>Tokens</strong> (chunks of words). 
+          The AI has a limited short-term memory called the <strong>Context Window</strong>. 
+          If you exceed the limit, it forgets the beginning of the conversation!
+        </p>
+
+        <div className="space-y-6">
+          {/* User Input */}
+          <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+            <div className="text-xs text-blue-400 uppercase tracking-widest mb-2 font-bold">1. Write your Prompt</div>
+            <textarea
+              className="w-full bg-transparent text-white border-b border-white/20 focus:border-blue-400 outline-none p-2 resize-none"
+              rows={2}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type your prompt here..."
+            />
+          </div>
+
+          {/* Tokenizer and Context Window */}
+          <div className="bg-gradient-to-br from-purple-900/20 to-black p-6 rounded-xl border border-purple-500/30">
+            <div className="flex justify-between items-end mb-4">
+              <div className="text-xs text-purple-400 uppercase tracking-widest font-bold">2. The Context Window (Memory)</div>
+              <div className={`text-xs font-bold ${isOverflow ? 'text-red-400' : 'text-green-400'}`}>
+                {tokens.length} / {MAX_TOKENS} Tokens
+              </div>
+            </div>
+
+            <div className="bg-black/60 p-4 rounded-lg border border-white/10 min-h-[120px] flex flex-wrap gap-2 content-start relative overflow-hidden">
+              {visibleTokens.length === 0 && (
+                <span className="text-gray-600 italic absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  Window is empty
+                </span>
+              )}
+
+              {visibleTokens.map((token, i) => (
+                <div 
+                  key={i}
+                  className="bg-purple-500/20 text-purple-200 border border-purple-500/50 px-2 py-1 rounded text-sm font-mono animate-fade-in"
+                >
+                  {token}
+                </div>
+              ))}
+            </div>
+
+            {isOverflow && (
+              <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300 text-sm text-center animate-pulse">
+                <strong>Warning!</strong> The Context Window is full. The oldest <strong>{droppedTokensCount}</strong> token(s) have been forgotten by the AI.
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

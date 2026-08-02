@@ -29,7 +29,8 @@ import {
   NeuralNetworkWidget,
   AttentionWidget,
   RLHFWidget,
-  PromptingWidget
+  PromptingWidget,
+  ContextWindowWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1284,5 +1285,6 @@ export const WidgetRegistry = {
   NeuralNetworkWidget,
   AttentionWidget,
   RLHFWidget,
-  PromptingWidget
+  PromptingWidget,
+  ContextWindowWidget
 };
