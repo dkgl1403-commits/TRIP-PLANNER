@@ -52,11 +52,41 @@ def seed_ai_masterclass_part7():
                 {
                     "title": "See It In Action",
                     "readingTime": "Interactive Widget",
-                    "narrative": "<p>Let's watch a Neural Network \"think\" in slow motion.</p><p>When you click \"Feed Input\" below, watch how the data travels from the Input Layer, through the Hidden Layers, and finally into the Output Layer to produce a prediction.</p>",
-                    "audioText": "Let's watch a Neural Network think in slow motion. Click 'Feed Input' below to watch how data travels from the Input Layer, through the Hidden Layers, and into the Output Layer to make a prediction.",
-                    "audioTextHinglish": "Chaliye ek Neural Network ko slow motion mein sochte hue dekhte hain. Niche 'Feed Input' par click karein aur dekhein kaise data Input Layer se Hidden Layers hote hue Output Layer tak pahunch kar prediction karta hai.",
+                    "narrative": "<p>Let's watch a Neural Network \"think\" in slow motion.</p><p>When you click \"Feed Input\" below, watch how the data travels from the Input Layer, through the Hidden Layers, and finally into the Output Layer to produce a prediction. This forward movement is called a <strong>Forward Pass</strong>.</p>",
+                    "audioText": "Let's watch a Neural Network think in slow motion. Click 'Feed Input' below to watch how data travels from the Input Layer, through the Hidden Layers, and into the Output Layer to make a prediction. This forward movement is called a Forward Pass.",
+                    "audioTextHinglish": "Chaliye ek Neural Network ko slow motion mein sochte hue dekhte hain. Niche 'Feed Input' par click karein aur dekhein kaise data Input Layer se Hidden Layers hote hue Output Layer tak pahunch kar prediction karta hai. Ise Forward Pass kehte hain.",
                     "keyInsight": "Information flows sequentially from input to output, layer by layer.",
                     "widgetType": "NeuralNetworkWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "The Loss Function (Realizing a Mistake)",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>When a Neural Network is first built, all its weights (volume knobs) are set to random numbers. So, on its first Forward Pass, it will confidently make a terrible prediction.</p><p>How does the AI know it made a mistake? We use a mathematical formula called a <strong>Loss Function</strong> (or Cost Function).</p><p>The Loss Function compares the AI's prediction (e.g., \"I am 99% sure this is a dog\") against the actual truth (e.g., \"It's actually a cat\"). It then calculates an error score. A high loss means the AI is very wrong. A low loss means the AI is very accurate. The entire goal of training an AI is simply to minimize this Loss Function!</p>",
+                    "audioText": "When first built, an AI makes terrible predictions because its weights are random. To know it made a mistake, it uses a Loss Function, which calculates the difference between its prediction and the truth. The goal of training is to minimize this loss.",
+                    "audioTextHinglish": "Shuru mein AI kharab predictions karta hai kyunki uske weights random hote hain. Apni galti pehchanne ke liye wo Loss Function ka use karta hai, jo prediction aur sachai ke beech ka difference calculate karta hai. Training ka goal bas is loss ko kam karna hota hai.",
+                    "keyInsight": "The Loss Function mathematically scores how 'wrong' the AI is.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Backpropagation (Learning from Mistakes)",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>Once the AI calculates its Loss, it needs to fix its mistake. This is where the magic happens: <strong>Backpropagation</strong>.</p><p>Discovered in the 1980s, Backpropagation is the algorithm that allows the AI to learn. It takes the error from the Output Layer and sends it <em>backwards</em> through the Hidden Layers all the way to the Input Layer.</p><p>As the error travels backward, the algorithm calculates exactly how much each individual weight contributed to the mistake using calculus (specifically, the Chain Rule). It then slightly adjusts every single weight in the network so that the next time it sees this data, it will make a better prediction.</p>",
+                    "audioText": "Once the AI knows it's wrong, it uses Backpropagation to learn. It sends the error backwards through the network, using calculus to adjust every single weight so it does better next time.",
+                    "audioTextHinglish": "Jab AI ko pata chalta hai ki wo galat hai, tab wo Backpropagation ka use karta hai. Ye error ko piche ki taraf bhejta hai aur har weight ko thoda adjust karta hai taaki agli baar wo behtar prediction de sake.",
+                    "keyInsight": "Backpropagation is the fundamental algorithm that allows neural networks to actually learn.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Epochs (Practice Makes Perfect)",
+                    "readingTime": "~1 min read",
+                    "narrative": "<p>Learning doesn't happen instantly. The process of Forward Pass (predicting), Loss Function (scoring the error), and Backpropagation (adjusting weights) is just a single step.</p><p>To truly learn, the AI must repeat this process millions of times across its entire dataset. One full pass through the entire training dataset is called an <strong>Epoch</strong>.</p><p>Training ChatGPT required thousands of Epochs over trillions of words, running on thousands of GPUs for months. Practice makes perfect!</p>",
+                    "audioText": "Learning takes time. The AI must repeat the cycle of predicting, scoring, and adjusting millions of times. One full pass through the entire dataset is called an Epoch.",
+                    "audioTextHinglish": "Seekhne mein time lagta hai. AI ko predict karne, score karne, aur adjust karne ka cycle lakho baar repeat karna padta hai. Poore dataset se ek baar guzarne ko Epoch kehte hain.",
+                    "keyInsight": "An Epoch is one complete cycle through the entire training dataset.",
+                    "widgetType": None,
                     "widgetData": {}
                 },
                 {
@@ -87,6 +117,21 @@ def seed_ai_masterclass_part7():
                             {
                                 "q": "What happens in the early Hidden Layers versus the later Hidden Layers?",
                                 "options": ["Early layers find complex concepts (like faces), later layers find basic patterns (like edges)", "Early layers find basic patterns (like edges), later layers combine them into complex concepts (like faces)", "They both do exactly the same thing", "Early layers output probabilities, later layers take in raw data"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "What is the purpose of the Loss Function?",
+                                "options": ["To compress the dataset", "To calculate how wrong the AI's prediction is compared to the truth", "To delete old data", "To increase the speed of the GPU"],
+                                "correct": 1
+                            },
+                            {
+                                "q": "Which algorithm sends the error backwards through the network to adjust the weights and allow the AI to learn?",
+                                "options": ["Softmax", "Tokenization", "Backpropagation", "Epoch"],
+                                "correct": 2
+                            },
+                            {
+                                "q": "What do we call one full pass through the entire training dataset?",
+                                "options": ["A Forward Pass", "An Epoch", "A Loss Function", "A Logit"],
                                 "correct": 1
                             }
                         ]
