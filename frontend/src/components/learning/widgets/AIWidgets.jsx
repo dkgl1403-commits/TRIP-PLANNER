@@ -1990,39 +1990,30 @@ export function DiffusionWidget() {
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 w-full max-w-[350px] aspect-square bg-gray-900 rounded-xl border border-white/20 relative overflow-hidden flex items-center justify-center shadow-2xl">
+          <div className="flex-1 w-full max-w-[350px] aspect-square bg-gray-800 rounded-xl border border-white/20 relative overflow-hidden flex items-center justify-center shadow-2xl">
             
-            {/* The Target Image */}
+            {/* The Target Image (Always opaque, just blurs into focus) */}
             <div 
               className="absolute inset-0 flex items-center justify-center text-9xl transition-all duration-300"
               style={{
                 filter: `blur(${blurAmount}px)`,
-                opacity: Math.max(0.3, opacityAmount), // Ensure it never goes fully invisible
                 transform: `scale(${1 + (blurAmount / 40)})`
               }}
             >
               🐶
             </div>
+            
+            {/* The Sparkles (Fade in) */}
             <div className="absolute inset-0 flex items-center justify-center text-9xl transition-all duration-300" style={{ opacity: opacityAmount }}>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl translate-x-4 -translate-y-4">✨</div>
             </div>
 
-            {/* The Noise Overlay */}
+            {/* The Noise Overlay (Simply fades out) */}
             <div 
-              className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-50"
+              className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none"
               style={{
-                opacity: noiseOpacity * 0.8,
-                mixBlendMode: 'screen',
-                backgroundSize: '150px'
-              }}
-            ></div>
-            
-            {/* Pure white static effect at start to simulate complete chaos */}
-            <div 
-              className="absolute inset-0 z-20 bg-white transition-opacity duration-300 pointer-events-none"
-              style={{
-                opacity: Math.max(0, 0.4 - (step * 0.1)),
-                mixBlendMode: 'overlay'
+                opacity: noiseOpacity,
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%221.5%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E")'
               }}
             ></div>
 
