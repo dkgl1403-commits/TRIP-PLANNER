@@ -35,7 +35,8 @@ import {
   ReasoningWidget,
   AgentWidget,
   TaxonomyWidget,
-  EmbeddingsWidget
+  EmbeddingsWidget,
+  GenerativeWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1296,5 +1297,6 @@ export const WidgetRegistry = {
   ReasoningWidget,
   AgentWidget,
   TaxonomyWidget,
-  EmbeddingsWidget
+  EmbeddingsWidget,
+  GenerativeWidget
 };

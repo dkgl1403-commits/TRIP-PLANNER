@@ -18,11 +18,31 @@ def seed_ai_remaining():
                 "name": "Discriminative vs Generative AI",
                 "parts": [
                     {
-                        "title": "What does 'Generative' mean?",
-                        "narrative": "<p>For decades, AI was mostly <strong>Discriminative</strong>. This means the AI was trained to categorize or 'discriminate' between things. For example, looking at a photo and deciding if it is a hotdog or not a hotdog.</p><p><strong>Generative AI</strong> is different. Instead of categorizing existing data, it creates entirely <em>new</em> data that has never existed before (like writing a new poem, or drawing a picture of a cat riding a skateboard).</p>",
-                        "audioText": "For decades AI was Discriminative, meaning it categorized things. Generative AI creates entirely new things that never existed before.",
-                        "audioTextHinglish": "Pehla AI Discriminative tha, yani wo cheezon ko categorize karta tha. Generative AI bilkul nayi cheezein banata hai jo pehle nahi thi.",
-                        "keyInsight": "Discriminative AI categorizes. Generative AI creates."
+                        "title": "The Era of Discrimination",
+                        "narrative": "<p>From 2010 to 2020, the AI world was obsessed with a concept called <strong>Discriminative AI</strong>. The goal of this era was simple: look at data and categorize it.</p><p>If you gave an AI a picture, it would discriminate whether it was a dog or a cat. If you gave it an email, it would discriminate whether it was spam or safe. This was incredibly useful for businesses, but it lacked imagination. The AI could perfectly <em>label</em> reality, but it could never <em>create</em> reality.</p>",
+                        "audioText": "From 2010 to 2020, AI was focused on Discriminative AI. This means the AI was trained to look at data and categorize it, like deciding if an email is spam. It could label reality, but not create it.",
+                        "audioTextHinglish": "2010 se 2020 tak, AI sirf Discriminative tha. Iska matlab AI data ko dekh kar categorize karta tha, jaise spam email pehchanna. Ye reality ko label kar sakta tha, par kuch naya bana nahi sakta tha.",
+                        "keyInsight": "Discriminative AI is designed to classify and categorize existing data."
+                    },
+                    {
+                        "title": "The Generative Paradigm Shift",
+                        "narrative": "<p>Then came the paradigm shift: <strong>Generative AI</strong>. Researchers realized that instead of asking a neural network \"What is this image?\", they could ask it \"What comes next?\"</p><p>By training AI to predict the next word in a sentence, or the next pixel in an image, the AI was forced to understand the underlying rules of human language and art. And when you ask an AI to predict what comes next infinitely, it starts <em>creating</em>.</p><p>Generative AI doesn't categorize. It writes original code, hallucinates beautiful paintings, and drafts emails that have never existed before in human history.</p>",
+                        "audioText": "Generative AI was a massive shift. By teaching AI to predict what comes next, it learned how to create original text, code, and images that have never existed before.",
+                        "audioTextHinglish": "Generative AI ek bohot bada shift tha. AI ko 'what comes next' predict karna sikhaya gaya, jisse wo bilkul nayi text aur images bananey lag gaya.",
+                        "keyInsight": "Generative AI creates net-new data by predicting what should logically come next."
+                    },
+                    {
+                        "title": "The Dreaming Machine",
+                        "narrative": "<p>In Chapter 12, we learned that when an AI makes up fake facts, it's called a <strong>Hallucination</strong>. When you want factual answers, a hallucination is a terrible bug.</p><p>But Generative AI is fundamentally a \"dreaming machine.\" When you ask Midjourney for a picture of a cyberpunk astronaut on a horse, or ask ChatGPT to write a sci-fi story, it is literally hallucinating. In the realm of creativity, hallucination isn't a bug—it is the core feature that makes Generative AI magical.</p>",
+                        "audioText": "Generative AI is a dreaming machine. When you want facts, a hallucination is a bug. But when you want art or stories, that hallucination is the core magic.",
+                        "audioTextHinglish": "Generative AI ek dreaming machine hai. Factual answers ke liye hallucination ek bug hai, par art ya stories ke liye yahi hallucination uski magic hai.",
+                        "keyInsight": "Creativity in Generative AI is essentially controlled hallucination."
+                    },
+                    {
+                        "title": "Interactive Visualizer: Discriminative vs Generative",
+                        "narrative": "<p>Let's look at the exact same input through the eyes of a Discriminative AI versus a Generative AI.</p><p>Provide a prompt to the system below, and toggle the switch to see how the two completely different eras of Artificial Intelligence handle your request.</p>",
+                        "widgetType": "GenerativeWidget",
+                        "widgetData": {}
                     },
                     {
                         "title": "Mastery Quiz",
@@ -31,9 +51,14 @@ def seed_ai_remaining():
                         "widgetData": {
                             "questions": [
                                 {
-                                    "q": "An AI that flags spam emails is what type of AI?",
-                                    "options": ["Generative", "Discriminative", "Symbolic", "AGI"],
+                                    "q": "An AI that scans X-rays and highlights tumors is what type of AI?",
+                                    "options": ["Generative", "Discriminative", "AGI", "Symbolic"],
                                     "correct": 1
+                                },
+                                {
+                                    "q": "How does Generative AI create new things?",
+                                    "options": ["It searches Google and copies the first result", "It categorizes data into buckets", "It predicts what logically comes next (e.g. the next word or pixel)", "It relies on human programmers to write the rules"],
+                                    "correct": 2
                                 }
                             ]
                         }

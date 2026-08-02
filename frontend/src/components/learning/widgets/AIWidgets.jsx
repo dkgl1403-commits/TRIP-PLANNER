@@ -1793,3 +1793,123 @@ export function EmbeddingsWidget() {
     </div>
   );
 }
+
+// 13. Generative vs Discriminative Widget (Arc 2: Chapter 4)
+export function GenerativeWidget() {
+  const [mode, setMode] = useState('discriminative'); // 'discriminative' | 'generative'
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const handleSimulate = (m) => {
+    setMode(m);
+    setIsProcessing(true);
+    setResult(null);
+    
+    setTimeout(() => {
+      setIsProcessing(false);
+      if (m === 'discriminative') {
+        setResult({
+          type: 'label',
+          text: '[99.8% Confidence: Dog]',
+          color: 'text-blue-400',
+          bg: 'bg-blue-900/30 border-blue-500/50'
+        });
+      } else {
+        setResult({
+          type: 'image',
+          emoji: '🐶 🚀 🌌',
+          desc: 'A golden retriever floating in space wearing a futuristic spacesuit',
+          color: 'text-amber-400',
+          bg: 'bg-amber-900/30 border-amber-500/50'
+        });
+      }
+    }, 1500);
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">The AI Paradigm Shift</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Input Source */}
+          <div className="col-span-1 border border-white/10 bg-black/40 rounded-xl p-4 flex flex-col items-center justify-center space-y-4">
+            <h4 className="text-gray-400 font-bold text-sm uppercase">Input Prompt</h4>
+            <div className="text-6xl">🐶</div>
+            <p className="text-center text-sm text-gray-300 font-mono bg-white/5 p-2 rounded w-full">
+              Prompt: "A dog in a spacesuit"
+            </p>
+          </div>
+
+          {/* Engine Toggle */}
+          <div className="col-span-1 flex flex-col items-center justify-center space-y-4">
+            <div className="flex flex-col w-full space-y-2">
+              <button 
+                onClick={() => handleSimulate('discriminative')}
+                className={`p-3 rounded-xl border-2 font-bold transition-all ${mode === 'discriminative' ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'bg-black/30 border-white/10 text-gray-400 hover:bg-white/5'}`}
+              >
+                1. Discriminative Mode
+                <div className="text-xs font-normal opacity-70 mt-1">Categorizes the prompt</div>
+              </button>
+              
+              <button 
+                onClick={() => handleSimulate('generative')}
+                className={`p-3 rounded-xl border-2 font-bold transition-all ${mode === 'generative' ? 'bg-amber-600 border-amber-400 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'bg-black/30 border-white/10 text-gray-400 hover:bg-white/5'}`}
+              >
+                2. Generative Mode
+                <div className="text-xs font-normal opacity-70 mt-1">Predicts & Creates</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Output Source */}
+          <div className="col-span-1 border border-white/10 bg-black/40 rounded-xl p-4 flex flex-col items-center justify-center min-h-[200px]">
+            <h4 className="text-gray-400 font-bold text-sm uppercase mb-4">AI Output</h4>
+            
+            {isProcessing ? (
+              <div className="flex flex-col items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
+                <div className="text-xs text-gray-400 font-mono animate-pulse">
+                  {mode === 'discriminative' ? 'Calculating probabilities...' : 'Predicting next pixel...'}
+                </div>
+              </div>
+            ) : result ? (
+              <div className={`w-full p-4 rounded-xl border ${result.bg} flex flex-col items-center justify-center animate-fade-in`}>
+                {result.type === 'label' ? (
+                  <>
+                    <div className="text-xs text-gray-400 uppercase font-bold mb-2">Classification</div>
+                    <div className={`font-mono font-bold text-center ${result.color}`}>
+                      {result.text}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xs text-gray-400 uppercase font-bold mb-2">Creation (Hallucination)</div>
+                    <div className="text-4xl mb-2">{result.emoji}</div>
+                    <div className={`text-xs text-center font-bold ${result.color}`}>
+                      "{result.desc}"
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-gray-600 text-sm italic text-center">
+                Click a mode to process the prompt.
+              </div>
+            )}
+          </div>
+
+        </div>
+        
+        <div className="mt-6 p-4 rounded-xl bg-surface-100 border border-glass-stroke text-sm text-gray-300">
+          <strong>Key Takeaway:</strong> Discriminative AI looks at data and puts it in a bucket (e.g. "This is a dog"). Generative AI looks at data and hallucinates entirely new data based on patterns (e.g. "Here is a brand new image of a dog in space").
+        </div>
+
+      </div>
+    </div>
+  );
+}
