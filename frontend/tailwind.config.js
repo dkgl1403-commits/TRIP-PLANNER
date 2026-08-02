@@ -75,13 +75,13 @@ export default {
               "gutter": "24px"
           },
           "fontFamily": {
-              "display-lg": ["Plus Jakarta Sans", "sans-serif"],
-              "body-md": ["Manrope", "sans-serif"],
-              "headline-lg": ["Plus Jakarta Sans", "sans-serif"],
+              "display-lg": ["Verdana", "Calibri", "sans-serif"],
+              "body-md": ["Verdana", "Calibri", "sans-serif"],
+              "headline-lg": ["Verdana", "Calibri", "sans-serif"],
               "label-sm": ["JetBrains Mono", "monospace"],
-              "title-md": ["Plus Jakarta Sans", "sans-serif"],
-              "headline-lg-mobile": ["Plus Jakarta Sans", "sans-serif"],
-              "body-lg": ["Manrope", "sans-serif"]
+              "title-md": ["Verdana", "Calibri", "sans-serif"],
+              "headline-lg-mobile": ["Verdana", "Calibri", "sans-serif"],
+              "body-lg": ["Verdana", "Calibri", "sans-serif"]
           },
           "fontSize": {
               "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],

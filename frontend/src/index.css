@@ -112,7 +112,7 @@
     overscroll-behavior-y: none;
     background-color: #111316;
     color: #e2e2e6;
-    font-family: "Manrope", sans-serif;
+    font-family: Verdana, Calibri, sans-serif;
   }
 
   input:-webkit-autofill,
