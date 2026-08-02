@@ -291,7 +291,7 @@ def seed_ai_remaining():
                 ]
             },
             {
-                "name": "The Physical Reality of the Cloud",
+                "name": "The Data Center & Power Wall",
                 "parts": [
                     {
                         "title": "Stadiums of Silicon",
