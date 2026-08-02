@@ -434,12 +434,7 @@ def seed_curriculum():
                         {"name": "The Transformer Engine", "board": "BOTH"},
                         {"name": "The Three Stages of Training", "board": "BOTH"},
                         {"name": "Prompts & In-Context Learning", "board": "BOTH"},
-                        {"name": "The Compute Hierarchy", "board": "BOTH"},
-                        {"name": "Datacenters & Scalability", "board": "BOTH"},
-                        {"name": "The Ecosystem Map", "board": "BOTH"},
-                        {"name": "Beyond Chatbots", "board": "BOTH"},
-                        {"name": "Multi-Agent Swarms", "board": "BOTH"},
-                        {"name": "The Cutting Edge", "board": "BOTH"}
+                        {"name": "Retrieval-Augmented Generation (RAG)", "board": "BOTH"}
                     ]
                 }
             ]
