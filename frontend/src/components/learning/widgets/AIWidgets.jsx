@@ -2656,3 +2656,204 @@ export function DataCenterAnatomyWidget() {
     </div>
   );
 }
+
+// 5. AI Ecosystem Supply Chain Widget
+export function AIEcosystemWidget() {
+  const [activeNode, setActiveNode] = useState('asml');
+
+  const nodes = {
+    data: {
+      id: 'data',
+      title: 'Data Barons',
+      subtitle: '(Reddit, NYT, X)',
+      color: 'bg-green-500',
+      border: 'border-green-400',
+      text: 'text-green-400',
+      icon: 'database',
+      dependsOn: [],
+      description: 'The raw material. Human knowledge, text, and images scraped from the internet. The owners of this data are now locking it down and charging billions to license it for training.'
+    },
+    asml: {
+      id: 'asml',
+      title: 'Machine Builders',
+      subtitle: '(ASML Monopoly)',
+      color: 'bg-pink-500',
+      border: 'border-pink-400',
+      text: 'text-pink-400',
+      icon: 'precision_manufacturing',
+      dependsOn: [],
+      description: 'The Dutch monopoly. ASML builds $200M Extreme Ultraviolet (EUV) lithography machines. They use lasers to vaporize liquid tin to print patterns on silicon at the atomic level. Without them, there are no chips.'
+    },
+    tsmc: {
+      id: 'tsmc',
+      title: 'Fabricators',
+      subtitle: '(TSMC Taiwan)',
+      color: 'bg-blue-500',
+      border: 'border-blue-400',
+      text: 'text-blue-400',
+      icon: 'factory',
+      dependsOn: ['asml'],
+      description: 'The global choke point. TSMC buys ASML machines to physically print 90% of the world\'s advanced chips. The entire AI industry is dangerously reliant on this single island.'
+    },
+    nvidia: {
+      id: 'nvidia',
+      title: 'GPU Designers',
+      subtitle: '(Nvidia Monopoly)',
+      color: 'bg-green-600', // NVIDIA green
+      border: 'border-green-500',
+      text: 'text-green-500',
+      icon: 'memory',
+      dependsOn: ['tsmc'],
+      description: 'The kingmaker. Nvidia doesn\'t print their own chips (TSMC does). Nvidia designs them (H100) and wrote the CUDA software that developers must use to program them. They sell shovels in a gold rush.'
+    },
+    cloud: {
+      id: 'cloud',
+      title: 'Hyperscalers',
+      subtitle: '(Microsoft, AWS, GCP)',
+      color: 'bg-cyan-500',
+      border: 'border-cyan-400',
+      text: 'text-cyan-400',
+      icon: 'cloud',
+      dependsOn: ['nvidia'],
+      description: 'The landlords. They buy the Nvidia GPUs in bulk and build the billion-dollar physical data centers. AI researchers must pay them to rent the compute power.'
+    },
+    labs: {
+      id: 'labs',
+      title: 'Frontier Labs',
+      subtitle: '(OpenAI, Anthropic, Meta)',
+      color: 'bg-purple-500',
+      border: 'border-purple-400',
+      text: 'text-purple-400',
+      icon: 'psychology',
+      dependsOn: ['cloud', 'data'],
+      description: 'The model builders. They take the raw data and run it through the Hyperscaler\'s GPUs to train models like ChatGPT and Llama. They are in a deathmatch between closed-source and open-source.'
+    }
+  };
+
+  const selectedNode = nodes[activeNode];
+
+  return (
+    <div className="w-full flex justify-center py-8 text-white">
+      <div className="w-full max-w-4xl bg-gray-950 rounded-2xl p-6 border border-gray-800 shadow-xl">
+        <h3 className="text-xl font-bold text-gray-200 mb-6 border-b border-gray-800 pb-2 flex items-center gap-2">
+          <span className="text-2xl material-symbols-outlined">hub</span> 
+          The Trillion-Dollar Supply Chain
+        </h3>
+
+        <div className="flex flex-col gap-6">
+          {/* Map Area */}
+          <div className="relative w-full h-80 bg-gray-900 rounded-xl border border-gray-800 p-4 overflow-hidden">
+            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none"></div>
+            
+            {/* Connecting Lines (SVG) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#4B5563" />
+                </marker>
+                <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#F3F4F6" />
+                </marker>
+              </defs>
+              
+              {/* ASML to TSMC */}
+              <line x1="20%" y1="20%" x2="20%" y2="50%" stroke={activeNode === 'tsmc' || activeNode === 'asml' ? '#F3F4F6' : '#374151'} strokeWidth="2" markerEnd={activeNode === 'tsmc' || activeNode === 'asml' ? "url(#arrow-active)" : "url(#arrow)"} strokeDasharray={activeNode === 'tsmc' || activeNode === 'asml' ? "5,5" : "none"} className={activeNode === 'tsmc' || activeNode === 'asml' ? "animate-[dash_1s_linear_infinite]" : ""} />
+              
+              {/* TSMC to Nvidia */}
+              <line x1="20%" y1="50%" x2="50%" y2="50%" stroke={activeNode === 'nvidia' || activeNode === 'tsmc' ? '#F3F4F6' : '#374151'} strokeWidth="2" markerEnd={activeNode === 'nvidia' || activeNode === 'tsmc' ? "url(#arrow-active)" : "url(#arrow)"} strokeDasharray={activeNode === 'nvidia' || activeNode === 'tsmc' ? "5,5" : "none"} className={activeNode === 'nvidia' || activeNode === 'tsmc' ? "animate-[dash_1s_linear_infinite]" : ""} />
+              
+              {/* Nvidia to Cloud */}
+              <line x1="50%" y1="50%" x2="50%" y2="80%" stroke={activeNode === 'cloud' || activeNode === 'nvidia' ? '#F3F4F6' : '#374151'} strokeWidth="2" markerEnd={activeNode === 'cloud' || activeNode === 'nvidia' ? "url(#arrow-active)" : "url(#arrow)"} strokeDasharray={activeNode === 'cloud' || activeNode === 'nvidia' ? "5,5" : "none"} className={activeNode === 'cloud' || activeNode === 'nvidia' ? "animate-[dash_1s_linear_infinite]" : ""} />
+
+              {/* Cloud to Labs */}
+              <line x1="50%" y1="80%" x2="80%" y2="80%" stroke={activeNode === 'labs' || activeNode === 'cloud' ? '#F3F4F6' : '#374151'} strokeWidth="2" markerEnd={activeNode === 'labs' || activeNode === 'cloud' ? "url(#arrow-active)" : "url(#arrow)"} strokeDasharray={activeNode === 'labs' || activeNode === 'cloud' ? "5,5" : "none"} className={activeNode === 'labs' || activeNode === 'cloud' ? "animate-[dash_1s_linear_infinite]" : ""} />
+
+              {/* Data to Labs */}
+              <line x1="80%" y1="20%" x2="80%" y2="80%" stroke={activeNode === 'labs' || activeNode === 'data' ? '#F3F4F6' : '#374151'} strokeWidth="2" markerEnd={activeNode === 'labs' || activeNode === 'data' ? "url(#arrow-active)" : "url(#arrow)"} strokeDasharray={activeNode === 'labs' || activeNode === 'data' ? "5,5" : "none"} className={activeNode === 'labs' || activeNode === 'data' ? "animate-[dash_1s_linear_infinite]" : ""} />
+
+              <style>{`
+                @keyframes dash {
+                  to { stroke-dashoffset: -10; }
+                }
+              `}</style>
+            </svg>
+
+            {/* Nodes */}
+            <div className="absolute inset-0 z-10 w-full h-full">
+              {/* ASML */}
+              <button onClick={() => setActiveNode('asml')} className={`absolute top-[10%] left-[10%] w-[20%] text-center p-3 rounded-xl border-2 transition-all ${activeNode === 'asml' ? `${nodes.asml.border} bg-gray-800 shadow-[0_0_20px_rgba(236,72,153,0.3)] scale-110` : 'border-gray-700 bg-gray-900 opacity-60 hover:opacity-100'}`}>
+                <div className={`material-symbols-outlined text-3xl ${nodes.asml.text}`}>{nodes.asml.icon}</div>
+                <div className="font-bold text-sm mt-1">{nodes.asml.title}</div>
+              </button>
+
+              {/* Data */}
+              <button onClick={() => setActiveNode('data')} className={`absolute top-[10%] right-[10%] w-[20%] text-center p-3 rounded-xl border-2 transition-all ${activeNode === 'data' ? `${nodes.data.border} bg-gray-800 shadow-[0_0_20px_rgba(74,222,128,0.3)] scale-110` : 'border-gray-700 bg-gray-900 opacity-60 hover:opacity-100'}`}>
+                <div className={`material-symbols-outlined text-3xl ${nodes.data.text}`}>{nodes.data.icon}</div>
+                <div className="font-bold text-sm mt-1">{nodes.data.title}</div>
+              </button>
+
+              {/* TSMC */}
+              <button onClick={() => setActiveNode('tsmc')} className={`absolute top-[40%] left-[10%] w-[20%] text-center p-3 rounded-xl border-2 transition-all ${activeNode === 'tsmc' ? `${nodes.tsmc.border} bg-gray-800 shadow-[0_0_20px_rgba(96,165,250,0.3)] scale-110` : 'border-gray-700 bg-gray-900 opacity-60 hover:opacity-100'}`}>
+                <div className={`material-symbols-outlined text-3xl ${nodes.tsmc.text}`}>{nodes.tsmc.icon}</div>
+                <div className="font-bold text-sm mt-1">{nodes.tsmc.title}</div>
+              </button>
+
+              {/* NVIDIA */}
+              <button onClick={() => setActiveNode('nvidia')} className={`absolute top-[40%] left-[40%] w-[20%] text-center p-3 rounded-xl border-2 transition-all ${activeNode === 'nvidia' ? `${nodes.nvidia.border} bg-gray-800 shadow-[0_0_20px_rgba(34,197,94,0.3)] scale-110` : 'border-gray-700 bg-gray-900 opacity-60 hover:opacity-100'}`}>
+                <div className={`material-symbols-outlined text-3xl ${nodes.nvidia.text}`}>{nodes.nvidia.icon}</div>
+                <div className="font-bold text-sm mt-1">{nodes.nvidia.title}</div>
+              </button>
+
+              {/* CLOUD */}
+              <button onClick={() => setActiveNode('cloud')} className={`absolute top-[70%] left-[40%] w-[20%] text-center p-3 rounded-xl border-2 transition-all ${activeNode === 'cloud' ? `${nodes.cloud.border} bg-gray-800 shadow-[0_0_20px_rgba(34,211,238,0.3)] scale-110` : 'border-gray-700 bg-gray-900 opacity-60 hover:opacity-100'}`}>
+                <div className={`material-symbols-outlined text-3xl ${nodes.cloud.text}`}>{nodes.cloud.icon}</div>
+                <div className="font-bold text-sm mt-1">{nodes.cloud.title}</div>
+              </button>
+
+              {/* LABS */}
+              <button onClick={() => setActiveNode('labs')} className={`absolute top-[70%] right-[10%] w-[20%] text-center p-3 rounded-xl border-2 transition-all ${activeNode === 'labs' ? `${nodes.labs.border} bg-gray-800 shadow-[0_0_20px_rgba(192,132,252,0.3)] scale-110` : 'border-gray-700 bg-gray-900 opacity-60 hover:opacity-100'}`}>
+                <div className={`material-symbols-outlined text-3xl ${nodes.labs.text}`}>{nodes.labs.icon}</div>
+                <div className="font-bold text-sm mt-1">{nodes.labs.title}</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Details Area */}
+          <div className={`bg-gray-900 rounded-xl p-6 border-l-4 ${selectedNode.border}`}>
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`material-symbols-outlined text-5xl ${selectedNode.text}`}>
+                {selectedNode.icon}
+              </div>
+              <div>
+                <h4 className="text-2xl font-bold text-gray-100">{selectedNode.title}</h4>
+                <p className="text-gray-400 font-mono text-sm">{selectedNode.subtitle}</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-300 leading-relaxed text-lg mb-4">
+              {selectedNode.description}
+            </p>
+            
+            {selectedNode.dependsOn.length > 0 && (
+              <div className="text-sm">
+                <span className="text-gray-500 mr-2">Dependent on:</span>
+                <div className="flex gap-2 mt-2">
+                  {selectedNode.dependsOn.map(dep => (
+                    <button 
+                      key={dep} 
+                      onClick={() => setActiveNode(dep)}
+                      className={`px-3 py-1 rounded border border-gray-700 bg-gray-800 text-xs font-bold hover:bg-gray-700 transition-colors ${nodes[dep].text}`}
+                    >
+                      {nodes[dep].title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -43,7 +43,8 @@ import {
   MoEWidget,
   CpuVsGpuCoreWidget,
   DataCenterWidget,
-  DataCenterAnatomyWidget
+  DataCenterAnatomyWidget,
+  AIEcosystemWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1312,5 +1313,6 @@ export const WidgetRegistry = {
   MoEWidget,
   CpuVsGpuCoreWidget,
   DataCenterWidget,
-  DataCenterAnatomyWidget
+  DataCenterAnatomyWidget,
+  AIEcosystemWidget
 };
