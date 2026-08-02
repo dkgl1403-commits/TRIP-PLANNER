@@ -32,7 +32,8 @@ import {
   PromptingWidget,
   ContextWindowWidget,
   RAGWidget,
-  ReasoningWidget
+  ReasoningWidget,
+  AgentWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1290,5 +1291,6 @@ export const WidgetRegistry = {
   PromptingWidget,
   ContextWindowWidget,
   RAGWidget,
-  ReasoningWidget
+  ReasoningWidget,
+  AgentWidget
 };

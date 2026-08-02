@@ -1437,3 +1437,131 @@ export function ReasoningWidget() {
     </div>
   );
 }
+
+// 10. Agent Workspace Visualizer (Arc 4: Chapter 13)
+export function AgentWidget() {
+  const [step, setStep] = useState(0);
+
+  const startAgent = () => {
+    setStep(0);
+    setTimeout(() => setStep(1), 500);
+    setTimeout(() => setStep(2), 2000);
+    setTimeout(() => setStep(3), 3500);
+    setTimeout(() => setStep(4), 5000);
+    setTimeout(() => setStep(5), 6500);
+    setTimeout(() => setStep(6), 8000);
+    setTimeout(() => setStep(7), 9500);
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">Interactive Agent Workspace</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Left Column: Tools & Task */}
+          <div className="col-span-1 space-y-4">
+            <div className="bg-black/30 p-4 rounded-xl border border-white/10">
+              <div className="text-xs text-gray-400 uppercase tracking-widest mb-2 font-bold">User Prompt</div>
+              <div className="text-white font-medium">"Find the weather in Tokyo and email it to my boss, John."</div>
+            </div>
+
+            <div className="bg-black/30 p-4 rounded-xl border border-white/10">
+              <div className="text-xs text-gray-400 uppercase tracking-widest mb-2 font-bold">Available Tools</div>
+              <ul className="space-y-2 font-mono text-xs">
+                <li className="text-purple-300 flex items-center gap-2">
+                  <span className="text-lg">☁️</span> get_weather(city)
+                </li>
+                <li className="text-blue-300 flex items-center gap-2">
+                  <span className="text-lg">📧</span> send_email(to, body)
+                </li>
+              </ul>
+            </div>
+
+            <button 
+              onClick={startAgent}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-all border border-blue-400 shadow-lg"
+            >
+              Start Agent Workspace
+            </button>
+          </div>
+
+          {/* Right Column: ReAct Loop */}
+          <div className="col-span-2 bg-black/60 border border-blue-500/30 rounded-xl p-5 relative overflow-hidden font-mono text-sm h-[400px]">
+            <div className="text-xs text-blue-400 uppercase tracking-widest mb-4 font-bold border-b border-blue-900/50 pb-2">
+              Execution Trace (ReAct Loop)
+            </div>
+
+            <div className="space-y-3 relative z-10 overflow-y-auto h-[320px] pr-2 custom-scrollbar">
+              
+              {step >= 1 && (
+                <div className="animate-slide-in-right bg-gray-800/50 p-3 rounded-lg border border-gray-600">
+                  <span className="text-yellow-400 font-bold">THOUGHT 1:</span>
+                  <span className="text-white ml-2">I need to find the current weather in Tokyo.</span>
+                </div>
+              )}
+              
+              {step >= 2 && (
+                <div className="animate-slide-in-right bg-purple-900/20 p-3 rounded-lg border border-purple-500/50">
+                  <span className="text-purple-400 font-bold">ACTION 1:</span>
+                  <span className="text-purple-200 ml-2">get_weather(city="Tokyo")</span>
+                </div>
+              )}
+
+              {step >= 3 && (
+                <div className="animate-slide-in-right bg-green-900/20 p-3 rounded-lg border border-green-500/50">
+                  <span className="text-green-400 font-bold">OBSERVATION 1:</span>
+                  <span className="text-green-200 ml-2">"Sunny, 25°C"</span>
+                </div>
+              )}
+
+              {step >= 4 && (
+                <div className="animate-slide-in-right bg-gray-800/50 p-3 rounded-lg border border-gray-600">
+                  <span className="text-yellow-400 font-bold">THOUGHT 2:</span>
+                  <span className="text-white ml-2">Now I need to email this information to John.</span>
+                </div>
+              )}
+
+              {step >= 5 && (
+                <div className="animate-slide-in-right bg-blue-900/20 p-3 rounded-lg border border-blue-500/50">
+                  <span className="text-blue-400 font-bold">ACTION 2:</span>
+                  <span className="text-blue-200 ml-2">send_email(to="John", body="The weather in Tokyo is Sunny, 25°C.")</span>
+                </div>
+              )}
+
+              {step >= 6 && (
+                <div className="animate-slide-in-right bg-green-900/20 p-3 rounded-lg border border-green-500/50">
+                  <span className="text-green-400 font-bold">OBSERVATION 2:</span>
+                  <span className="text-green-200 ml-2">"Email sent successfully."</span>
+                </div>
+              )}
+
+              {step >= 7 && (
+                <div className="animate-slide-in-right bg-gray-800/80 p-3 rounded-lg border border-gray-400 mt-4">
+                  <span className="text-white font-bold">FINAL ANSWER:</span>
+                  <span className="text-gray-300 ml-2">"I have checked the weather for Tokyo (Sunny, 25°C) and emailed it to your boss, John."</span>
+                </div>
+              )}
+
+            </div>
+
+            {/* Loading / Typing indicator */}
+            {step > 0 && step < 7 && (
+              <div className="absolute bottom-4 right-4 flex gap-1 z-0">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce animation-delay-200"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce animation-delay-400"></div>
+              </div>
+            )}
+            
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
