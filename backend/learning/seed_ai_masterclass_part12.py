@@ -22,22 +22,32 @@ def seed_ai_masterclass_part12():
         config = {
             "parts": [
                 {
-                    "title": "The Fast Talker (System 1)",
+                    "title": "The Hallucination Crisis",
                     "readingTime": "~2 min read",
-                    "narrative": "<p>Why do AI models confidently make up fake information? This is called a <strong>Hallucination</strong>.</p><p>Standard LLMs operate using what psychologists call <em>System 1 thinking</em>—they act on instinct. They read your prompt and immediately start predicting the very next word, as fast as possible.</p><p>Because they don't pause to think or plan ahead, they often stumble when faced with math or complex logic puzzles. They just blurt out whatever <em>sounds</em> right intuitively.</p>",
-                    "audioText": "Why do AI models confidently make up fake information? This is called a Hallucination. Standard LLMs act on instinct. They read your prompt and immediately start predicting the very next word. Because they don't pause to think, they often stumble on math or logic puzzles.",
-                    "audioTextHinglish": "AI models confidently galat information kyun banate hain? Ise Hallucination kehte hain. Standard LLMs instinct par kaam karte hain. Wo bina soche turant agla word predict karna shuru kar dete hain, isliye math ya logic puzzles mein galti kar dete hain.",
+                    "narrative": "<p>In 2023, two lawyers submitted a legal brief to a New York federal judge citing six past court cases. There was just one problem: <strong>None of the cases were real.</strong> ChatGPT had completely invented them.</p><p>This phenomenon, where an AI confidently makes up fake information, is called a <strong>Hallucination</strong>. It became the single biggest roadblock to adopting AI in medicine, law, and finance.</p><p>If an AI can pass the Bar Exam but also invents fake laws, how can we ever trust it? To understand how we solved this, we first have to understand <em>why</em> they lie.</p>",
+                    "audioText": "In 2023, lawyers submitted a brief to a judge citing fake court cases invented by ChatGPT. This is called a Hallucination, and it became the biggest roadblock to adopting AI. If an AI can pass the Bar Exam but also invents fake laws, how can we trust it?",
+                    "audioTextHinglish": "2023 mein, lawyers ne ek judge ko fake court cases submit kiye jo ChatGPT ne banaye the. Ise Hallucination kehte hain, aur ye AI adoption ka sabse bada roadblock ban gaya. Agar AI fake laws bana sakta hai, toh hum uspar trust kaise karein?",
+                    "keyInsight": "Hallucinations severely impacted AI adoption by destroying trust in high-stakes fields like law and medicine.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Why Do They Lie? (The Root Causes)",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>AI models don't \"lie\" on purpose. They operate using <em>System 1 thinking</em>—they act on instinct. They read your prompt and instantly predict the next word.</p><p>Several factors increase hallucinations: <strong>1) High Temperature</strong> (making the AI too creative), <strong>2) Obscure Topics</strong> (the AI hasn't read enough about it, so it guesses), and <strong>3) Lack of Planning</strong> (it doesn't pause to think ahead).</p><p>Because they don't plan, they stumble on math or logic puzzles, blurting out whatever <em>sounds</em> intuitively right.</p>",
+                    "audioText": "AI models don't lie on purpose. They operate on instinct, instantly predicting the next word. Hallucinations increase with high temperature, obscure topics, and a lack of planning. Because they don't plan, they stumble on logic puzzles.",
+                    "audioTextHinglish": "AI jaanbuch kar jhooth nahi bolte. Wo instinct par kaam karte hain, turant agla word predict karke. Jab temperature high ho, topic obscure ho, ya planning na ho, tab hallucinations badh jate hain.",
                     "keyInsight": "Hallucinations happen because standard models predict words instantly without planning ahead.",
                     "widgetType": None,
                     "widgetData": {}
                 },
                 {
-                    "title": "Thinking Before Speaking (System 2)",
-                    "readingTime": "~2 min read",
-                    "narrative": "<p>To fix this, researchers introduced <strong>Deep Reasoning</strong> (or Chain-of-Thought). This is <em>System 2 thinking</em>.</p><p>Instead of answering instantly, the AI is given a hidden \"scratchpad\". It uses this space to talk to itself, break the problem down into steps, test different theories, and catch its own mistakes.</p><p>Only after it is confident in its internal logic does it output the final answer to you. This drastically reduces hallucinations and allows AI to solve PhD-level math problems!</p>",
-                    "audioText": "To fix this, researchers introduced Deep Reasoning, or Chain-of-Thought. Instead of answering instantly, the AI uses a hidden scratchpad to talk to itself, break the problem down, and catch its own mistakes before giving you the final answer.",
-                    "audioTextHinglish": "Ise theek karne ke liye, researchers ne Deep Reasoning, ya Chain-of-Thought introduce kiya. AI turant answer dene ke bajaye, ek hidden scratchpad par khud se baat karta hai, problem ko samajhta hai aur galtiyan theek karne ke baad hi final answer deta hai.",
-                    "keyInsight": "Reasoning models think step-by-step in a hidden scratchpad before answering.",
+                    "title": "The Solution: Thinking Before Speaking",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>To solve the hallucination crisis, researchers combined two breakthroughs: <strong>RAG</strong> (giving the AI factual documents to read) and <strong>Deep Reasoning</strong> (System 2 thinking).</p><p>With Deep Reasoning, the AI is given a hidden \"scratchpad\". Instead of answering instantly, it talks to itself, breaks the problem down, and fact-checks its own logic. If it catches a mistake, it rewrites its thoughts.</p><p>While hallucinations are never 100% eliminated (because the AI is fundamentally still predicting words), Reasoning models have drastically reduced errors, allowing AI to solve PhD-level problems safely!</p>",
+                    "audioText": "To solve this, researchers combined RAG and Deep Reasoning. The AI uses a hidden scratchpad to talk to itself, break the problem down, and fact-check its own logic. While not 100% eliminated, this drastically reduces errors.",
+                    "audioTextHinglish": "Ise solve karne ke liye, researchers ne RAG aur Deep Reasoning ko combine kiya. AI ek hidden scratchpad par khud se baat karta hai aur apni logic ko fact-check karta hai. Isse errors bohot kam ho gaye hain.",
+                    "keyInsight": "Deep Reasoning acts as an internal fact-checker, drastically reducing hallucinations.",
                     "widgetType": None,
                     "widgetData": {}
                 },
