@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // 1. The First Neuron Widget (Perceptron Replica)
 export function FirstNeuronWidget() {
