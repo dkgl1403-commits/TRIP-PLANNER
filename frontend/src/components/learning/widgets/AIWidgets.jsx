@@ -1913,3 +1913,125 @@ export function GenerativeWidget() {
     </div>
   );
 }
+
+// 14. Diffusion Visualizer (Arc 2: Chapter 11)
+export function DiffusionWidget() {
+  const [step, setStep] = useState(0); // 0 to 10
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (isPlaying && step < 10) {
+      timer = setTimeout(() => {
+        setStep(s => s + 1);
+      }, 400); // 400ms per step
+    } else if (isPlaying && step >= 10) {
+      setIsPlaying(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isPlaying, step]);
+
+  const handleStart = () => {
+    setStep(0);
+    setTimeout(() => setIsPlaying(true), 100);
+  };
+
+  // Calculate blur and noise based on step
+  // Step 0: 100% noise, 20px blur
+  // Step 10: 0% noise, 0px blur
+  const progress = step / 10;
+  const blurAmount = 20 * (1 - progress);
+  const opacityAmount = progress;
+  const noiseOpacity = 1 - progress;
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">The Reverse Diffusion Process</h3>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+          
+          {/* Controls */}
+          <div className="flex-1 space-y-6 w-full">
+            <div className="bg-black/40 border border-white/10 p-4 rounded-xl">
+              <h4 className="text-gray-400 font-bold text-sm uppercase mb-2">Prompt</h4>
+              <div className="font-mono text-amber-400 bg-black/60 p-3 rounded text-sm border border-amber-500/30">
+                "A cute cyberpunk dog wearing a neon collar"
+              </div>
+            </div>
+
+            <div className="flex flex-col space-y-4">
+              <button
+                onClick={handleStart}
+                disabled={isPlaying}
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+              >
+                {isPlaying ? 'Denoising...' : 'Generate Image (Start Reverse Diffusion)'}
+              </button>
+
+              <div className="flex items-center justify-between text-xs text-gray-400 font-bold px-2 uppercase">
+                <span>Pure Static</span>
+                <span>Structured Image</span>
+              </div>
+              
+              <div className="w-full h-3 bg-black/50 rounded-full overflow-hidden border border-white/10">
+                <div 
+                  className="h-full bg-gradient-to-r from-red-500 via-amber-500 to-green-500 transition-all duration-300"
+                  style={{ width: `${progress * 100}%` }}
+                ></div>
+              </div>
+              <div className="text-center text-xs text-gray-500 font-mono">
+                Step {step} / 10
+              </div>
+            </div>
+          </div>
+
+          {/* Canvas */}
+          <div className="flex-1 w-full max-w-[350px] aspect-square bg-black rounded-xl border border-white/20 relative overflow-hidden flex items-center justify-center shadow-2xl">
+            
+            {/* The Target Image */}
+            <div 
+              className="absolute inset-0 flex items-center justify-center text-9xl transition-all duration-300"
+              style={{
+                filter: `blur(${blurAmount}px)`,
+                opacity: Math.max(0.1, opacityAmount),
+                transform: `scale(${1 + (blurAmount / 20)})`
+              }}
+            >
+              🐶
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center text-9xl transition-all duration-300" style={{ opacity: opacityAmount }}>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl">✨</div>
+            </div>
+
+            {/* The Noise Overlay */}
+            <div 
+              className="absolute inset-0 z-10 transition-opacity duration-300 pointer-events-none"
+              style={{
+                opacity: noiseOpacity,
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")',
+                mixBlendMode: 'overlay',
+                backgroundSize: '150px'
+              }}
+            ></div>
+            
+            {/* Pure white static effect at step 0 */}
+            <div 
+              className="absolute inset-0 z-20 bg-white transition-opacity duration-300 pointer-events-none"
+              style={{
+                opacity: step === 0 ? 0.3 : 0,
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")'
+              }}
+            ></div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}

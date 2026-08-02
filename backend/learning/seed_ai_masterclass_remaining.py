@@ -120,11 +120,43 @@ def seed_ai_remaining():
                 "name": "Diffusion Models",
                 "parts": [
                     {
-                        "title": "Generating Images and Video",
-                        "narrative": "<p>LLMs generate text one word at a time. But how does AI generate an image? It uses <strong>Diffusion Models</strong>.</p><p>A diffusion model is trained by taking a perfect image (like a dog) and slowly adding static \"noise\" until it's completely scrambled. The AI is then trained to <em>reverse</em> the process—it learns how to look at pure static and \"un-scramble\" it back into a dog based on a text prompt.</p>",
-                        "audioText": "Diffusion models generate images by learning how to take pure static noise and un-scramble it into a beautiful picture based on your prompt.",
-                        "audioTextHinglish": "Diffusion models images banate hain pure static noise ko un-scramble karke, aapke prompt ke hisaab se.",
-                        "keyInsight": "Sora and Midjourney use Diffusion, not next-word prediction."
+                        "title": "The Forward Process (Destroying Data)",
+                        "narrative": "<p>While LLMs generate text one word at a time, creating an entire image all at once is a very different challenge. To solve this, researchers invented <strong>Diffusion Models</strong>.</p><p>The training begins with a completely counter-intuitive step: <strong>Destroying data</strong>. We take a perfect, high-resolution photo of a dog. Step by step, we mathematically add random TV static (called Gaussian noise) to the image. We do this hundreds of times until the dog is completely gone, leaving only pure, random static.</p><p>The neural network's job is simply to watch this destruction process and learn exactly how the static was added.</p>",
+                        "audioText": "To train a diffusion model, we start by taking a perfect image of a dog and slowly adding TV static to it until the image is completely destroyed. The AI watches and learns how the noise was added.",
+                        "audioTextHinglish": "Diffusion model ko train karne ke liye, hum ek perfect image lete hain aur usme dheere dheere TV static dalte hain jab tak image puri tarah destroy na ho jaye. AI bas is process ko dekhta hai aur seekhta hai.",
+                        "keyInsight": "Diffusion models learn about reality by watching it get slowly destroyed by noise."
+                    },
+                    {
+                        "title": "The Reverse Process (Creating Art)",
+                        "narrative": "<p>Once the AI perfectly understands how noise destroys an image, it can do something magical: it can run the process in <strong>reverse</strong>.</p><p>When you ask Midjourney for \"A cyberpunk dog on Mars\", the AI doesn't start by drawing an ear or a paw. It starts with a canvas of 100% pure random static. Then, using what it learned during training, it begins subtracting the noise, step by step, sculpting the static until the \"cyberpunk dog\" emerges from the chaos.</p>",
+                        "audioText": "When you ask the AI to draw something, it starts with pure static. It then runs its training in reverse, slowly sculpting the static and removing noise until a beautiful image emerges.",
+                        "audioTextHinglish": "Jab aap AI ko kuch draw karne bolte hain, wo pure static se shuru karta hai. Phir wo apna training reverse karta hai, aur noise ko dheere dheere hatata hai jab tak ek beautiful image bahar na aa jaye.",
+                        "keyInsight": "Image generation is essentially the process of mathematically 'denoising' pure static."
+                    },
+                    {
+                        "title": "Interactive Visualizer: The Diffusion Process",
+                        "narrative": "<p>Experience the reverse diffusion process yourself. Watch how the AI starts with complete static noise and slowly \"denoises\" it into a clear, structured image based on a text prompt.</p>",
+                        "widgetType": "DiffusionWidget",
+                        "widgetData": {}
+                    },
+                    {
+                        "title": "Mastery Quiz",
+                        "narrative": "<p>Test your knowledge on Diffusion Models.</p>",
+                        "widgetType": "MCQEngine",
+                        "widgetData": {
+                            "questions": [
+                                {
+                                    "q": "What is the very first step when training a Diffusion Model on a new image?",
+                                    "options": ["It tries to draw it from memory", "It slowly adds static noise until the image is destroyed", "It asks a human to label it", "It turns the image into text"],
+                                    "correct": 1
+                                },
+                                {
+                                    "q": "When generating a new image from a prompt, what does a Diffusion Model start with?",
+                                    "options": ["A blank white canvas", "A rough sketch", "100% pure random static noise", "A google image search"],
+                                    "correct": 2
+                                }
+                            ]
+                        }
                     }
                 ]
             },
