@@ -52,6 +52,26 @@ def seed_ai_taxonomy():
                     "widgetData": {}
                 },
                 {
+                    "title": "Natural Language Processing (NLP)",
+                    "readingTime": "~2 min read",
+                    "narrative": "<p>While some Deep Learning models are built to look at images (Computer Vision), others are built specifically to understand human language. This sub-field is called <strong>Natural Language Processing (NLP)</strong>.</p><p>For years, NLP models were small and could only do basic tasks like translating French to English or deciding if a movie review was positive or negative. They didn't truly \"understand\" the world; they just mapped words to other words.</p>",
+                    "audioText": "Natural Language Processing, or NLP, is a sub-field of AI focused entirely on understanding human language, like translating languages or reading movie reviews.",
+                    "audioTextHinglish": "NLP yani Natural Language Processing, AI ka wo sub-field hai jo sirf insaani bhasha ko samajhne par focus karta hai. Jaise translation ya movie reviews padhna.",
+                    "keyInsight": "NLP is the specific branch of AI dedicated to text and speech.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "Large Language Models (LLMs)",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>Eventually, researchers took an NLP model and made it unimaginably huge. They trained it on the <em>entire internet</em> using thousands of GPUs. This created the <strong>Large Language Model (LLM)</strong>.</p><p>Because an LLM has read billions of pages of human text, it didn't just learn grammar—it learned reasoning, coding, history, and science. LLMs (like GPT-4 and Claude) sit at the absolute center of the AI taxonomy. They are Deep Learning models, focused on NLP, that are so massive they appear to actually \"think\".</p>",
+                    "audioText": "When researchers took an NLP model and made it unimaginably huge by training it on the entire internet, they created the Large Language Model, or LLM. Models like ChatGPT.",
+                    "audioTextHinglish": "Jab NLP model ko bohot bada banakar poore internet par train kiya gaya, tab bana Large Language Model yani LLM. Jaise ChatGPT.",
+                    "keyInsight": "An LLM is just a massive NLP Deep Learning model that has read the entire internet.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "The AI Family Tree",
                     "readingTime": "Interactive Widget",
                     "narrative": "<p>Explore the interactive Venn diagram below to understand exactly how Artificial Intelligence, Machine Learning, Deep Learning, and Generative AI fit together like Russian nesting dolls.</p>",
