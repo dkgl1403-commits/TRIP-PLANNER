@@ -19,6 +19,7 @@ from seed_ai_masterclass_part10 import seed_ai_masterclass_part10
 from seed_ai_masterclass_part11 import seed_ai_masterclass_part11
 from seed_ai_masterclass_part12 import seed_ai_masterclass_part12
 from seed_ai_masterclass_part13 import seed_ai_masterclass_part13
+from seed_ai_taxonomy import seed_ai_taxonomy
 
 def seed_trigonometry():
     init_db()
@@ -428,6 +429,7 @@ def seed_curriculum():
                     "topics": [
                         {"name": "The Dream of the Thinking Machine", "board": "BOTH"},
                         {"name": "The AI Winters", "board": "BOTH"},
+                        {"name": "The Taxonomy of Intelligence", "board": "BOTH"},
                         {"name": "The Big Bang", "board": "BOTH"},
                         {"name": "Linear Algebra & Vectors", "board": "BOTH"},
                         {"name": "Calculus & Gradient Descent", "board": "BOTH"},
@@ -723,6 +725,7 @@ if __name__ == "__main__":
     seed_number_system_class8_part1()
     seed_ai_masterclass_part1()
     seed_ai_masterclass_part2()
+    seed_ai_taxonomy()
     seed_ai_masterclass_part3()
     seed_ai_masterclass_part4()
     seed_ai_masterclass_part5()

@@ -1565,3 +1565,97 @@ export function AgentWidget() {
     </div>
   );
 }
+
+// 11. Taxonomy Visualizer (Arc 1: Chapter 3)
+export function TaxonomyWidget() {
+  const [activeLayer, setActiveLayer] = useState(0);
+
+  const layers = [
+    {
+      id: 0,
+      title: "Artificial Intelligence (AI)",
+      desc: "Any program that does something smart. (e.g. Pac-Man ghosts, Chess bots)",
+      color: "bg-blue-900/40 border-blue-500",
+      textColor: "text-blue-300"
+    },
+    {
+      id: 1,
+      title: "Machine Learning (ML)",
+      desc: "A subset of AI that learns patterns from data instead of being explicitly programmed. (e.g. Netflix recommendations)",
+      color: "bg-purple-900/50 border-purple-500",
+      textColor: "text-purple-300"
+    },
+    {
+      id: 2,
+      title: "Deep Learning (DL)",
+      desc: "A subset of ML that uses deep artificial neural networks. (e.g. Self-driving cars, face recognition)",
+      color: "bg-pink-900/60 border-pink-500",
+      textColor: "text-pink-300"
+    },
+    {
+      id: 3,
+      title: "Generative AI",
+      desc: "A subset of Deep Learning that creates brand new text, images, or audio. (e.g. ChatGPT, Midjourney)",
+      color: "bg-amber-900/70 border-amber-500",
+      textColor: "text-amber-300"
+    }
+  ];
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        
+        <div className="flex justify-between items-center mb-6 border-b border-glass-stroke pb-2">
+          <h3 className="text-xl font-bold text-white">The Taxonomy of Intelligence</h3>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+          
+          {/* Visual Nesting */}
+          <div className="flex-1 w-full max-w-[400px] aspect-square relative flex items-center justify-center cursor-pointer" onClick={() => setActiveLayer((prev) => (prev + 1) % 4)}>
+            
+            {/* AI Layer */}
+            <div className={`absolute inset-0 rounded-full border-2 transition-all duration-500 flex items-start justify-center pt-8 ${activeLayer >= 0 ? 'bg-blue-900/20 border-blue-500' : 'bg-transparent border-white/10'}`}>
+              <span className={`font-bold transition-all ${activeLayer >= 0 ? 'text-blue-400' : 'text-gray-600'}`}>AI</span>
+            </div>
+
+            {/* ML Layer */}
+            <div className={`absolute inset-[12%] rounded-full border-2 transition-all duration-500 flex items-start justify-center pt-6 ${activeLayer >= 1 ? 'bg-purple-900/30 border-purple-500' : 'bg-transparent border-white/10'}`}>
+              <span className={`font-bold transition-all ${activeLayer >= 1 ? 'text-purple-400' : 'text-gray-600'}`}>ML</span>
+            </div>
+
+            {/* DL Layer */}
+            <div className={`absolute inset-[25%] rounded-full border-2 transition-all duration-500 flex items-start justify-center pt-5 ${activeLayer >= 2 ? 'bg-pink-900/40 border-pink-500' : 'bg-transparent border-white/10'}`}>
+              <span className={`font-bold transition-all ${activeLayer >= 2 ? 'text-pink-400' : 'text-gray-600'}`}>DL</span>
+            </div>
+
+            {/* GenAI Layer */}
+            <div className={`absolute inset-[40%] rounded-full border-2 transition-all duration-500 flex items-center justify-center text-center p-2 ${activeLayer >= 3 ? 'bg-amber-900/50 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-transparent border-white/10'}`}>
+              <span className={`font-bold text-sm transition-all ${activeLayer >= 3 ? 'text-amber-400' : 'text-gray-600'}`}>GenAI</span>
+            </div>
+
+          </div>
+
+          {/* Description Panel */}
+          <div className="flex-1 w-full space-y-4">
+            {layers.map((layer, idx) => (
+              <div 
+                key={layer.id}
+                onClick={() => setActiveLayer(layer.id)}
+                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${activeLayer >= layer.id ? layer.color + ' opacity-100 scale-100' : 'bg-black/20 border-white/5 opacity-50 scale-95 hover:opacity-80'}`}
+              >
+                <h4 className={`font-bold mb-1 ${layer.textColor}`}>{layer.title}</h4>
+                <p className="text-sm text-gray-300">{layer.desc}</p>
+              </div>
+            ))}
+            <div className="text-center text-xs text-gray-500 italic mt-4">
+              Click the layers to expand the definition.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}
