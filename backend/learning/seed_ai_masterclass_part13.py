@@ -32,6 +32,16 @@ def seed_ai_masterclass_part13():
                     "widgetData": {}
                 },
                 {
+                    "title": "A Brief History: Meet Shakey (1966) & AutoGPT (2023)",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>The idea of an Agent isn't new. In 1966, Stanford built <strong>Shakey the Robot</strong>, the very first AI agent. Shakey was given a physical body, a camera, and a goal (e.g., \"Push the block off the platform\"). Shakey had to observe its environment, form a logical plan, and physically move. It was revolutionary, but incredibly slow.</p><p>Fast forward to April 2023. Developers created an open-source project called <strong>AutoGPT</strong>. Instead of a robot body, they gave an LLM a digital body: access to a Python terminal and a web browser. They told it: <em>\"Here is your goal. Write code, browse the web, and figure it out yourself.\"</em></p><p>The world was stunned. AutoGPT could research topics, write code to fix its own bugs, and even order a pizza autonomously. The era of the digital Agent had arrived.</p>",
+                    "audioText": "In 1966, Stanford built Shakey, the first robotic AI agent that could observe and act. In 2023, AutoGPT gave modern LLMs a digital body, allowing them to browse the web and write code autonomously.",
+                    "audioTextHinglish": "1966 mein Stanford ne Shakey banaya, pehla robotic agent jo dekh aur chal sakta tha. 2023 mein, AutoGPT ne LLMs ko digital body di, jisse wo khud web browse aur code likh sakte the.",
+                    "keyInsight": "Agents combine reasoning with observation and action, a concept born in 1966 but perfected with modern LLMs in 2023.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
                     "title": "The ReAct Loop (Reasoning + Acting)",
                     "readingTime": "~3 min read",
                     "narrative": "<p>To build an Agent, developers provide the AI with a list of <strong>Tools</strong>, like a calculator, a web browser API, or an email API. But just giving it tools isn't enough; it has to know <em>when</em> and <em>how</em> to use them.</p><p>This is where our Chapter 12 \"Deep Reasoning\" comes back into play! The AI is programmed to use the <strong>ReAct Loop</strong> (Reasoning + Acting).</p><p>1. <strong>Thought:</strong> The AI uses its scratchpad to decide what tool it needs.<br/>2. <strong>Action:</strong> It triggers the API (e.g., `get_weather(Tokyo)`).<br/>3. <strong>Observation:</strong> It reads the result returned by the tool.<br/>4. <strong>Thought:</strong> It decides if it has enough info to answer, or if it needs to trigger another tool.</p>",
