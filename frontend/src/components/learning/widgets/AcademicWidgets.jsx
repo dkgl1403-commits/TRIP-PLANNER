@@ -52,7 +52,9 @@ import {
   LaserWeederWidget,
   HiveMindWidget,
   IndustryImpactWidget,
-  PocPurgatoryWidget
+  PocPurgatoryWidget,
+  PaletteCompressorWidget,
+  AppleIntelligenceWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1330,5 +1332,7 @@ export const WidgetRegistry = {
   LaserWeederWidget,
   HiveMindWidget,
   IndustryImpactWidget,
-  PocPurgatoryWidget
+  PocPurgatoryWidget,
+  PaletteCompressorWidget,
+  AppleIntelligenceWidget
 };

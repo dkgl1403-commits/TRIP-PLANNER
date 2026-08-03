@@ -4066,3 +4066,382 @@ export function PocPurgatoryWidget() {
     </div>
   );
 }
+
+// ─── PaletteCompressorWidget ─────────────────────────────────────────────────
+// Interactive quantization demo: drag precision slider, watch image degrade + memory drop
+export function PaletteCompressorWidget() {
+  const [precision, setPrecision] = useState(32);
+  const [animating, setAnimating] = useState(false);
+
+  const LEVELS = [
+    {
+      bits: 32,
+      label: 'FP32',
+      name: '32-bit Float (Full Precision)',
+      memory: '140 GB',
+      memoryVal: 140,
+      accuracy: 100,
+      speed: 1,
+      speedLabel: '1× baseline',
+      color: 'from-blue-500 to-cyan-400',
+      textColor: 'text-cyan-400',
+      desc: 'Every weight stored as a full 32-bit floating point number. Perfectly accurate. Requires a $40,000 H100 GPU cluster just to load.',
+      pixels: 0,
+    },
+    {
+      bits: 16,
+      label: 'FP16 / BF16',
+      name: '16-bit Float (Half Precision)',
+      memory: '70 GB',
+      memoryVal: 70,
+      accuracy: 99.5,
+      speed: 2,
+      speedLabel: '2× faster',
+      color: 'from-green-500 to-teal-400',
+      textColor: 'text-green-400',
+      desc: 'The industry standard for training. Half the precision, half the memory, essentially no accuracy loss. The sweet spot for cloud inference.',
+      pixels: 1,
+    },
+    {
+      bits: 8,
+      label: 'INT8',
+      name: '8-bit Integer (Quantized)',
+      memory: '35 GB',
+      memoryVal: 35,
+      accuracy: 98.5,
+      speed: 4,
+      speedLabel: '4× faster',
+      color: 'from-yellow-500 to-orange-400',
+      textColor: 'text-yellow-400',
+      desc: 'The first step into quantization. Weights rounded to whole numbers with 256 possible values. Barely perceptible accuracy drop. Runs on high-end consumer GPUs (RTX 4090).',
+      pixels: 2,
+    },
+    {
+      bits: 4,
+      label: 'INT4',
+      name: '4-bit Integer (Aggressive)',
+      memory: '17 GB',
+      memoryVal: 17,
+      accuracy: 96,
+      speed: 8,
+      speedLabel: '8× faster',
+      color: 'from-orange-500 to-red-400',
+      textColor: 'text-orange-400',
+      desc: 'Only 16 possible values per weight. Visible quality degradation in edge cases, but 87.5% memory reduction. Used by GPTQ and AWQ. Runs on a MacBook Pro with 18GB RAM.',
+      pixels: 4,
+    },
+    {
+      bits: 2,
+      label: 'INT2',
+      name: '2-bit Integer (Extreme)',
+      memory: '9 GB',
+      memoryVal: 9,
+      accuracy: 88,
+      speed: 16,
+      speedLabel: '16× faster',
+      color: 'from-red-600 to-rose-500',
+      textColor: 'text-red-400',
+      desc: 'Only 4 possible values per weight! 94% memory savings. The model still functions but makes noticeably more errors. Used in Apple Intelligence\'s least-critical neural network layers.',
+      pixels: 8,
+    },
+  ];
+
+  const PRECISION_STEPS = [32, 16, 8, 4, 2];
+  const currentLevel = LEVELS.find(l => l.bits === precision);
+  const maxMemory = 140;
+
+  // Build a visual face grid that degrades with precision loss
+  const buildFaceGrid = (pixelSize) => {
+    // Simple 16x16 representation of a face using ASCII-mapped blocks
+    const facePattern = [
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,0,0,1,1,1,1,0,0,1,1,1,0],
+      [0,1,1,0,2,2,1,1,1,1,2,2,0,1,1,0],
+      [0,1,1,0,2,2,1,1,1,1,2,2,0,1,1,0],
+      [0,1,1,1,0,0,1,1,1,1,0,0,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,1,1,0,1,1,1,1,1,1,0,1,1,1,0],
+      [0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ];
+
+    const colorMap = {
+      0: '#1a1a2e',
+      1: '#f4c2a1',
+      2: '#4a3728',
+    };
+
+    // Apply pixel degradation based on quantization level
+    const degraded = facePattern.map((row, ri) =>
+      row.map((cell, ci) => {
+        if (pixelSize === 0) return colorMap[cell];
+        // Group pixels into blocks — same color for entire block
+        const blockR = Math.floor(ri / pixelSize) * pixelSize;
+        const blockC = Math.floor(ci / pixelSize) * pixelSize;
+        const blockVal = facePattern[Math.min(blockR, 15)][Math.min(blockC, 15)];
+        return colorMap[blockVal];
+      })
+    );
+
+    return degraded;
+  };
+
+  const grid = buildFaceGrid(currentLevel.pixels);
+  const cellSize = 16; // px per cell in the 16x16 grid
+
+  const handleSlider = (e) => {
+    const idx = parseInt(e.target.value);
+    setPrecision(PRECISION_STEPS[idx]);
+    setAnimating(true);
+    setTimeout(() => setAnimating(false), 300);
+  };
+
+  const currentIdx = PRECISION_STEPS.indexOf(precision);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        {/* Header */}
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-white mb-1">🎨 The Palette Compressor</h3>
+          <p className="text-gray-400 text-sm">Drag the precision slider to shrink an AI model. Watch the image degrade as accuracy drops — and the memory requirement collapse. This is the quantization trade-off.</p>
+        </div>
+
+        <div className="p-5 grid grid-cols-2 gap-6">
+          {/* Left: Face visualization */}
+          <div className="flex flex-col items-center">
+            <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">Portrait Quality</div>
+            <div
+              className={`rounded-xl overflow-hidden border-2 transition-all duration-300 ${animating ? 'scale-95 opacity-70' : 'scale-100 opacity-100'}`}
+              style={{ borderColor: precision <= 4 ? '#ef4444' : precision <= 8 ? '#f97316' : '#22c55e', width: 256, height: 256 }}
+            >
+              {grid.map((row, ri) => (
+                <div key={ri} style={{ display: 'flex', height: cellSize }}>
+                  {row.map((color, ci) => (
+                    <div key={ci} style={{ width: cellSize, height: cellSize, backgroundColor: color }} />
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className={`mt-2 text-lg font-black ${currentLevel.textColor}`}>{currentLevel.label}</div>
+            <div className="text-xs text-gray-500">{currentLevel.name}</div>
+          </div>
+
+          {/* Right: Metrics */}
+          <div className="flex flex-col gap-4">
+            {/* Memory bar */}
+            <div>
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Memory Required</span>
+                <span className={`font-bold text-sm ${currentLevel.textColor}`}>{currentLevel.memory}</span>
+              </div>
+              <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${currentLevel.color} transition-all duration-700`}
+                  style={{ width: `${(currentLevel.memoryVal / maxMemory) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Accuracy bar */}
+            <div>
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Model Accuracy</span>
+                <span className={`font-bold text-sm ${currentLevel.textColor}`}>{currentLevel.accuracy}%</span>
+              </div>
+              <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${currentLevel.accuracy > 98 ? 'bg-green-500' : currentLevel.accuracy > 95 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  style={{ width: `${currentLevel.accuracy}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Speed */}
+            <div className="bg-black/40 border border-glass-stroke rounded-xl p-3">
+              <div className="text-xs text-gray-500 mb-1">Inference Speed</div>
+              <div className={`text-2xl font-black ${currentLevel.textColor}`}>{currentLevel.speedLabel}</div>
+            </div>
+
+            {/* Description */}
+            <div className={`rounded-xl border p-3 text-xs text-gray-300 leading-relaxed`} style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              {currentLevel.desc}
+            </div>
+          </div>
+        </div>
+
+        {/* Slider */}
+        <div className="px-5 pb-5">
+          <div className="flex justify-between text-xs text-gray-500 mb-2">
+            <span>Full Precision (FP32) 🏆</span>
+            <span>Extreme Compression (INT2) 🔋</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={4}
+            step={1}
+            value={currentIdx}
+            onChange={handleSlider}
+            className="w-full accent-white cursor-pointer"
+          />
+          <div className="flex justify-between mt-1">
+            {PRECISION_STEPS.map((b, i) => (
+              <span key={b} className={`text-xs font-mono ${i === currentIdx ? 'text-white font-bold' : 'text-gray-600'}`}>{b}-bit</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Techniques legend */}
+        <div className="border-t border-glass-stroke p-4">
+          <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">2026 Quantization Formats</div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { name: 'GGUF', range: 'INT2–INT8', use: 'CPU & MacBook optimized. Most popular for consumer AI.' },
+              { name: 'GPTQ', range: 'INT4–INT8', use: 'Max speed on NVIDIA GPUs. Mathematically selects safest weights to delete.' },
+              { name: 'AWQ', range: 'INT4', use: 'Smarter than GPTQ. Watches the model "think" to protect critical connections.' },
+            ].map(t => (
+              <div key={t.name} className="bg-black/40 border border-glass-stroke rounded-lg p-2">
+                <div className="text-white font-bold text-sm">{t.name}</div>
+                <div className="text-gray-500 text-xs mb-1">{t.range}</div>
+                <div className="text-gray-400 text-xs leading-tight">{t.use}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AppleIntelligenceWidget ─────────────────────────────────────────────────
+// Interactive architecture explorer for Apple's on-device AI system
+export function AppleIntelligenceWidget() {
+  const [activeLayer, setActiveLayer] = useState(null);
+
+  const LAYERS = [
+    {
+      id: 'slm',
+      icon: '🧠',
+      label: 'AFM On-Device (3B SLM)',
+      color: 'text-blue-400',
+      border: 'border-blue-700',
+      bg: 'bg-blue-950/30',
+      summary: '~3B parameters. Specialized for iOS tasks only.',
+      detail: 'Apple did not put a Polymath model on the iPhone. The AFM-on-device is a ~3 Billion parameter SLM — compared to GPT-4\'s rumoured 1 Trillion+. It is not designed to write quantum physics simulations. It is specialized for notification summarization, email rewriting, message sorting, and understanding user intent to trigger app actions. Smaller scope = dramatically smaller model = runs on a battery-powered device.',
+    },
+    {
+      id: 'quant',
+      icon: '🗜️',
+      label: '2-bit & 4-bit Mixed Quantization',
+      color: 'text-orange-400',
+      border: 'border-orange-700',
+      bg: 'bg-orange-950/30',
+      summary: 'Averages under 4 bits per weight. Critical layers at 4-bit, least important at 2-bit.',
+      detail: 'Apple uses Quantization-Aware Training — the model is trained from scratch knowing it will be compressed (unlike post-training quantization, which is like squeezing a finished cake). This lets the model learn to pack its most important intelligence into weights that survive the compression. The result: an average of under 4 bits per weight. Less critical layers are aggressively compressed to 2-bit (just 4 possible values), while reasoning-critical layers stay at 4-bit.',
+    },
+    {
+      id: 'lora',
+      icon: '🔌',
+      label: 'LoRA Adapters (Task Plugins)',
+      color: 'text-green-400',
+      border: 'border-green-700',
+      bg: 'bg-green-950/30',
+      summary: 'Tiny "specialty chips" hot-swapped onto the base model per task.',
+      detail: 'Instead of loading 10 different full models for 10 different tasks, Apple keeps one 3B foundation model in memory permanently. When you request a specific task, a tiny LoRA (Low-Rank Adaptation) adapter is hot-swapped on top. "Rewrite this email professionally" → loads a few-MB "Professional Tone" LoRA. "Summarize this webpage" → swaps to "Summarization" LoRA. These adapters are just megabytes each, meaning the iPhone can serve dozens of distinct AI personalities without ever needing to swap the base model out of RAM.',
+    },
+    {
+      id: 'kvcache',
+      icon: '💾',
+      label: 'KV-Cache Sharing',
+      color: 'text-purple-400',
+      border: 'border-purple-700',
+      bg: 'bg-purple-950/30',
+      summary: 'Later transformer blocks reuse memory from earlier blocks.',
+      detail: 'When an LLM generates text, it must keep track of everything it has read and written — stored in the KV (Key-Value) Cache. This memory usage grows with every word generated and is normally duplicated across every transformer layer. Apple\'s architectural innovation: transformer layers are grouped into blocks. Later blocks in the same group reuse the KV-Cache generated by earlier blocks rather than generating their own from scratch. This single optimization dramatically reduces the RAM footprint required to generate long summaries or process complex, multi-step Siri commands.',
+    },
+    {
+      id: 'cloud',
+      icon: '☁️',
+      label: 'Private Cloud Compute (Fallback)',
+      color: 'text-cyan-400',
+      border: 'border-cyan-700',
+      bg: 'bg-cyan-950/30',
+      summary: 'Complex requests routed to encrypted Apple servers. Data never stored.',
+      detail: 'A 3B parameter on-device model cannot handle everything. When Apple\'s Semantic Router detects that a request exceeds the local model\'s capability, it encrypts the request and routes it to Private Cloud Compute (PCC) — Apple\'s server infrastructure running a much larger MoE-based foundation model. The critical guarantee: PCC is architecturally designed so that even Apple engineers cannot access or read your request data. The servers run Apple Silicon, the code is open to independent security researchers, and data is mathematically guaranteed to be ephemeral (deleted immediately after processing).',
+    },
+  ];
+
+  const active = LAYERS.find(l => l.id === activeLayer);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-white mb-1"> Apple Intelligence Architecture</h3>
+          <p className="text-gray-400 text-sm">Every layer of Apple Intelligence uses the concepts from this chapter. Click each layer to understand exactly how Apple combined SLMs, Quantization, and LoRA to bring generative AI to billions of iPhones.</p>
+        </div>
+
+        {/* Architecture stack */}
+        <div className="p-5">
+          <div className="text-xs text-gray-500 uppercase tracking-widest mb-3 text-center">Tap a layer to explore</div>
+
+          {/* Visual stack */}
+          <div className="relative mb-6">
+            {/* Connector line */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-700 via-purple-700 to-cyan-700 opacity-30" />
+            <div className="space-y-2">
+              {LAYERS.map((layer, i) => (
+                <button
+                  key={layer.id}
+                  onClick={() => setActiveLayer(activeLayer === layer.id ? null : layer.id)}
+                  className={`w-full flex items-center gap-4 p-3 rounded-xl border transition-all text-left ${
+                    activeLayer === layer.id
+                      ? `${layer.bg} ${layer.border} ring-1 ring-white/20`
+                      : 'bg-black/30 border-glass-stroke hover:bg-white/5'
+                  }`}
+                >
+                  <span className="text-2xl w-10 text-center flex-shrink-0">{layer.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-sm font-bold ${activeLayer === layer.id ? layer.color : 'text-white'}`}>{layer.label}</div>
+                    <div className="text-xs text-gray-500 truncate">{layer.summary}</div>
+                  </div>
+                  <span className="text-gray-600 text-lg">{activeLayer === layer.id ? '▲' : '▼'}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Detail panel */}
+          {active && (
+            <div className={`rounded-xl border p-4 ${active.bg} ${active.border} transition-all`}>
+              <div className={`font-bold text-base mb-2 ${active.color}`}>{active.icon} {active.label}</div>
+              <p className="text-sm text-gray-300 leading-relaxed">{active.detail}</p>
+            </div>
+          )}
+
+          {/* Bottom stat bar */}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[
+              { label: 'On-Device Model Size', value: '~3B params' },
+              { label: 'Avg Quantization', value: '<4-bit' },
+              { label: 'LoRA Adapter Size', value: '~few MB each' },
+            ].map(s => (
+              <div key={s.label} className="bg-black/40 border border-glass-stroke rounded-xl p-3 text-center">
+                <div className="text-white font-bold text-sm">{s.value}</div>
+                <div className="text-xs text-gray-500 mt-1 leading-tight">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
