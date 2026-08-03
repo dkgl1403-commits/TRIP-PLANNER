@@ -3240,3 +3240,489 @@ export function XRayMindWidget() {
     </div>
   );
 }
+
+// ─── EggTestWidget ────────────────────────────────────────────────────────────
+// Demonstrates Moravec's Paradox: simple human actions are incredibly complex for robots
+export function EggTestWidget() {
+  const [grip, setGrip] = useState(50);
+  const [speed, setSpeed] = useState(50);
+  const [angle, setAngle] = useState(50);
+  const [result, setResult] = useState(null); // null | 'success' | 'shatter' | 'slip' | 'crush'
+  const [attempts, setAttempts] = useState(0);
+  const [successes, setSuccesses] = useState(0);
+
+  // The "perfect" zone is narrow
+  const PERFECT_GRIP = { min: 38, max: 47 };
+  const PERFECT_SPEED = { min: 28, max: 38 };
+  const PERFECT_ANGLE = { min: 44, max: 54 };
+
+  const tryPickup = () => {
+    setAttempts(a => a + 1);
+    let outcome;
+    if (grip > PERFECT_GRIP.max + 15) {
+      outcome = 'crush';
+    } else if (grip < PERFECT_GRIP.min - 10) {
+      outcome = 'slip';
+    } else if (speed > PERFECT_SPEED.max + 20) {
+      outcome = 'shatter';
+    } else if (
+      grip >= PERFECT_GRIP.min && grip <= PERFECT_GRIP.max &&
+      speed >= PERFECT_SPEED.min && speed <= PERFECT_SPEED.max &&
+      angle >= PERFECT_ANGLE.min && angle <= PERFECT_ANGLE.max
+    ) {
+      outcome = 'success';
+      setSuccesses(s => s + 1);
+    } else if (grip > PERFECT_GRIP.max) {
+      outcome = 'crush';
+    } else if (grip < PERFECT_GRIP.min) {
+      outcome = 'slip';
+    } else {
+      outcome = 'shatter';
+    }
+    setResult(outcome);
+    setTimeout(() => setResult(null), 2500);
+  };
+
+  const outcomes = {
+    success: { emoji: '🥚✅', color: 'text-green-400', border: 'border-green-700', bg: 'bg-green-950/40', msg: 'Perfect pickup! Egg intact.', sub: 'You found the exact sweet spot. A human hand does this in 200ms without thinking.' },
+    shatter: { emoji: '💥🥚', color: 'text-yellow-400', border: 'border-yellow-700', bg: 'bg-yellow-950/40', msg: 'Egg shattered! Arm too fast.', sub: 'You struck the egg instead of cradling it. The approach velocity was too high.' },
+    slip: { emoji: '🥚💧', color: 'text-blue-400', border: 'border-blue-700', bg: 'bg-blue-950/40', msg: 'Egg slipped! Grip too weak.', sub: 'The friction coefficient wasn\'t enough to overcome gravity. The egg escaped the fingers.' },
+    crush: { emoji: '😱🥚', color: 'text-red-400', border: 'border-red-800', bg: 'bg-red-950/40', msg: 'Egg crushed! Grip too strong.', sub: 'You applied more force than the shell could withstand. For a robot, a grape and a rock look identical.' },
+  };
+
+  const current = result ? outcomes[result] : null;
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-yellow-300 mb-1">🥚 The Egg Test</h3>
+        <p className="text-gray-400 text-sm mb-6">
+          You are the <strong className="text-white">Robot Brain</strong>. Calibrate the three sliders to successfully pick up the egg without shattering, slipping, or crushing it. This is Moravec's Paradox in action.
+        </p>
+
+        {/* Egg visual */}
+        <div className="flex justify-center mb-8">
+          <div className={`relative flex items-center justify-center transition-all duration-300 ${result === 'success' ? 'scale-110' : result ? 'scale-90' : 'scale-100'}`}>
+            <div className={`w-20 h-24 rounded-[50%] border-4 flex items-center justify-center text-4xl transition-all duration-300 ${
+              !result ? 'border-yellow-200/40 bg-yellow-50/5' :
+              result === 'success' ? 'border-green-400 bg-green-950/40' :
+              result === 'shatter' ? 'border-yellow-500 bg-yellow-950/40' :
+              result === 'slip' ? 'border-blue-400 bg-blue-950/40' :
+              'border-red-500 bg-red-950/40'
+            }`}>
+              {!result ? '🥚' : current?.emoji.split(' ')[0]}
+            </div>
+          </div>
+        </div>
+
+        {/* Result banner */}
+        {current && (
+          <div className={`rounded-xl border p-4 mb-6 text-sm ${current.bg} ${current.border}`}>
+            <div className={`font-bold text-base mb-1 ${current.color}`}>{current.msg}</div>
+            <div className="text-gray-400">{current.sub}</div>
+          </div>
+        )}
+
+        {/* Sliders */}
+        <div className="space-y-5 mb-6">
+          {[
+            { label: 'Grip Strength', value: grip, setter: setGrip, unit: 'N', hint: 'Too weak → slip. Too strong → crush.' },
+            { label: 'Arm Speed', value: speed, setter: setSpeed, unit: 'mm/s', hint: 'Too fast → shatter. Too slow → drop.' },
+            { label: 'Approach Angle', value: angle, setter: setAngle, unit: '°', hint: 'Wrong angle → miss or tip.' },
+          ].map(({ label, value, setter, unit, hint }) => (
+            <div key={label}>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-white font-medium">{label}</span>
+                <span className="text-gray-400 font-mono">{value} {unit}</span>
+              </div>
+              <input
+                type="range" min="0" max="100" value={value}
+                onChange={e => { setter(Number(e.target.value)); setResult(null); }}
+                className="w-full h-2 rounded-full appearance-none cursor-pointer bg-gray-700 accent-yellow-400"
+              />
+              <div className="text-xs text-gray-600 mt-1">{hint}</div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={tryPickup} className="w-full py-3 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all mb-4">
+          🤖 Attempt Pickup
+        </button>
+
+        <div className="flex justify-between text-sm text-gray-500 border-t border-glass-stroke pt-4">
+          <span>Attempts: <strong className="text-white">{attempts}</strong></span>
+          <span>Successful: <strong className="text-green-400">{successes}</strong></span>
+          <span>Success rate: <strong className="text-white">{attempts > 0 ? Math.round((successes/attempts)*100) : 0}%</strong></span>
+        </div>
+
+        {attempts >= 5 && successes === 0 && (
+          <div className="mt-4 bg-purple-950/40 border border-purple-700 rounded-xl p-4 text-sm text-purple-300">
+            <strong>💡 This is Moravec's Paradox:</strong> A child can pick up an egg without thinking. It took billions of dollars and decades of research for robots to do it reliably. Your hands contain 27 bones and 34 muscles performing real-time physics calculations subconsciously.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── LaserWeederWidget ────────────────────────────────────────────────────────
+// Demonstrates VLA precision agriculture: click weeds while ignoring crops
+export function LaserWeederWidget() {
+  const ROWS = 5;
+  const COLS = 10;
+  const WEED_CHANCE = 0.3;
+  const GAME_DURATION = 20;
+
+  const generateGrid = () =>
+    Array.from({ length: ROWS * COLS }, (_, i) => ({
+      id: i,
+      isWeed: Math.random() < WEED_CHANCE,
+      zapped: false,
+      missed: false,
+    }));
+
+  const [grid, setGrid] = useState(generateGrid);
+  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+  const [phase, setPhase] = useState('ready'); // ready | playing | done
+  const [score, setScore] = useState({ weeds: 0, crops: 0 });
+  const [speed, setSpeed] = useState(1);
+
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    if (timeLeft <= 0) { setPhase('done'); return; }
+    const t = setTimeout(() => setTimeLeft(s => s - 1), 1000 / speed);
+    return () => clearTimeout(t);
+  }, [phase, timeLeft, speed]);
+
+  const handleClick = (idx) => {
+    if (phase !== 'playing') return;
+    const cell = grid[idx];
+    if (cell.zapped || cell.missed) return;
+    setGrid(g => g.map((c, i) => i === idx ? { ...c, zapped: true } : c));
+    setScore(s => ({
+      weeds: s.weeds + (cell.isWeed ? 1 : 0),
+      crops: s.crops + (!cell.isWeed ? 1 : 0),
+    }));
+  };
+
+  const start = () => {
+    setGrid(generateGrid());
+    setTimeLeft(GAME_DURATION);
+    setScore({ weeds: 0, crops: 0 });
+    setPhase('playing');
+  };
+
+  const totalWeeds = grid.filter(c => c.isWeed).length;
+  const accuracy = (score.weeds + score.crops) > 0
+    ? Math.round((score.weeds / (score.weeds + score.crops)) * 100) : 0;
+  const recall = totalWeeds > 0 ? Math.round((score.weeds / totalWeeds) * 100) : 0;
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-green-400 mb-1">🌿 The Laser Weeder</h3>
+        <p className="text-gray-400 text-sm mb-4">
+          You are the <strong className="text-white">Vision Model</strong> guiding a laser weeder. <strong className="text-green-400">Click on weeds</strong> (🌿 darker cells) before the timer runs out. <strong className="text-red-400">Do NOT click crops</strong> (🌱 lighter cells). This is exactly what VLA models process at 50 frames per second.
+        </p>
+
+        {phase === 'ready' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 bg-black/40 border border-glass-stroke rounded-xl p-3">
+              <span className="text-sm text-gray-400">Speed:</span>
+              <input type="range" min="1" max="3" step="0.5" value={speed} onChange={e => setSpeed(Number(e.target.value))} className="flex-1 accent-green-400" />
+              <span className="text-white text-sm font-mono">{speed}x</span>
+            </div>
+            <button onClick={start} className="w-full py-3 bg-green-500 text-black font-bold rounded-xl hover:bg-green-400 transition-all">
+              🚜 Start Weeding Run
+            </button>
+          </div>
+        )}
+
+        {(phase === 'playing' || phase === 'done') && (
+          <>
+            {/* Timer & stats */}
+            <div className="flex justify-between items-center mb-4 text-sm">
+              <span className={`font-bold text-lg ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}>⏱ {timeLeft}s</span>
+              <span className="text-green-400">✅ Weeds: {score.weeds}</span>
+              <span className="text-red-400">❌ Crops hit: {score.crops}</span>
+            </div>
+
+            {/* Grid */}
+            <div className="grid gap-1 mb-4" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
+              {grid.map((cell, idx) => (
+                <button
+                  key={cell.id}
+                  onClick={() => handleClick(idx)}
+                  disabled={phase === 'done' || cell.zapped}
+                  className={`aspect-square rounded text-xs font-bold transition-all duration-200 ${
+                    cell.zapped
+                      ? cell.isWeed ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                      : cell.isWeed
+                        ? 'bg-green-900 hover:bg-green-700 border border-green-700 cursor-crosshair'
+                        : 'bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-900/30 cursor-crosshair'
+                  }`}
+                >
+                  {cell.zapped ? (cell.isWeed ? '✓' : '✗') : (cell.isWeed ? '🌿' : '🌱')}
+                </button>
+              ))}
+            </div>
+
+            {phase === 'done' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="bg-black/40 border border-glass-stroke rounded-xl p-3">
+                    <div className="text-2xl font-bold text-white">{accuracy}%</div>
+                    <div className="text-xs text-gray-500">Precision</div>
+                  </div>
+                  <div className="bg-black/40 border border-glass-stroke rounded-xl p-3">
+                    <div className="text-2xl font-bold text-white">{recall}%</div>
+                    <div className="text-xs text-gray-500">Weeds Found</div>
+                  </div>
+                  <div className="bg-black/40 border border-glass-stroke rounded-xl p-3">
+                    <div className={`text-2xl font-bold ${score.crops === 0 ? 'text-green-400' : 'text-red-400'}`}>{score.crops}</div>
+                    <div className="text-xs text-gray-500">Crops Killed</div>
+                  </div>
+                </div>
+                <div className="bg-black/40 border border-glass-stroke rounded-xl p-4 text-sm text-gray-400">
+                  <strong className="text-white">VLA Reality:</strong> An Embodied AI robot does this at 50fps across an entire field with sub-centimeter accuracy — no caffeine, no boredom, no misclicks. Every plant is different, which is why this requires a full Vision-Language-Action model, not a simple script.
+                </div>
+                <button onClick={start} className="w-full py-2 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-600 transition-all">Try Again</button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── HiveMindWidget ───────────────────────────────────────────────────────────
+// Boids swarm simulation demonstrating decentralized AI (Separation, Alignment, Cohesion)
+export function HiveMindWidget() {
+  const canvasRef = React.useRef(null);
+  const animRef = React.useRef(null);
+  const dronesRef = React.useRef([]);
+  const [count, setCount] = useState(80);
+  const [separation, setSeparation] = useState(25);
+  const [cohesion, setCohesion] = useState(0.005);
+  const [activeDrones, setActiveDrones] = useState(80);
+  const [networkHealth, setNetworkHealth] = useState(100);
+  const [hazardActive, setHazardActive] = useState(false);
+  const [phase, setPhase] = useState('running'); // running | post_hazard
+
+  const countRef = React.useRef(count);
+  const sepRef = React.useRef(separation);
+  const cohRef = React.useRef(cohesion);
+
+  useEffect(() => { countRef.current = count; }, [count]);
+  useEffect(() => { sepRef.current = separation; }, [separation]);
+  useEffect(() => { cohRef.current = cohesion; }, [cohesion]);
+
+  const initDrones = (n, w, h) => {
+    dronesRef.current = Array.from({ length: n }, () => ({
+      x: w / 2 + (Math.random() - 0.5) * 200,
+      y: h / 2 + (Math.random() - 0.5) * 200,
+      vx: (Math.random() - 0.5) * 2,
+      vy: (Math.random() - 0.5) * 2,
+      alive: true,
+    }));
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    initDrones(count, W, H);
+
+    const animate = () => {
+      ctx.fillStyle = 'rgba(0,0,0,0.15)';
+      ctx.fillRect(0, 0, W, H);
+
+      const drones = dronesRef.current.filter(d => d.alive);
+
+      drones.forEach(d => {
+        let ax = 0, ay = 0;
+        let cx = 0, cy = 0, cn = 0;
+        let sx = 0, sy = 0;
+
+        drones.forEach(other => {
+          if (other === d) return;
+          const dx = other.x - d.x;
+          const dy = other.y - d.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+          // Separation
+          if (dist < sepRef.current) {
+            sx -= dx / dist;
+            sy -= dy / dist;
+          }
+
+          // Cohesion
+          if (dist < 100) {
+            cx += other.x;
+            cy += other.y;
+            cn++;
+          }
+
+          // Alignment
+          if (dist < 80) {
+            ax += other.vx;
+            ay += other.vy;
+          }
+        });
+
+        // Apply rules
+        d.vx += sx * 0.05 + (cn > 0 ? (cx / cn - d.x) * cohRef.current : 0) + ax * 0.02;
+        d.vy += sy * 0.05 + (cn > 0 ? (cy / cn - d.y) * cohRef.current : 0) + ay * 0.02;
+
+        // Speed limit
+        const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
+        if (speed > 3) { d.vx = (d.vx / speed) * 3; d.vy = (d.vy / speed) * 3; }
+        if (speed < 0.5 && speed > 0) { d.vx = (d.vx / speed) * 0.5; d.vy = (d.vy / speed) * 0.5; }
+
+        // Boundary wrapping
+        d.x = (d.x + d.vx + W) % W;
+        d.y = (d.y + d.vy + H) % H;
+      });
+
+      // Draw mesh lines
+      drones.forEach(d => {
+        drones.forEach(other => {
+          if (other === d) return;
+          const dx = other.x - d.x;
+          const dy = other.y - d.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 60) {
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y);
+            ctx.lineTo(other.x, other.y);
+            ctx.strokeStyle = `rgba(100, 160, 255, ${0.15 * (1 - dist / 60)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+      });
+
+      // Draw drones as triangles
+      drones.forEach(d => {
+        const angle = Math.atan2(d.vy, d.vx);
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.lineTo(-5, -4);
+        ctx.lineTo(-5, 4);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(150, 200, 255, 0.9)';
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Update stats
+      const alive = dronesRef.current.filter(d => d.alive).length;
+      const total = dronesRef.current.length;
+      setActiveDrones(alive);
+      setNetworkHealth(Math.round((alive / total) * 100));
+
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  const introduceHazard = () => {
+    const alive = dronesRef.current.filter(d => d.alive);
+    const toKill = Math.floor(alive.length * 0.35);
+    let killed = 0;
+    dronesRef.current = dronesRef.current.map(d => {
+      if (d.alive && killed < toKill && Math.random() < 0.5) {
+        killed++;
+        return { ...d, alive: false };
+      }
+      return d;
+    });
+    setHazardActive(true);
+    setPhase('post_hazard');
+    setTimeout(() => setHazardActive(false), 3000);
+  };
+
+  const reset = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    initDrones(count, canvas.width, canvas.height);
+    setHazardActive(false);
+    setPhase('running');
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-blue-400 mb-1">🐝 The Hive Mind</h3>
+          <p className="text-gray-400 text-sm">Decentralized drone swarm using the <strong className="text-white">Boids Algorithm</strong> (Separation + Alignment + Cohesion). No central server. No leader. Pure emergent intelligence.</p>
+        </div>
+
+        {/* Canvas */}
+        <div className="relative bg-black" style={{ height: '320px' }}>
+          <canvas ref={canvasRef} width={700} height={320} className="w-full h-full" />
+          {hazardActive && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-red-600/80 text-white font-bold text-xl px-6 py-3 rounded-xl animate-pulse">💥 HAZARD INTRODUCED — 35% DRONES LOST</div>
+            </div>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 divide-x divide-glass-stroke border-t border-glass-stroke">
+          <div className="p-4 text-center">
+            <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Active Drones</div>
+            <div className={`text-3xl font-bold ${activeDrones < count * 0.7 ? 'text-yellow-400' : 'text-white'}`}>{activeDrones}</div>
+          </div>
+          <div className="p-4 text-center">
+            <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Network Health</div>
+            <div className={`text-3xl font-bold ${networkHealth < 70 ? 'text-yellow-400' : 'text-green-400'}`}>{networkHealth}%</div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="p-4 border-t border-glass-stroke space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Drone Count</span><span className="text-white">{count}</span></div>
+              <input type="range" min="20" max="150" value={count} onChange={e => { setCount(Number(e.target.value)); }} className="w-full accent-blue-400" />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Separation</span><span className="text-white">{separation}</span></div>
+              <input type="range" min="5" max="60" value={separation} onChange={e => setSeparation(Number(e.target.value))} className="w-full accent-blue-400" />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Cohesion</span><span className="text-white">{(cohesion * 1000).toFixed(1)}</span></div>
+              <input type="range" min="1" max="20" value={Math.round(cohesion * 1000)} onChange={e => setCohesion(Number(e.target.value) / 1000)} className="w-full accent-blue-400" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={introduceHazard}
+                disabled={hazardActive || phase === 'post_hazard'}
+                className="flex-1 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-500 disabled:opacity-40 transition-all text-sm"
+              >
+                💥 Introduce Hazard
+              </button>
+              <button onClick={reset} className="flex-1 py-1 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-all text-sm">↺ Reset</button>
+            </div>
+          </div>
+
+          {phase === 'post_hazard' && !hazardActive && (
+            <div className="bg-blue-950/40 border border-blue-700 rounded-xl p-3 text-sm text-blue-300">
+              <strong>🔵 Swarm adapting:</strong> {activeDrones} surviving drones have automatically redistributed using local Boids rules — no central command needed. The hive reorganized on its own in milliseconds.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

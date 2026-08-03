@@ -47,7 +47,10 @@ import {
   AIEcosystemWidget,
   EchoChamberWidget,
   GenieCurseWidget,
-  XRayMindWidget
+  XRayMindWidget,
+  EggTestWidget,
+  LaserWeederWidget,
+  HiveMindWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1320,5 +1323,8 @@ export const WidgetRegistry = {
   AIEcosystemWidget,
   EchoChamberWidget,
   GenieCurseWidget,
-  XRayMindWidget
+  XRayMindWidget,
+  EggTestWidget,
+  LaserWeederWidget,
+  HiveMindWidget
 };
