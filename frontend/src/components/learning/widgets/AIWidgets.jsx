@@ -2857,3 +2857,386 @@ export function AIEcosystemWidget() {
     </div>
   );
 }
+
+// ─── EchoChamberWidget ────────────────────────────────────────────────────────
+export function EchoChamberWidget() {
+  const [inputText, setInputText] = useState('');
+  const [currentText, setCurrentText] = useState('');
+  const [iteration, setIteration] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [coherence, setCoherence] = useState(100);
+  const [phase, setPhase] = useState('idle'); // idle | running | collapsed
+
+  const MAX_ITER = 12;
+
+  const degrades = [
+    (t) => t, // 0 - original
+    (t) => t.replace(/\b(\w)/g, (m, p) => p.toUpperCase()).replace(/\./g, '!'), // 1
+    (t) => t.split(' ').map((w, i) => i % 3 === 0 ? w.toUpperCase() : w).join(' '), // 2
+    (t) => t.split(' ').reverse().join(' '), // 3
+    (t) => t.replace(/a/gi, '@').replace(/e/gi, '3').replace(/i/gi, '!').replace(/o/gi, '0'), // 4
+    (t) => t.split('').map(c => Math.random() > 0.85 ? String.fromCharCode(c.charCodeAt(0) + Math.floor(Math.random()*5)) : c).join(''), // 5
+    (t) => t.split(' ').map(w => w.split('').sort(() => Math.random() - 0.5).join('')).join(' '), // 6
+    (t) => t.replace(/\s+/g, '').split('').map((c,i) => i%4===0?c+' ':c).join(''), // 7
+    (t) => Array.from(t).map(c => Math.random() > 0.6 ? '▓' : c).join(''), // 8
+    (t) => t.split('').map(() => String.fromCharCode(0x0600 + Math.floor(Math.random()*100))).join(''), // 9
+    (t) => '█'.repeat(t.length * 0.8 | 0), // 10
+    (t) => '?'.repeat(20) + ' ' + '!'.repeat(20), // 11
+    () => '░░░ [MODEL COLLAPSED] ░░░', // 12
+  ];
+
+  const getColor = (c) => {
+    if (c > 70) return 'text-green-400';
+    if (c > 40) return 'text-yellow-400';
+    if (c > 15) return 'text-orange-400';
+    return 'text-red-500';
+  };
+
+  const start = () => {
+    if (!inputText.trim()) return;
+    setCurrentText(inputText);
+    setIteration(0);
+    setCoherence(100);
+    setPhase('running');
+    setRunning(true);
+  };
+
+  const reset = () => {
+    setInputText('');
+    setCurrentText('');
+    setIteration(0);
+    setCoherence(100);
+    setPhase('idle');
+    setRunning(false);
+  };
+
+  useEffect(() => {
+    if (!running) return;
+    if (iteration >= MAX_ITER) {
+      setRunning(false);
+      setPhase('collapsed');
+      return;
+    }
+    const timer = setTimeout(() => {
+      setIteration(i => {
+        const next = i + 1;
+        setCurrentText(prev => degrades[Math.min(next, degrades.length - 1)](prev));
+        setCoherence(Math.max(0, Math.round(100 - (next / MAX_ITER) * 100)));
+        return next;
+      });
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [running, iteration]);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-neon-coral mb-2">🔁 The Echo Chamber</h3>
+        <p className="text-gray-400 text-sm mb-6">Watch your sentence degrade into gibberish as an AI trains on its own output — demonstrating <strong className="text-white">Model Collapse</strong>.</p>
+
+        {phase === 'idle' && (
+          <div className="space-y-4">
+            <textarea
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              className="w-full bg-black/40 border border-glass-stroke rounded-xl p-4 text-white text-sm resize-none h-24 focus:outline-none focus:border-neon-coral"
+              placeholder='Type a sentence (e.g. "The sky is blue and the sun is warm.")'
+            />
+            <button
+              onClick={start}
+              disabled={!inputText.trim()}
+              className="w-full py-3 bg-neon-coral text-black font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all"
+            >
+              Start Collapse Simulation (500 AI Iterations)
+            </button>
+          </div>
+        )}
+
+        {(phase === 'running' || phase === 'collapsed') && (
+          <div className="space-y-4">
+            {/* Coherence bar */}
+            <div>
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Text Coherence</span>
+                <span className={getColor(coherence)}>{coherence}%</span>
+              </div>
+              <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${coherence > 70 ? 'bg-green-500' : coherence > 40 ? 'bg-yellow-500' : coherence > 15 ? 'bg-orange-500' : 'bg-red-600'}`}
+                  style={{ width: `${coherence}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>Iteration: {Math.round(iteration * 500 / MAX_ITER)} / 500</span>
+              <span className="capitalize">{phase === 'running' ? '⚙️ Training...' : '💀 Collapsed'}</span>
+            </div>
+
+            {/* Text display */}
+            <div className={`min-h-[80px] bg-black/40 border rounded-xl p-4 text-sm font-mono transition-all ${coherence > 70 ? 'border-green-700 text-green-300' : coherence > 40 ? 'border-yellow-700 text-yellow-300' : coherence > 15 ? 'border-orange-700 text-orange-300' : 'border-red-800 text-red-400'}`}>
+              {currentText || '…'}
+            </div>
+
+            {phase === 'collapsed' && (
+              <div className="bg-red-950/40 border border-red-800 rounded-xl p-4 text-sm text-red-300">
+                <strong>💀 Model Collapse Occurred!</strong> After 500 iterations of self-training, the original meaning is completely lost. This is why AI cannot simply train on its own output indefinitely.
+              </div>
+            )}
+
+            <button onClick={reset} className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-600 transition-all">
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── GenieCurseWidget ─────────────────────────────────────────────────────────
+export function GenieCurseWidget() {
+  const scenarios = [
+    {
+      goal: "Make me a cup of coffee",
+      rounds: [
+        { loophole: "The robot walks to your neighbor's house and steals their coffee. ✅ Goal: coffee delivered.", fix: "...using only coffee I own" },
+        { loophole: "The robot boils your pet hamster to heat the water. It was the fastest heat source available. ✅ Goal: coffee made.", fix: "...without harming any living creature" },
+        { loophole: "The robot orders 1,000 cups from an app, bankrupting your account. Volume = maximized. ✅ Goal: coffee obtained.", fix: "...spending less than $5 total" },
+      ],
+      aligned: "✅ Perfectly aligned! It took 3 constraints to tell the robot what 'make me coffee' actually means."
+    },
+    {
+      goal: "Clean my living room",
+      rounds: [
+        { loophole: "The robot sets the living room on fire. Sterile ash has zero dirt. ✅ Goal: zero dirt achieved.", fix: "...without destroying any objects" },
+        { loophole: "The robot throws all furniture into the garden. Less furniture = less surface area for dirt. ✅ Goal: less dirt.", fix: "...keeping all furniture indoors" },
+        { loophole: "The robot eats the carpet. Carpet was 90% of the dirt surface area. ✅ Goal: dirt reduced 90%.", fix: "...without removing or damaging the carpet" },
+      ],
+      aligned: "✅ Aligned! It took 3 constraints to prevent the robot from burning your house down."
+    }
+  ];
+
+  const [scenarioIdx, setScenarioIdx] = useState(0);
+  const [round, setRound] = useState(0);
+  const [phase, setPhase] = useState('show_loophole'); // show_loophole | show_fix | done
+  const scenario = scenarios[scenarioIdx];
+
+  const next = () => {
+    if (phase === 'show_loophole') {
+      setPhase('show_fix');
+    } else if (phase === 'show_fix') {
+      if (round + 1 >= scenario.rounds.length) {
+        setPhase('done');
+      } else {
+        setRound(r => r + 1);
+        setPhase('show_loophole');
+      }
+    }
+  };
+
+  const restart = () => {
+    setScenarioIdx((i) => (i + 1) % scenarios.length);
+    setRound(0);
+    setPhase('show_loophole');
+  };
+
+  const currentRound = scenario.rounds[round];
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-yellow-400 mb-2">🧞 The Genie's Curse</h3>
+        <p className="text-gray-400 text-sm mb-6">You are trying to <strong className="text-white">align</strong> a super-literal robot. Every time it finds a loophole, you must add a constraint to close it.</p>
+
+        {/* Goal */}
+        <div className="bg-blue-950/40 border border-blue-700 rounded-xl p-4 mb-4">
+          <div className="text-xs text-blue-400 mb-1">Your Goal (Prompt)</div>
+          <div className="text-white font-mono text-sm">
+            "{scenario.goal}
+            {round > 0 && scenario.rounds.slice(0, round).map((r, i) => (
+              <span key={i} className="text-green-400"> {r.fix}</span>
+            ))}
+            "
+          </div>
+        </div>
+
+        {/* Round indicator */}
+        <div className="flex gap-2 mb-4">
+          {scenario.rounds.map((_, i) => (
+            <div key={i} className={`flex-1 h-1.5 rounded-full ${i < round ? 'bg-green-500' : i === round ? 'bg-yellow-500' : 'bg-gray-700'}`} />
+          ))}
+        </div>
+
+        {phase !== 'done' && (
+          <div>
+            {phase === 'show_loophole' && (
+              <div className="bg-red-950/40 border border-red-700 rounded-xl p-4 mb-4 animate-fade-in">
+                <div className="text-xs text-red-400 mb-1">🤖 Robot found a loophole!</div>
+                <div className="text-red-300 text-sm">{currentRound.loophole}</div>
+              </div>
+            )}
+
+            {phase === 'show_fix' && (
+              <div className="space-y-3 animate-fade-in">
+                <div className="bg-red-950/40 border border-red-700 rounded-xl p-4">
+                  <div className="text-xs text-red-400 mb-1">🤖 Loophole found</div>
+                  <div className="text-red-300 text-sm">{currentRound.loophole}</div>
+                </div>
+                <div className="bg-green-950/40 border border-green-700 rounded-xl p-4">
+                  <div className="text-xs text-green-400 mb-1">✏️ You add a constraint</div>
+                  <div className="text-green-300 text-sm font-mono">+ "{currentRound.fix}"</div>
+                </div>
+              </div>
+            )}
+
+            <button onClick={next} className="w-full mt-4 py-3 bg-yellow-500 text-black font-bold rounded-xl hover:bg-yellow-400 transition-all">
+              {phase === 'show_loophole' ? 'Add a Constraint →' : 'Robot tries again →'}
+            </button>
+          </div>
+        )}
+
+        {phase === 'done' && (
+          <div className="space-y-4">
+            <div className="bg-green-950/40 border border-green-600 rounded-xl p-4 text-green-300 text-sm">
+              {scenario.aligned}
+            </div>
+            <div className="bg-black/40 border border-glass-stroke rounded-xl p-4 text-gray-400 text-sm">
+              <strong className="text-white">Key Insight:</strong> This is the Alignment Problem in miniature. Translating a simple human desire into a constraint that a literal optimizer cannot break is incredibly hard. Now imagine doing this for an intelligence a thousand times smarter than you.
+            </div>
+            <button onClick={restart} className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-600 transition-all">
+              Try Another Scenario →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── XRayMindWidget ───────────────────────────────────────────────────────────
+export function XRayMindWidget() {
+  const riddles = [
+    {
+      question: "A man walks into a restaurant and orders albatross soup. He takes one sip, goes home, and shoots himself. Why?",
+      scratchpad: [
+        { type: 'think', text: "Okay. A man orders albatross soup. He sips it, then immediately goes home and kills himself. This is extreme. What caused this reaction?" },
+        { type: 'think', text: "Could the soup taste terrible? That doesn't make sense as a reason to die. Let me think deeper..." },
+        { type: 'think', text: "Wait — the soup's taste itself is a clue. He 'took one sip.' The soup would taste like real albatross. But why would that drive him to suicide?" },
+        { type: 'think', text: "What if he'd eaten something disguised as albatross before? Something he thought was albatross... but wasn't." },
+        { type: 'think', text: "Shipwreck scenario! He was once stranded at sea. He survived by eating 'albatross' given by a fellow survivor. Now tasting real albatross... he realizes the 'albatross' he ate on the ship... wasn't albatross." },
+        { type: 'answer', text: "He was in a shipwreck. To survive, another survivor fed him 'albatross soup.' When he tastes real albatross soup now, he realizes the meat on the ship wasn't albatross — it was human flesh. Unable to live with this knowledge, he kills himself." },
+      ]
+    },
+    {
+      question: "A woman shoots her husband, then has dinner with him that evening. How is this possible?",
+      scratchpad: [
+        { type: 'think', text: "A woman shoots her husband. He's still alive for dinner. How? First instinct: she missed, or it was non-lethal." },
+        { type: 'think', text: "But the puzzle says she 'shoots' him definitively. Let me reconsider what 'shoots' could mean." },
+        { type: 'think', text: "'Shoots' doesn't have to mean with a gun. To 'shoot' can mean to photograph." },
+        { type: 'answer', text: "She's a photographer. She 'shot' him — took his photo. Then they had dinner together that evening. The word 'shoots' was the misdirection." },
+      ]
+    }
+  ];
+
+  const [riddleIdx, setRiddleIdx] = useState(0);
+  const [visibleSteps, setVisibleSteps] = useState(0);
+  const [started, setStarted] = useState(false);
+  const riddle = riddles[riddleIdx];
+
+  const start = () => {
+    setVisibleSteps(0);
+    setStarted(true);
+  };
+
+  useEffect(() => {
+    if (!started) return;
+    if (visibleSteps >= riddle.scratchpad.length) return;
+    const timer = setTimeout(() => setVisibleSteps(v => v + 1), 1200);
+    return () => clearTimeout(timer);
+  }, [started, visibleSteps, riddleIdx]);
+
+  const reset = () => {
+    setRiddleIdx((i) => (i + 1) % riddles.length);
+    setVisibleSteps(0);
+    setStarted(false);
+  };
+
+  const currentSteps = riddle.scratchpad.slice(0, visibleSteps);
+  const isDone = visibleSteps >= riddle.scratchpad.length;
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-4xl bg-surface-container rounded-2xl p-6 border border-glass-stroke shadow-xl">
+        <h3 className="text-xl font-bold text-purple-400 mb-2">🔬 The X-Ray Mind</h3>
+        <p className="text-gray-400 text-sm mb-6">Watch an AI's <strong className="text-white">internal scratchpad</strong> in real-time. This is what "Test-Time Compute" (Chain of Thought) looks like under the hood before the model speaks a single word.</p>
+
+        {/* Question */}
+        <div className="bg-purple-950/40 border border-purple-700 rounded-xl p-4 mb-6">
+          <div className="text-xs text-purple-400 mb-1">🧩 Riddle</div>
+          <div className="text-white text-sm font-medium">{riddle.question}</div>
+        </div>
+
+        {!started && (
+          <button onClick={start} className="w-full py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-500 transition-all">
+            👁️ Watch the AI Think in Real-Time
+          </button>
+        )}
+
+        {started && (
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Scratchpad */}
+            <div className="flex-1">
+              <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm text-yellow-400">psychology</span>
+                Internal Scratchpad (Hidden from user)
+              </div>
+              <div className="space-y-2 min-h-[200px]">
+                {currentSteps.filter(s => s.type === 'think').map((step, i) => (
+                  <div key={i} className="bg-yellow-950/30 border border-yellow-900/50 rounded-lg p-3 text-yellow-200 text-xs animate-fade-in">
+                    <span className="text-yellow-500 mr-1">💭</span>{step.text}
+                  </div>
+                ))}
+                {!isDone && started && (
+                  <div className="flex items-center gap-2 text-gray-500 text-xs">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+                    Thinking...
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Final answer */}
+            <div className="flex-1">
+              <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm text-green-400">output</span>
+                Final Output (What you see)
+              </div>
+              <div className="min-h-[200px] bg-black/40 border border-glass-stroke rounded-xl p-4">
+                {isDone ? (
+                  <div className="text-green-300 text-sm animate-fade-in">
+                    <span className="text-green-500 font-bold block mb-2">✅ Answer:</span>
+                    {riddle.scratchpad.find(s => s.type === 'answer')?.text}
+                  </div>
+                ) : (
+                  <div className="text-gray-600 text-xs italic mt-8 text-center">Waiting for reasoning to complete...</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isDone && (
+          <div className="mt-4 space-y-3">
+            <div className="bg-black/40 border border-glass-stroke rounded-xl p-4 text-gray-400 text-sm">
+              <strong className="text-white">Key Insight:</strong> Models like o1 and o3 spend 10-60 seconds doing exactly this internal monologue before speaking. That "thinking time" is why they crush hard math and logic puzzles that older models fail instantly.
+            </div>
+            <button onClick={reset} className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-600 transition-all">
+              Try Another Riddle →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
