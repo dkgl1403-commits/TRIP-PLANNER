@@ -50,7 +50,9 @@ import {
   XRayMindWidget,
   EggTestWidget,
   LaserWeederWidget,
-  HiveMindWidget
+  HiveMindWidget,
+  IndustryImpactWidget,
+  PocPurgatoryWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1326,5 +1328,7 @@ export const WidgetRegistry = {
   XRayMindWidget,
   EggTestWidget,
   LaserWeederWidget,
-  HiveMindWidget
+  HiveMindWidget,
+  IndustryImpactWidget,
+  PocPurgatoryWidget
 };

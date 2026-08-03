@@ -3726,3 +3726,343 @@ export function HiveMindWidget() {
     </div>
   );
 }
+
+// ─── IndustryImpactWidget ──────────────────────────────────────────────────────
+// Interactive AI adoption dashboard across Finance, Healthcare, Retail, Manufacturing
+export function IndustryImpactWidget() {
+  const [selectedIndustry, setSelectedIndustry] = useState('Finance');
+  const [selectedMetric, setSelectedMetric] = useState('Cost Reduction');
+  const [animKey, setAnimKey] = useState(0);
+
+  const INDUSTRIES = {
+    Finance: {
+      icon: '🏦',
+      color: 'from-blue-600 to-cyan-500',
+      accent: 'text-cyan-400',
+      border: 'border-cyan-700',
+      bg: 'bg-cyan-950/30',
+      useCases: ['Algorithmic Trading', 'Fraud Detection', 'Loan Automation', 'Risk Modeling'],
+      description: 'Finance is the most advanced AI adopter. AI agents ingest satellite imagery, shipping logs, and global news to execute trades milliseconds before human analysts. Fraud detection models analyze behavioral patterns — how quickly you type your password, the rhythm of your mouse — not just transaction size.',
+      metrics: {
+        'Cost Reduction': { value: 78, label: '78% reduction in manual processing costs', detail: 'Loan applications automated from days to minutes' },
+        'Processing Speed': { value: 92, label: '92x faster transaction analysis', detail: 'Fraud flagged in 14ms vs 24-hour manual review' },
+        'Error Rate': { value: 85, label: '85% reduction in fraud losses', detail: 'Behavioral biometrics catch synthetic identity fraud' },
+      },
+      adoption: { surface: 18, process: 42, deep: 40 },
+    },
+    Healthcare: {
+      icon: '🏥',
+      color: 'from-green-600 to-emerald-500',
+      accent: 'text-emerald-400',
+      border: 'border-emerald-700',
+      bg: 'bg-emerald-950/30',
+      useCases: ['Medical Imaging AI', 'Drug Discovery', 'Clinical Notes', 'Protein Folding'],
+      description: 'Healthcare reports the strongest ROI from AI investments. AlphaFold 3 predicted the structure of virtually all known proteins — compressing 1,000 years of PhD research into months. NLP agents now listen to consultations and auto-generate clinical notes, saving doctors 2 hours of paperwork daily.',
+      metrics: {
+        'Cost Reduction': { value: 62, label: '62% reduction in drug discovery costs', detail: 'New molecular compounds found in months, not years' },
+        'Processing Speed': { value: 88, label: '88% faster imaging diagnosis', detail: 'CT scan analysis in 4 seconds vs 45-minute radiologist review' },
+        'Error Rate': { value: 71, label: '71% fewer missed early-stage diagnoses', detail: 'Computer vision detects micro-fractures invisible to human eye' },
+      },
+      adoption: { surface: 28, process: 38, deep: 34 },
+    },
+    Retail: {
+      icon: '🛒',
+      color: 'from-purple-600 to-pink-500',
+      accent: 'text-pink-400',
+      border: 'border-pink-700',
+      bg: 'bg-pink-950/30',
+      useCases: ['Dynamic Pricing', 'Demand Forecasting', 'Virtual Stylist', 'Inventory AI'],
+      description: 'Retail is moving from mass marketing to hyper-individualized experiences. Dynamic pricing AI adjusts thousands of product prices per minute based on competitor data, local weather, and real-time demand signals. Generative AI virtual stylists generate photorealistic images showing how clothing looks on a customer\'s specific body type from a single photo.',
+      metrics: {
+        'Cost Reduction': { value: 54, label: '54% reduction in overstock waste', detail: 'Demand forecasting prevents over/under-stocking by region' },
+        'Processing Speed': { value: 95, label: '95% faster price optimization', detail: 'Dynamic pricing runs every 90 seconds vs weekly manual updates' },
+        'Error Rate': { value: 67, label: '67% improvement in recommendation accuracy', detail: 'Hyper-personalization vs legacy collaborative filtering' },
+      },
+      adoption: { surface: 42, process: 35, deep: 23 },
+    },
+    Manufacturing: {
+      icon: '🏭',
+      color: 'from-orange-600 to-yellow-500',
+      accent: 'text-yellow-400',
+      border: 'border-yellow-700',
+      bg: 'bg-yellow-950/30',
+      useCases: ['Predictive Maintenance', 'Quality Vision AI', 'Digital Twins', 'Supply Chain'],
+      description: 'Industry 4.0 is making the physical world digital. IoT sensors feed real-time vibration and heat data to AI, which predicts motor failures 48 hours before they happen — eliminating unplanned downtime. Computer vision cameras inspect products at 10,000 units per hour, catching microscopic smartphone screen scratches at a rate no human team could match.',
+      metrics: {
+        'Cost Reduction': { value: 69, label: '69% reduction in unplanned downtime costs', detail: 'Predictive maintenance vs reactive breakdown repairs' },
+        'Processing Speed': { value: 83, label: '83x faster quality inspection', detail: '10,000 items/hour vs 200 items/hour for human inspectors' },
+        'Error Rate': { value: 76, label: '76% reduction in defect escape rate', detail: 'Computer vision catches microscopic defects at sub-mm precision' },
+      },
+      adoption: { surface: 35, process: 38, deep: 27 },
+    },
+  };
+
+  const ind = INDUSTRIES[selectedIndustry];
+  const metric = ind.metrics[selectedMetric];
+
+  const handleSelect = (name) => {
+    setSelectedIndustry(name);
+    setAnimKey(k => k + 1);
+  };
+
+  const handleMetric = (m) => {
+    setSelectedMetric(m);
+    setAnimKey(k => k + 1);
+  };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        {/* Header */}
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-white mb-1">📊 AI Industry Impact Explorer</h3>
+          <p className="text-gray-400 text-sm">Select an industry to see how deeply AI has transformed operations and the specific ROI metrics driving enterprise adoption.</p>
+        </div>
+
+        {/* Industry tabs */}
+        <div className="grid grid-cols-4 border-b border-glass-stroke">
+          {Object.entries(INDUSTRIES).map(([name, data]) => (
+            <button
+              key={name}
+              onClick={() => handleSelect(name)}
+              className={`flex flex-col items-center gap-1 py-3 text-xs font-bold transition-all border-b-2 ${
+                selectedIndustry === name
+                  ? `border-white text-white bg-white/5`
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:bg-white/5'
+              }`}
+            >
+              <span className="text-2xl">{data.icon}</span>
+              <span>{name}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Main content */}
+        <div className="p-5">
+          {/* Description */}
+          <div className={`rounded-xl border p-4 mb-5 ${ind.bg} ${ind.border}`}>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {ind.useCases.map(uc => (
+                <span key={uc} className={`text-xs px-2 py-1 rounded-full bg-black/40 border ${ind.border} ${ind.accent} font-medium`}>{uc}</span>
+              ))}
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed">{ind.description}</p>
+          </div>
+
+          {/* Metric toggle */}
+          <div className="flex gap-2 mb-5">
+            {['Cost Reduction', 'Processing Speed', 'Error Rate'].map(m => (
+              <button
+                key={m}
+                onClick={() => handleMetric(m)}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                  selectedMetric === m ? 'bg-white text-black' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
+          {/* Metric bar */}
+          <div className="mb-5">
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-sm text-gray-400 font-medium">{selectedMetric}</span>
+              <span className={`text-2xl font-bold ${ind.accent}`}>{metric.value}%</span>
+            </div>
+            <div className="h-4 bg-gray-800 rounded-full overflow-hidden mb-2">
+              <div
+                key={animKey}
+                className={`h-full rounded-full bg-gradient-to-r ${ind.color} transition-all duration-1000`}
+                style={{ width: `${metric.value}%`, animation: 'growBar 1s ease-out' }}
+              />
+            </div>
+            <div className="text-sm text-white font-semibold mb-1">{metric.label}</div>
+            <div className="text-xs text-gray-500">{metric.detail}</div>
+          </div>
+
+          {/* Adoption tier chart */}
+          <div className="bg-black/40 border border-glass-stroke rounded-xl p-4">
+            <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">Adoption Tier Breakdown</div>
+            <div className="space-y-2">
+              {[
+                { label: 'Surface Level (basic efficiency)', value: ind.adoption.surface, color: 'bg-gray-500' },
+                { label: 'Process Redesign (workflow automation)', value: ind.adoption.process, color: 'bg-blue-500' },
+                { label: 'Deep Transformation (new business models)', value: ind.adoption.deep, color: `bg-gradient-to-r ${ind.color}` },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <div className="text-xs text-gray-400 w-52 flex-shrink-0">{label}</div>
+                  <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                      key={`${animKey}-${label}`}
+                      className={`h-full rounded-full ${color}`}
+                      style={{ width: `${value}%`, transition: 'width 1.2s ease-out' }}
+                    />
+                  </div>
+                  <div className="text-xs text-white font-mono w-8 text-right">{value}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PocPurgatoryWidget ────────────────────────────────────────────────────────
+// Simulate the 4 bottlenecks that kill enterprise AI at scale
+export function PocPurgatoryWidget() {
+  const [phase, setPhase] = useState('pilot'); // pilot | scale | fail | orchestrate
+  const [activeBlock, setActiveBlock] = useState(null);
+  const [passed, setPassed] = useState([]);
+
+  const BOTTLENECKS = [
+    {
+      id: 'data',
+      icon: '🗃️',
+      name: 'Data Gravity Trap',
+      color: 'text-red-400',
+      border: 'border-red-700',
+      bg: 'bg-red-950/30',
+      pilotState: '1,000 clean records. AI scores 97% accuracy.',
+      scaleState: 'FAILURE: Live data is in 50 legacy SAP systems, has 400K duplicate records, 38% missing fields.',
+      fix: 'Deploy a Data Lakehouse with automated ETL pipelines and data quality scoring before the AI touches production.',
+      stat: '85% of AI projects fail due to poor data quality (Gartner)',
+    },
+    {
+      id: 'cost',
+      icon: '💸',
+      name: 'Inference Cost Shock',
+      color: 'text-yellow-400',
+      border: 'border-yellow-700',
+      bg: 'bg-yellow-950/30',
+      pilotState: 'Pilot: 100 queries/day = $120/month in API costs.',
+      scaleState: 'FAILURE: 50,000 queries/day = $60,000/month. The $1M efficiency gain costs $1.5M to run.',
+      fix: 'Implement token budgeting, response caching, and model routing — use GPT-4o-mini for simple queries, GPT-4 only for complex reasoning.',
+      stat: 'Inference costs explode 3x–5x when scaling from pilot to production (McKinsey)',
+    },
+    {
+      id: 'security',
+      icon: '🔒',
+      name: 'Security & Governance Chasm',
+      color: 'text-orange-400',
+      border: 'border-orange-700',
+      bg: 'bg-orange-950/30',
+      pilotState: 'Pilot: AI runs in a secure sandbox, reads from a static test dataset.',
+      scaleState: 'FAILURE: Production AI can access Slack, email, HR databases. Risk of leaking CEO salary to interns. GDPR violation.',
+      fix: 'Implement a Deterministic Gateway with role-based access control. Every AI query is validated against the requesting user\'s permission level before execution.',
+      stat: '60% of enterprises cite security concerns as the #1 reason AI pilots never reach production (RAND, 2025)',
+    },
+    {
+      id: 'strategy',
+      icon: '🎯',
+      name: 'Strategic Misalignment',
+      color: 'text-purple-400',
+      border: 'border-purple-700',
+      bg: 'bg-purple-950/30',
+      pilotState: 'Data scientists build a brilliant AI. CEO demos it on stage. Standing ovation.',
+      scaleState: 'FAILURE: Employees refuse to use it. Nobody asked them what they actually needed. No Business Owner. No adoption.',
+      fix: 'Mandate a Business Owner (non-technical) who defines success metrics. Run employee workshops before building. Solve a real pain point, not a demo.',
+      stat: 'MIT NANDA (2025): 95% of GenAI pilots produce zero measurable financial impact due to workflow misalignment',
+    },
+  ];
+
+  const currentBlock = activeBlock ? BOTTLENECKS.find(b => b.id === activeBlock) : null;
+
+  const handleFix = (id) => {
+    setPassed(p => [...new Set([...p, id])]);
+    setActiveBlock(null);
+  };
+
+  const allPassed = passed.length === BOTTLENECKS.length;
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-white mb-1">⚠️ POC Purgatory Simulator</h3>
+          <p className="text-gray-400 text-sm">
+            You are a CTO trying to scale your AI pilot. Click each bottleneck to see why it fails — then apply the fix to move it to production.
+            <span className="text-yellow-400 font-semibold"> 80–95% of enterprise AI pilots never escape this phase.</span>
+          </p>
+        </div>
+
+        {/* Progress bar */}
+        <div className="px-5 pt-4">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>Bottlenecks Cleared</span>
+            <span className={passed.length === 4 ? 'text-green-400 font-bold' : 'text-white'}>{passed.length} / 4</span>
+          </div>
+          <div className="h-2 bg-gray-800 rounded-full overflow-hidden mb-4">
+            <div
+              className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full transition-all duration-700"
+              style={{ width: `${(passed.length / 4) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Bottleneck cards */}
+        <div className="grid grid-cols-2 gap-3 px-5 pb-4">
+          {BOTTLENECKS.map(b => {
+            const isFixed = passed.includes(b.id);
+            const isActive = activeBlock === b.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => !isFixed && setActiveBlock(isActive ? null : b.id)}
+                className={`rounded-xl border p-4 text-left transition-all ${
+                  isFixed
+                    ? 'border-green-700 bg-green-950/30 cursor-default'
+                    : isActive
+                      ? `${b.border} ${b.bg} ring-1 ring-white/20`
+                      : `${b.border} bg-black/30 hover:bg-white/5 cursor-pointer`
+                }`}
+              >
+                <div className="text-2xl mb-2">{isFixed ? '✅' : b.icon}</div>
+                <div className={`text-sm font-bold mb-1 ${isFixed ? 'text-green-400' : b.color}`}>{b.name}</div>
+                <div className="text-xs text-gray-500">{isFixed ? 'Cleared — AI moving to production' : 'Click to investigate'}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Detail panel */}
+        {currentBlock && (
+          <div className={`mx-5 mb-5 rounded-xl border p-4 ${currentBlock.bg} ${currentBlock.border}`}>
+            <div className={`text-base font-bold mb-3 ${currentBlock.color}`}>{currentBlock.icon} {currentBlock.name}</div>
+            <div className="space-y-3 text-sm">
+              <div className="bg-black/40 rounded-lg p-3">
+                <div className="text-xs text-gray-500 uppercase mb-1">🟢 Pilot Phase</div>
+                <div className="text-gray-300">{currentBlock.pilotState}</div>
+              </div>
+              <div className="bg-black/40 rounded-lg p-3">
+                <div className="text-xs text-red-400 uppercase mb-1">🔴 At Scale</div>
+                <div className="text-gray-300">{currentBlock.scaleState}</div>
+              </div>
+              <div className="bg-black/40 rounded-lg p-3">
+                <div className="text-xs text-blue-400 uppercase mb-1">🔧 The Fix</div>
+                <div className="text-gray-300">{currentBlock.fix}</div>
+              </div>
+              <div className="text-xs text-gray-600 italic">{currentBlock.stat}</div>
+            </div>
+            <button
+              onClick={() => handleFix(currentBlock.id)}
+              className="w-full mt-3 py-2 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all text-sm"
+            >
+              ✅ Apply Fix — Move to Production
+            </button>
+          </div>
+        )}
+
+        {allPassed && (
+          <div className="mx-5 mb-5 bg-green-950/40 border border-green-700 rounded-xl p-4 text-center">
+            <div className="text-3xl mb-2">🎉</div>
+            <div className="text-green-400 font-bold text-base mb-2">AI Successfully Deployed to Production!</div>
+            <div className="text-sm text-gray-400">You are now in the top 5–20% of enterprises that successfully escape Pilot Purgatory. The secret: you built the <strong className="text-white">Orchestration Layer</strong> — data pipelines, cost controls, security gateways, and stakeholder alignment — before expecting the LLM to do all the work.</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
