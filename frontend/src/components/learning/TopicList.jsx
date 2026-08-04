@@ -168,7 +168,6 @@ function TopicList({ user, subjectId, onBack }) {
           {filteredTopics.map(topic => {
             const progress = getTopicProgress(topic.id);
             const isWip = topic.is_wip;
-            const boardText = topic.board_type === 'BOTH' ? 'CBSE & ICSE' : topic.board_type;
             const isContentMatch = contentMatchIds.has(topic.id);
             const q = searchQuery.trim();
 
@@ -204,9 +203,6 @@ function TopicList({ user, subjectId, onBack }) {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="px-3 py-1 rounded-full bg-surface-variant text-xs font-bold text-on-surface-variant border border-white/5">
-                      {boardText}
-                    </span>
                     {!isWip && (
                       <div className="flex gap-2 mt-2">
                         <button 
