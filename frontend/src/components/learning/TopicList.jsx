@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import LessonEngine from './engine/LessonEngine';
 
 // Highlight matching substring in text
@@ -133,7 +133,7 @@ function TopicList({ user, subjectId, onBack }) {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search by chapter, name, or contentâ€¦"
+              placeholder="Search by chapter, name, or content..."
               className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-surface-container border border-glass-stroke text-sm text-white placeholder-on-surface-variant focus:outline-none focus:border-neon-coral/60 focus:ring-1 focus:ring-neon-coral/30 transition-all"
             />
             {searchQuery && (
