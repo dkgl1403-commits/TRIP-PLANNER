@@ -59,6 +59,18 @@ import {
   TakeoffSimulatorWidget
 } from './AIWidgets';
 
+import {
+  WaterfallVsAgileWidget,
+  KanbanFlowWidget,
+  SAFeAlignmentWidget,
+  WorkHierarchyWidget,
+  PlanningPokerWidget,
+  SprintLifecycleWidget
+} from './AgileWidgets';
+
+import {
+  CorporateActionsTimelineWidget
+} from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
   const [starBPos, setStarBPos] = useState({ x: 80, y: 20 });
@@ -1338,5 +1350,16 @@ export const WidgetRegistry = {
   PaletteCompressorWidget,
   AppleIntelligenceWidget,
   AGITrackerWidget,
-  TakeoffSimulatorWidget
+  TakeoffSimulatorWidget,
+  
+  // Agile Framework
+  WaterfallVsAgileWidget,
+  KanbanFlowWidget,
+  SAFeAlignmentWidget,
+  WorkHierarchyWidget,
+  PlanningPokerWidget,
+  SprintLifecycleWidget,
+  
+  // Corporate Actions
+  'ca-history-timeline': CorporateActionsTimelineWidget
 };

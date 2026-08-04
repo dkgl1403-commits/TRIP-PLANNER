@@ -23,6 +23,8 @@ from seed_ai_masterclass_part14 import seed_ai_masterclass_part14
 from seed_ai_masterclass_part15 import seed_ai_masterclass_part15
 from seed_ai_taxonomy import seed_ai_taxonomy
 from seed_ai_masterclass_remaining import seed_ai_remaining
+from seed_agile_framework import seed_agile_framework
+from seed_corporate_actions import seed_corporate_actions
 
 def seed_trigonometry():
     init_db()
@@ -459,6 +461,25 @@ def seed_curriculum():
                         {"name": "The Road to AGI", "board": "BOTH"},
                         {"name": "Superintelligence (ASI)", "board": "BOTH"}
                     ]
+                },
+                {
+                    "name": "The Agile Framework",
+                    "topics": [
+                        {"name": "The Waterfall Trap & The Agile Rebellion", "board": "BOTH"},
+                        {"name": "The Frameworks: From XP to Scrum", "board": "BOTH"},
+                        {"name": "The Big Picture (SAFe & PI Planning)", "board": "BOTH"},
+                        {"name": "The Anatomy of Work (Live Example)", "board": "BOTH"},
+                        {"name": "The Scrum Team & Estimation", "board": "BOTH"},
+                        {"name": "The Ceremonies & Real-World Chaos", "board": "BOTH"},
+                        {"name": "Agile in Real-World Industries", "board": "BOTH"},
+                        {"name": "Agile Tooling & The AI Revolution", "board": "BOTH"}
+                    ]
+                },
+                {
+                    "name": "Corporate Actions",
+                    "topics": [
+                        {"name": "History & Origins of Corporate Actions", "board": "BOTH"}
+                    ]
                 }
             ]
         },
@@ -757,3 +778,5 @@ if __name__ == "__main__":
     seed_ai_remaining()
     seed_ai_masterclass_part14()
     seed_ai_masterclass_part15()
+    seed_agile_framework()
+    seed_corporate_actions()
