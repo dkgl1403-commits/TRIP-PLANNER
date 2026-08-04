@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+import json
+import re
 from learning.db import SessionLocal, LearningClass, LearningSubject, LearningTopic, LearningEnrollment, LearningStudentProgress
 
 learning_api_router = APIRouter()
@@ -26,7 +28,38 @@ def get_subjects(class_id: str, db: Session = Depends(get_db)):
 @learning_api_router.get("/topics/{subject_id}")
 def get_topics(subject_id: str, db: Session = Depends(get_db)):
     topics = db.query(LearningTopic).filter_by(subject_id=subject_id).order_by(LearningTopic.order_idx).all()
-    return {"status": "success", "topics": [{"id": t.id, "name": t.name, "order_idx": t.order_idx, "board_type": t.board_type, "is_wip": not bool(t.lesson_config_json)} for t in topics]}
+    def extract_search_text(config_json):
+        """Extract searchable text from lesson config: part titles + stripped narrative text."""
+        if not config_json:
+            return ""
+        try:
+            config = json.loads(config_json)
+            parts = config.get("parts", [])
+            texts = []
+            for part in parts:
+                if part.get("title"):
+                    texts.append(part["title"])
+                if part.get("keyInsight"):
+                    texts.append(part["keyInsight"])
+                if part.get("narrative"):
+                    # Strip HTML tags for plain-text search
+                    plain = re.sub(r'<[^>]+>', ' ', part["narrative"])
+                    plain = re.sub(r'\s+', ' ', plain).strip()
+                    texts.append(plain[:300])  # first 300 chars per part to keep payload small
+            return " | ".join(texts)
+        except Exception:
+            return ""
+    result = []
+    for t in topics:
+        result.append({
+            "id": t.id,
+            "name": t.name,
+            "order_idx": t.order_idx,
+            "board_type": t.board_type,
+            "is_wip": not bool(t.lesson_config_json),
+            "content_summary": extract_search_text(t.lesson_config_json)
+        })
+    return {"status": "success", "topics": result}
 
 @learning_api_router.get("/topic/{topic_id}/config")
 def get_topic_config(topic_id: str, db: Session = Depends(get_db)):
