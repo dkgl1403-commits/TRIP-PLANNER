@@ -55,7 +55,8 @@ import {
   PocPurgatoryWidget,
   PaletteCompressorWidget,
   AppleIntelligenceWidget,
-  AGITrackerWidget
+  AGITrackerWidget,
+  TakeoffSimulatorWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1336,5 +1337,6 @@ export const WidgetRegistry = {
   PocPurgatoryWidget,
   PaletteCompressorWidget,
   AppleIntelligenceWidget,
-  AGITrackerWidget
+  AGITrackerWidget,
+  TakeoffSimulatorWidget
 };

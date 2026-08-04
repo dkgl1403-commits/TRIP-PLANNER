@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 
 // 1. The First Neuron Widget (Perceptron Replica)
 export function FirstNeuronWidget() {
@@ -4700,3 +4700,131 @@ export function AGITrackerWidget() {
     </div>
   );
 }
+
+// --- TakeoffSimulatorWidget ---
+export function TakeoffSimulatorWidget() {
+  const [speed, setSpeed] = useState('exponential');
+  const [compute, setCompute] = useState('unlimited');
+  const [animKey, setAnimKey] = useState(0);
+
+  const W = 560, H = 320;
+  const PAD = { top: 24, right: 24, bottom: 48, left: 56 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const STEPS = 60;
+  const HUMAN_Y = 0.35;
+
+  const generatePoints = () => {
+    const pts = [];
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      let y;
+      if (speed === 'linear') {
+        y = t * 0.85;
+      } else if (compute === 'bottlenecked') {
+        const k = 10, x0 = 0.5;
+        y = 1 / (1 + Math.exp(-k * (t - x0)));
+        y = y * 0.85;
+      } else {
+        if (t < 0.55) {
+          y = t * HUMAN_Y / 0.55;
+        } else {
+          const delta = (t - 0.55) / 0.45;
+          y = HUMAN_Y + (1 - HUMAN_Y) * (Math.pow(12, delta) - 1) / 11;
+          y = Math.min(y, 1);
+        }
+      }
+      pts.push({ t, y });
+    }
+    return pts;
+  };
+
+  const toSvgX = (t) => PAD.left + t * chartW;
+  const toSvgY = (y) => PAD.top + chartH - y * chartH;
+  const points = generatePoints();
+  const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + toSvgX(p.t).toFixed(1) + ' ' + toSvgY(p.y).toFixed(1)).join(' ');
+
+  const humanLineY = toSvgY(HUMAN_Y);
+  const asiLineY = toSvgY(0.9);
+  const isFastTakeoff = speed === 'exponential' && compute === 'unlimited';
+  const curveColor = isFastTakeoff ? '#f97316' : speed === 'linear' ? '#6b7280' : '#8b5cf6';
+
+  const scenario = isFastTakeoff
+    ? { label: 'FAST TAKEOFF', desc: 'AGI rewrites itself in software within days — humanity has no time to react.', color: 'text-orange-400', bg: 'bg-orange-950/30', border: 'border-orange-700' }
+    : speed === 'linear'
+    ? { label: 'LINEAR (No Explosion)', desc: 'Constant growth rate — predictable, manageable, but experts consider this unrealistic.', color: 'text-gray-400', bg: 'bg-gray-900/30', border: 'border-gray-700' }
+    : { label: 'SLOW TAKEOFF', desc: 'Hardware bottlenecks create an S-curve over decades. Humans can regulate in time.', color: 'text-purple-400', bg: 'bg-purple-950/30', border: 'border-purple-700' };
+
+  const handle = (s, c) => { if (s !== undefined) setSpeed(s); if (c !== undefined) setCompute(c); setAnimKey(k => k + 1); };
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-white mb-1">Intelligence Explosion Simulator</h3>
+          <p className="text-gray-400 text-sm">Adjust the controls to watch how the intelligence curve changes under different self-improvement and hardware scenarios.</p>
+        </div>
+        <div className="p-4 border-b border-glass-stroke flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Self-Improvement Rate</div>
+            <div className="flex rounded-xl overflow-hidden border border-glass-stroke text-xs font-bold">
+              {[{v:'linear',l:'Linear'},{v:'exponential',l:'Exponential'}].map(o=>(
+                <button key={o.v} onClick={()=>handle(o.v,undefined)} className={`flex-1 py-2 px-3 transition-all ${speed===o.v?'bg-white/15 text-white':'bg-black/30 text-gray-400 hover:text-white'}`}>{o.l}</button>
+              ))}
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Hardware Constraints</div>
+            <div className="flex rounded-xl overflow-hidden border border-glass-stroke text-xs font-bold">
+              {[{v:'unlimited',l:'Unlimited'},{v:'bottlenecked',l:'Bottlenecked'}].map(o=>(
+                <button key={o.v} onClick={()=>handle(undefined,o.v)} className={`flex-1 py-2 px-3 transition-all ${compute===o.v?'bg-white/15 text-white':'bg-black/30 text-gray-400 hover:text-white'}`}>{o.l}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="p-4 overflow-x-auto">
+          <svg key={animKey} width="100%" viewBox={`0 0 ${W} ${H}`} className="w-full max-w-full">
+            <style>{`@keyframes dashDraw2{to{stroke-dashoffset:0}}`}</style>
+            {[0,0.25,0.5,0.75,1].map(y=><line key={'gy'+y} x1={PAD.left} y1={toSvgY(y)} x2={PAD.left+chartW} y2={toSvgY(y)} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>)}
+            {[0,0.25,0.5,0.75,1].map(t=><line key={'gx'+t} x1={toSvgX(t)} y1={PAD.top} x2={toSvgX(t)} y2={PAD.top+chartH} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>)}
+            <rect x={PAD.left} y={PAD.top} width={chartW} height={toSvgY(0.9)-PAD.top} fill="rgba(249,115,22,0.04)"/>
+            <line x1={PAD.left} y1={humanLineY} x2={PAD.left+chartW} y2={humanLineY} stroke="#6ee7b7" strokeWidth="1.5" strokeDasharray="6,4"/>
+            <text x={PAD.left+chartW-4} y={humanLineY-6} textAnchor="end" fill="#6ee7b7" fontSize="10" fontWeight="bold">Human / AGI Level</text>
+            <line x1={PAD.left} y1={asiLineY} x2={PAD.left+chartW} y2={asiLineY} stroke="#f97316" strokeWidth="1" strokeDasharray="4,4"/>
+            <text x={PAD.left+chartW-4} y={asiLineY-5} textAnchor="end" fill="#f97316" fontSize="10">ASI Territory</text>
+            <path d={pathD} fill="none" stroke={curveColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{strokeDasharray:2000,strokeDashoffset:2000,animation:'dashDraw2 1.2s ease forwards'}}/>
+            <path d={pathD+` L ${toSvgX(1)} ${toSvgY(0)} L ${PAD.left} ${toSvgY(0)} Z`} fill={curveColor+'18'}/>
+            <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top+chartH} stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1={PAD.left} y1={PAD.top+chartH} x2={PAD.left+chartW} y2={PAD.top+chartH} stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <text x={PAD.left+chartW/2} y={H-10} textAnchor="middle" fill="#6b7280" fontSize="11">Time</text>
+            <text x={14} y={PAD.top+chartH/2} textAnchor="middle" fill="#6b7280" fontSize="11" transform={`rotate(-90,14,${PAD.top+chartH/2})`}>Intelligence</text>
+            {[{label:'Ant',y:0},{label:'Human',y:HUMAN_Y},{label:'God',y:1}].map(t=>(
+              <text key={t.label} x={PAD.left-6} y={toSvgY(t.y)+4} textAnchor="end" fill="#6b7280" fontSize="9">{t.label}</text>
+            ))}
+          </svg>
+        </div>
+        <div className={`mx-4 mb-4 rounded-xl border p-4 ${scenario.bg} ${scenario.border}`}>
+          <div className={`text-sm font-black uppercase tracking-wider mb-1 ${scenario.color}`}>{scenario.label}</div>
+          <p className="text-sm text-gray-300">{scenario.desc}</p>
+        </div>
+        <div className="border-t border-glass-stroke p-4">
+          <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">Key Concepts</div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {[
+              {icon:'Rec',term:'Recursive Self-Improvement',def:'An AGI rewrites its own code to get smarter, then the smarter version rewrites again — exponentially.'},
+              {icon:'Slw',term:'Slow Takeoff',def:'Physical hardware limits (data centers, energy grids) bottleneck the speed — decades of transition.'},
+              {icon:'Fst',term:'Fast Takeoff',def:'The explosion happens entirely in software within days. No time for human regulation.'},
+              {icon:'Ppr',term:'Paperclip Maximizer',def:'An ASI given a trivial goal dismantles the Earth to optimize it — not from malice, from cold optimization.'},
+            ].map(c=>(
+              <div key={c.term} className="bg-black/40 border border-glass-stroke rounded-lg p-2">
+                <div className="font-bold text-white text-xs mb-1">{c.term}</div>
+                <div className="text-gray-500 leading-tight">{c.def}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
