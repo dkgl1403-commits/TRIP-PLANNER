@@ -24,18 +24,13 @@ def seed_corporate_actions():
                         "type": "narrative",
                         "parts": [
                             {
-                                "type": "text",
                                 "title": "THE ORIGIN: The VOC and the First Dividend (1602 - 1610)",
-                                "content": "To understand why corporate actions exist, we have to look at the first publicly traded company: the **Dutch East India Company (VOC)**, chartered in 1602.\n\n*   **The Problem:** The VOC needed massive capital to fund high-risk spice voyages to Asia. They issued shares to the public in Amsterdam. But a ship taking two years to return meant investors needed a mechanism to be compensated for their locked-up capital.\n*   **The First Corporate Action (1610):** The VOC issued the first recorded dividend. Because liquid cash was scarce, this first dividend was actually paid *in-kind*—specifically, in bags of mace and black pepper.\n*   **The First Restructuring:** As share prices rose, the VOC also pioneered the concept of fractional trading and early corporate restructurings to maintain liquidity, laying the groundwork for modern stock splits."
+                                "narrative": "To understand why corporate actions exist, we have to look at the first publicly traded company: the **Dutch East India Company (VOC)**, chartered in 1602.\n\n*   **The Problem:** The VOC needed massive capital to fund high-risk spice voyages to Asia. They issued shares to the public in Amsterdam. But a ship taking two years to return meant investors needed a mechanism to be compensated for their locked-up capital.\n*   **The First Corporate Action (1610):** The VOC issued the first recorded dividend. Because liquid cash was scarce, this first dividend was actually paid *in-kind*—specifically, in bags of mace and black pepper.\n*   **The First Restructuring:** As share prices rose, the VOC also pioneered the concept of fractional trading and early corporate restructurings to maintain liquidity, laying the groundwork for modern stock splits."
                             },
                             {
-                                "type": "text",
-                                "title": "THE EVOLUTION: From Paper to STP",
-                                "content": "For 350 years, corporate actions were heavily manual, paper-based processes.\n\n*   **The Paper Era (Pre-1970s):** If a company issued a dividend, physical checks were mailed to registered shareholders. If you held a bearer bond, you literally had to cut a \"coupon\" off the paper certificate and mail it to a bank to claim your interest.\n*   **Dematerialization (1970s - 1990s):** The creation of Central Securities Depositories (CSDs) like the DTCC in the US and Euroclear/Clearstream in Europe. Shares became electronic book-entries. This allowed corporate actions to be processed centrally via ledger updates rather than physical mail.\n*   **The SWIFT Era (1990s - Present):** The introduction of ISO 15022 (and later ISO 20022) standardized the global communication of corporate actions. A dividend announcement in Tokyo could now be automatically parsed by a custodian's system in New York using standard tags (e.g., `:22F::CAEV//DVCA`)."
-                            },
-                            {
-                                "type": "widget",
-                                "widgetId": "ca-history-timeline",
+                                "title": "THE STANDARDIZATION: Paper to SWIFT",
+                                "narrative": "Fast forward to the 1970s. Wall Street was drowning in paper certificates. The \"Paper Crunch\" forced the market to close on Wednesdays just to catch up on paperwork!\n\nThis led to the creation of Central Securities Depositories (like the DTCC) and the dematerialization of shares (book-entry). But the real revolution came with **SWIFT** in the 1990s.\n\n*   **ISO 15022 (MT564):** The creation of standardized, machine-readable messages meant a dividend in Japan could be automatically processed by a broker in New York without manual data entry.\n*   **The Goal:** STP (Straight-Through Processing). Removing human touchpoints to eliminate risk.",
+                                "widgetType": "ca-history-timeline",
                                 "title": "Corporate Actions Historical Explorer",
                                 "alt": "Interactive timeline showing the evolution of corporate actions and market infrastructure."
                             }
