@@ -134,3 +134,109 @@ export function CorporateActionsTimelineWidget() {
     </div>
   );
 }
+
+export function CAMVIndicatorWidget() {
+  const [activeCamv, setActiveCamv] = useState(null);
+
+  const indicators = [
+    {
+      id: 'MAND',
+      label: 'MAND',
+      name: 'Mandatory',
+      color: 'bg-red-500',
+      description: 'An event dictated by the issuer that applies to all eligible shareholders universally. No election or instruction is required.',
+      focus: 'Unconditional entitlement application. Custodian calculates automatically based on settled position.',
+      events: ['Cash Dividend (DVCA)', 'Stock Split (SPLF)', 'Merger (MRGR)']
+    },
+    {
+      id: 'VOLU',
+      label: 'VOLU',
+      name: 'Voluntary',
+      color: 'bg-blue-500',
+      description: 'An event where the issuer makes an offer, but the shareholder must actively elect to participate. Missing the deadline means no action.',
+      focus: 'Managing instruction deadlines and MT565 messages. Buyer protection and guaranteed delivery are critical.',
+      events: ['Tender Offer (TEND)', 'Dutch Auction (DTCH)', 'Rights Subscription (EXRI)']
+    },
+    {
+      id: 'CHOS',
+      label: 'CHOS',
+      name: 'Mandatory with Options',
+      color: 'bg-purple-500',
+      description: 'The event WILL happen, but the issuer provides a menu of options. Crucially, every CHOS event contains a Default Option.',
+      focus: 'Reconciliation of elected vs default entitlements. Ensuring sum of elected + default exactly equals total eligible position.',
+      events: ['Dividend Reinvestment Plan (DRIP)', 'Cash Dividend with Stock Option (DVOP)']
+    }
+  ];
+
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-900 rounded-xl font-sans text-slate-200">
+      <h2 className="text-2xl font-bold mb-6 text-white text-center">SWIFT CAMV Indicators (MT564)</h2>
+      
+      <div className="flex gap-4 mb-8">
+        {indicators.map((ind) => (
+          <button
+            key={ind.id}
+            onClick={() => setActiveCamv(ind.id)}
+            className={`px-6 py-3 rounded-lg font-bold text-lg transition-all ${
+              activeCamv === ind.id 
+                ? `${ind.color} text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-105` 
+                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+            }`}
+          >
+            {ind.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="w-full max-w-2xl min-h-[250px] relative">
+        <AnimatePresence mode="wait">
+          {activeCamv ? (
+            <motion.div
+              key={activeCamv}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl"
+            >
+              {indicators.filter(i => i.id === activeCamv).map(ind => (
+                <div key={ind.id}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className={`w-3 h-3 rounded-full ${ind.color}`}></span>
+                    <h3 className="text-xl font-bold text-white">{ind.name}</h3>
+                  </div>
+                  
+                  <p className="text-slate-300 mb-6 leading-relaxed">
+                    {ind.description}
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-slate-900 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Operations Focus</h4>
+                      <p className="text-sm text-slate-300">{ind.focus}</p>
+                    </div>
+                    
+                    <div className="bg-slate-900 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Key SWIFT Events</h4>
+                      <ul className="list-disc pl-4 text-sm text-slate-300 space-y-1">
+                        {ind.events.map((ev, i) => <li key={i}>{ev}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="w-full h-full flex items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-xl p-8"
+            >
+              Select a CAMV Indicator above to explore its definition and operations focus.
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

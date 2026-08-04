@@ -69,7 +69,8 @@ import {
 } from './AgileWidgets';
 
 import {
-  CorporateActionsTimelineWidget
+  CorporateActionsTimelineWidget,
+  CAMVIndicatorWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1361,5 +1362,6 @@ export const WidgetRegistry = {
   SprintLifecycleWidget,
   
   // Corporate Actions
-  'ca-history-timeline': CorporateActionsTimelineWidget
+  'ca-history-timeline': CorporateActionsTimelineWidget,
+  'ca-camv-indicator': CAMVIndicatorWidget
 };
