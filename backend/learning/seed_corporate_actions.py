@@ -20,7 +20,7 @@ def seed_corporate_actions():
             topic = db.query(LearningTopic).filter_by(name=topic_name, subject_id=ca_subject.id).first()
             if topic:
                 if topic_name == "History & Origins of Corporate Actions":
-                    topic.config = json.dumps({
+                    topic.lesson_config_json = json.dumps({
                         "type": "narrative",
                         "parts": [
                             {
