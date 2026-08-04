@@ -54,7 +54,8 @@ import {
   IndustryImpactWidget,
   PocPurgatoryWidget,
   PaletteCompressorWidget,
-  AppleIntelligenceWidget
+  AppleIntelligenceWidget,
+  AGITrackerWidget
 } from './AIWidgets';
 
 // --- STEP 1.1: StarObserverDiagram ---
@@ -1334,5 +1335,6 @@ export const WidgetRegistry = {
   IndustryImpactWidget,
   PocPurgatoryWidget,
   PaletteCompressorWidget,
-  AppleIntelligenceWidget
+  AppleIntelligenceWidget,
+  AGITrackerWidget
 };

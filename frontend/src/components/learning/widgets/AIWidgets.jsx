@@ -4445,3 +4445,258 @@ export function AppleIntelligenceWidget() {
     </div>
   );
 }
+
+// ─── AGITrackerWidget ─────────────────────────────────────────────────────────
+// Dual-framework AGI progress explorer with milestone overlay and AGI tests
+export function AGITrackerWidget() {
+  const [framework, setFramework] = useState('deepmind');
+  const [showMilestones, setShowMilestones] = useState(true);
+  const [activeLevel, setActiveLevel] = useState(null);
+  const [activeTest, setActiveTest] = useState(null);
+
+  const FRAMEWORKS = {
+    deepmind: {
+      label: 'DeepMind Matrix',
+      color: 'from-blue-600 to-cyan-500',
+      accent: 'text-cyan-400',
+      border: 'border-cyan-700',
+      bg: 'bg-cyan-950/30',
+      levels: [
+        { id: 0, label: 'Level 0', name: 'No AI', desc: 'Traditional rule-based software. No learning. Pure if-then logic.', color: '#374151', current: false },
+        { id: 1, label: 'Level 1', name: 'Emerging AGI', desc: 'Slightly better than an unskilled human on general tasks. Early ChatGPT (2022) sat here.', color: '#6b7280', current: false },
+        { id: 2, label: 'Level 2', name: 'Competent AGI', desc: 'Performs at the 50th percentile of skilled adult professionals. GPT-4o / Gemini 1.5 Pro territory.', color: '#3b82f6', current: false },
+        { id: 3, label: 'Level 3', name: 'Expert AGI', desc: 'Performs at the 90th percentile of skilled adults — beating most experts in most domains.', color: '#8b5cf6', current: true },
+        { id: 4, label: 'Level 4', name: 'Virtuoso AGI', desc: 'Performs at the 99th percentile — a once-in-a-generation talent in every field simultaneously.', color: '#ec4899', current: false },
+        { id: 5, label: 'Level 5', name: 'Superhuman AGI', desc: 'Outperforms 100% of humans across all cognitive domains. Enters Artificial Superintelligence (ASI) territory.', color: '#f97316', current: false },
+      ],
+    },
+    openai: {
+      label: 'OpenAI 5-Level',
+      color: 'from-green-600 to-teal-500',
+      accent: 'text-green-400',
+      border: 'border-green-700',
+      bg: 'bg-green-950/30',
+      levels: [
+        { id: 1, label: 'Level 1', name: 'Chatbots', desc: 'Conversational AI. Natural language understanding and generation. ChatGPT, Bard early stage.', color: '#374151', current: false },
+        { id: 2, label: 'Level 2', name: 'Reasoners', desc: 'AI that can solve complex, novel, PhD-level problems without internet access. o3, Gemini 2.5 Pro.', color: '#3b82f6', current: false },
+        { id: 3, label: 'Level 3', name: 'Agents', desc: 'AI that acts autonomously over long periods, using tools to achieve multi-step goals. We are entering this now in 2026.', color: '#8b5cf6', current: true },
+        { id: 4, label: 'Level 4', name: 'Innovators', desc: 'AI that independently invents new scientific breakthroughs — discovers new physics, synthesizes new drugs.', color: '#ec4899', current: false },
+        { id: 5, label: 'Level 5', name: 'Organizations', desc: 'A single AI system capable of autonomously managing and running an entire corporation end-to-end.', color: '#f97316', current: false },
+      ],
+    },
+  };
+
+  const MILESTONES = [
+    { year: '2022', label: 'ChatGPT launch', dm: 1, oai: 1, color: '#6b7280' },
+    { year: '2023', label: 'GPT-4 Vision', dm: 2, oai: 2, color: '#3b82f6' },
+    { year: '2024', label: 'Turing Test surpassed (GPT-4.5, 73%)', dm: 2, oai: 2, color: '#60a5fa' },
+    { year: '2025 Q1', label: 'o3 PhD-level reasoning', dm: 3, oai: 2, color: '#8b5cf6' },
+    { year: '2025 Q3', label: 'Long-horizon agents deployed', dm: 3, oai: 3, color: '#a78bfa' },
+    { year: '2026 H1', label: 'Gemini Omni / Claude Mythos agents', dm: 3, oai: 3, color: '#c084fc' },
+    { year: '2026 H2', label: 'NVIDIA Cosmos 3 (Physical AI)', dm: 3, oai: 3, color: '#d946ef' },
+  ];
+
+  const TESTS = [
+    {
+      id: 'turing',
+      icon: '🤖',
+      name: 'Turing Test',
+      author: 'Alan Turing, 1950',
+      status: 'PASSED ✓',
+      statusColor: 'text-green-400',
+      statusBg: 'bg-green-900/30',
+      year: '2025',
+      desc: 'Can a machine fool a human into thinking it is human through text conversation? In a 2025 pre-registered study, GPT-4.5 was judged human in 73% of conversations — surpassing the 67% humanness rate of real humans.',
+      verdict: 'The Turing Test is now dead as an AGI bar. It tests persuasiveness, not general intelligence.',
+    },
+    {
+      id: 'coffee',
+      icon: '☕',
+      name: 'The Coffee Test',
+      author: 'Steve Wozniak, 2010',
+      status: 'IN PROGRESS ⚡',
+      statusColor: 'text-yellow-400',
+      statusBg: 'bg-yellow-900/30',
+      year: '~2027?',
+      desc: 'A robot must enter an average, unfamiliar American home, find the kitchen, locate the coffee and a mug, and successfully brew a cup of coffee using an unfamiliar machine — without any pre-programmed house map.',
+      verdict: 'Requires physical dexterity, spatial reasoning, common sense, and object recognition all fused together. Current robots still fail on generalization.',
+    },
+    {
+      id: 'ikea',
+      icon: '🪑',
+      name: 'The IKEA Test',
+      author: 'AI Research Community',
+      status: 'NOT PASSED ✗',
+      statusColor: 'text-red-400',
+      statusBg: 'bg-red-900/30',
+      year: 'Unknown',
+      desc: 'An AI must autonomously control a robot to unpack and assemble a piece of flat-pack furniture from only the visual geometry of the parts — no pre-programmed assembly instructions, no CAD files.',
+      verdict: 'Demands physics reasoning, fine motor control, 3D spatial understanding, and error recovery. Completely unsolved for general furniture.',
+    },
+    {
+      id: 'suleyman',
+      icon: '💰',
+      name: "Suleyman's Test",
+      author: 'Mustafa Suleyman (Microsoft AI)',
+      status: 'NOT PASSED ✗',
+      statusColor: 'text-red-400',
+      statusBg: 'bg-red-900/30',
+      year: 'Unknown',
+      desc: 'You give an AI a seed of $100,000. It must autonomously research a product opportunity, source manufacturers, build an e-commerce store, run marketing campaigns, and generate $1,000,000 in revenue — fully autonomously.',
+      verdict: 'The ultimate economic AGI test. Requires sustained real-world judgment, entrepreneurial strategy, and long-horizon planning. Current agents fail on multi-week autonomy.',
+    },
+  ];
+
+  const fw = FRAMEWORKS[framework];
+  const maxLevels = fw.levels.length;
+  const currentLevelObj = fw.levels.find(l => l.current);
+  const activeTest_ = TESTS.find(t => t.id === activeTest);
+
+  return (
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-3xl bg-surface-container rounded-2xl overflow-hidden border border-glass-stroke shadow-xl">
+        {/* Header */}
+        <div className="p-4 border-b border-glass-stroke">
+          <h3 className="text-xl font-bold text-white mb-1">🏁 AGI Framework Explorer</h3>
+          <p className="text-gray-400 text-sm">Toggle between the DeepMind Matrix and OpenAI 5-Level frameworks. Enable milestones to see exactly where 2026 AI models sit in the grand race toward AGI.</p>
+        </div>
+
+        {/* Controls */}
+        <div className="p-4 border-b border-glass-stroke flex flex-wrap gap-3 items-center">
+          {/* Framework toggle */}
+          <div className="flex rounded-xl overflow-hidden border border-glass-stroke text-xs font-bold">
+            {Object.entries(FRAMEWORKS).map(([key, f]) => (
+              <button
+                key={key}
+                onClick={() => { setFramework(key); setActiveLevel(null); }}
+                className={`px-4 py-2 transition-all ${framework === key ? `bg-gradient-to-r ${f.color} text-white` : 'bg-black/30 text-gray-400 hover:text-white'}`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          {/* Milestone toggle */}
+          <button
+            onClick={() => setShowMilestones(m => !m)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${showMilestones ? 'bg-white/10 border-white/20 text-white' : 'bg-black/30 border-glass-stroke text-gray-500'}`}
+          >
+            <span className={`w-2 h-2 rounded-full ${showMilestones ? 'bg-white' : 'bg-gray-600'}`} />
+            Show 2026 Milestones
+          </button>
+        </div>
+
+        {/* Tier chart */}
+        <div className="p-5">
+          <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">Tap a level to explore</div>
+          <div className="space-y-2">
+            {[...fw.levels].reverse().map((level, i) => {
+              const levelMilestones = showMilestones
+                ? MILESTONES.filter(m => framework === 'deepmind' ? m.dm === level.id : m.oai === level.id)
+                : [];
+              const isActive = activeLevel === level.id;
+              const isCurrentLevel = level.current;
+
+              return (
+                <div key={level.id}>
+                  <button
+                    onClick={() => setActiveLevel(isActive ? null : level.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                      isActive ? 'bg-white/10 border-white/20' : 'bg-black/30 border-glass-stroke hover:bg-white/5'
+                    }`}
+                  >
+                    {/* Level indicator bar */}
+                    <div
+                      className="flex-shrink-0 w-2 rounded-full self-stretch min-h-[36px]"
+                      style={{ backgroundColor: level.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-gray-500 uppercase">{level.label}</span>
+                        <span className="text-sm font-bold text-white">{level.name}</span>
+                        {isCurrentLevel && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white animate-pulse">
+                            ← We are here (2026)
+                          </span>
+                        )}
+                      </div>
+                      {/* Milestone pills */}
+                      {levelMilestones.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {levelMilestones.map(m => (
+                            <span key={m.year + m.label} className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 border" style={{ borderColor: m.color + '60', backgroundColor: m.color + '15', color: m.color }}>
+                              <span className="font-bold">{m.year}</span>
+                              <span className="truncate max-w-[160px]">{m.label}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-gray-600 flex-shrink-0">{isActive ? '▲' : '▼'}</span>
+                  </button>
+
+                  {/* Expanded detail */}
+                  {isActive && (
+                    <div className="mt-1 ml-5 p-3 rounded-xl border border-glass-stroke bg-black/30 text-sm text-gray-300 leading-relaxed">
+                      {level.desc}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Current position summary */}
+          {currentLevelObj && (
+            <div className={`mt-4 rounded-xl border p-3 ${fw.bg} ${fw.border}`}>
+              <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${fw.accent}`}>Current Position (2026)</div>
+              <div className="text-white text-sm font-bold">{currentLevelObj.label}: {currentLevelObj.name}</div>
+              <div className="text-gray-400 text-xs mt-1">{currentLevelObj.desc}</div>
+            </div>
+          )}
+        </div>
+
+        {/* AGI Tests */}
+        <div className="border-t border-glass-stroke p-5">
+          <div className="text-xs text-gray-500 uppercase tracking-widest mb-3">The New AGI Tests — Beyond the Turing Test</div>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {TESTS.map(test => (
+              <button
+                key={test.id}
+                onClick={() => setActiveTest(activeTest === test.id ? null : test.id)}
+                className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${
+                  activeTest === test.id ? 'bg-white/10 border-white/20' : 'bg-black/30 border-glass-stroke hover:bg-white/5'
+                }`}
+              >
+                <span className="text-xl">{test.icon}</span>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-white truncate">{test.name}</div>
+                  <div className={`text-xs font-bold ${test.statusColor}`}>{test.status}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Test detail panel */}
+          {activeTest_ && (
+            <div className={`rounded-xl border p-4 ${activeTest_.statusBg} border-glass-stroke`}>
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">{activeTest_.icon}</span>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="text-white font-bold text-sm">{activeTest_.name}</span>
+                    <span className={`text-xs font-bold ${activeTest_.statusColor}`}>{activeTest_.status}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-2">Proposed by {activeTest_.author} · Est. solved: {activeTest_.year}</div>
+                  <p className="text-sm text-gray-300 leading-relaxed mb-2">{activeTest_.desc}</p>
+                  <div className="border-l-2 border-white/20 pl-3">
+                    <p className="text-xs text-gray-400 italic">{activeTest_.verdict}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
