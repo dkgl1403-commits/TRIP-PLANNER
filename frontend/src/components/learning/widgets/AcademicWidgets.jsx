@@ -70,7 +70,9 @@ import {
 
 import {
   CorporateActionsTimelineWidget,
-  CAMVIndicatorWidget
+  CAMVIndicatorWidget,
+  CALifecycleDatesWidget,
+  CASettlementCycleWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1363,5 +1365,7 @@ export const WidgetRegistry = {
   
   // Corporate Actions
   'ca-history-timeline': CorporateActionsTimelineWidget,
-  'ca-camv-indicator': CAMVIndicatorWidget
+  'ca-camv-indicator': CAMVIndicatorWidget,
+  'ca-lifecycle-dates': CALifecycleDatesWidget,
+  'ca-settlement-cycle': CASettlementCycleWidget
 };

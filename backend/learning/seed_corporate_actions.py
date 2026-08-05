@@ -14,7 +14,8 @@ def seed_corporate_actions():
 
         topics = [
             "History & Origins of Corporate Actions",
-            "The Boardroom Decisions (SWIFT CAMV)"
+            "The Boardroom Decisions (SWIFT CAMV)",
+            "The Lifecycle & Settlement Cycle"
         ]
 
         for topic_name in topics:
@@ -55,6 +56,37 @@ def seed_corporate_actions():
                             {
                                 "title": "THE ANATOMY OF A CORPORATE ACTION",
                                 "narrative": "Before a custodian can calculate an entitlement, the \"Golden Copy\" of the event must be scrubbed and verified. A Senior Analyst looks at an event not as a news headline, but as a rigid set of parameters:\n\n*   **Event Type:** What is happening?\n*   **Security:** Which ISIN/CUSIP is affected?\n*   **Ratios / Rates:** What is the math? (e.g., USD 0.50 per share, or 2 new shares for 1 old).\n*   **Dates:** The strict chronological lifecycle that dictates exactly who is entitled to the proceeds. (We will cover the lifecycle dates heavily in Chapter 3)."
+                            }
+                        ]
+                    })
+
+                elif topic_name == "The Lifecycle & Settlement Cycle":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "THE CHRONOLOGY OF ENTITLEMENT",
+                                "narrative": "In the middle office, a corporate action is not a single event — it is a rigid, chronological sequence of five critical dates. Missing any one of these dates results in a miscalculated entitlement, triggering claims, counter-claims, and severe financial liability for the custodian.\n\nThe sequence is: **Announcement Date → Cum-Date → Ex-Date → Record Date → Pay Date**.\n\nEvery event in every market around the world follows this pattern. The differences between markets lie only in the *gaps* between these dates, driven by settlement cycle rules."
+                            },
+                            {
+                                "title": "INTERACTIVE: The 5-Date Lifecycle",
+                                "narrative": "Use the interactive widget below to step through each lifecycle date. For each date, you will see its precise definition, the Operations Team's focus, market impact, a live Apple (AAPL) dividend example, and a hidden analyst tip.",
+                                "widgetType": "ca-lifecycle-dates",
+                                "alt": "Interactive 5-date lifecycle explorer for corporate actions."
+                            },
+                            {
+                                "title": "THE SETTLEMENT CYCLE RELATIONSHIP",
+                                "narrative": "The most misunderstood concept in corporate actions is the relationship between the **Ex-Date** and the **Record Date**. They are NOT always the same day. The gap between them is entirely determined by the country's settlement cycle (T+1 or T+2).\n\n**The Golden Rule:** The Ex-Date is set so that a trade executed on the last day a buyer can receive the entitlement (Cum-Date) will settle exactly ON the Record Date — not after it.\n\n*   **T+2 (e.g., most of Europe):** Trade on Monday (Cum-Date) → Settles Wednesday (Record Date). Therefore Ex-Date = Tuesday (1 day before Record Date).\n*   **T+1 (US, India, Canada since 2024):** Trade on Tuesday (Cum-Date) → Settles Wednesday (Record Date). Therefore Ex-Date = Wednesday (same day as Record Date)."
+                            },
+                            {
+                                "title": "INTERACTIVE: Settlement Cycle Simulator",
+                                "narrative": "Toggle between T+1 (US/India) and T+2 (Europe) settlement modes. Click each calendar day to see exactly who is entitled to the dividend and who is not. This is the exact decision tree an ops analyst runs through when processing a market claim.",
+                                "widgetType": "ca-settlement-cycle",
+                                "alt": "T+1 vs T+2 Settlement Cycle Simulator for corporate actions."
+                            },
+                            {
+                                "title": "MARKET CLAIMS: When Settlement Goes Wrong",
+                                "narrative": "Real life is messier than the textbook. Trades fail. Counterparties default. Systems crash. When a trade that was executed on the Cum-Date fails to settle on the Record Date, the buyer has a legal right to the entitlement — but the entitlement was paid to the seller (who still technically holds the shares).\n\nThis creates a **Market Claim**:\n\n1.  **Identification:** The custodian's fails management system flags all unsettled trades that span the Record Date.\n2.  **Claim Generation:** An MT565 (Instruction message) is generated and sent to the failing counterparty, demanding the return of the equivalent cash or securities.\n3.  **Resolution:** The counterparty acknowledges and processes the reverse payment.\n4.  **Time Pressure:** Claims have market deadlines. Failing to file a claim within the stipulated window (often 15-30 business days) means the entitlement is permanently lost — a direct financial write-off for the custodian.\n\nMarket Claims are the bread and butter of a middle-office corporate actions team. Senior analysts handle dozens per dividend cycle."
                             }
                         ]
                     })
