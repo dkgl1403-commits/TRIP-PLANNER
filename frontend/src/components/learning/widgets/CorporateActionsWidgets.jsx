@@ -813,27 +813,27 @@ export function SwiftStpFlowWidget() {
             <button
               key={idx}
               onClick={() => setActiveStep(idx)}
-              className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-center justify-between ${
+              className={`w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between gap-2 ${
                 activeStep === idx
-                  ? 'bg-slate-800 border-blue-500 shadow-lg scale-[1.02]'
+                  ? 'bg-slate-800 border-blue-500 shadow-lg scale-[1.01]'
                   : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <span
                   className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                   style={{ backgroundColor: item.color }}
                 >
                   {item.step}
                 </span>
-                <div>
-                  <div className="text-xs font-bold text-white">
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-white truncate">
                     {is15022 ? item.iso15022 : item.iso20022}
                   </div>
-                  <div className="text-xs text-slate-400 truncate max-w-[160px]">{item.title}</div>
+                  <div className="text-[11px] text-slate-400 truncate leading-tight">{item.title}</div>
                 </div>
               </div>
-              <span className="text-xs text-slate-500 font-mono">
+              <span className="text-xs text-slate-500 font-mono shrink-0">
                 {item.direction === 'downstream' ? '⬇' : item.direction === 'upstream' ? '⬆' : '🔄'}
               </span>
             </button>
@@ -853,16 +853,16 @@ export function SwiftStpFlowWidget() {
                 className="space-y-4"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-700 pb-3">
-                  <div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 mr-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 shrink-0">
                       Step {currentFlow[activeStep].step} of {currentFlow.length}
                     </span>
-                    <h4 className="text-lg font-bold text-white inline-block">
+                    <h4 className="text-base sm:text-lg font-bold text-white leading-snug">
                       {currentFlow[activeStep].title}
                     </h4>
                   </div>
-                  <span className="text-sm font-mono font-bold px-3 py-1 rounded-lg bg-slate-900 border border-slate-700 text-amber-300">
+                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-amber-300 shrink-0 self-start sm:self-auto">
                     {is15022 ? currentFlow[activeStep].iso15022 : currentFlow[activeStep].iso20022}
                   </span>
                 </div>
@@ -1068,20 +1068,20 @@ export function SwiftDictionaryWidget() {
             <button
               key={msg.mt}
               onClick={() => setSelectedMsg(msg)}
-              className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+              className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between gap-2 ${
                 selectedMsg.mt === msg.mt
                   ? 'bg-blue-900/40 border-blue-500 shadow-md'
                   : 'bg-slate-800/80 border-slate-700/70 hover:bg-slate-800'
               }`}
             >
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-black font-mono text-amber-400">{msg.mt}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 font-mono text-slate-300">{msg.iso20022}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-black font-mono text-amber-400 shrink-0">{msg.mt}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 font-mono text-slate-300 shrink-0">{msg.iso20022}</span>
                 </div>
-                <div className="text-xs font-semibold text-white mt-1 truncate max-w-[170px]">{msg.name}</div>
+                <div className="text-xs font-semibold text-white mt-1 truncate">{msg.name}</div>
               </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                 msg.direction === 'Downstream' ? 'bg-blue-500/20 text-blue-300' :
                 msg.direction === 'Upstream' ? 'bg-amber-500/20 text-amber-300' : 'bg-purple-500/20 text-purple-300'
               }`}>
@@ -1292,15 +1292,15 @@ export function CustodyChainPyramidWidget() {
                   boxShadow: isSelected ? `0 0 15px ${actor.color}40` : undefined
                 }}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{actor.icon}</span>
-                  <div className="text-left">
-                    <div className="text-xs font-bold text-white">{actor.shortName}</div>
-                    <div className="text-[10px] text-slate-400">{actor.examples}</div>
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <span className="text-xl shrink-0">{actor.icon}</span>
+                  <div className="text-left min-w-0 flex-1">
+                    <div className="text-xs font-bold text-white truncate">{actor.shortName}</div>
+                    <div className="text-[10px] text-slate-400 truncate">{actor.examples}</div>
                   </div>
                 </div>
                 <span
-                  className="text-[10px] px-2 py-0.5 rounded font-mono font-bold"
+                  className="text-[10px] px-2 py-0.5 rounded font-mono font-bold shrink-0"
                   style={{ backgroundColor: actor.color + '25', color: actor.color }}
                 >
                   L{actor.level}
