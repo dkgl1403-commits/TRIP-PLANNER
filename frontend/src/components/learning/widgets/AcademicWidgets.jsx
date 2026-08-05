@@ -72,7 +72,9 @@ import {
   CorporateActionsTimelineWidget,
   CAMVIndicatorWidget,
   CALifecycleDatesWidget,
-  CASettlementCycleWidget
+  CASettlementCycleWidget,
+  SwiftStpFlowWidget,
+  SwiftDictionaryWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1367,5 +1369,8 @@ export const WidgetRegistry = {
   'ca-history-timeline': CorporateActionsTimelineWidget,
   'ca-camv-indicator': CAMVIndicatorWidget,
   'ca-lifecycle-dates': CALifecycleDatesWidget,
-  'ca-settlement-cycle': CASettlementCycleWidget
+  'ca-settlement-cycle': CASettlementCycleWidget,
+  'swift-message-flow-sankey': SwiftStpFlowWidget,
+  'ca-swift-flow': SwiftStpFlowWidget,
+  'ca-swift-dictionary': SwiftDictionaryWidget
 };

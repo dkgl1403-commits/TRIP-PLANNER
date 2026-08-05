@@ -567,3 +567,589 @@ export function CASettlementCycleWidget() {
     </div>
   );
 }
+
+// ─── Chapter 4 Widget 1: SWIFT STP Flow Visualizer ───────────────────────────
+export function SwiftStpFlowWidget() {
+  const [eventType, setEventType] = useState('voluntary'); // 'mandatory' | 'voluntary' | 'choice'
+  const [standard, setStandard] = useState('15022'); // '15022' | '20022'
+  const [activeStep, setActiveStep] = useState(0);
+
+  const is15022 = standard === '15022';
+
+  const flows = {
+    mandatory: [
+      {
+        step: 1,
+        sender: 'Depository / CSD',
+        receiver: 'Global Custodian',
+        iso15022: 'MT564 (NEWM)',
+        iso20022: 'seev.031.001',
+        title: 'Corporate Action Notification',
+        direction: 'downstream',
+        color: '#3b82f6',
+        desc: 'Depository broadcasts mandatory event details (ISIN, rate, ex-date, record date).',
+        ops: 'Scrubbed against Bloomberg/Reuters to construct Golden Copy.'
+      },
+      {
+        step: 2,
+        sender: 'Global Custodian',
+        receiver: 'Beneficial Owner / Fund',
+        iso15022: 'MT564 (REPE/NEWM)',
+        iso20022: 'seev.031.001',
+        title: 'Cascaded Client Advice',
+        direction: 'downstream',
+        color: '#6366f1',
+        desc: 'Custodian calculates eligible position on Record Date and notifies client.',
+        ops: 'No client instruction required for mandatory events.'
+      },
+      {
+        step: 3,
+        sender: 'Depository',
+        receiver: 'Global Custodian',
+        iso15022: 'MT202 / MT566',
+        iso20022: 'pacs.009 / seev.036',
+        title: 'Depository Payment & Settlement',
+        direction: 'downstream',
+        color: '#10b981',
+        desc: 'Depository releases cash (MT202 interbank transfer) and sends MT566 payment confirmation.',
+        ops: 'Cash credited to custodian nostro account.'
+      },
+      {
+        step: 4,
+        sender: 'Global Custodian',
+        receiver: 'Beneficial Owner',
+        iso15022: 'MT566 Confirmation',
+        iso20022: 'seev.036.001',
+        title: 'Client Account Credit & Statement',
+        direction: 'downstream',
+        color: '#8b5cf6',
+        desc: 'Final entitlement credited to client cash/securities account after withholding tax deduction.',
+        ops: 'Reconciled against expected entitlement.'
+      }
+    ],
+    voluntary: [
+      {
+        step: 1,
+        sender: 'Depository / CSD',
+        receiver: 'Global Custodian',
+        iso15022: 'MT564 Notification',
+        iso20022: 'seev.031.001',
+        title: 'Event Announcement & Offer Terms',
+        direction: 'downstream',
+        color: '#3b82f6',
+        desc: 'Announces voluntary offer (e.g. Tender Offer @ $50/share with deadline 15th Feb).',
+        ops: 'Scrub terms, option codes (TEND), and market deadlines.'
+      },
+      {
+        step: 2,
+        sender: 'Beneficial Owner / Manager',
+        receiver: 'Global Custodian',
+        iso15022: 'MT565 Instruction',
+        iso20022: 'seev.033.001',
+        title: 'Client Election Instruction',
+        direction: 'upstream',
+        color: '#f59e0b',
+        desc: 'Client instructs election: e.g. "Tender 10,000 shares under Option 1".',
+        ops: 'Validate settled position. Check if client has sufficient unencumbered shares.'
+      },
+      {
+        step: 3,
+        sender: 'Global Custodian System',
+        receiver: 'Internal Ledger',
+        iso15022: 'MT508 Intra-Position Advice',
+        iso20022: 'semt.006.001',
+        title: 'Share Blocking / Reservation',
+        direction: 'internal',
+        color: '#ec4899',
+        desc: 'Moves 10,000 shares from "Available" to "Blocked/Earmarked" sub-balance.',
+        ops: 'Prevents client from selling shares on open market while tender is pending.'
+      },
+      {
+        step: 4,
+        sender: 'Global Custodian',
+        receiver: 'Beneficial Owner',
+        iso15022: 'MT567 Status & Advice',
+        iso20022: 'seev.034.001',
+        title: 'Instruction Ack / Validation Status',
+        direction: 'downstream',
+        color: '#10b981',
+        desc: 'Sends status code: PACK (Accepted) or REJT (Rejected with reason code).',
+        ops: 'If rejected (e.g., LATE or DQUA shortfall), analyst alerts client immediately.'
+      },
+      {
+        step: 5,
+        sender: 'Global Custodian',
+        receiver: 'Depository / Agent',
+        iso15022: 'MT565 Aggregated Instruction',
+        iso20022: 'seev.033.001',
+        title: 'Bulk Market Election Submission',
+        direction: 'upstream',
+        color: '#06b6d4',
+        desc: 'Custodian aggregates all client elections and sends bulk MT565 to Depository.',
+        ops: 'Must be delivered before market cut-off (Guaranteed Delivery rules apply).'
+      },
+      {
+        step: 6,
+        sender: 'Depository / Custodian',
+        receiver: 'Beneficial Owner',
+        iso15022: 'MT566 + MT202 Settlement',
+        iso20022: 'seev.036 + pacs.009',
+        title: 'Entitlement Payment & Debiting',
+        direction: 'downstream',
+        color: '#8b5cf6',
+        desc: 'Tendered shares debited; cash credited via MT202 RTGS transfer. MT566 issued.',
+        ops: 'Unblock unused shares if pro-rata scaling occurred.'
+      }
+    ],
+    choice: [
+      {
+        step: 1,
+        sender: 'Depository',
+        receiver: 'Global Custodian',
+        iso15022: 'MT564 (CAMV//CHOS)',
+        iso20022: 'seev.031.001',
+        title: 'Choice Announcement with Default',
+        direction: 'downstream',
+        color: '#3b82f6',
+        desc: 'Announces Dividend Option (Option 1: Cash, Option 2: Stock DRIP, Default: Cash).',
+        ops: 'Verify default option rules in case client does not respond.'
+      },
+      {
+        step: 2,
+        sender: 'Client (Optional)',
+        receiver: 'Global Custodian',
+        iso15022: 'MT565 Election',
+        iso20022: 'seev.033.001',
+        title: 'Client Election (if non-default)',
+        direction: 'upstream',
+        color: '#f59e0b',
+        desc: 'Client elects Option 2 (Stock DRIP). If no MT565 sent, Default Option 1 applies.',
+        ops: 'Monitor deadline. Reconcile elected vs default balances.'
+      },
+      {
+        step: 3,
+        sender: 'Global Custodian',
+        receiver: 'FX Desk / Market',
+        iso15022: 'MT304 FX Advice / Cover',
+        iso20022: 'trck.001 / camt',
+        title: 'Currency Conversion (if applicable)',
+        direction: 'internal',
+        color: '#eab308',
+        desc: 'If dividend declared in EUR but client wants USD, MT304 confirms corporate FX rate.',
+        ops: 'Execute corporate action FX cover trade.'
+      },
+      {
+        step: 4,
+        sender: 'Global Custodian',
+        receiver: 'Client',
+        iso15022: 'MT566 Confirmation',
+        iso20022: 'seev.036.001',
+        title: 'Allocation & Final Confirmation',
+        direction: 'downstream',
+        color: '#8b5cf6',
+        desc: 'New stock units allocated or cash credited depending on election.',
+        ops: 'Post final ledger entries.'
+      }
+    ]
+  };
+
+  const currentFlow = flows[eventType];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">SWIFT STP Message Flow Visualizer</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Trace end-to-end Straight-Through Processing (STP) across the custody chain</p>
+
+      {/* Control Bar */}
+      <div className="flex flex-wrap gap-4 justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700 mb-6">
+        {/* Event Type Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Event:</span>
+          <div className="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
+            {['mandatory', 'voluntary', 'choice'].map((t) => (
+              <button
+                key={t}
+                onClick={() => { setEventType(t); setActiveStep(0); }}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold capitalize transition-all ${
+                  eventType === t ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Messaging Standard Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Standard:</span>
+          <div className="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
+            <button
+              onClick={() => setStandard('15022')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                is15022 ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ISO 15022 (MT)
+            </button>
+            <button
+              onClick={() => setStandard('20022')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                !is15022 ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ISO 20022 (XML seev)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Flow Diagram Stepper */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Flow List */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Message Steps</h3>
+          {currentFlow.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => setActiveStep(idx)}
+              className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-center justify-between ${
+                activeStep === idx
+                  ? 'bg-slate-800 border-blue-500 shadow-lg scale-[1.02]'
+                  : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                  style={{ backgroundColor: item.color }}
+                >
+                  {item.step}
+                </span>
+                <div>
+                  <div className="text-xs font-bold text-white">
+                    {is15022 ? item.iso15022 : item.iso20022}
+                  </div>
+                  <div className="text-xs text-slate-400 truncate max-w-[160px]">{item.title}</div>
+                </div>
+              </div>
+              <span className="text-xs text-slate-500 font-mono">
+                {item.direction === 'downstream' ? '⬇' : item.direction === 'upstream' ? '⬆' : '🔄'}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Right Column: Active Step Details */}
+        <div className="lg:col-span-2 flex flex-col justify-between bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-xl">
+          {currentFlow[activeStep] && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${eventType}-${standard}-${activeStep}`}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+                  <div>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 mr-2">
+                      Step {currentFlow[activeStep].step} of {currentFlow.length}
+                    </span>
+                    <h4 className="text-lg font-bold text-white inline-block">
+                      {currentFlow[activeStep].title}
+                    </h4>
+                  </div>
+                  <span className="text-sm font-mono font-bold px-3 py-1 rounded-lg bg-slate-900 border border-slate-700 text-amber-300">
+                    {is15022 ? currentFlow[activeStep].iso15022 : currentFlow[activeStep].iso20022}
+                  </span>
+                </div>
+
+                {/* Actor Diagram */}
+                <div className="bg-slate-900 p-4 rounded-xl border border-slate-700/80 flex items-center justify-around text-center">
+                  <div className="flex flex-col items-center">
+                    <span className="text-2xl mb-1">🏦</span>
+                    <span className="text-xs font-bold text-slate-300">{currentFlow[activeStep].sender}</span>
+                    <span className="text-[10px] text-slate-500">Sender</span>
+                  </div>
+
+                  <div className="flex-1 px-4 flex flex-col items-center">
+                    <span className="text-xs font-mono font-bold text-blue-400 mb-1">
+                      {is15022 ? currentFlow[activeStep].iso15022 : currentFlow[activeStep].iso20022}
+                    </span>
+                    <div className="w-full h-0.5 bg-blue-500/50 relative flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 capitalize">
+                      {currentFlow[activeStep].direction} SWIFT Message
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <span className="text-2xl mb-1">👤</span>
+                    <span className="text-xs font-bold text-slate-300">{currentFlow[activeStep].receiver}</span>
+                    <span className="text-[10px] text-slate-500">Receiver</span>
+                  </div>
+                </div>
+
+                {/* Purpose Description */}
+                <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-700">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Functional Purpose</h5>
+                  <p className="text-sm text-slate-200 leading-relaxed">
+                    {currentFlow[activeStep].desc}
+                  </p>
+                </div>
+
+                {/* Operations Focus */}
+                <div className="bg-blue-950/40 p-4 rounded-lg border border-blue-800/40">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">⚙ Senior Analyst Operations Focus</h5>
+                  <p className="text-sm text-blue-200 leading-relaxed">
+                    {currentFlow[activeStep].ops}
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
+
+          {/* Stepper Buttons */}
+          <div className="flex justify-between items-center pt-4 border-t border-slate-700/60 mt-4">
+            <button
+              onClick={() => setActiveStep(s => Math.max(0, s - 1))}
+              disabled={activeStep === 0}
+              className="px-3 py-1.5 rounded bg-slate-700 text-xs font-bold text-slate-200 disabled:opacity-30 hover:bg-slate-600"
+            >
+              ← Prev Step
+            </button>
+            <span className="text-xs text-slate-500">
+              Click any step to inspect SWIFT payloads
+            </span>
+            <button
+              onClick={() => setActiveStep(s => Math.min(currentFlow.length - 1, s + 1))}
+              disabled={activeStep === currentFlow.length - 1}
+              className="px-3 py-1.5 rounded bg-blue-600 text-xs font-bold text-white disabled:opacity-30 hover:bg-blue-500"
+            >
+              Next Step →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Chapter 4 Widget 2: Comprehensive SWIFT Message Dictionary ─────────────
+const SWIFT_DICTIONARY = [
+  {
+    cat: 'Core Corporate Actions',
+    mt: 'MT564',
+    iso20022: 'seev.031',
+    name: 'Corporate Action Notification',
+    direction: 'Downstream',
+    lifecyclePhase: 'Announcement / Ex-Date / Record Date',
+    purpose: 'Broadcasts details of an upcoming corporate action to clients and custodians.',
+    keyFields: ':22F::CAEV (Event Type), :22F::CAMV (Mandatory/Voluntary), :98A:: (Dates), :92A:: (Rates)',
+    analystNote: 'Must be scrubbed against multiple vendors (Bloomberg, Refinitiv) to construct the Golden Copy before broadcasting.'
+  },
+  {
+    cat: 'Core Corporate Actions',
+    mt: 'MT565',
+    iso20022: 'seev.033',
+    name: 'Corporate Action Instruction',
+    direction: 'Upstream',
+    lifecyclePhase: 'Voluntary / Choice Election Window',
+    purpose: 'Sent by beneficial owner or investment manager to elect options on Voluntary (VOLU) or Choice (CHOS) events.',
+    keyFields: ':13A::CAON (Option Number), :93B::ELIG (Eligible Quantity), :93B::INSTRUCTED (Quantity Tendered)',
+    analystNote: 'Requires balance validation. Instructing on more than the settled eligible position results in rejection.'
+  },
+  {
+    cat: 'Core Corporate Actions',
+    mt: 'MT567',
+    iso20022: 'seev.034',
+    name: 'Corporate Action Instruction Status & Advice',
+    direction: 'Downstream',
+    lifecyclePhase: 'Post-Instruction Validation',
+    purpose: 'Acknowledges receipt of MT565 and reports acceptance (PACK) or rejection (REJT) with error reason codes.',
+    keyFields: ':24B::STAT (Status Code), :24B::REAS (Reason Code: e.g. LATE, DQUA, OPTI)',
+    analystNote: 'Rejection reasons must be monitored in real-time to rectify client election errors before market cut-off.'
+  },
+  {
+    cat: 'Core Corporate Actions',
+    mt: 'MT566',
+    iso20022: 'seev.036',
+    name: 'Corporate Action Confirmation',
+    direction: 'Downstream',
+    lifecyclePhase: 'Pay Date / Value Date',
+    purpose: 'Confirms that cash proceeds or new securities have been credited to (or debited from) the account.',
+    keyFields: ':19A::PAYS (Gross Amount), :19A::WITX (Withholding Tax), :19A::NETA (Net Amount), :93B::POST (Posted Units)',
+    analystNote: 'Triggers final post-payment reconciliation between expected entitlement and actual cash/security posting.'
+  },
+  {
+    cat: 'Core Corporate Actions',
+    mt: 'MT568',
+    iso20022: 'seev.038',
+    name: 'Corporate Action Narrative',
+    direction: 'Downstream',
+    lifecyclePhase: 'Any Lifecycle Phase',
+    purpose: 'Provides free-text narrative details for complex restructurings, legal clauses, or AGM agenda details.',
+    keyFields: ':70E::ADTX (Additional Text), :70E::TXER (Tax Explanation)',
+    analystNote: 'Free-text breaks Straight-Through Processing (STP) and requires manual reading by middle-office analysts.'
+  },
+  {
+    cat: 'Auxiliary & Cash Management',
+    mt: 'MT508',
+    iso20022: 'semt.006',
+    name: 'Intra-Position Advice / Block Instruction',
+    direction: 'Internal / Custodian Ledger',
+    lifecyclePhase: 'Voluntary Election Window (Pre-Pay Date)',
+    purpose: 'Instructs the internal custody ledger to transfer securities from "Unrestricted Available" to "Blocked/Earmarked" sub-balance.',
+    keyFields: ':93B::BLOK (Blocked Quantity), :22F::SETT (Sub-balance indicator)',
+    analystNote: 'Crucial for risk management. Prevents a client from selling tendered shares on the open market while a tender offer is pending.'
+  },
+  {
+    cat: 'Auxiliary & Cash Management',
+    mt: 'MT202',
+    iso20022: 'pacs.009',
+    name: 'Financial Institution Funds Transfer (Cover Payment)',
+    direction: 'Interbank RTGS',
+    lifecyclePhase: 'Pay Date (Cash Settlement)',
+    purpose: 'Executes interbank cash settlement between custodian correspondent banks when cash proceeds are paid separately from securities.',
+    keyFields: ':32A:: (Value Date, Currency, Interbank Amount), :53A:: (Sender Correspondent), :58A:: (Beneficiary Institution)',
+    analystNote: 'Used on Pay Date to transfer large dividend cash pools from the issuer paying agent to global custodians via Fedwire/CHIPS/TARGET2.'
+  },
+  {
+    cat: 'Auxiliary & Cash Management',
+    mt: 'MT304',
+    iso20022: 'trck.001 / FX Cover',
+    name: 'Advice of FX Instruction / Corporate Action FX Cover',
+    direction: 'Internal / FX Desk',
+    lifecyclePhase: 'Pay Date / Pre-Pay Date Currency Conversion',
+    purpose: 'Confirms corporate action foreign exchange conversions (e.g. converting a Japanese Yen dividend into USD for US investors).',
+    keyFields: ':36:: (Exchange Rate), :32B:: (Bought Amount), :33B:: (Sold Amount)',
+    analystNote: 'Used when dividends are declared in one currency but beneficial owners require payout in their local home currency.'
+  }
+];
+
+export function SwiftDictionaryWidget() {
+  const [filterCat, setFilterCat] = useState('All');
+  const [selectedMsg, setSelectedMsg] = useState(SWIFT_DICTIONARY[0]);
+
+  const categories = ['All', 'Core Corporate Actions', 'Auxiliary & Cash Management'];
+
+  const filtered = filterCat === 'All' 
+    ? SWIFT_DICTIONARY 
+    : SWIFT_DICTIONARY.filter(m => m.cat === filterCat);
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">SWIFT Corporate Actions Message Dictionary</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Interactive reference guide for MT5xx, MT202, MT508, and MT304 protocols</p>
+
+      {/* Category Filter */}
+      <div className="flex gap-2 justify-center mb-6">
+        {categories.map(c => (
+          <button
+            key={c}
+            onClick={() => setFilterCat(c)}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              filterCat === c ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+        {/* Message List */}
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+          {filtered.map(msg => (
+            <button
+              key={msg.mt}
+              onClick={() => setSelectedMsg(msg)}
+              className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                selectedMsg.mt === msg.mt
+                  ? 'bg-blue-900/40 border-blue-500 shadow-md'
+                  : 'bg-slate-800/80 border-slate-700/70 hover:bg-slate-800'
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black font-mono text-amber-400">{msg.mt}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 font-mono text-slate-300">{msg.iso20022}</span>
+                </div>
+                <div className="text-xs font-semibold text-white mt-1 truncate max-w-[170px]">{msg.name}</div>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                msg.direction === 'Downstream' ? 'bg-blue-500/20 text-blue-300' :
+                msg.direction === 'Upstream' ? 'bg-amber-500/20 text-amber-300' : 'bg-purple-500/20 text-purple-300'
+              }`}>
+                {msg.direction}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Message Inspector Panel */}
+        <div className="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col justify-between shadow-xl">
+          {selectedMsg && (
+            <motion.div
+              key={selectedMsg.mt}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-start border-b border-slate-700 pb-3">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-black font-mono text-amber-400">{selectedMsg.mt}</span>
+                    <span className="text-xs font-mono px-2 py-1 rounded bg-slate-900 text-emerald-400 border border-slate-700">
+                      ISO 20022: {selectedMsg.iso20022}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white mt-1">{selectedMsg.name}</h3>
+                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-900 border border-slate-700 text-slate-300">
+                  {selectedMsg.cat}
+                </span>
+              </div>
+
+              {/* Grid Properties */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                  <span className="text-slate-500 block uppercase font-bold text-[10px]">Flow Direction</span>
+                  <span className="text-slate-200 font-semibold">{selectedMsg.direction}</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                  <span className="text-slate-500 block uppercase font-bold text-[10px]">CA Lifecycle Phase</span>
+                  <span className="text-slate-200 font-semibold">{selectedMsg.lifecyclePhase}</span>
+                </div>
+              </div>
+
+              {/* Purpose */}
+              <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Message Purpose</h4>
+                <p className="text-sm text-slate-200 leading-relaxed">{selectedMsg.purpose}</p>
+              </div>
+
+              {/* Key SWIFT Tags */}
+              <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700 font-mono text-xs">
+                <h4 className="text-xs font-sans font-bold text-amber-400 uppercase tracking-wider mb-1">Key Tags / Elements</h4>
+                <p className="text-slate-300">{selectedMsg.keyFields}</p>
+              </div>
+
+              {/* Analyst Pro-Tip */}
+              <div className="bg-amber-950/30 border border-amber-500/30 p-3.5 rounded-lg text-xs">
+                <h4 className="font-bold text-amber-400 uppercase tracking-wider mb-1">💡 Senior Operations Analyst Note</h4>
+                <p className="text-amber-200 leading-relaxed">{selectedMsg.analystNote}</p>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+

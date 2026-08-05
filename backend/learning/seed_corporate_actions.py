@@ -15,7 +15,8 @@ def seed_corporate_actions():
         topics = [
             "History & Origins of Corporate Actions",
             "The Boardroom Decisions (SWIFT CAMV)",
-            "The Lifecycle & Settlement Cycle"
+            "The Lifecycle & Settlement Cycle",
+            "The SWIFT Messaging Protocol"
         ]
 
         for topic_name in topics:
@@ -95,6 +96,40 @@ def seed_corporate_actions():
                             {
                                 "title": "MARKET CLAIMS: When Settlement Goes Wrong",
                                 "narrative": "<p>Real life is messier than the textbook. Trades fail. Counterparties default. Systems crash. When a trade executed on the <strong>Cum-Date fails to settle on the Record Date</strong>, the buyer has a legal right to the entitlement &mdash; but the entitlement was paid to the seller, who still holds the shares on record.</p><p>This creates a <strong>Market Claim</strong>. The process works as follows:</p><ol><li><strong>Identification:</strong> The custodian&apos;s fails management system automatically flags all unsettled trades that span the Record Date at end of day.</li><li><strong>Claim Generation:</strong> A SWIFT <code>MT565</code> Instruction message is generated and sent to the failing counterparty, demanding the return of the equivalent cash or securities.</li><li><strong>Resolution:</strong> The counterparty acknowledges and processes a reverse payment equal to the gross entitlement (before any tax deductions).</li><li><strong>Time Pressure:</strong> Claims have strict market deadlines &mdash; often 15 to 30 business days. Failing to file within the window means the entitlement is <strong>permanently lost</strong>, a direct financial write-off for the custodian.</li></ol><p>Market Claims are the bread and butter of a middle-office corporate actions team. A senior analyst on a busy dividend cycle may handle dozens in a single day.</p>"
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 4
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The SWIFT Messaging Protocol":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "THE LANGUAGE OF THE MIDDLE OFFICE",
+                                "narrative": "<p>Global custodians do not process corporate actions manually over email or spreadsheets. The entire global lifecycle is governed by automated, structured messages sent across the secure <strong>SWIFT network</strong>.</p><p>Historically, this was handled under the <strong>ISO 15022</strong> standard (the MT500 series). Today, the financial industry is migrating to the richer, XML-based <strong>ISO 20022</strong> standard (the <code>seev</code> series).</p><p>As a Senior Corporate Actions Analyst, you must be fluent in both standards, understanding how structured tags translate into ledger entries and operational actions.</p>"
+                            },
+                            {
+                                "title": "THE CORE MT5xx MESSAGE FLOW",
+                                "narrative": "<p>The core lifecycle uses five primary SWIFT MT messages:</p><ol><li><strong>MT564 (Notification):</strong> Sent by Depository/Custodian to broadcast upcoming event terms, ISIN, ratios, and dates. Dynamic updates are issued as <code>NEWM</code> (New), <code>REPE</code> (Replacement), or <code>WITH</code> (Withdrawal).</li><li><strong>MT565 (Instruction):</strong> Sent by the client back to the custodian for Voluntary (<code>VOLU</code>) or Choice (<code>CHOS</code>) events to elect an option before cut-off.</li><li><strong>MT567 (Status & Advice):</strong> Sent by custodian back to client to confirm instruction receipt and status (<code>PACK</code> = Accepted, <code>REJT</code> = Rejected with reason code).</li><li><strong>MT566 (Confirmation):</strong> Sent on Pay Date to confirm cash or security entitlements have been credited or debited.</li><li><strong>MT568 (Narrative):</strong> Sent when complex reorganizations or legal terms cannot fit into structured tags (note: free-text breaks STP and requires manual analyst review).</li></ol>"
+                            },
+                            {
+                                "title": "INTERACTIVE: SWIFT STP Flow Visualizer",
+                                "narrative": "<p>Explore the end-to-end Straight-Through Processing (STP) message flow below. Toggle between <strong>Mandatory</strong>, <strong>Voluntary</strong>, and <strong>Choice</strong> events, and switch between legacy <strong>ISO 15022 (MT)</strong> and modern <strong>ISO 20022 (XML seev)</strong> standards.</p>",
+                                "widgetType": "swift-message-flow-sankey",
+                                "alt": "Interactive SWIFT STP Flow Visualizer for Corporate Actions."
+                            },
+                            {
+                                "title": "AUXILIARY MESSAGES: MT202, MT508 & MT304",
+                                "narrative": "<p>Beyond the core MT564-567 chain, a Senior Analyst must master three critical auxiliary SWIFT messages used for cash settlement, position blocking, and currency conversions:</p><ul><li><strong>MT508 (Intra-Position Advice / Block Instruction):</strong> Used during Voluntary events (like Tender Offers or Rights Subscriptions). When a client submits an MT565 election, the custodian&apos;s system generates an MT508 to move the tendered shares from <em>Unrestricted Available Balance</em> to <em>Blocked/Earmarked Balance</em>. This prevents the client from accidentally selling the tendered shares on the open market while the offer is pending.</li><li><strong>MT202 (Financial Institution Funds Transfer / Cover Payment):</strong> Used on Pay Date for cash settlement. When cash dividend funds are distributed by the issuer paying agent, they are transferred between bank accounts via MT202 RTGS (Fedwire/CHIPS/TARGET2) separately from the MT566 confirmation message.</li><li><strong>MT304 (Advice of FX Instruction / Corporate Action FX Cover):</strong> Used in multi-currency corporate actions. If a dividend is declared in Japanese Yen (JPY) or Euro (EUR), but beneficial owners require payout in USD, the custodian&apos;s FX desk executes a corporate action FX cover trade and confirms the rate via MT304 before posting net cash in MT566.</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: SWIFT Message Dictionary",
+                                "narrative": "<p>Use the dictionary below to inspect the complete operational profiles of MT564, MT565, MT566, MT567, MT568, MT508, MT202, and MT304 &mdash; including their ISO 20022 equivalents, SWIFT tags, and senior analyst gotchas.</p>",
+                                "widgetType": "ca-swift-dictionary",
+                                "alt": "Comprehensive SWIFT Corporate Actions Message Dictionary."
                             }
                         ]
                     })
