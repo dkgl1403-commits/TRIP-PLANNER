@@ -1520,3 +1520,343 @@ export function OmnibusAllocationWidget() {
   );
 }
 
+// ─── Chapter 6 Widget: The Taxonomy of Events ────────────────────────────────
+const TAXONOMY_CATEGORIES = [
+  {
+    id: 'income',
+    name: '1. Income / Distribution Events',
+    color: '#10b981',
+    icon: '💵',
+    summary: 'Issuer distributes earnings or capital proceeds. Parent security ISIN does NOT change.',
+    events: [
+      { code: 'DVCA', name: 'Cash Dividend', swiftTag: 'DVCA', impact: 'Cash payout per share held. Heavy Withholding Tax (WHT) & FX focus.', glEntry: 'Dr Nostro Cash / Cr Client Cash (less WHT)' },
+      { code: 'DVSE', name: 'Stock Dividend / Bonus Issue', swiftTag: 'DVSE', impact: 'New shares allocated pro-rata. Fraction handling applies if non-integer.', glEntry: 'Cr Client Securities Account (New Units)' },
+      { code: 'INTR', name: 'Interest Payment', swiftTag: 'INTR', impact: 'Fixed-income coupon payout based on bond nominal value held on record date.', glEntry: 'Dr Paying Agent Cash / Cr Bondholder Cash' }
+    ]
+  },
+  {
+    id: 'restructuring',
+    name: '2. Restructuring / Reorganization Events',
+    color: '#3b82f6',
+    icon: '🔄',
+    summary: 'Capital structure altered. Alters share count, ISIN, or company identity. Triggers Transformations.',
+    events: [
+      { code: 'MRGR', name: 'Merger / Acquisition', swiftTag: 'MRGR', impact: 'Old company ISIN extinguished. Cash and/or acquirer stock distributed.', glEntry: 'Dr Old ISIN / Cr New Acquirer ISIN + Cash' },
+      { code: 'SPLF', name: 'Stock Split (Forward)', swiftTag: 'SPLF', impact: 'Share count increases by ratio (e.g. 2:1). Share price reduced proportionally.', glEntry: 'Dr Old Unit Balance / Cr New Split Balance' },
+      { code: 'SPLR', name: 'Reverse Stock Split', swiftTag: 'SPLR', impact: 'Share count decreases (e.g. 1:10). Fractional holdings converted to Cash-in-Lieu (CIL).', glEntry: 'Debit Old Units / Credit New Units + CIL Cash' },
+      { code: 'SPUN', name: 'Spin-Off', swiftTag: 'SPUN', impact: 'Parent company spins out new subsidiary stock line to existing shareholders.', glEntry: 'Cr Client Account (New Spin-Off ISIN)' }
+    ]
+  },
+  {
+    id: 'redemption',
+    name: '3. Redemption Events',
+    color: '#f59e0b',
+    icon: '🏷️',
+    summary: 'Debt or preferred securities returned to issuer in exchange for principal and final interest.',
+    events: [
+      { code: 'REDM', name: 'Final Maturity Redemption', swiftTag: 'REDM', impact: 'Bond reaches end of term. Principal nominal value + final coupon paid out.', glEntry: 'Dr Bond Position (Extinguished) / Cr Cash' },
+      { code: 'MCAL', name: 'Early Call / Draw', swiftTag: 'MCAL', impact: 'Issuer exercises option to redeem bonds before maturity date at call price.', glEntry: 'Dr Called Bond Nominal / Cr Cash Proceeds' },
+      { code: 'PUTT', name: 'Put Option (Investor Choice)', swiftTag: 'PUTT', impact: 'Investor exercises right to sell bond back to issuer at specified put price.', glEntry: 'Dr Put Bond Position / Cr Investor Cash' }
+    ]
+  },
+  {
+    id: 'governance',
+    name: '4. Information & Governance Events',
+    color: '#8b5cf6',
+    icon: '🗳️',
+    summary: 'No immediate direct economic payout, but alters voting rights, legal terms, or corporate status.',
+    events: [
+      { code: 'MEET', name: 'Annual General Meeting (AGM)', swiftTag: 'MEET', impact: 'Shareholder voting on board, audit, dividends. May require temporary share blocking.', glEntry: 'No financial GL entry (Proxy Vote Execution)' },
+      { code: 'CONS', name: 'Consent Solicitation', swiftTag: 'CONS', impact: 'Bondholders vote to amend bond indenture covenants in exchange for consent fee.', glEntry: 'Cr Consent Fee Cash (if approved)' },
+      { code: 'BRUP', name: 'Bankruptcy / Liquidation', swiftTag: 'BRUP', impact: 'Company enters restructuring or liquidation. Claims lodged with court liquidator.', glEntry: 'Write-off / Impairment GL Entry' }
+    ]
+  }
+];
+
+export function EventTaxonomyWidget() {
+  const [activeCatId, setActiveCatId] = useState('income');
+  const [selectedEventCode, setSelectedEventCode] = useState('DVCA');
+
+  const activeCat = TAXONOMY_CATEGORIES.find(c => c.id === activeCatId);
+  const activeEvent = activeCat.events.find(e => e.code === selectedEventCode) || activeCat.events[0];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">The 4-Category Corporate Action Taxonomy</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Explore Income, Restructuring, Redemptions, and Governance event mechanics</p>
+
+      {/* Category Tabs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+        {TAXONOMY_CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => {
+              setActiveCatId(cat.id);
+              setSelectedEventCode(cat.events[0].code);
+            }}
+            className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+              activeCatId === cat.id
+                ? 'bg-slate-800 border-2 shadow-lg scale-[1.02]'
+                : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+            }`}
+            style={{ borderColor: activeCatId === cat.id ? cat.color : undefined }}
+          >
+            <span className="text-xl mb-1">{cat.icon}</span>
+            <span className="text-xs font-bold text-white leading-tight">{cat.name}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Category Summary Card */}
+      <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-xl mb-6">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Category Processing Overview</span>
+        <p className="text-sm text-slate-200 mt-1 font-medium">{activeCat.summary}</p>
+      </div>
+
+      {/* Grid: Left Event Codes, Right Event Deep Dive */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1">
+        {/* Left Column: Event Codes */}
+        <div className="md:col-span-4 space-y-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">SWIFT Event Codes</span>
+          {activeCat.events.map(ev => (
+            <button
+              key={ev.code}
+              onClick={() => setSelectedEventCode(ev.code)}
+              className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between gap-2 ${
+                selectedEventCode === ev.code
+                  ? 'bg-slate-800 border-blue-500 shadow-md'
+                  : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800'
+              }`}
+            >
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-black font-mono text-amber-400 block">{ev.code}</span>
+                <span className="text-xs font-semibold text-white truncate block">{ev.name}</span>
+              </div>
+              <span className="text-xs text-slate-500 font-mono shrink-0">→</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Right Column: Deep Dive */}
+        <div className="md:col-span-8 bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col justify-between shadow-xl">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex justify-between items-start border-b border-slate-700 pb-3">
+              <div>
+                <span className="text-2xl font-black font-mono text-amber-400">{activeEvent.code}</span>
+                <h3 className="text-lg font-bold text-white mt-1">{activeEvent.name}</h3>
+              </div>
+              <span className="text-xs font-mono px-2.5 py-1 rounded bg-slate-900 text-blue-300 border border-slate-700">
+                SWIFT: :22F::CAEV//{activeEvent.swiftTag}
+              </span>
+            </div>
+
+            {/* Economic Impact */}
+            <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Economic & Market Impact</h4>
+              <p className="text-sm text-slate-200 leading-relaxed">{activeEvent.impact}</p>
+            </div>
+
+            {/* Accounting GL Entry */}
+            <div className="bg-blue-950/40 p-3.5 rounded-lg border border-blue-800/40 font-mono text-xs">
+              <h4 className="text-xs font-sans font-bold text-blue-400 uppercase tracking-wider mb-1">Accounting & Custody GL Postings</h4>
+              <p className="text-blue-200">{activeEvent.glEntry}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Chapter 7 Widget: Market Claims & Transformations Simulator ─────────────
+export function ClaimsTransformationWidget() {
+  const [eventType, setEventType] = useState('income'); // 'income' (dividend) | 'restructuring' (split)
+  const [tradeTiming, setTradeTiming] = useState('cum'); // 'cum' (before ex) | 'ex' (on/after ex)
+  const [settlementTiming, setSettlementTiming] = useState('failed'); // 'settled' (on record) | 'failed' (after record)
+  const [otcFlag, setOtcFlag] = useState('none'); // 'none' | 'special_cum' | 'special_ex'
+
+  // Calculate Claim / Transformation Outcome
+  let outcome = {
+    title: 'No Claim Required',
+    color: '#10b981',
+    badge: 'Normal Settlement',
+    desc: 'Trade settled normally on or before Record Date. Depository paid the rightful owner.',
+    action: 'No operational intervention required. STP settlement achieved.'
+  };
+
+  if (eventType === 'income') {
+    if (otcFlag === 'special_ex') {
+      outcome = {
+        title: 'Special Ex Agreed (Claim Suppressed)',
+        color: '#8b5cf6',
+        badge: 'OTC Special Condition',
+        desc: 'Buyer and Seller traded before Ex-Date but explicitly agreed "Special Ex" (Seller keeps dividend).',
+        action: 'STP Engine detects Special Ex tag and suppresses automated Market Claim.'
+      };
+    } else if (otcFlag === 'special_cum') {
+      outcome = {
+        title: 'Reverse Claim Required (Special Cum)',
+        color: '#f59e0b',
+        badge: 'Reverse Cash Claim',
+        desc: 'Trade executed after Ex-Date but agreed "Special Cum" (Buyer receives dividend).',
+        action: 'Generate Reverse Claim: Debit Seller $1,000 / Credit Buyer $1,000.'
+      };
+    } else if (tradeTiming === 'cum' && settlementTiming === 'failed') {
+      outcome = {
+        title: 'Market Claim Required (Cash Dividend)',
+        color: '#ef4444',
+        badge: 'Market Claim Triggered',
+        desc: 'Trade bought Cum-Dividend but failed to settle before Record Date. CSD paid dividend to Seller.',
+        action: 'Generate Market Claim: Force-debit $1,000 from Seller Nostro account and credit Buyer account.'
+      };
+    } else if (tradeTiming === 'ex' && settlementTiming === 'settled') {
+      outcome = {
+        title: 'Reverse Claim Risk',
+        color: '#f59e0b',
+        badge: 'Early Settlement Anomaly',
+        desc: 'Trade bought Ex-Dividend settled early before Record Date, giving dividend to Buyer incorrectly.',
+        action: 'Generate Reverse Market Claim to recover funds from Buyer and credit Seller.'
+      };
+    }
+  } else if (eventType === 'restructuring') {
+    if (settlementTiming === 'failed') {
+      outcome = {
+        title: 'Transformation Required (2:1 Stock Split)',
+        color: '#3b82f6',
+        badge: 'Trade Transformation',
+        desc: 'Pending trade for 100 shares of Old ISIN failed across Record Date. Old ISIN is now dead/extinguished.',
+        action: 'Cancel pending trade for 100 Old ISIN -> Create transformed pending trade for 200 New ISIN shares @ half price.'
+      };
+    }
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Market Claims & Transformations Simulator</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Test trade timing vs settlement failures to see how Claims and Transformations are generated</p>
+
+      {/* Control Panel Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Event Type */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">1. Event Category</span>
+          <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+            <button
+              onClick={() => setEventType('income')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                eventType === 'income' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              💵 Cash Dividend
+            </button>
+            <button
+              onClick={() => setEventType('restructuring')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                eventType === 'restructuring' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🔄 Stock Split (2:1)
+            </button>
+          </div>
+        </div>
+
+        {/* Trade Timing */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">2. Trade Date (TD)</span>
+          <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+            <button
+              onClick={() => setTradeTiming('cum')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                tradeTiming === 'cum' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Cum-Date (Pre-Ex)
+            </button>
+            <button
+              onClick={() => setTradeTiming('ex')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                tradeTiming === 'ex' ? 'bg-amber-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Ex-Date (On/After)
+            </button>
+          </div>
+        </div>
+
+        {/* Settlement Status */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">3. Settlement Date (SD)</span>
+          <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+            <button
+              onClick={() => setSettlementTiming('settled')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                settlementTiming === 'settled' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              On Record Date
+            </button>
+            <button
+              onClick={() => setSettlementTiming('failed')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                settlementTiming === 'failed' ? 'bg-red-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Failed (Post Record)
+            </button>
+          </div>
+        </div>
+
+        {/* OTC Flags */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">4. Special OTC Trade Flag</span>
+          <select
+            value={otcFlag}
+            onChange={(e) => setOtcFlag(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-500"
+          >
+            <option value="none">Standard Exchange Trade</option>
+            <option value="special_cum">Special Cum (Agreed Buyer gets CA)</option>
+            <option value="special_ex">Special Ex (Agreed Seller keeps CA)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Outcome Results Display */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${eventType}-${tradeTiming}-${settlementTiming}-${otcFlag}`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="bg-slate-800 border-2 rounded-xl p-5 shadow-xl space-y-4"
+          style={{ borderColor: outcome.color }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <span>⚡</span> {outcome.title}
+            </h3>
+            <span
+              className="text-xs font-bold px-3 py-1 rounded-full border shrink-0 self-start sm:self-auto"
+              style={{ backgroundColor: outcome.color + '20', color: outcome.color, borderColor: outcome.color + '50' }}
+            >
+              {outcome.badge}
+            </span>
+          </div>
+
+          <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Scenario Breakdown</h4>
+            <p className="text-sm text-slate-200 leading-relaxed">{outcome.desc}</p>
+          </div>
+
+          <div className="bg-blue-950/40 p-4 rounded-lg border border-blue-800/40">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">⚙ Custodian & CCP Action Required</h4>
+            <p className="text-sm text-blue-200 leading-relaxed font-mono">{outcome.action}</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+

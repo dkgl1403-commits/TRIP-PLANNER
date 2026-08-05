@@ -17,7 +17,9 @@ def seed_corporate_actions():
             "The Boardroom Decisions (SWIFT CAMV)",
             "The Lifecycle & Settlement Cycle",
             "The SWIFT Messaging Protocol",
-            "The Custody Chain & Entitlement Flow"
+            "The Custody Chain & Entitlement Flow",
+            "The Taxonomy of Events (Income, Restructuring, Redemptions)",
+            "Market Claims & Transformations (Cum vs Ex)"
         ]
 
         for topic_name in topics:
@@ -165,6 +167,70 @@ def seed_corporate_actions():
                                 "narrative": "<p>Use the calculator below to simulate how a bulk $10,000,000 CSD payout gets sliced across multiple client accounts with different tax treaty rates (0%, 15%, 30%). Switch to the <strong>1-Cent Break Simulator</strong> to see how analysts resolve rounding discrepancies.</p>",
                                 "widgetType": "ca-omnibus-allocation",
                                 "alt": "Interactive Omnibus Account Allocation & Break Calculator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 6
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The Taxonomy of Events (Income, Restructuring, Redemptions)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "THE TAXONOMY OF EVENTS",
+                                "narrative": "<p>While SWIFT categorizes events by client participation status (Mandatory vs Voluntary), middle-office operations teams categorize corporate actions by their <strong>underlying economic purpose</strong>. This taxonomy dictates downstream processing logic, tax treatments, and general ledger accounting impacts.</p><p>Every corporate action processed globally falls into one of four core operational families:</p>"
+                            },
+                            {
+                                "title": "1. Income / Distribution Events",
+                                "narrative": "<p>The issuer is distributing cash or new securities representing a portion of earnings or capital to shareholders. Crucially, the <strong>parent security ISIN does not change</strong>.</p><ul><li><strong>Examples:</strong> Cash Dividend (<code>DVCA</code>), Stock Dividend / Bonus Issue (<code>DVSE</code>), Interest Payment (<code>INTR</code>).</li><li><strong>Operational Focus:</strong> Heavy emphasis on Withholding Tax (WHT) matrix calculations, tax treaty relief, and foreign exchange (FX) sweeps.</li></ul>"
+                            },
+                            {
+                                "title": "2. Restructuring / Reorganization Events",
+                                "narrative": "<p>The issuer is altering its capital structure. This usually involves a change in the security&apos;s identification (a new ISIN/CUSIP) or a change in the physical number of shares held.</p><ul><li><strong>Examples:</strong> Mergers (<code>MRGR</code>), Spin-offs (<code>SPUN</code>), Stock Splits (<code>SPLF</code>), Reverse Splits (<code>SPLR</code>), Name/ISIN Change (<code>NAME</code>).</li><li><strong>Operational Focus:</strong> Fraction management (cash-in-lieu vs rounding up/down) and blocking the old ISIN from trading (Transformation).</li></ul>"
+                            },
+                            {
+                                "title": "3. Redemption Events",
+                                "narrative": "<p>Debt instruments (bonds) or preferred shares are being returned to the issuer in exchange for principal and finalized interest payouts.</p><ul><li><strong>Examples:</strong> Final Maturity (<code>REDM</code>), Early Call/Draw (<code>MCAL</code>), Put Option (<code>PUTT</code>).</li><li><strong>Operational Focus:</strong> Managing the amortization factor and ensuring the pool factor is correctly applied to the nominal value held on Record Date.</li></ul>"
+                            },
+                            {
+                                "title": "4. Information & Governance Events",
+                                "narrative": "<p>Events that carry no direct, immediate economic payout but affect shareholder voting rights and corporate governance.</p><ul><li><strong>Examples:</strong> Annual General Meetings (<code>MEET</code>), Consent Solicitation (<code>CONS</code>), Bankruptcy / Liquidation (<code>BRUP</code>).</li><li><strong>Operational Focus:</strong> Proxy voting execution, Power of Attorney (PoA) validation, and share immobilisation blocking if required.</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: 4-Category Event Taxonomy",
+                                "narrative": "<p>Use the interactive widget below to explore each of the 4 event families, inspect SWIFT <code>:22F::CAEV</code> codes, economic impacts, and custody accounting entries.</p>",
+                                "widgetType": "ca-event-taxonomy",
+                                "alt": "Interactive 4-Category Corporate Actions Taxonomy Explorer."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 7
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "Market Claims & Transformations (Cum vs Ex)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "THE CUM VS EX FRAMEWORK",
+                                "narrative": "<p>When the market functions perfectly, a trade settles on time, and the Record Date snapshot captures exactly who owns what. But the market rarely functions perfectly. Trades fail, counterparties default, and clearing houses experience delays.</p><p>What happens when a trade is executed with the entitlement (<strong>Cum</strong>), but fails to settle before the Record Date snapshot? The Depository pays the wrong party!</p><ul><li><strong>Cum-Entitlement:</strong> The buyer is legally entitled to the corporate action proceeds.</li><li><strong>Ex-Entitlement:</strong> The seller is legally entitled to the corporate action proceeds.</li></ul><p>The Ex-Date is the strict boundary. Trades executed before Ex-Date are Cum. Trades executed on or after Ex-Date are Ex.</p>"
+                            },
+                            {
+                                "title": "1. MARKET CLAIMS (Income Events)",
+                                "narrative": "<p>A <strong>Market Claim</strong> is an operational mechanism to redirect corporate action proceeds to the rightful economic owner when an unsettled trade crosses the Record Date.</p><p><strong>The Scenario:</strong> A buyer purchases 1,000 shares on Monday (Cum-Date). The Ex-Date is Tuesday, and Record Date is Wednesday. The trade fails and does not settle until Thursday.</p><p><strong>The Break:</strong> On Wednesday evening, the Seller is still listed on the CSD&apos;s register. The CSD pays the $1,000 dividend to the Seller.</p><p><strong>The Action:</strong> Because the trade was executed Cum-Dividend, the Buyer legally owns that cash. The Central Counterparty (CCP) or Custodian generates an automated <strong>Market Claim</strong>: force-debiting $1,000 from the Seller&apos;s cash account and crediting it to the Buyer.</p>"
+                            },
+                            {
+                                "title": "2. REVERSE CLAIMS & TRANSFORMATIONS",
+                                "narrative": "<p><strong>Reverse Claims:</strong> If a trade is executed Ex-Dividend (buyer not entitled) but settles early before Record Date due to an operational anomaly, the CSD accidentally pays the Buyer. A Reverse Claim force-debits the Buyer and returns funds to the Seller.</p><p><strong>Transformations (Restructuring Events):</strong> While Claims handle cash and fractional stock distributions, Transformations handle mandatory reorganizations (like a 2-for-1 Stock Split or Merger) on pending trades.</p><p>If 100 shares of Old ISIN are pending settlement when a 2-for-1 split occurs, the Old ISIN is extinguished. Settlement on the Old ISIN will fail. The Custodian and CCP must <strong>cancel the pending trade</strong> for 100 Old ISIN shares and <strong>Transform it</strong> into a new pending trade for 200 shares of the New ISIN at half the settlement price.</p><p><strong>Special Ex / Special Cum:</strong> Counterparties trading OTC can explicitly agree to trade &quot;Special Ex&quot; or &quot;Special Cum&quot;. The custodian&apos;s STP engine must intercept these trade flags to suppress automated Market Claim generation.</p>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Market Claims & Transformations Simulator",
+                                "narrative": "<p>Test trade timing, settlement failures, and Special OTC flags below to see how the middle office automatically generates Market Claims, Reverse Claims, or Trade Transformations.</p>",
+                                "widgetType": "ca-claims-transformations",
+                                "alt": "Interactive Market Claims & Transformations Simulator."
                             }
                         ]
                     })

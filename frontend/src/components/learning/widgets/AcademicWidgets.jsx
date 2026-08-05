@@ -76,7 +76,9 @@ import {
   SwiftStpFlowWidget,
   SwiftDictionaryWidget,
   CustodyChainPyramidWidget,
-  OmnibusAllocationWidget
+  OmnibusAllocationWidget,
+  EventTaxonomyWidget,
+  ClaimsTransformationWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1377,5 +1379,8 @@ export const WidgetRegistry = {
   'ca-swift-dictionary': SwiftDictionaryWidget,
   'custody-chain-pyramid': CustodyChainPyramidWidget,
   'ca-custody-chain': CustodyChainPyramidWidget,
-  'ca-omnibus-allocation': OmnibusAllocationWidget
+  'ca-omnibus-allocation': OmnibusAllocationWidget,
+  'ca-event-taxonomy': EventTaxonomyWidget,
+  'ca-claims-transformations': ClaimsTransformationWidget,
+  'trade-vs-settlement-timeline': ClaimsTransformationWidget
 };

@@ -482,7 +482,9 @@ def seed_curriculum():
                         {"name": "The Boardroom Decisions (SWIFT CAMV)", "board": "BOTH"},
                         {"name": "The Lifecycle & Settlement Cycle", "board": "BOTH"},
                         {"name": "The SWIFT Messaging Protocol", "board": "BOTH"},
-                        {"name": "The Custody Chain & Entitlement Flow", "board": "BOTH"}
+                        {"name": "The Custody Chain & Entitlement Flow", "board": "BOTH"},
+                        {"name": "The Taxonomy of Events (Income, Restructuring, Redemptions)", "board": "BOTH"},
+                        {"name": "Market Claims & Transformations (Cum vs Ex)", "board": "BOTH"}
                     ]
                 }
             ]
