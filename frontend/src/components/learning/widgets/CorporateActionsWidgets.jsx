@@ -435,30 +435,42 @@ export function CALifecycleDatesWidget() {
   );
 }
 
-// ─── Chapter 3 Widget 2: T+1 vs T+2 Settlement Simulator ─────────────────────
+// ─── Chapter 3 Widget 2: T+1 vs T+2 vs T+0 Settlement Simulator ──────────────
 const SETTLEMENT_SCENARIOS = {
   'T+2': {
-    label: 'T+2 Settlement (Europe)',
+    label: 'T+2 (Europe)',
     color: '#6366f1',
-    description: 'In a T+2 market, trades take 2 business days to settle. Ex-Date is set 1 business day BEFORE the Record Date.',
+    description: 'T+2: Trades take 2 business days to settle. Ex-Date is set 1 business day BEFORE Record Date. (e.g., most European markets: LSE, Euronext, XETRA)',
     days: [
-      { label: 'Mon 8 Feb', role: 'Cum-Date', note: 'Buy here → settles Wed 10 Feb (Record Date) ✅ ENTITLED', color: '#10b981', emoji: '✅' },
-      { label: 'Tue 9 Feb', role: 'Ex-Date', note: 'Buy here → settles Thu 11 Feb (AFTER Record Date) ❌ NOT ENTITLED', color: '#ef4444', emoji: '❌' },
-      { label: 'Wed 10 Feb', role: 'Record Date', note: 'Snapshot taken at close. Only settled positions count.', color: '#8b5cf6', emoji: '📸' },
-      { label: 'Thu 11 Feb', role: 'Normal Day', note: 'Normal trading day. No CA impact.', color: '#475569', emoji: '—' },
-      { label: 'Fri 12 Feb', role: 'Pay Date', note: 'Cash / securities credited to entitled holders.', color: '#f59e0b', emoji: '💰' },
+      { label: 'Mon 8 Feb', role: 'Cum-Date', note: 'Buy here → settles Wed 10 Feb (Record Date) ✅ ENTITLED. Last chance to buy and receive the entitlement.', color: '#10b981', emoji: '✅' },
+      { label: 'Tue 9 Feb', role: 'Ex-Date', note: 'Buy here → settles Thu 11 Feb (AFTER Record Date) ❌ NOT ENTITLED. Stock opens marked down by dividend value.', color: '#ef4444', emoji: '❌' },
+      { label: 'Wed 10 Feb', role: 'Record Date', note: '📸 Snapshot taken at close of business. Issuer/transfer agent freezes the register. Only fully settled positions are entitled.', color: '#8b5cf6', emoji: '📸' },
+      { label: 'Thu 11 Feb', role: 'Normal Day', note: 'Normal trading day. No corporate action impact.', color: '#475569', emoji: '—' },
+      { label: 'Fri 12 Feb', role: 'Pay Date', note: '💰 DTCC / Euroclear credits global custodians. Entitlement cascades down to beneficial owners.', color: '#f59e0b', emoji: '💰' },
     ]
   },
   'T+1': {
-    label: 'T+1 Settlement (US / India)',
+    label: 'T+1 (US / India)',
     color: '#10b981',
-    description: 'In a T+1 market, trades settle the next business day. Ex-Date and Record Date are typically the SAME day.',
+    description: 'T+1: Trades settle the next business day. Ex-Date and Record Date are the SAME day. (US Markets since May 2024, India NSE/BSE since Jan 2023)',
     days: [
-      { label: 'Tue 9 Feb', role: 'Cum-Date', note: 'Buy here → settles Wed 10 Feb (Record Date) ✅ ENTITLED', color: '#10b981', emoji: '✅' },
-      { label: 'Wed 10 Feb', role: 'Ex / Record Date', note: 'Buy here → settles Thu 11 Feb (AFTER Record Date) ❌ NOT ENTITLED. Snapshot taken here.', color: '#ef4444', emoji: '❌📸' },
-      { label: 'Thu 11 Feb', role: 'Normal Day', note: 'Normal trading day. No CA impact.', color: '#475569', emoji: '—' },
+      { label: 'Tue 9 Feb', role: 'Cum-Date', note: 'Buy here → settles Wed 10 Feb (Record Date) ✅ ENTITLED. This is the last day to guarantee entitlement.', color: '#10b981', emoji: '✅' },
+      { label: 'Wed 10 Feb', role: 'Ex-Date = Record Date', note: 'Buy here → settles Thu 11 Feb (AFTER Record Date) ❌ NOT ENTITLED. Snapshot also taken today. Both Ex-Date and Record Date collapse into one.', color: '#ef4444', emoji: '❌📸' },
+      { label: 'Thu 11 Feb', role: 'Normal Day', note: 'Normal trading day. No corporate action impact.', color: '#475569', emoji: '—' },
       { label: 'Fri 12 Feb', role: 'Normal Day', note: 'Normal trading day.', color: '#475569', emoji: '—' },
-      { label: 'Mon 15 Feb', role: 'Pay Date', note: 'Cash / securities credited to entitled holders.', color: '#f59e0b', emoji: '💰' },
+      { label: 'Mon 15 Feb', role: 'Pay Date', note: '💰 Cash / securities credited to entitled holders\'s accounts.', color: '#f59e0b', emoji: '💰' },
+    ]
+  },
+  'T+0': {
+    label: 'T+0 (India Pilot)',
+    color: '#f59e0b',
+    description: 'T+0 (Same-Day Settlement): Trades settle on the same day. The Cum-Date becomes the Record Date itself — you can buy and be entitled on the SAME day. (SEBI India optional pilot, top 500 stocks, active since 2024)',
+    days: [
+      { label: 'Tue 9 Feb', role: 'Cum-Date = Record Date', note: 'Buy before the T+0 cut-off time (e.g., 1:30 PM) → settles same day Wed 9 Feb ✅ ENTITLED. This is the only market where you can buy and be on the Record Date the SAME day.', color: '#10b981', emoji: '✅📸' },
+      { label: 'Wed 10 Feb', role: 'Ex-Date', note: 'Buy here → settles same day Wed 10 Feb, which is AFTER Record Date ❌ NOT ENTITLED. In T+0, Ex-Date is the day AFTER Record Date (the opposite of T+1/T+2 intuition!)', color: '#ef4444', emoji: '❌' },
+      { label: 'Thu 11 Feb', role: 'Normal Day', note: 'Normal trading day. No corporate action impact.', color: '#475569', emoji: '—' },
+      { label: 'Fri 12 Feb', role: 'Normal Day', note: 'Normal trading day.', color: '#475569', emoji: '—' },
+      { label: 'Mon 15 Feb', role: 'Pay Date', note: '💰 Cash / securities credited to entitled holders. SEBI: CA securities excluded from T+0 segment on ex-date to prevent confusion.', color: '#f59e0b', emoji: '💰' },
     ]
   }
 };
@@ -473,7 +485,7 @@ export function CASettlementCycleWidget() {
   return (
     <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
       <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Settlement Cycle Simulator</h2>
-      <p className="text-slate-400 text-sm text-center mb-6">Toggle between T+1 and T+2 to see how Ex-Date vs Record Date shifts</p>
+      <p className="text-slate-400 text-sm text-center mb-6">Toggle between T+2, T+1, and T+0 to see how Ex-Date vs Record Date shifts across global markets</p>
 
       <div className="flex gap-3 mb-6 justify-center">
         {Object.entries(SETTLEMENT_SCENARIOS).map(([key, s]) => (
