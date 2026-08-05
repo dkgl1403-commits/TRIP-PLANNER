@@ -1153,3 +1153,370 @@ export function SwiftDictionaryWidget() {
   );
 }
 
+// ─── Chapter 5 Widget 1: The Custody Pyramid & Entitlement Flow Visualizer ───
+const CUSTODY_ACTORS = [
+  {
+    level: 1,
+    id: 'csd',
+    title: '1. Central Securities Depository (CSD)',
+    shortName: 'CSD (DTCC / CREST)',
+    badge: 'Ultimate Golden Record',
+    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+    color: '#10b981',
+    icon: '🏛️',
+    examples: 'DTC (US), CREST (UK), Euroclear UK & Ireland',
+    role: 'Holds the ultimate legal register of immobilized and dematerialized securities. On Record Date, the CSD takes the master snapshot of all direct participant balances.',
+    caDuty: 'Receives bulk gross dividend cash or new shares from the Issuer\'s Paying Agent. Credits direct participants\' accounts on Pay Date in one single massive ledger entry.',
+    risk: 'If a trade fails at the CSD level, the entire downstream entitlement distribution is delayed.'
+  },
+  {
+    level: 2,
+    id: 'icsd',
+    title: '2. International CSD (ICSD)',
+    shortName: 'ICSD (Euroclear Bank / Clearstream)',
+    badge: 'Cross-Border Clearing',
+    badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+    color: '#3b82f6',
+    icon: '🌐',
+    examples: 'Euroclear Bank (Brussels), Clearstream Banking (Luxembourg)',
+    role: 'Settles international securities (Eurobonds, cross-border equities). Operates as a bridge between multiple local CSDs across 100+ countries.',
+    caDuty: 'Acts as a massive omnibus holder. Intercepts local announcements, normalizes ISO 15022 tags across foreign markets, and manages multi-currency cash sweeps.',
+    risk: 'Time zone differences between Asia, Europe, and US can cause instruction cut-off windows to shrink dramatically.'
+  },
+  {
+    level: 3,
+    id: 'subcustodian',
+    title: '3. Sub-Custodian (Local Agent Bank)',
+    shortName: 'Sub-Custodian (Local Agent)',
+    badge: 'Local Market Agent',
+    badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+    color: '#6366f1',
+    icon: '🏦',
+    examples: 'Standard Chartered (Asia/Africa), Citi (LATAM), HSBC (Middle East)',
+    role: 'Hired by Global Custodians to provide direct market access in local countries where the Global Custodian has no local bank license.',
+    caDuty: 'Acts as "boots on the ground." Translates local market practices, applies local withholding tax (WHT) tax treaty rates, and forwards MT564 notifications upstream.',
+    risk: 'Local market nuances (e.g. physical tax certificate requirements) can cause Straight-Through Processing (STP) breaks.'
+  },
+  {
+    level: 4,
+    id: 'globalcustodian',
+    title: '4. Global Custodian (GC)',
+    shortName: 'Global Custodian (BNY / State Street)',
+    badge: 'Master Aggregator',
+    badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+    color: '#8b5cf6',
+    icon: '👑',
+    examples: 'BNY Mellon, State Street, J.P. Morgan Custody Services, Northern Trust',
+    role: 'Consolidates multi-asset portfolios across 100+ global markets into a single client portal for massive institutional investors.',
+    caDuty: 'Aggregates MT564 notifications from dozens of Sub-Custodians. Manages corporate action FX covers, calculates net tax withholding, and consolidates MT565 client elections.',
+    risk: 'Must reconcile omnibus accounts daily against 50+ sub-custodian ledger feeds.'
+  },
+  {
+    level: 5,
+    id: 'broker',
+    title: '5. Prime Broker / Executing Broker',
+    shortName: 'Broker / Nominee',
+    badge: 'Street Name Holder',
+    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    color: '#f59e0b',
+    icon: '📊',
+    examples: 'Morgan Stanley Prime Brokerage, Goldman Sachs, Interactive Brokers',
+    role: 'Holds assets for trading clients, hedge funds, and retail investors under a "Street Name" (nominee) structure to enable rapid margin trading and stock lending.',
+    caDuty: 'Processes manufactured dividends (Substitute Payments) when client shares have been lent out to short sellers over Record Date.',
+    risk: 'Hypothecation (share lending) creates massive complex reconciliation breaks during dividend pay dates.'
+  },
+  {
+    level: 6,
+    id: 'beneficialowner',
+    title: '6. Beneficial Owner (HNI / Client / Fund)',
+    shortName: 'Beneficial Owner (Client / Fund)',
+    badge: 'Economic Owner',
+    badgeColor: 'bg-pink-500/20 text-pink-300 border-pink-500/40',
+    color: '#ec4899',
+    icon: '👤',
+    examples: 'Pension Funds, Sovereign Wealth Funds, Hedge Funds, HNI Investors',
+    role: 'The ultimate investor who bears all economic risk and reward of the security.',
+    caDuty: 'The ultimate decision maker on Voluntary (VOLU) and Choice (CHOS) events. Submits MT565 elections before the strict deadline.',
+    risk: 'Missing an election deadline on a voluntary tender offer results in forfeiture of the tender premium.'
+  }
+];
+
+export function CustodyChainPyramidWidget() {
+  const [selectedLevel, setSelectedLevel] = useState(CUSTODY_ACTORS[0]);
+  const [activeSim, setActiveSim] = useState('notification'); // 'notification' | 'instruction' | 'payment'
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">The Custody Chain & Pyramid Explorer</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Click any level of the custody hierarchy to inspect its role, risks, and SWIFT workflows</p>
+
+      {/* Mode Simulation Switcher */}
+      <div className="flex justify-center gap-2 mb-6">
+        {[
+          { id: 'notification', label: '📢 Downstream MT564 Notification', desc: '1 CSD notice multiplies down to 500+ client advices' },
+          { id: 'instruction', label: '🗳️ Upstream MT565 Election', desc: 'Client choices aggregate up to CSD cut-off' },
+          { id: 'payment', label: '💰 Downstream Cash Allocation', desc: 'Bulk $10M CSD cash splits into client credits' }
+        ].map((sim) => (
+          <button
+            key={sim.id}
+            onClick={() => setActiveSim(sim.id)}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeSim === sim.id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            {sim.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Main Grid: Left Pyramid Stack, Right Actor Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Pyramid Interactive Stack */}
+        <div className="lg:col-span-5 flex flex-col space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center mb-1">
+            The Multi-Tiered Nominee Hierarchy
+          </span>
+          {CUSTODY_ACTORS.map((actor) => {
+            const isSelected = selectedLevel.id === actor.id;
+            return (
+              <button
+                key={actor.id}
+                onClick={() => setSelectedLevel(actor)}
+                className={`w-full py-3 px-4 rounded-xl border transition-all flex items-center justify-between group ${
+                  isSelected
+                    ? 'bg-slate-800 border-2 shadow-lg scale-[1.02]'
+                    : 'bg-slate-950/70 border-slate-800 hover:bg-slate-800/50'
+                }`}
+                style={{
+                  borderColor: isSelected ? actor.color : undefined,
+                  boxShadow: isSelected ? `0 0 15px ${actor.color}40` : undefined
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{actor.icon}</span>
+                  <div className="text-left">
+                    <div className="text-xs font-bold text-white">{actor.shortName}</div>
+                    <div className="text-[10px] text-slate-400">{actor.examples}</div>
+                  </div>
+                </div>
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded font-mono font-bold"
+                  style={{ backgroundColor: actor.color + '25', color: actor.color }}
+                >
+                  L{actor.level}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Actor Detail Inspector Panel */}
+        <div className="lg:col-span-7 bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col justify-between shadow-xl">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedLevel.id}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-start border-b border-slate-700 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{selectedLevel.icon}</span>
+                    <h3 className="text-lg font-bold text-white">{selectedLevel.title}</h3>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1 font-mono">Real-world examples: {selectedLevel.examples}</p>
+                </div>
+                <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold border ${selectedLevel.badgeColor}`}>
+                  {selectedLevel.badge}
+                </span>
+              </div>
+
+              {/* Core Role */}
+              <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Market Function</h4>
+                <p className="text-sm text-slate-200 leading-relaxed">{selectedLevel.role}</p>
+              </div>
+
+              {/* Corporate Action Duty */}
+              <div className="bg-blue-950/40 p-3.5 rounded-lg border border-blue-800/40">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">⚙ Corporate Action Operations Duty</h4>
+                <p className="text-sm text-blue-200 leading-relaxed">{selectedLevel.caDuty}</p>
+              </div>
+
+              {/* Operational Risk */}
+              <div className="bg-amber-950/30 p-3.5 rounded-lg border border-amber-500/30">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">⚠️ Operational Risk & STP Break Trigger</h4>
+                <p className="text-sm text-amber-200 leading-relaxed">{selectedLevel.risk}</p>
+              </div>
+
+              {/* Flow Simulation Callout */}
+              <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 text-xs">
+                <span className="text-slate-400 font-bold uppercase block mb-1">
+                  Active Simulation: {activeSim === 'notification' ? '📢 MT564 Notification Cascade' : activeSim === 'instruction' ? '🗳️ MT565 Upstream Election' : '💰 Downstream Cash Split'}
+                </span>
+                <p className="text-slate-300">
+                  {activeSim === 'notification' && `Level ${selectedLevel.level} receives MT564 from Level ${Math.max(1, selectedLevel.level - 1)}, validates ratios against golden copy, and re-broadcasts downstream.`}
+                  {activeSim === 'instruction' && `Level ${selectedLevel.level} validates client position limits and forwards aggregated MT565 to Level ${Math.max(1, selectedLevel.level - 1)}.`}
+                  {activeSim === 'payment' && `Level ${selectedLevel.level} receives bulk cash from Level ${Math.max(1, selectedLevel.level - 1)}, applies tax withholding, and calculates sub-ledger allocations.`}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Chapter 5 Widget 2: Omnibus Account Allocation & Break Calculator ───────
+export function OmnibusAllocationWidget() {
+  const [totalGrossCash, setTotalGrossCash] = useState(10000000); // $10M CSD payout
+  const [whtRate, setWhtRate] = useState(15); // 15% WHT
+  const [activeTab, setActiveTab] = useState('allocation'); // 'allocation' | 'reconciliation'
+
+  // Scenario Clients under Global Custodian Omnibus Account
+  const clients = [
+    { name: 'US Pension Fund Alpha', shares: 4500000, wht: 0, label: '0% Treaty (US Domestic)' },
+    { name: 'UK Sovereign Wealth Fund', shares: 3500000, wht: 15, label: '15% Treaty (US-UK)' },
+    { name: 'Cayman Hedge Fund Beta', shares: 2000000, wht: 30, label: '30% Statutory (Non-Treaty)' }
+  ];
+
+  const totalShares = 10000000;
+  const dividendPerShare = 1.00; // $1.00 per share
+
+  const calculatedClients = clients.map(c => {
+    const gross = c.shares * dividendPerShare;
+    const tax = gross * (c.wht / 100);
+    const net = gross - tax;
+    return { ...c, gross, tax, net };
+  });
+
+  const totalGrossCalculated = calculatedClients.reduce((acc, c) => acc + c.gross, 0);
+  const totalTaxCalculated = calculatedClients.reduce((acc, c) => acc + c.tax, 0);
+  const totalNetCalculated = calculatedClients.reduce((acc, c) => acc + c.net, 0);
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Omnibus Account Slicing & Tax Reconciliation</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">See how a bulk $10,000,000 CSD payout splits into individual client net entitlements</p>
+
+      {/* Tabs */}
+      <div className="flex justify-center gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('allocation')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'allocation' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          📊 Omnibus Slicing & WHT Breakdown
+        </button>
+        <button
+          onClick={() => setActiveTab('reconciliation')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'reconciliation' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🔍 1-Cent Cash Break Simulator
+        </button>
+      </div>
+
+      {activeTab === 'allocation' ? (
+        <div className="space-y-6">
+          {/* Top Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">CSD Bulk Payment Received</span>
+              <div className="text-xl font-black text-emerald-400 font-mono mt-1">${totalGrossCash.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-500">Gross Dividend Payout ($1.00/sh)</span>
+            </div>
+
+            <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tax Withheld (WHT)</span>
+              <div className="text-xl font-black text-amber-400 font-mono mt-1">${totalTaxCalculated.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-500">Deducted based on treaty status</span>
+            </div>
+
+            <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Net Client Distribution</span>
+              <div className="text-xl font-black text-blue-400 font-mono mt-1">${totalNetCalculated.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-500">Net cash posted to accounts</span>
+            </div>
+          </div>
+
+          {/* Client Slicing Table */}
+          <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl">
+            <div className="p-4 bg-slate-800/90 border-b border-slate-700 font-bold text-sm text-white flex justify-between items-center">
+              <span>Sub-Ledger Allocation Breakdown</span>
+              <span className="text-xs text-slate-400 font-mono">10,000,000 Shares Total</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-sans">
+                <thead className="bg-slate-900 text-slate-400 uppercase tracking-wider font-bold border-b border-slate-700">
+                  <tr>
+                    <th className="p-3">Beneficial Owner</th>
+                    <th className="p-3">Position</th>
+                    <th className="p-3">Gross Entitlement</th>
+                    <th className="p-3">WHT Rate</th>
+                    <th className="p-3">Tax Deducted</th>
+                    <th className="p-3 text-right">Net Cash Credit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/60 font-mono">
+                  {calculatedClients.map((client, i) => (
+                    <tr key={i} className="hover:bg-slate-700/30">
+                      <td className="p-3 font-sans font-semibold text-white">{client.name}</td>
+                      <td className="p-3 text-slate-300">{client.shares.toLocaleString()} sh</td>
+                      <td className="p-3 text-emerald-400">${client.gross.toLocaleString()}</td>
+                      <td className="p-3">
+                        <span className="px-2 py-0.5 rounded bg-slate-900 text-amber-300 font-bold">
+                          {client.wht}%
+                        </span>
+                      </td>
+                      <td className="p-3 text-amber-400">-${client.tax.toLocaleString()}</td>
+                      <td className="p-3 text-right font-bold text-blue-400">${client.net.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4 shadow-xl">
+          <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">The 1-Cent Rounding Cash Break Scenario</h3>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            When a CSD calculates a dividend payout on 10,000,000 shares at $0.333333 per share, the CSD rounds the gross payment to <strong>$3,333,330.00</strong>.
+            However, when the Global Custodian calculates entitlements for 3 separate clients holding fractional blocks, the sum of individual rounded client credits equals <strong>$3,333,330.01</strong>.
+          </p>
+
+          <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 font-mono text-xs space-y-2">
+            <div className="flex justify-between text-slate-300">
+              <span>CSD Cash Received (Nostro Account):</span>
+              <span className="text-emerald-400 font-bold">$3,333,330.00</span>
+            </div>
+            <div className="flex justify-between text-slate-300">
+              <span>Sum of Client Sub-Ledger Credits:</span>
+              <span className="text-blue-400 font-bold">$3,333,330.01</span>
+            </div>
+            <div className="border-t border-slate-700 pt-2 flex justify-between text-red-400 font-bold">
+              <span>Cash Break (Shortfall):</span>
+              <span>-$0.01</span>
+            </div>
+          </div>
+
+          <div className="bg-amber-950/30 border border-amber-500/30 p-3.5 rounded-lg text-xs">
+            <h4 className="font-bold text-amber-400 uppercase tracking-wider mb-1">💡 Senior Operations Analyst Resolution Protocol</h4>
+            <p className="text-amber-200 leading-relaxed">
+              In middle-office operations, a 1-cent cash break cannot be billed to the client or returned to the CSD. Custodians write off rounding breaks to a designated <strong>"Rounding & Fractional Difference GL Account"</strong> to achieve zero-balance ledger integrity before day-end close.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

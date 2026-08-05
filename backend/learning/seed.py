@@ -481,7 +481,8 @@ def seed_curriculum():
                         {"name": "History & Origins of Corporate Actions", "board": "BOTH"},
                         {"name": "The Boardroom Decisions (SWIFT CAMV)", "board": "BOTH"},
                         {"name": "The Lifecycle & Settlement Cycle", "board": "BOTH"},
-                        {"name": "The SWIFT Messaging Protocol", "board": "BOTH"}
+                        {"name": "The SWIFT Messaging Protocol", "board": "BOTH"},
+                        {"name": "The Custody Chain & Entitlement Flow", "board": "BOTH"}
                     ]
                 }
             ]

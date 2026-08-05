@@ -16,7 +16,8 @@ def seed_corporate_actions():
             "History & Origins of Corporate Actions",
             "The Boardroom Decisions (SWIFT CAMV)",
             "The Lifecycle & Settlement Cycle",
-            "The SWIFT Messaging Protocol"
+            "The SWIFT Messaging Protocol",
+            "The Custody Chain & Entitlement Flow"
         ]
 
         for topic_name in topics:
@@ -130,6 +131,40 @@ def seed_corporate_actions():
                                 "narrative": "<p>Use the dictionary below to inspect the complete operational profiles of MT564, MT565, MT566, MT567, MT568, MT508, MT202, and MT304 &mdash; including their ISO 20022 equivalents, SWIFT tags, and senior analyst gotchas.</p>",
                                 "widgetType": "ca-swift-dictionary",
                                 "alt": "Comprehensive SWIFT Corporate Actions Message Dictionary."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 5
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The Custody Chain & Entitlement Flow":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: The Illusion of Ownership",
+                                "narrative": "<p>There is a persistent illusion in retail finance that when an investor buys a share of Apple, their name is written in a ledger in Cupertino. In reality, the modern capital market relies entirely on the <strong>&quot;Street Name&quot; or Nominee structure</strong>.</p><p>The issuer (Apple) only knows one massive shareholder: the Central Securities Depository (DTC). Below that depository sits an invisible, highly complex, multi-tiered pyramid of banks, custodians, and prime brokers.</p><p>In Corporate Actions, understanding this custody pyramid is paramount because every entitlement, every tax withholding deduction, and every MT564 notification must trickle flawlessly down this pyramid to reach the actual <strong>Beneficial Owner</strong>.</p>"
+                            },
+                            {
+                                "title": "THE ACTORS IN THE PYRAMID",
+                                "narrative": "<p>To process a complex corporate action, you must understand exactly who holds the assets at each level, and whose ledger is the source of truth:</p><ol><li><strong>1. The CSD (Central Securities Depository):</strong> The top of the domestic pyramid (e.g. DTC, CREST, Euroclear UK). Holds the ultimate legal &quot;Golden Record&quot; of dematerialized shares. On Record Date, the CSD takes the snapshot of direct participants and distributes bulk gross payments on Pay Date.</li><li><strong>2. The ICSD (International CSD):</strong> Entities like Euroclear Bank and Clearstream. Settles cross-border Eurobonds and international equities, operating as a bridge between multiple domestic CSDs across 100+ countries.</li><li><strong>3. The Sub-Custodian (Local Agent Bank):</strong> Hired by Global Custodians to provide direct market access in countries where the Global Custodian lacks a local banking license (e.g. Standard Chartered in Asia). Intercepts local MT564s, translates local market practices, and applies local withholding tax.</li><li><strong>4. The Global Custodian (GC):</strong> Master aggregator for institutional clients (e.g. BNY Mellon, State Street). Consolidates multi-asset portfolios across 50+ countries, sweeps FX requirements, and manages aggregated client election deadlines.</li><li><strong>5. The Broker (Prime / Executing Broker):</strong> Holds assets for trading clients and hedge funds in &quot;Street Name&quot;. If shares were lent out to short sellers over Record Date (hypothecation), the broker must manufacture the dividend (&quot;Substitute Payment&quot;).</li><li><strong>6. The Beneficial Owner (HNI / Client / Fund):</strong> The ultimate investor who bears all economic risk and reward. On voluntary events, the Beneficial Owner makes the final decision and submits MT565 instructions.</li></ol>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Custody Chain & Pyramid Explorer",
+                                "narrative": "<p>Explore the 6-level custody hierarchy below. Click any actor level to inspect their market role, operational duties, real-world firm examples, and STP risk triggers. Toggle the simulation modes to trace how notifications cascade down and instructions aggregate up.</p>",
+                                "widgetType": "custody-chain-pyramid",
+                                "alt": "Interactive Custody Chain & Pyramid Visualizer."
+                            },
+                            {
+                                "title": "THE OMNIBUS CHALLENGE: Cash Breaks & Rounding",
+                                "narrative": "<p>Why do Straight-Through Processing (STP) breaks happen? Because of <strong>Omnibus Accounts</strong>.</p><p>When the CSD pays a dividend, it does not send 50,000 small checks. It pays <strong>one massive lump sum of $10,000,000</strong> to the Sub-Custodian&apos;s omnibus account. The Sub-Custodian must slice that into $6,000,000 for Global Custodian A and $4,000,000 for Global Custodian B. Global Custodian A then slices it into thousands of smaller allocations for individual client accounts.</p><p>If there is a <strong>1-cent rounding error</strong> at the CSD level, or an unsettled failed trade spanning the Record Date, the omnibus account will experience a <strong>Cash Break or Stock Break</strong>. Operations analysts reconcile these breaks by writing off fractional discrepancies to dedicated General Ledger (GL) rounding accounts to ensure day-end ledger balance.</p>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Omnibus Allocation & Break Calculator",
+                                "narrative": "<p>Use the calculator below to simulate how a bulk $10,000,000 CSD payout gets sliced across multiple client accounts with different tax treaty rates (0%, 15%, 30%). Switch to the <strong>1-Cent Break Simulator</strong> to see how analysts resolve rounding discrepancies.</p>",
+                                "widgetType": "ca-omnibus-allocation",
+                                "alt": "Interactive Omnibus Account Allocation & Break Calculator."
                             }
                         ]
                     })

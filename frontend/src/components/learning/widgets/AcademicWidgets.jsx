@@ -74,7 +74,9 @@ import {
   CALifecycleDatesWidget,
   CASettlementCycleWidget,
   SwiftStpFlowWidget,
-  SwiftDictionaryWidget
+  SwiftDictionaryWidget,
+  CustodyChainPyramidWidget,
+  OmnibusAllocationWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1372,5 +1374,8 @@ export const WidgetRegistry = {
   'ca-settlement-cycle': CASettlementCycleWidget,
   'swift-message-flow-sankey': SwiftStpFlowWidget,
   'ca-swift-flow': SwiftStpFlowWidget,
-  'ca-swift-dictionary': SwiftDictionaryWidget
+  'ca-swift-dictionary': SwiftDictionaryWidget,
+  'custody-chain-pyramid': CustodyChainPyramidWidget,
+  'ca-custody-chain': CustodyChainPyramidWidget,
+  'ca-omnibus-allocation': OmnibusAllocationWidget
 };
