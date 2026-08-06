@@ -38,7 +38,16 @@ const ERAS = [
 
 export function CorporateActionsTimelineWidget() {
   const [eraIndex, setEraIndex] = useState(0);
-  const [detailLevel, setDetailLevel] = useState('event'); // 'event' or 'infrastructure'
+  const [detailLevel, setDetailLevel] = useState('event'); // 'event', 'infrastructure', or 'terms'
+  const [selectedTerm, setSelectedTerm] = useState('ISIN');
+
+  const terms = {
+    ISIN: { title: 'ISIN (International Securities Identification Number)', code: 'ISO 6166 (12 chars)', desc: 'Global 12-character alphanumeric code uniquely identifying a security. Format: 2-char country code + 9-char NSIN + 1 check digit. Example: US0378331005 (Apple).' },
+    CUSIP: { title: 'CUSIP (Committee on Uniform Security Identification Procedures)', code: 'US/Canada (9 chars)', desc: '9-character alphanumeric code used predominantly in North American markets. The 9th digit is a check digit.' },
+    SEDOL: { title: 'SEDOL (Stock Exchange Daily Official List)', code: 'UK/Ireland (7 chars)', desc: '7-character alphanumeric code assigned by London Stock Exchange for securities traded in the UK & Ireland.' },
+    CSD: { title: 'CSD (Central Securities Depository)', code: 'Top of Pyramid', desc: 'National institution holding central registry of legal title for all securities (e.g. DTCC in US, Euroclear in EU, CDSL/NSDL in India).' },
+    Depository: { title: 'Depository / Custodian', code: 'Infrastructure', desc: 'Financial institution holding client securities for safekeeping to minimize risk of theft or loss.' }
+  };
 
   const currentEra = ERAS[eraIndex];
 
@@ -74,16 +83,22 @@ export function CorporateActionsTimelineWidget() {
         {/* Toggle Details */}
         <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
           <button
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${detailLevel === 'event' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detailLevel === 'event' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
             onClick={() => setDetailLevel('event')}
           >
             Market Event
           </button>
           <button
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${detailLevel === 'infrastructure' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detailLevel === 'infrastructure' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
             onClick={() => setDetailLevel('infrastructure')}
           >
-            Infrastructure
+            Plumbing
+          </button>
+          <button
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${detailLevel === 'terms' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+            onClick={() => setDetailLevel('terms')}
+          >
+            📇 Key Identifiers
           </button>
         </div>
 
@@ -91,46 +106,71 @@ export function CorporateActionsTimelineWidget() {
 
       {/* Main Display Area */}
       <div className="relative w-full max-w-4xl min-h-[300px] flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${currentEra.id}-${detailLevel}`}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-8 shadow-2xl relative overflow-hidden"
-          >
-            
-            {/* Background Decorative Element */}
-            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-              <span className="text-9xl font-black italic">{currentEra.year}</span>
+        {detailLevel === 'terms' ? (
+          <div className="w-full bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl space-y-4 font-mono text-xs">
+            <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block font-sans">Interview Prep: Core Security Identifiers & Institutions</span>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {Object.keys(terms).map((tKey) => (
+                <button
+                  key={tKey}
+                  onClick={() => setSelectedTerm(tKey)}
+                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
+                    selectedTerm === tKey ? 'bg-amber-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {tKey}
+                </button>
+              ))}
             </div>
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-2">
+              <div className="flex justify-between items-center">
+                <h4 className="text-sm font-bold text-white font-sans">{terms[selectedTerm].title}</h4>
+                <span className="text-[10px] bg-slate-800 text-amber-300 px-2 py-0.5 rounded border border-slate-700">{terms[selectedTerm].code}</span>
+              </div>
+              <p className="text-slate-300 text-xs leading-relaxed font-sans mt-2">{terms[selectedTerm].desc}</p>
+            </div>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${currentEra.id}-${detailLevel}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-8 shadow-2xl relative overflow-hidden"
+            >
+              
+              {/* Background Decorative Element */}
+              <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                <span className="text-9xl font-black italic">{currentEra.year}</span>
+              </div>
 
-            <h3 className="text-2xl md:text-3xl font-bold text-slate-100 mb-2 relative z-10">
-              {currentEra.title}
-            </h3>
-            
-            <p className="text-slate-300 text-lg mb-8 max-w-2xl relative z-10 leading-relaxed">
-              {currentEra.description}
-            </p>
-
-            <div className="mt-6 border-t border-slate-700 pt-6 relative z-10">
-              <h4 className="text-sm font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                {detailLevel === 'event' ? (
-                  <><span className="w-2 h-2 rounded-full bg-blue-500"></span> Key Market Event</>
-                ) : (
-                  <><span className="w-2 h-2 rounded-full bg-indigo-500"></span> Technical Plumbing</>
-                )}
-              </h4>
-              <p className={`text-xl font-medium ${detailLevel === 'event' ? 'text-blue-300' : 'text-indigo-300'}`}>
-                {detailLevel === 'event' ? currentEra.event : currentEra.infrastructure}
+              <h3 className="text-2xl md:text-3xl font-bold text-slate-100 mb-2 relative z-10">
+                {currentEra.title}
+              </h3>
+              
+              <p className="text-slate-300 text-lg mb-8 max-w-2xl relative z-10 leading-relaxed">
+                {currentEra.description}
               </p>
-            </div>
 
-          </motion.div>
-        </AnimatePresence>
+              <div className="mt-6 border-t border-slate-700 pt-6 relative z-10">
+                <h4 className="text-sm font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+                  {detailLevel === 'event' ? (
+                    <><span className="w-2 h-2 rounded-full bg-blue-500"></span> Key Market Event</>
+                  ) : (
+                    <><span className="w-2 h-2 rounded-full bg-indigo-500"></span> Technical Plumbing</>
+                  )}
+                </h4>
+                <p className={`text-xl font-medium ${detailLevel === 'event' ? 'text-blue-300' : 'text-indigo-300'}`}>
+                  {detailLevel === 'event' ? currentEra.event : currentEra.infrastructure}
+                </p>
+              </div>
+
+            </motion.div>
+          </AnimatePresence>
+        )}
       </div>
-
     </div>
   );
 }
@@ -168,75 +208,169 @@ export function CAMVIndicatorWidget() {
     }
   ];
 
+  const edgeCases = [
+    { title: 'Tender Offer with Scaleback', correct: 'VOLU', reasoning: 'Voluntary. Buying company offers to buy shares, but clients must submit active MT565 elections to tender.' },
+    { title: 'Statutory 100% Cash Merger', correct: 'MAND', reasoning: 'Mandatory. Approved by board/shareholders; target shares automatically blocked and canceled for cash.' },
+    { title: 'Optional Dividend (Cash vs Stock)', correct: 'CHOS', reasoning: 'Mandatory with Options. Event WILL occur, but client can choose cash or stock. Has a default cash option.' },
+    { title: 'Forward Stock Split 2-for-1', correct: 'MAND', reasoning: 'Mandatory. All holders automatically receive 2 new shares for every 1 old share without action.' }
+  ];
+
+  const [activeTab, setActiveTab] = useState('indicators'); // 'indicators' | 'scenarios'
+  const [selectedScenarioIdx, setSelectedScenarioIdx] = useState(0);
+  const [userGuess, setUserGuess] = useState(null);
+
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-900 rounded-xl font-sans text-slate-200">
-      <h2 className="text-2xl font-bold mb-6 text-white text-center">SWIFT CAMV Indicators (MT564)</h2>
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold mb-4 text-white text-center">SWIFT CAMV Indicators & Edge Cases</h2>
       
-      <div className="flex gap-4 mb-8">
-        {indicators.map((ind) => (
-          <button
-            key={ind.id}
-            onClick={() => setActiveCamv(ind.id)}
-            className={`px-6 py-3 rounded-lg font-bold text-lg transition-all ${
-              activeCamv === ind.id 
-                ? `${ind.color} text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-105` 
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-            }`}
-          >
-            {ind.label}
-          </button>
-        ))}
+      {/* Mode Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('indicators')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'indicators' ? 'bg-blue-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          CAMV Indicators Reference
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('scenarios');
+            setUserGuess(null);
+          }}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'scenarios' ? 'bg-amber-600 text-white shadow' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🎯 Interview Edge-Case Scenarios
+        </button>
       </div>
 
-      <div className="w-full max-w-2xl min-h-[250px] relative">
-        <AnimatePresence mode="wait">
-          {activeCamv ? (
-            <motion.div
-              key={activeCamv}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl"
-            >
-              {indicators.filter(i => i.id === activeCamv).map(ind => (
-                <div key={ind.id}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className={`w-3 h-3 rounded-full ${ind.color}`}></span>
-                    <h3 className="text-xl font-bold text-white">{ind.name}</h3>
-                  </div>
-                  
-                  <p className="text-slate-300 mb-6 leading-relaxed">
-                    {ind.description}
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-900 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Operations Focus</h4>
-                      <p className="text-sm text-slate-300">{ind.focus}</p>
+      {activeTab === 'indicators' ? (
+        <>
+          <div className="flex gap-4 mb-8">
+            {indicators.map((ind) => (
+              <button
+                key={ind.id}
+                onClick={() => setActiveCamv(ind.id)}
+                className={`px-6 py-3 rounded-lg font-bold text-lg transition-all ${
+                  activeCamv === ind.id 
+                    ? `${ind.color} text-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-105` 
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                }`}
+              >
+                {ind.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-full max-w-2xl min-h-[250px] relative">
+            <AnimatePresence mode="wait">
+              {activeCamv ? (
+                <motion.div
+                  key={activeCamv}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl"
+                >
+                  {indicators.filter(i => i.id === activeCamv).map(ind => (
+                    <div key={ind.id}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className={`w-3 h-3 rounded-full ${ind.color}`}></span>
+                        <h3 className="text-xl font-bold text-white">{ind.name}</h3>
+                      </div>
+                      
+                      <p className="text-slate-300 mb-6 leading-relaxed">
+                        {ind.description}
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-slate-900 rounded-lg p-4">
+                          <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Operations Focus</h4>
+                          <p className="text-sm text-slate-300">{ind.focus}</p>
+                        </div>
+                        
+                        <div className="bg-slate-900 rounded-lg p-4">
+                          <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Key SWIFT Events</h4>
+                          <ul className="list-disc pl-4 text-sm text-slate-300 space-y-1">
+                            {ind.events.map((ev, i) => <li key={i}>{ev}</li>)}
+                          </ul>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="bg-slate-900 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Key SWIFT Events</h4>
-                      <ul className="list-disc pl-4 text-sm text-slate-300 space-y-1">
-                        {ind.events.map((ev, i) => <li key={i}>{ev}</li>)}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="w-full h-full flex items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-xl p-8"
+                >
+                  Select a CAMV Indicator above to explore its definition and operations focus.
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </>
+      ) : (
+        <div className="w-full max-w-xl bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
+          <div className="border-b border-slate-700 pb-3 flex justify-between items-center">
+            <span className="text-[10px] font-mono text-amber-400 font-bold uppercase">Interview Edge-Case Test #{selectedScenarioIdx + 1}</span>
+            <div className="flex gap-1">
+              {edgeCases.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setSelectedScenarioIdx(idx);
+                    setUserGuess(null);
+                  }}
+                  className={`w-6 h-6 rounded text-xs font-mono font-bold ${
+                    selectedScenarioIdx === idx ? 'bg-amber-500 text-white' : 'bg-slate-900 text-slate-400'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
               ))}
-            </motion.div>
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="w-full h-full flex items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-xl p-8"
-            >
-              Select a CAMV Indicator above to explore its definition and operations focus.
-            </motion.div>
+            </div>
+          </div>
+
+          <h3 className="text-base font-bold text-white">{edgeCases[selectedScenarioIdx].title}</h3>
+          <p className="text-xs text-slate-300">How should this event be tagged in MT564 tag <code>:22F::CAMV//</code>?</p>
+
+          <div className="grid grid-cols-3 gap-2 pt-2 font-mono text-xs">
+            {['MAND', 'VOLU', 'CHOS'].map((code) => (
+              <button
+                key={code}
+                onClick={() => setUserGuess(code)}
+                className={`py-2 rounded-lg font-bold border transition-all ${
+                  userGuess === code
+                    ? code === edgeCases[selectedScenarioIdx].correct
+                      ? 'bg-emerald-600 text-white border-emerald-400'
+                      : 'bg-red-600 text-white border-red-400'
+                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                {code}
+              </button>
+            ))}
+          </div>
+
+          {userGuess && (
+            <div className={`p-3 rounded-lg border text-xs font-sans mt-3 ${
+              userGuess === edgeCases[selectedScenarioIdx].correct
+                ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200'
+                : 'bg-red-950/60 border-red-500 text-red-200'
+            }`}>
+              <span className="font-bold block uppercase text-[10px] font-mono">
+                {userGuess === edgeCases[selectedScenarioIdx].correct ? '✅ Correct Classification' : '❌ Incorrect Tag'}
+              </span>
+              <p className="mt-1 text-xs leading-relaxed">{edgeCases[selectedScenarioIdx].reasoning}</p>
+            </div>
           )}
-        </AnimatePresence>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
