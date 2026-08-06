@@ -92,6 +92,9 @@ import {
   InterviewSimulatorWidget,
   IsoMatrixWidget
 } from './CorporateActionsWidgets';
+import {
+  TradeLifecycleRoadmapWidget
+} from './TradeLifecycleWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
   const [starBPos, setStarBPos] = useState({ x: 80, y: 20 });
@@ -1416,5 +1419,10 @@ export const WidgetRegistry = {
   'ca-swift-parser': SwiftFieldParserWidget,
   'ca-exception-debugger': ExceptionDebuggerWidget,
   'ca-interview-simulator': InterviewSimulatorWidget,
-  'ca-swift-matrix': IsoMatrixWidget
+  'ca-swift-matrix': IsoMatrixWidget,
+
+  // Trade Lifecycle
+  'tl-macro-roadmap': TradeLifecycleRoadmapWidget,
+  'tl-dual-engine': TradeLifecycleRoadmapWidget,
+  'tl-roadmap': TradeLifecycleRoadmapWidget
 };

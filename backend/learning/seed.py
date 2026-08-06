@@ -25,6 +25,7 @@ from seed_ai_taxonomy import seed_ai_taxonomy
 from seed_ai_masterclass_remaining import seed_ai_remaining
 from seed_agile_framework import seed_agile_framework
 from seed_corporate_actions import seed_corporate_actions
+from seed_trade_lifecycle import seed_trade_lifecycle
 
 def seed_trigonometry():
     init_db()
@@ -497,7 +498,9 @@ def seed_curriculum():
                 },
                 {
                     "name": "Trade Lifecycle",
-                    "topics": []
+                    "topics": [
+                        {"name": "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)", "board": "BOTH"}
+                    ]
                 }
             ]
         },
@@ -798,3 +801,4 @@ if __name__ == "__main__":
     seed_ai_masterclass_part15()
     seed_agile_framework()
     seed_corporate_actions()
+    seed_trade_lifecycle()
