@@ -160,7 +160,9 @@ export function TradeLifecycleRoadmapWidget() {
     ['ccp', 'buyClear'], ['ccp', 'sellClear'],
     ['buyClear', 'buyCust'], ['buyClear', 'buyBank'],
     ['sellClear', 'sellCust'], ['sellClear', 'sellBank'],
-    ['buyBank', 'csd'], ['sellBank', 'csd'], ['sellCust', 'csd'], ['buyCust', 'csd']
+    ['buyCust', 'csd'], ['sellCust', 'csd'],
+    ['csd', 'buyCust'], ['csd', 'sellCust'],
+    ['buyBank', 'csd'], ['sellBank', 'csd']
   ];
 
   // Simulation Narratives
@@ -191,20 +193,20 @@ export function TradeLifecycleRoadmapWidget() {
       badgeClass: 'bg-orange-900 text-orange-300 border-orange-700',
       title: 'Clearing: Contract Novation & Margin Calls',
       desc: 'The Central Counterparty (CCP) performs Novation — replacing the bilateral contract with two central contracts. CCP calls Initial & Variation Margin from Clearing Member Banks.',
-      nextBtn: 'Next Step: SWIFT Pipeline'
+      nextBtn: 'Next Step: Custody SWIFT Dispatch'
     },
     {
-      badge: 'Step 5: Custodian SWIFT',
+      badge: 'Step 5: Custody SWIFT MT54x & MT548',
       badgeClass: 'bg-pink-900 text-pink-300 border-pink-700',
-      title: 'Back Office: Custodian SWIFT Instructions',
-      desc: 'Clearing Brokers instruct settlement agents. Buyer Custodian dispatches SWIFT <span class="text-amber-400 font-bold font-mono">MT541 (RVP)</span>; Seller Custodian dispatches <span class="text-amber-400 font-bold font-mono">MT543 (DVP)</span>. CSD issues <span class="text-emerald-400 font-bold font-mono">MT548 Matched</span> advice.',
+      title: 'Back Office: Custodian Instructions & CSD MT548 Matching Loop',
+      desc: 'Buyer Custodian dispatches SWIFT <span class="text-amber-400 font-bold font-mono">MT541 (Receive Against Payment - RVP)</span>; Seller Custodian dispatches <span class="text-amber-400 font-bold font-mono">MT543 (Deliver Against Payment - DVP)</span>. The CSD compares SSIs and emits SWIFT <span class="text-emerald-400 font-bold font-mono">MT548 Status Advice (:24B::MATCH//MACH)</span> to both custodians.',
       nextBtn: 'Next Step: DvP Settlement'
     },
     {
-      badge: 'Step 6: DvP Settlement',
+      badge: 'Step 6: DvP & SWIFT MT545/MT547',
       badgeClass: 'bg-teal-900 text-teal-300 border-teal-700',
-      title: 'Depository: Delivery vs Payment (DvP) Finality',
-      desc: 'On Settlement Date, the CSD executes simultaneous <span class="text-emerald-400 font-bold">Delivery vs Payment (DvP)</span>. Stock is transferred to Buyer Custodian while cash is swept via Central Bank accounts to Seller Clearing Bank. Trade closed!',
+      title: 'Depository: DvP Finality & MT545 / MT547 Settlement Confirmations',
+      desc: 'On Settlement Date, CSD executes simultaneous <span class="text-emerald-400 font-bold">Delivery vs Payment (DvP)</span>. Buyer Custodian receives shares & sends <span class="text-amber-400 font-bold font-mono">MT545 RVP Confirmation</span> to Buyer PM; Seller Custodian receives cash sweep & sends <span class="text-amber-400 font-bold font-mono">MT547 DVP Confirmation</span> to Seller PM.',
       nextBtn: 'Cycle Complete'
     }
   ];
@@ -218,24 +220,24 @@ export function TradeLifecycleRoadmapWidget() {
       setActiveNodes(['buyPm', 'buyExec', 'sellPm', 'sellExec']);
       setActivePaths(['buyPm-buyExec', 'sellPm-sellExec']);
       setParticles([
-        { id: 1, type: 'buy', text: 'B', x: 15, y: 12, targetX: 30, targetY: 28 },
-        { id: 2, type: 'sell', text: 'S', x: 85, y: 12, targetX: 70, targetY: 28 }
+        { id: 1, type: 'buy', text: '35=D', x: 15, y: 12, targetX: 30, targetY: 28 },
+        { id: 2, type: 'sell', text: '35=D', x: 85, y: 12, targetX: 70, targetY: 28 }
       ]);
     } else if (stepNum === 1) {
       setActiveNodes(['buyExec', 'sellExec', 'exchange']);
       setActivePaths(['buyExec-exchange', 'sellExec-exchange']);
       setParticles([
-        { id: 3, type: 'buy', text: 'B', x: 30, y: 28, targetX: 50, targetY: 28 },
-        { id: 4, type: 'sell', text: 'S', x: 70, y: 28, targetX: 50, targetY: 28 }
+        { id: 3, type: 'buy', text: '35=D', x: 30, y: 28, targetX: 50, targetY: 28 },
+        { id: 4, type: 'sell', text: '35=D', x: 70, y: 28, targetX: 50, targetY: 28 }
       ]);
       setTimeout(() => {
-        setParticles([{ id: 5, type: 'match', text: 'MATCH', x: 50, y: 28, targetX: 50, targetY: 28 }]);
+        setParticles([{ id: 5, type: 'match', text: '35=8 MATCH', x: 50, y: 28, targetX: 50, targetY: 28 }]);
       }, 800);
     } else if (stepNum === 2) {
       setActiveNodes(['exchange', 'ctm', 'buyPm', 'sellPm']);
       setActivePaths(['exchange-ctm', 'buyPm-ctm', 'sellPm-ctm']);
       setParticles([
-        { id: 6, type: 'match', text: 'AFFIRMED', x: 50, y: 28, targetX: 50, targetY: 45 }
+        { id: 6, type: 'match', text: 'CTM AFFIRMED', x: 50, y: 28, targetX: 50, targetY: 45 }
       ]);
     } else if (stepNum === 3) {
       setActiveNodes(['ctm', 'ccp', 'buyClear', 'sellClear']);
@@ -250,24 +252,33 @@ export function TradeLifecycleRoadmapWidget() {
         ]);
       }, 700);
     } else if (stepNum === 4) {
-      setActiveNodes(['buyClear', 'sellClear', 'buyCust', 'buyBank', 'sellCust', 'sellBank']);
-      setActivePaths(['buyClear-buyCust', 'buyClear-buyBank', 'sellClear-sellCust', 'sellClear-sellBank']);
+      // Step 5: Custodian SWIFT Instructions MT541/MT543 -> CSD MT548 Matching Response Loop
+      setActiveNodes(['buyClear', 'sellClear', 'buyCust', 'sellCust', 'csd']);
+      setActivePaths(['buyClear-buyCust', 'sellClear-sellCust', 'buyCust-csd', 'sellCust-csd', 'csd-buyCust', 'csd-sellCust']);
       setParticles([
-        { id: 10, type: 'buy', text: 'MT541', x: 30, y: 62, targetX: 15, targetY: 88 },
-        { id: 11, type: 'buy', text: '$ Cover', x: 30, y: 62, targetX: 35, targetY: 80 },
-        { id: 12, type: 'sell', text: 'MT543', x: 70, y: 62, targetX: 85, targetY: 88 }
-      ]);
-    } else if (stepNum === 5) {
-      setActiveNodes(['buyBank', 'sellCust', 'buyCust', 'sellBank', 'csd']);
-      setActivePaths(['buyBank-csd', 'sellCust-csd', 'buyCust-csd', 'sellBank-csd']);
-      setParticles([
-        { id: 13, type: 'buy', text: '$2M Cash', x: 35, y: 80, targetX: 50, targetY: 88 },
-        { id: 14, type: 'sell', text: '10k Shares', x: 85, y: 88, targetX: 50, targetY: 88 }
+        { id: 10, type: 'buy', text: 'MT541 (RVP)', x: 15, y: 88, targetX: 50, targetY: 88 },
+        { id: 11, type: 'sell', text: 'MT543 (DVP)', x: 85, y: 88, targetX: 50, targetY: 88 }
       ]);
       setTimeout(() => {
         setParticles([
-          { id: 15, type: 'sell', text: '10k Shares', x: 50, y: 88, targetX: 15, targetY: 88 },
-          { id: 16, type: 'buy', text: '$2M Cash', x: 50, y: 88, targetX: 65, targetY: 80 }
+          { id: 12, type: 'match', text: 'MT548 (MACH)', x: 50, y: 88, targetX: 15, targetY: 88 },
+          { id: 13, type: 'match', text: 'MT548 (MACH)', x: 50, y: 88, targetX: 85, targetY: 88 }
+        ]);
+      }, 1000);
+    } else if (stepNum === 5) {
+      // Step 6: DvP Settlement & Custodian MT545 / MT547 Confirmations
+      setActiveNodes(['buyBank', 'sellCust', 'buyCust', 'sellBank', 'csd', 'buyPm', 'sellPm']);
+      setActivePaths(['buyBank-csd', 'sellCust-csd', 'buyCust-csd', 'sellBank-csd', 'buyCust-buyPm', 'sellCust-sellPm']);
+      setParticles([
+        { id: 14, type: 'buy', text: '$2M Cash', x: 35, y: 80, targetX: 50, targetY: 88 },
+        { id: 15, type: 'sell', text: '10k Shares', x: 85, y: 88, targetX: 50, targetY: 88 }
+      ]);
+      setTimeout(() => {
+        setParticles([
+          { id: 16, type: 'sell', text: '10k Shares', x: 50, y: 88, targetX: 15, targetY: 88 },
+          { id: 17, type: 'buy', text: '$2M Cash', x: 50, y: 88, targetX: 65, targetY: 80 },
+          { id: 18, type: 'buy', text: 'MT545 (RVP Conf)', x: 15, y: 88, targetX: 15, targetY: 12 },
+          { id: 19, type: 'sell', text: 'MT547 (DVP Conf)', x: 85, y: 88, targetX: 85, targetY: 12 }
         ]);
       }, 1000);
     }
