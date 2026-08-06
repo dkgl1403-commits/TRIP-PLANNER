@@ -489,7 +489,8 @@ def seed_curriculum():
                         {"name": "Securities Lending, Repo & Manufactured Payments", "board": "BOTH"},
                         {"name": "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)", "board": "BOTH"},
                         {"name": "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)", "board": "BOTH"},
-                        {"name": "The Game Changers (Mergers, Acquisitions & Spin-offs)", "board": "BOTH"}
+                        {"name": "The Game Changers (Mergers, Acquisitions & Spin-offs)", "board": "BOTH"},
+                        {"name": "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)", "board": "BOTH"}
                     ]
                 }
             ]

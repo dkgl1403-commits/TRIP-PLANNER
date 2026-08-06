@@ -24,7 +24,8 @@ def seed_corporate_actions():
             "Securities Lending, Repo & Manufactured Payments",
             "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)",
             "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)",
-            "The Game Changers (Mergers, Acquisitions & Spin-offs)"
+            "The Game Changers (Mergers, Acquisitions & Spin-offs)",
+            "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)"
         ]
 
         for topic_name in topics:
@@ -410,6 +411,38 @@ def seed_corporate_actions():
                                 "narrative": "<p>Simulate tender offer scaleback proration, test Guaranteed Delivery (Protect Period) custodian liability, and calculate IRS spin-off cost basis splits below.</p>",
                                 "widgetType": "ca-merger-proration-engine",
                                 "alt": "Interactive M&A Proration & Spin-off Cost Basis Engine Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 14
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: The Power of the Shareholder",
+                                "narrative": "<p>When an investor owns a share of stock, they do not just own a slice of corporate profits; they own a slice of corporate power. Corporate actions are not always about money moving &mdash; sometimes they are about critical governance decisions being made. Exercising that power through <strong>Proxy Voting</strong> is a fundamental fiduciary duty for institutional managers.</p>"
+                            },
+                            {
+                                "title": "1. GENERAL MEETINGS (AGM vs EGM)",
+                                "narrative": "<p>Companies are legally required to hold shareholder meetings to vote on key corporate resolutions:</p><ul><li><strong>Annual General Meeting (AGM):</strong> Held annually. Standard agenda items include electing the Board of Directors, appointing independent auditors, and approving executive compensation packages (<strong>Say on Pay</strong>).</li><li><strong>Extraordinary General Meeting (EGM):</strong> Convened irregularly for urgent, massive decisions that cannot wait for the AGM, such as approving or rejecting a proposed Merger, Takeover, or structural charter amendment.</li></ul>"
+                            },
+                            {
+                                "title": "2. THE MECHANICS OF PROXY VOTING & SWIFT ISO 20022",
+                                "narrative": "<p>Because millions of beneficial owners cannot physically attend headquarters, they vote by &quot;Proxy&quot; &mdash; designating an agent to cast their vote as instructed.</p><ul><li><strong>Record Date Rule:</strong> Voting rights belong exclusively to the entity holding legal title on Record Date (shares lent out under Securities Lending possess zero voting power).</li><li><strong>SWIFT ISO 20022 Messaging Flow:</strong> Meeting Notifications arrive via <code>seev.001</code> / MT564. Client voting instructions are sent via <code>seev.004</code> / MT565 (For, Against, Abstain, Withhold).</li><li><strong>The Omnibus Aggregation Problem:</strong> Custodians holding 10 million shares in an Omnibus account at the CSD represent thousands of clients. Custodians must collect all client instructions, aggregate them accurately into a single master <code>seev.004</code> tally message, and transmit it to the meeting tabulator.</li></ul>"
+                            },
+                            {
+                                "title": "3. PROXY ADVISORS (The Kingmakers)",
+                                "narrative": "<p>Institutional asset managers (like Vanguard or BlackRock) hold thousands of public companies globally and face tens of thousands of voting resolutions every proxy season. They rely heavily on Proxy Advisory Firms &mdash; primarily <strong>Institutional Shareholder Services (ISS)</strong> and <strong>Glass Lewis</strong>.</p><ul><li><strong>Influence &amp; Power:</strong> Proxy advisory firms research meeting agendas and issue voting recommendations (e.g. <em>&quot;Vote AGAINST CEO $50M bonus due to missed performance targets&quot;</em>). Because passive index funds often follow ISS or Glass Lewis recommendations automatically, these advisory firms wield immense power over global corporate boardrooms.</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Proxy Voting & Resolution Engine",
+                                "narrative": "<p>Simulate AGM/EGM resolution voting, toggle ISS Proxy Advisory recommendations, and aggregate omnibus client instructions into a master SWIFT ISO 20022 seev.004 message below.</p>",
+                                "widgetType": "ca-proxy-voting-engine",
+                                "alt": "Interactive Proxy Voting & Resolution Engine Simulator."
                             }
                         ]
                     })

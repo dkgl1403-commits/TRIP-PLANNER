@@ -2918,6 +2918,204 @@ export function MergerProrationWidget() {
   );
 }
 
+// ─── Chapter 14 Widget: Proxy Voting & Resolution Engine ─────────────────────
+export function ProxyVotingWidget() {
+  const [selectedRes, setSelectedRes] = useState('res2'); // 'res1' | 'res2' | 'res3'
+  const [advisorPreset, setAdvisorPreset] = useState('iss'); // 'iss' | 'board' | 'custom'
+
+  // Omnibus Clients Holding Balances (Total 10,000,000 shares)
+  const initialClients = [
+    { id: 'cA', name: 'Client A (Vanguard Index Fund)', shares: 3500000, vote: 'AGAINST' },
+    { id: 'cB', name: 'Client B (BlackRock ETF)', shares: 2500000, vote: 'AGAINST' },
+    { id: 'cC', name: 'Client C (State Pension Fund)', shares: 2000000, vote: 'FOR' },
+    { id: 'cD', name: 'Client D (Active Hedge Fund)', shares: 1200000, vote: 'FOR' },
+    { id: 'cE', name: 'Client E (Retail Omnibus Pool)', shares: 800000, vote: 'ABSTAIN' }
+  ];
+
+  const [clientVotes, setClientVotes] = useState(initialClients);
+
+  const resolutions = {
+    res1: {
+      title: 'Resolution 1 (AGM): Re-elect Board of Directors',
+      type: 'AGM',
+      thresholdPct: 50.1,
+      issRec: 'FOR',
+      boardRec: 'FOR',
+      desc: 'Standard annual re-election of slate of 8 independent corporate directors.'
+    },
+    res2: {
+      title: 'Resolution 2 (AGM): Executive Compensation ("Say on Pay")',
+      type: 'AGM',
+      thresholdPct: 50.1,
+      issRec: 'AGAINST',
+      boardRec: 'FOR',
+      desc: 'Approval of CEO $50,000,000 retention bonus. ISS recommends AGAINST due to missed TSR targets.'
+    },
+    res3: {
+      title: 'Resolution 3 (EGM): Approve $100M M&A Acquisition',
+      type: 'EGM',
+      thresholdPct: 66.7, // Supermajority
+      issRec: 'FOR',
+      boardRec: 'FOR',
+      desc: 'Extraordinary resolution requiring 66.7% supermajority vote to absorb competitor.'
+    }
+  };
+
+  const activeRes = resolutions[selectedRes];
+
+  // Apply Presets
+  const applyPreset = (type) => {
+    setAdvisorPreset(type);
+    const rec = type === 'iss' ? activeRes.issRec : activeRes.boardRec;
+    setClientVotes(prev => prev.map(c => ({ ...c, vote: rec })));
+  };
+
+  const updateClientVote = (id, newVote) => {
+    setAdvisorPreset('custom');
+    setClientVotes(prev => prev.map(c => c.id === id ? { ...c, vote: newVote } : c));
+  };
+
+  // Tally Math
+  const totalOmnibusShares = 10000000;
+  const votesFor = clientVotes.filter(c => c.vote === 'FOR').reduce((sum, c) => sum + c.shares, 0);
+  const votesAgainst = clientVotes.filter(c => c.vote === 'AGAINST').reduce((sum, c) => sum + c.shares, 0);
+  const votesAbstain = clientVotes.filter(c => c.vote === 'ABSTAIN').reduce((sum, c) => sum + c.shares, 0);
+
+  const totalCast = votesFor + votesAgainst;
+  const pctFor = totalCast > 0 ? (votesFor / totalOmnibusShares) * 100 : 0;
+  const passed = pctFor >= activeRes.thresholdPct;
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Proxy Voting & Resolution Engine</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Simulate AGM/EGM voting, ISS proxy advisory recommendations, and ISO 20022 seev.004 master aggregation</p>
+
+      {/* Resolution Selector Tabs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        {Object.keys(resolutions).map((key) => {
+          const res = resolutions[key];
+          return (
+            <button
+              key={key}
+              onClick={() => {
+                setSelectedRes(key);
+                setAdvisorPreset('custom');
+              }}
+              className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                selectedRes === key
+                  ? 'bg-slate-800 border-2 border-blue-500 shadow-lg scale-[1.02]'
+                  : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+              }`}
+            >
+              <span className="text-xs font-bold text-white leading-tight">{res.title}</span>
+              <span className="text-[10px] text-amber-400 mt-1 font-mono">{res.type} | Threshold: {res.thresholdPct}%</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Resolution Overview Card & Advisor Presets */}
+      <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-white">{activeRes.title}</h3>
+            <p className="text-xs text-slate-300 mt-0.5">{activeRes.desc}</p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => applyPreset('iss')}
+              className={`px-3 py-1.5 rounded text-xs font-bold transition-all ${
+                advisorPreset === 'iss' ? 'bg-purple-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+              }`}
+            >
+              Follow ISS Rec ({activeRes.issRec})
+            </button>
+            <button
+              onClick={() => applyPreset('board')}
+              className={`px-3 py-1.5 rounded text-xs font-bold transition-all ${
+                advisorPreset === 'board' ? 'bg-blue-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+              }`}
+            >
+              Follow Board Rec ({activeRes.boardRec})
+            </button>
+          </div>
+        </div>
+
+        {/* Client Votes Aggregator List */}
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Omnibus Account Client MT565 Instructions (10M Shares)</span>
+          <div className="space-y-1.5">
+            {clientVotes.map((c) => (
+              <div key={c.id} className="bg-slate-900 p-2.5 rounded-lg border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="min-w-0 flex-1">
+                  <span className="font-bold text-white truncate block">{c.name}</span>
+                  <span className="text-[10px] text-slate-400 font-mono">Position: {(c.shares / 1000000).toFixed(1)}M shares</span>
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  {['FOR', 'AGAINST', 'ABSTAIN'].map((voteOpt) => (
+                    <button
+                      key={voteOpt}
+                      onClick={() => updateClientVote(c.id, voteOpt)}
+                      className={`px-2.5 py-1 rounded font-mono font-bold text-[10px] transition-all ${
+                        c.vote === voteOpt
+                          ? voteOpt === 'FOR' ? 'bg-emerald-600 text-white' : voteOpt === 'AGAINST' ? 'bg-red-600 text-white' : 'bg-amber-600 text-white'
+                          : 'bg-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {voteOpt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* SWIFT seev.004 Master Aggregation & Outcome */}
+      <div className="bg-slate-800 border-2 rounded-xl p-5 shadow-xl space-y-4" style={{ borderColor: passed ? '#10b981' : '#ef4444' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
+          <div>
+            <span className="text-[10px] font-mono text-blue-400 uppercase font-bold tracking-wider">SWIFT ISO 20022 Master Message: seev.004.001.06</span>
+            <h4 className="text-base font-bold text-white mt-0.5">Master Omnibus Vote Tally Results</h4>
+          </div>
+          <span className={`text-xs font-bold px-3.5 py-1 rounded-full border shrink-0 ${passed ? 'bg-emerald-950 text-emerald-300 border-emerald-500' : 'bg-red-950 text-red-300 border-red-500'}`}>
+            {passed ? `✅ RESOLUTION PASSED (${pctFor.toFixed(1)}% FOR)` : `❌ RESOLUTION FAILED (${pctFor.toFixed(1)}% FOR)`}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 font-mono text-xs text-center">
+          <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+            <span className="text-slate-500 block text-[10px] uppercase font-sans">Total FOR Votes</span>
+            <span className="text-emerald-400 font-bold text-sm">{(votesFor / 1000000).toFixed(2)}M shs</span>
+            <span className="text-[10px] text-slate-500 block">({((votesFor / totalOmnibusShares) * 100).toFixed(1)}%)</span>
+          </div>
+
+          <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+            <span className="text-slate-500 block text-[10px] uppercase font-sans">Total AGAINST Votes</span>
+            <span className="text-red-400 font-bold text-sm">{(votesAgainst / 1000000).toFixed(2)}M shs</span>
+            <span className="text-[10px] text-slate-500 block">({((votesAgainst / totalOmnibusShares) * 100).toFixed(1)}%)</span>
+          </div>
+
+          <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+            <span className="text-slate-500 block text-[10px] uppercase font-sans">Total ABSTAIN Votes</span>
+            <span className="text-amber-400 font-bold text-sm">{(votesAbstain / 1000000).toFixed(2)}M shs</span>
+            <span className="text-[10px] text-slate-500 block">({((votesAbstain / totalOmnibusShares) * 100).toFixed(1)}%)</span>
+          </div>
+        </div>
+
+        <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700 text-xs font-mono">
+          <span className="text-blue-400 font-bold uppercase block text-[10px] font-sans">Custodian Fiduciary & Operations Summary</span>
+          <p className="text-blue-200 leading-relaxed mt-1">
+            Global Custodian aggregated 5 client MT565 instructions into 1 consolidated <code>seev.004</code> message for the meeting tabulator. Required threshold: <strong>{activeRes.thresholdPct}%</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 
 

@@ -84,7 +84,8 @@ import {
   SecuritiesLendingWidget,
   WealthDistributionWidget,
   RightsIssueWidget,
-  MergerProrationWidget
+  MergerProrationWidget,
+  ProxyVotingWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1400,5 +1401,8 @@ export const WidgetRegistry = {
   'ca-restructurers': RightsIssueWidget,
   'ca-merger-proration-engine': MergerProrationWidget,
   'ca-mergers-spinoffs': MergerProrationWidget,
-  'ca-spinoff-cost-basis': MergerProrationWidget
+  'ca-spinoff-cost-basis': MergerProrationWidget,
+  'ca-proxy-voting-engine': ProxyVotingWidget,
+  'ca-proxy-voting': ProxyVotingWidget,
+  'ca-governance': ProxyVotingWidget
 };
