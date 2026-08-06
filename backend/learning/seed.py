@@ -488,7 +488,8 @@ def seed_curriculum():
                         {"name": "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)", "board": "BOTH"},
                         {"name": "Securities Lending, Repo & Manufactured Payments", "board": "BOTH"},
                         {"name": "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)", "board": "BOTH"},
-                        {"name": "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)", "board": "BOTH"}
+                        {"name": "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)", "board": "BOTH"},
+                        {"name": "The Game Changers (Mergers, Acquisitions & Spin-offs)", "board": "BOTH"}
                     ]
                 }
             ]

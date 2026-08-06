@@ -83,7 +83,8 @@ import {
   CrossBorderEntitlementWidget,
   SecuritiesLendingWidget,
   WealthDistributionWidget,
-  RightsIssueWidget
+  RightsIssueWidget,
+  MergerProrationWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1396,5 +1397,8 @@ export const WidgetRegistry = {
   'ca-wealth-distribution': WealthDistributionWidget,
   'ca-wealth-engine': WealthDistributionWidget,
   'ca-rights-issue-engine': RightsIssueWidget,
-  'ca-restructurers': RightsIssueWidget
+  'ca-restructurers': RightsIssueWidget,
+  'ca-merger-proration-engine': MergerProrationWidget,
+  'ca-mergers-spinoffs': MergerProrationWidget,
+  'ca-spinoff-cost-basis': MergerProrationWidget
 };

@@ -2749,6 +2749,176 @@ export function RightsIssueWidget() {
   );
 }
 
+// ─── Chapters 12 & 13 Widget: M&A Proration & Spin-off Cost Basis Engine ────
+export function MergerProrationWidget() {
+  const [activeTab, setActiveTab] = useState('proration'); // 'proration' | 'spinoff'
+  const [marketCashPct, setMarketCashPct] = useState(80); // 80% market electing cash
+  const [guaranteedDelivery, setGuaranteedDelivery] = useState(false);
+
+  // M&A Parameters ($100M deal, $50M capped cash pool)
+  const totalDealVal = 100000000;
+  const cashCap = 50000000; // $50M cash max
+  const clientTenderedShares = 10000; // 10,000 shares @ $100
+  const sharePrice = 100;
+
+  // Market Demand
+  const marketCashRequested = totalDealVal * (marketCashPct / 100);
+  const prorationFactor = Math.min(1.0, cashCap / marketCashRequested); // e.g. 0.625 (62.5%)
+
+  const clientAcceptedCashShares = Math.floor(clientTenderedShares * prorationFactor);
+  const clientScaledBackShares = clientTenderedShares - clientAcceptedCashShares;
+
+  const clientCashReceived = clientAcceptedCashShares * sharePrice;
+  const clientStockReceivedVal = clientScaledBackShares * sharePrice;
+
+  // Spin-off Cost Basis Math
+  const origParentPrice = 100;
+  const origShares = 100;
+  const origTotalCostBasis = origShares * origParentPrice; // $10,000
+
+  const postParentPrice = 80;
+  const postSpinoffPrice = 80; // 1-for-4 ratio -> 25 spin shares @ $80 = $2,000 total spin value
+
+  const parentTotalPostVal = origShares * postParentPrice; // $8,000
+  const spinoffTotalPostVal = 25 * postSpinoffPrice; // $2,000
+  const combinedPostVal = parentTotalPostVal + spinoffTotalPostVal; // $10,000
+
+  const parentCostBasisRatio = (parentTotalPostVal / combinedPostVal) * 100; // 80%
+  const spinoffCostBasisRatio = (spinoffTotalPostVal / combinedPostVal) * 100; // 20%
+
+  const newParentCostBasisPerShare = (origTotalCostBasis * (parentCostBasisRatio / 100)) / origShares; // $80/share
+  const newSpinoffCostBasisPerShare = (origTotalCostBasis * (spinoffCostBasisRatio / 100)) / 25; // $80/share
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">M&A Proration & Spin-off Cost Basis Engine</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Simulate scaleback proration on tender offers, guaranteed delivery liability, and IRS spin-off cost basis splits</p>
+
+      {/* Main Tabs */}
+      <div className="flex justify-center gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('proration')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'proration' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🎯 M&A Cash Proration & Protect Period
+        </button>
+        <button
+          onClick={() => setActiveTab('spinoff')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'spinoff' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🔄 Spin-off Cost Basis Allocator (SPUN)
+        </button>
+      </div>
+
+      {activeTab === 'proration' ? (
+        <div className="space-y-6">
+          {/* Controls Panel */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            {/* Market Cash Demand Slider */}
+            <div>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-1">Global Market Cash Demand</span>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="50"
+                  max="95"
+                  step="5"
+                  value={marketCashPct}
+                  onChange={(e) => setMarketCashPct(Number(e.target.value))}
+                  className="w-full accent-amber-500"
+                />
+                <span className="text-xs font-mono font-bold text-white shrink-0">{marketCashPct}% (${(marketCashRequested / 1000000).toFixed(0)}M)</span>
+              </div>
+              <span className="text-[10px] text-slate-400">Capped Cash Pool: $50M (50% of $100M Deal)</span>
+            </div>
+
+            {/* Guaranteed Delivery Toggle */}
+            <div className="flex flex-col justify-center">
+              <span className="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-1">Notice of Guaranteed Delivery (Protect)</span>
+              <button
+                onClick={() => setGuaranteedDelivery(!guaranteedDelivery)}
+                className={`py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-between text-xs ${
+                  guaranteedDelivery ? 'bg-amber-600 text-white border border-amber-400' : 'bg-slate-900 text-slate-400 border border-slate-700'
+                }`}
+              >
+                <span>{guaranteedDelivery ? '⚠️ Protect Active (Custodian Liable for T+1)' : 'Standard Tender (Settled Shares)'}</span>
+                <span className="font-mono">{guaranteedDelivery ? 'ON' : 'OFF'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Results Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
+            <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Proration Acceptance Rate</span>
+              <div className="text-xl font-black text-white mt-1">{(prorationFactor * 100).toFixed(1)}%</div>
+              <span className="text-[10px] text-slate-500">Scaleback Factor</span>
+            </div>
+
+            <div className="bg-slate-800 p-4 rounded-xl border border-emerald-500/40">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Accepted for Cash ($100/sh)</span>
+              <div className="text-lg font-bold text-emerald-300 mt-1">${clientCashReceived.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-400">{clientAcceptedCashShares.toLocaleString()} shares paid cash</span>
+            </div>
+
+            <div className="bg-slate-800 p-4 rounded-xl border border-blue-500/40">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Scaled-Back to Acquirer Stock</span>
+              <div className="text-lg font-bold text-blue-300 mt-1">${clientStockReceivedVal.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-400">{clientScaledBackShares.toLocaleString()} shares converted to stock</span>
+            </div>
+          </div>
+
+          {/* Guaranteed Delivery Notice Panel */}
+          {guaranteedDelivery && (
+            <div className="bg-amber-950/40 border border-amber-500/50 p-4 rounded-xl text-xs space-y-2">
+              <span className="font-bold text-amber-400 block uppercase tracking-wider">⚠️ Custodian Protect Period Liability Active</span>
+              <p className="text-amber-200 leading-relaxed">
+                The client bought shares on T-1 and tendered via Guaranteed Delivery. If the underlying trade fails to settle by the 2-day protect deadline, the Global Custodian is legally liable to reimburse the client for the full <strong>${clientCashReceived.toLocaleString()}</strong> cash entitlement lost.
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-5 shadow-xl">
+          <div className="border-b border-slate-700 pb-3">
+            <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-wider">Parent Co Spin-Off Cost Basis Split (IRS Form 8937)</h3>
+            <p className="text-xs text-slate-300 mt-1">100 Parent shares bought @ $100 ($10,000 original cost basis). Distributed 25 Spin-off Co shares.</p>
+          </div>
+
+          {/* Breakdown Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+            <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-2">
+              <span className="text-slate-400 font-bold uppercase block text-[10px] font-sans">1. Parent Co Position (Post-Spin)</span>
+              <div className="text-sm font-bold text-white">100 Shares @ ${postParentPrice}/sh</div>
+              <div className="text-emerald-400 font-bold">New Adjusted Cost Basis: ${newParentCostBasisPerShare.toFixed(2)} / share</div>
+              <span className="text-[10px] text-slate-500 font-sans block">Assigned {parentCostBasisRatio.toFixed(0)}% of original $10,000 cost basis ($8,000 total)</span>
+            </div>
+
+            <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-2">
+              <span className="text-slate-400 font-bold uppercase block text-[10px] font-sans">2. Spin-Off Co Position (New Line)</span>
+              <div className="text-sm font-bold text-white">25 Shares @ ${postSpinoffPrice}/sh</div>
+              <div className="text-indigo-400 font-bold">Assigned Cost Basis: ${newSpinoffCostBasisPerShare.toFixed(2)} / share</div>
+              <span className="text-[10px] text-slate-500 font-sans block">Assigned {spinoffCostBasisRatio.toFixed(0)}% of original $10,000 cost basis ($2,000 total)</span>
+            </div>
+          </div>
+
+          <div className="bg-blue-950/40 p-4 rounded-lg border border-blue-800/40 text-xs">
+            <span className="text-blue-400 font-bold uppercase block text-[10px] font-sans">Senior Tax & Operations Analyst Note</span>
+            <p className="text-blue-200 leading-relaxed mt-1 font-mono">
+              When the client eventually sells Parent Co or Spin-off Co shares, capital gains tax is calculated against these adjusted cost basis lots. Incorrect tax lot adjustments result in severe IRS tax reporting penalties.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 
 

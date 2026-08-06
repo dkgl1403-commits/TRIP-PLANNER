@@ -23,7 +23,8 @@ def seed_corporate_actions():
             "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)",
             "Securities Lending, Repo & Manufactured Payments",
             "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)",
-            "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)"
+            "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)",
+            "The Game Changers (Mergers, Acquisitions & Spin-offs)"
         ]
 
         for topic_name in topics:
@@ -377,6 +378,38 @@ def seed_corporate_actions():
                                 "narrative": "<p>Calculate TERP, test MT565 client instruction options, observe dilution losses, and explore Reverse Split Cash-in-Lieu (CIL) disposition rules below.</p>",
                                 "widgetType": "ca-rights-issue-engine",
                                 "alt": "Interactive Rights Issue & Fractional Split Engine Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTERS 12 & 13
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The Game Changers (Mergers, Acquisitions & Spin-offs)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: The Death and Birth of ISINs",
+                                "narrative": "<p>When companies combine corporate empires or fracture into distinct independent entities, the middle office enters a high-alert state. These events are not just value adjustments; they require the complete deactivation of old securities (ISIN/CUSIP), the creation and mapping of new ones, and the massive movement of cash and equity across global depositories.</p>"
+                            },
+                            {
+                                "title": "1. MERGERS AND ACQUISITIONS (SWIFT: MRGR)",
+                                "narrative": "<p>A Merger is a Mandatory (<code>MAND</code>) event where Company A absorbs Company B, or both combine to form a new Company C.</p><ul><li><strong>The Operational Flow:</strong> On the Effective Date, the Target company&apos;s shares are delisted and blocked in the Depository. The Acquirer deposits consideration (Cash, Acquirer Stock, or both) into the Depository, which then credits custodians.</li><li><strong>Dissenters&apos; Rights / Appraisal Rights:</strong> If a shareholder legally objects to the merger price, they can exercise Appraisal Rights via an MT565 instruction. The custodian blocks these shares in a segregated account until a court determines &quot;fair value&quot; (which can take years to settle).</li></ul>"
+                            },
+                            {
+                                "title": "2. TAKEOVERS & TENDER OFFERS (SWIFT: TEND / TOFI)",
+                                "narrative": "<p>Unlike a statutory merger, a Tender Offer is Voluntary (<code>VOLU</code>). The acquiring company bypasses the Target&apos;s Board of Directors and offers to buy shares directly from shareholders at a premium.</p><ul><li><strong>Protect Periods &amp; Guaranteed Delivery:</strong> If a client buys Target stock on T-1 near the deadline, the stock won&apos;t settle until T+1 (after the deadline). Custodians issue a <strong>Notice of Guaranteed Delivery</strong> (Protect Instruction) to the Depository, legally guaranteeing delivery within 2 days. If the trade fails to settle, the custodian is strictly liable for the client&apos;s lost cash entitlement!</li><li><strong>Proration Math (Scaleback):</strong> If an acquirer offers to buy up to 50% of the company for cash, but 80% of shareholders elect cash, the Depository applies a <strong>Proration Factor</strong>. If a client tendered 10,000 shares, only 6,250 shares are accepted for cash; the 3,750 unaccepted shares are scaled back and converted to the default stock consideration.</li></ul>"
+                            },
+                            {
+                                "title": "3. SPIN-OFFS & DEMERGERS (SWIFT: SPUN / DEME)",
+                                "narrative": "<p>A Spin-off is a Mandatory (<code>MAND</code>) event where a Parent company takes a subsidiary, establishes it as an independent public company, and distributes new shares to existing shareholders.</p><ul><li><strong>Valuation Adjustment:</strong> On Ex-Date, the market price of the Parent company drops by the exact market value of the newly spun-off company.</li><li><strong>Tax &amp; Cost Basis Allocation:</strong> For tax reporting (IRS Form 8937), the investor&apos;s original Cost Basis (purchase price) must be mathematically split between the Parent and Spin-off lines based on relative market value. For example, if Parent trades at $80 and Spin-off at $20 post-event, the custodian reallocates historical tax lots 80% to Parent and 20% to Spin-off to ensure accurate capital gains calculations upon eventual sale.</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: M&A Proration & Spin-off Cost Basis Engine",
+                                "narrative": "<p>Simulate tender offer scaleback proration, test Guaranteed Delivery (Protect Period) custodian liability, and calculate IRS spin-off cost basis splits below.</p>",
+                                "widgetType": "ca-merger-proration-engine",
+                                "alt": "Interactive M&A Proration & Spin-off Cost Basis Engine Simulator."
                             }
                         ]
                     })
