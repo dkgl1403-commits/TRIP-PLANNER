@@ -80,7 +80,8 @@ import {
   EventTaxonomyWidget,
   ClaimsTransformationWidget,
   NostroVostroWidget,
-  CrossBorderEntitlementWidget
+  CrossBorderEntitlementWidget,
+  SecuritiesLendingWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1387,5 +1388,7 @@ export const WidgetRegistry = {
   'trade-vs-settlement-timeline': ClaimsTransformationWidget,
   'ca-nostro-vostro': NostroVostroWidget,
   'ca-cross-border-simulator': CrossBorderEntitlementWidget,
-  'ca-accounts-taxes-fx': CrossBorderEntitlementWidget
+  'ca-accounts-taxes-fx': CrossBorderEntitlementWidget,
+  'ca-sec-lending-flow': SecuritiesLendingWidget,
+  'ca-sec-lending': SecuritiesLendingWidget
 };

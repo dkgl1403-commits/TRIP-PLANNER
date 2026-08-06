@@ -20,7 +20,8 @@ def seed_corporate_actions():
             "The Custody Chain & Entitlement Flow",
             "The Taxonomy of Events (Income, Restructuring, Redemptions)",
             "Market Claims & Transformations (Cum vs Ex)",
-            "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)"
+            "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)",
+            "Securities Lending, Repo & Manufactured Payments"
         ]
 
         for topic_name in topics:
@@ -274,6 +275,46 @@ def seed_corporate_actions():
                                 "narrative": "<p>Configure holding structures, tax methods, and FX execution modes below to watch a gross &euro;100,000 European dividend bleed down to the net USD Vostro credit.</p>",
                                 "widgetType": "ca-cross-border-simulator",
                                 "alt": "Interactive Cross-Border Entitlement Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 9
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "Securities Lending, Repo & Manufactured Payments":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: The Illusion of the Ledger",
+                                "narrative": "<p>When a massive institutional investor (like a Pension Fund) holds 10 million shares of Microsoft, they rarely just let them sit in a vault. To generate extra yield, they lend those shares out to short sellers or use them as collateral in Repurchase Agreements (Repo).</p><p>But here is the problem: <strong>Corporate Actions do not care about your private lending agreements.</strong> The Depository (CSD) only pays the entity holding the legal title on Record Date. If you lent your shares out, the CSD does not know you exist. Reconciling the economic reality of the lender with the legal reality of the Depository is the most volatile friction point in Corporate Actions.</p>"
+                            },
+                            {
+                                "title": "1. THE GOLDEN RULE OF TITLE TRANSFER",
+                                "narrative": "<p>In both Securities Lending and Repo, the <strong>Legal Title</strong> of the security transfers from the Lender to the Borrower (or Cash Taker).</p><p>Because the Borrower now legally owns the shares, they usually sell them immediately into the open market to a short sale buyer.</p><ul><li><strong>The CSD Reality:</strong> On Record Date, the CSD looks at the ledger. The original Lender is not there. The Borrower is not there. The <strong>New Buyer</strong> (who bought from the short seller) is on the register.</li><li><strong>The Entitlement:</strong> The Issuer pays the real dividend directly to the New Buyer.</li></ul>"
+                            },
+                            {
+                                "title": "2. THE MANUFACTURED DIVIDEND (Substitute Payment)",
+                                "narrative": "<p>If the Lender gave up legal title, but still holds the economic risk and reward of the position, how do they get paid?</p><p>Enter the <strong>Manufactured Dividend</strong> (also known as a Substitute Payment in Lieu of Dividends &mdash; PIL):</p><ul><li><strong>The Contract:</strong> Under the Global Master Securities Lending Agreement (GMSLA) or Global Master Repurchase Agreement (GMRA), the Borrower is contractually obligated to <em>&quot;make the Lender whole.&quot;</em></li><li><strong>The Flow:</strong> The Borrower must pay the Lender an amount of cash exactly equal to the dividend the Lender would have received had they not lent the shares. The Borrower pays this out of their own pocket (a &quot;manufactured&quot; payment).</li><li><strong>The Tax Complication & Gross-Up:</strong> A Manufactured Dividend is not a real dividend &mdash; to tax authorities, it is ordinary income. If the Lender was entitled to a 15% Treaty Rate on a real dividend, but the local tax authority taxes manufactured payments at 30%, the Borrower must perform a <strong>Tax Gross-Up</strong> out of pocket so the Lender receives the exact net cash expected.</li></ul>"
+                            },
+                            {
+                                "title": "3. THE VOTING DILEMMA: The Hard Stop",
+                                "narrative": "<p>You can manufacture cash. You can manufacture stock splits by adjusting the loan ledger. <strong>You CANNOT manufacture a vote.</strong></p><p>There is a finite number of voting rights in a public company. Because the New Buyer holds the legal title on Record Date, the New Buyer holds the absolute right to vote.</p><p><strong>The Operations Focus (Record Date Recall):</strong> If the Lender (e.g. BlackRock) wants to vote on a critical M&amp;A deal or hostile board takeover, they must issue a <strong>Recall Notice</strong> to the Borrower well before the Record Date. The Borrower is forced to buy back the shares in the open market and return them to the Lender&apos;s custody account before the CSD snapshot. Missing this deadline results in permanent loss of voting rights.</p>"
+                            },
+                            {
+                                "title": "4. REPO AND COLLATERAL MANAGEMENT",
+                                "narrative": "<p>In a Repurchase Agreement (Repo), Party A gives Party B bonds as collateral in exchange for cash. If those bonds pay a coupon (interest) while sitting in Party B&apos;s account, Party B receives the real cash from the CSD.</p><ul><li><strong>Income Tracking:</strong> Party B&apos;s corporate action system must flag these bonds as &quot;Collateral Received&quot; and automatically wire the coupon proceeds back to Party A on Pay Date.</li><li><strong>Collateral Substitution:</strong> To avoid tax tracking hassle, traders perform a <strong>Substitution</strong>. The day before Ex-Date, Party B returns the bonds to Party A and replaces them with Cash collateral just for the event duration.</li></ul>"
+                            },
+                            {
+                                "title": "5. THE SYSTEMIC NIGHTMARE (STP Integration)",
+                                "narrative": "<p>Why do breaks happen here? Because the Custody system and the Prime Brokerage (Lending) system are often completely separate legacy databases.</p><p>When the MT564 Notification arrives, the Corporate Action engine calculates entitlements based on the Custody ledger. If the Custody ledger says 0 shares (because they are out on loan), the engine projects $0 dividend. A modern STP engine must dynamically bridge these databases, artificially inflating the Custody position by the &quot;Shares on Loan&quot; ledger to accurately project the incoming Manufactured Dividend.</p>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Securities Lending & Manufactured Dividend Simulator",
+                                "narrative": "<p>Test GMSLA recall notices, manufactured PIL cash flows, tax gross-ups, and Repo collateral substitutions using the interactive flow simulator below.</p>",
+                                "widgetType": "ca-sec-lending-flow",
+                                "alt": "Interactive Securities Lending & Manufactured Dividend Simulator."
                             }
                         ]
                     })

@@ -2142,5 +2142,160 @@ export function CrossBorderEntitlementWidget() {
   );
 }
 
+// ─── Chapter 9 Widget: Securities Lending, Repo & Manufactured Payments ──────
+export function SecuritiesLendingWidget() {
+  const [decision, setDecision] = useState('lent_out'); // 'lent_out' | 'recalled' | 'repo_substitution'
+
+  const scenarios = {
+    lent_out: {
+      title: 'Leave Shares Lent Out Over Record Date',
+      color: '#f59e0b',
+      badge: 'Manufactured Payment (PIL)',
+      csdPaymentTo: 'New Buyer (Open Market)',
+      lenderReceives: 'Manufactured Dividend from Borrower',
+      votingRights: 'New Buyer Holds Voting Rights (Lender Lost Vote)',
+      taxGrossUp: '$15,000 (Borrower pays out of pocket)',
+      flowSteps: [
+        { label: '1. Title Transfer', desc: 'Lender (BlackRock) transfers 100,000 shares legal title to Borrower under GMSLA contract.' },
+        { label: '2. Short Sale', desc: 'Borrower immediately sells 100,000 shares in open market to New Buyer.' },
+        { label: '3. CSD Snapshot', desc: 'CSD snapshot on Record Date sees New Buyer on register. CSD pays real $100,000 dividend to New Buyer.' },
+        { label: '4. Manufactured Payment', desc: 'Borrower is contractually obligated to pay $100,000 Manufactured Dividend (PIL) to Lender out of pocket.' },
+        { label: '5. Tax Gross-Up', desc: 'Local tax authority taxes PIL as ordinary income (30%). Borrower must pay $15,000 extra Tax Gross-Up so Lender gets 85% net.' }
+      ],
+      opsNote: 'Lender generated securities lending fee income, but forfeited voting rights on the upcoming AGM proxy vote.'
+    },
+    recalled: {
+      title: 'Issue Recall Notice Before Record Date',
+      color: '#10b981',
+      badge: 'Recall Executed / Real Dividend',
+      csdPaymentTo: 'Lender (BlackRock)',
+      lenderReceives: 'Real Cash Dividend from CSD',
+      votingRights: 'Lender Retains 100% Voting Rights',
+      taxGrossUp: '$0 (Standard Dividend WHT applies)',
+      flowSteps: [
+        { label: '1. Recall Issued', desc: 'Lender issues GMSLA Recall Notice 3 business days before Record Date to participate in AGM vote.' },
+        { label: '2. Open Market Buyback', desc: 'Borrower is forced to buy back 100,000 shares in open market and return them to Lender custody account.' },
+        { label: '3. CSD Snapshot', desc: 'CSD snapshot on Record Date captures Lender as legal owner. Real $100,000 dividend paid to Lender.' },
+        { label: '4. Proxy Voting', desc: 'Lender receives official Proxy Voting Card for 100,000 shares to vote on M&A resolution.' }
+      ],
+      opsNote: 'Requires strict monitoring of market recall deadlines. If borrower fails to return shares before cut-off, buy-in penalties apply.'
+    },
+    repo_substitution: {
+      title: 'Repo Collateral Substitution (Pre-Ex Date)',
+      color: '#3b82f6',
+      badge: 'Repo Substitution',
+      csdPaymentTo: 'Party A (Original Bond Owner)',
+      lenderReceives: 'Real Coupon Payment from CSD',
+      votingRights: 'N/A (Bond / Fixed Income)',
+      taxGrossUp: '$0 (No Manufactured Payment Created)',
+      flowSteps: [
+        { label: '1. Repo Agreement', desc: 'Party A pledged €10,000,000 bonds as collateral to Party B in exchange for cash.' },
+        { label: '2. Pre-Ex Substitution', desc: '1 day before Ex-Date, Party B returns bonds to Party A and substitutes with Cash collateral for dividend period.' },
+        { label: '3. CSD Coupon Payout', desc: 'CSD pays real €200,000 bond coupon directly to Party A on Pay Date.' },
+        { label: '4. Post-Event Swap', desc: 'After Ex-Date, original bond collateral is restored under Repo agreement.' }
+      ],
+      opsNote: 'Eliminates complex manufactured coupon tax tracking and cross-border withholding tax reclaims for both counterparties.'
+    }
+  };
+
+  const activeScenario = scenarios[decision];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Securities Lending & Manufactured Dividend Simulator</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Explore legal title transfers, GMSLA recalls, manufactured cash (PIL), and tax gross-ups</p>
+
+      {/* Decision Controls */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        {[
+          { id: 'lent_out', label: '💸 Leave Lent Out', desc: 'Manufactured PIL + Tax Gross-Up' },
+          { id: 'recalled', label: '📣 Issue Recall Notice', desc: 'Real Dividend + Retain Proxy Vote' },
+          { id: 'repo_substitution', label: '🔄 Repo Substitution', desc: 'Swap Collateral to avoid PIL tax' }
+        ].map((btn) => (
+          <button
+            key={btn.id}
+            onClick={() => setDecision(btn.id)}
+            className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+              decision === btn.id
+                ? 'bg-slate-800 border-2 shadow-lg scale-[1.02]'
+                : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+            }`}
+            style={{ borderColor: decision === btn.id ? scenarios[btn.id].color : undefined }}
+          >
+            <span className="text-xs font-bold text-white leading-tight">{btn.label}</span>
+            <span className="text-[10px] text-slate-400 mt-1">{btn.desc}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Active Scenario Display */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={decision}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="bg-slate-800 border-2 rounded-xl p-5 shadow-xl space-y-5"
+          style={{ borderColor: activeScenario.color }}
+        >
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700 pb-3">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <span>⚖️</span> {activeScenario.title}
+            </h3>
+            <span
+              className="text-xs font-bold px-3 py-1 rounded-full border shrink-0 self-start sm:self-auto"
+              style={{ backgroundColor: activeScenario.color + '20', color: activeScenario.color, borderColor: activeScenario.color + '50' }}
+            >
+              {activeScenario.badge}
+            </span>
+          </div>
+
+          {/* Outcome Summary Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 font-bold uppercase block text-[10px]">CSD Real Payout Recipient</span>
+              <span className="text-slate-200 font-semibold">{activeScenario.csdPaymentTo}</span>
+            </div>
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 font-bold uppercase block text-[10px]">Lender Economic Payout</span>
+              <span className="text-emerald-400 font-bold">{activeScenario.lenderReceives}</span>
+            </div>
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 font-bold uppercase block text-[10px]">Proxy Voting Status</span>
+              <span className="text-amber-300 font-semibold">{activeScenario.votingRights}</span>
+            </div>
+          </div>
+
+          {/* Step-by-Step Flow List */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Transaction Flow & Ledger Steps</h4>
+            <div className="space-y-2">
+              {activeScenario.flowSteps.map((step, i) => (
+                <div key={i} className="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-bold text-white block">{step.label}</span>
+                    <span className="text-xs text-slate-300 leading-relaxed block">{step.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Ops Analyst Gotcha */}
+          <div className="bg-amber-950/30 border border-amber-500/30 p-3.5 rounded-lg text-xs">
+            <h4 className="font-bold text-amber-400 uppercase tracking-wider mb-1">💡 Senior Operations Analyst Note</h4>
+            <p className="text-amber-200 leading-relaxed">{activeScenario.opsNote}</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+
 
 

@@ -485,7 +485,8 @@ def seed_curriculum():
                         {"name": "The Custody Chain & Entitlement Flow", "board": "BOTH"},
                         {"name": "The Taxonomy of Events (Income, Restructuring, Redemptions)", "board": "BOTH"},
                         {"name": "Market Claims & Transformations (Cum vs Ex)", "board": "BOTH"},
-                        {"name": "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)", "board": "BOTH"}
+                        {"name": "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)", "board": "BOTH"},
+                        {"name": "Securities Lending, Repo & Manufactured Payments", "board": "BOTH"}
                     ]
                 }
             ]
