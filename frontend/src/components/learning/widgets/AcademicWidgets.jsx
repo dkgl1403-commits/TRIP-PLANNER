@@ -86,7 +86,11 @@ import {
   RightsIssueWidget,
   MergerProrationWidget,
   ProxyVotingWidget,
-  FintechMarketNuancesWidget
+  FintechMarketNuancesWidget,
+  SwiftFieldParserWidget,
+  ExceptionDebuggerWidget,
+  InterviewSimulatorWidget,
+  IsoMatrixWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1408,5 +1412,9 @@ export const WidgetRegistry = {
   'ca-governance': ProxyVotingWidget,
   'ca-fintech-market-nuances': FintechMarketNuancesWidget,
   'ca-fintech-ecosystem': FintechMarketNuancesWidget,
-  'ca-market-nuances': FintechMarketNuancesWidget
+  'ca-market-nuances': FintechMarketNuancesWidget,
+  'ca-swift-parser': SwiftFieldParserWidget,
+  'ca-exception-debugger': ExceptionDebuggerWidget,
+  'ca-interview-simulator': InterviewSimulatorWidget,
+  'ca-swift-matrix': IsoMatrixWidget
 };

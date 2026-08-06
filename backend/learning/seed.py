@@ -491,7 +491,8 @@ def seed_curriculum():
                         {"name": "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)", "board": "BOTH"},
                         {"name": "The Game Changers (Mergers, Acquisitions & Spin-offs)", "board": "BOTH"},
                         {"name": "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)", "board": "BOTH"},
-                        {"name": "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)", "board": "BOTH"}
+                        {"name": "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)", "board": "BOTH"},
+                        {"name": "Tier-1 Bank Interview Simulator & SWIFT Parser", "board": "BOTH"}
                     ]
                 }
             ]

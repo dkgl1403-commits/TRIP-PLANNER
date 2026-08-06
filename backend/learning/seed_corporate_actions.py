@@ -26,7 +26,8 @@ def seed_corporate_actions():
             "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)",
             "The Game Changers (Mergers, Acquisitions & Spin-offs)",
             "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)",
-            "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)"
+            "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)",
+            "Tier-1 Bank Interview Simulator & SWIFT Parser"
         ]
 
         for topic_name in topics:
@@ -472,6 +473,44 @@ def seed_corporate_actions():
                                 "narrative": "<p>Explore enterprise software processing architectures, simulate Australian Franking Credit tax imputations, and view your official Master of Corporate Actions Certificate below.</p>",
                                 "widgetType": "ca-fintech-market-nuances",
                                 "alt": "Interactive FinTech Ecosystem & Market Nuances Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 17 (INTERVIEW READINESS & SWIFT PARSER)
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "Tier-1 Bank Interview Simulator & SWIFT Parser":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "1. THE INTERVIEW READINESS BLUEPRINT",
+                                "narrative": "<p>Top global custodian banks (State Street, BNY Mellon, JPMorgan, Citi, Morgan Stanley) test candidates on operational judgment, SWIFT tag familiarity, and troubleshooting STP breaks under high pressure.</p>"
+                            },
+                            {
+                                "title": "2. SWIFT TAG INSPECTOR & PARSER",
+                                "narrative": "<p>Inspect RAW MT564, MT565, and MT566 streams tag-by-tag to understand field structures, format constraints, and common operational error risks below.</p>",
+                                "widgetType": "ca-swift-parser",
+                                "alt": "RAW SWIFT Field Inspector & Parser."
+                            },
+                            {
+                                "title": "3. MIDDLE OFFICE EXCEPTION TICKET DEBUGGER",
+                                "narrative": "<p>Practice investigating real-world middle-office break tickets (Nostro Cash Breaks, Reverse Split CIL Stock Breaks, and Lapsed Rights Claims) below.</p>",
+                                "widgetType": "ca-exception-debugger",
+                                "alt": "Middle Office Exception Ticket Debugger."
+                            },
+                            {
+                                "title": "4. TIER-1 BANK TECHNICAL INTERVIEW SIMULATOR",
+                                "narrative": "<p>Test your interview readiness with top technical screening questions asked by Tier-1 custodian hiring managers below.</p>",
+                                "widgetType": "ca-interview-simulator",
+                                "alt": "Tier-1 Bank Technical Interview Simulator."
+                            },
+                            {
+                                "title": "5. SWIFT ISO 15022 vs ISO 20022 CROSS-REFERENCE MATRIX",
+                                "narrative": "<p>Cross-reference legacy FIN MT500 series messages with target ISO 20022 XML seev messages below.</p>",
+                                "widgetType": "ca-swift-matrix",
+                                "alt": "SWIFT ISO Matrix Reference Table."
                             }
                         ]
                     })

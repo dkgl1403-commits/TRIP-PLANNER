@@ -3332,6 +3332,512 @@ export function FintechMarketNuancesWidget() {
   );
 }
 
+// ─── Interview Readiness Widget 1: RAW SWIFT Field Inspector & Parser ─────────
+export function SwiftFieldParserWidget() {
+  const [activeMsgType, setActiveMsgType] = useState('MT564'); // 'MT564' | 'MT565' | 'MT566'
+  const [selectedTagIndex, setSelectedTagIndex] = useState(1);
+
+  const swiftMessages = {
+    MT564: {
+      title: 'MT564 Corporate Action Notification (Cash Dividend)',
+      lines: [
+        { tag: ':16R:GENL', label: 'Header: General Information Block', desc: 'Start of Section 1 General Information.' },
+        { tag: ':20C::CORP//CA10928374', label: 'Sender Corporate Action Reference', desc: 'Unique identifier assigned by custodian/CSD. Crucial for matching downstream MT565/MT566 messages.', error: 'Truncating or mismatching reference causes orphaned instructions.' },
+        { tag: ':22F::CAEV//DVCA', label: 'Event Type: Cash Dividend', desc: 'Specifies corporate action event. DVCA = Cash Dividend, DVSE = Stock Dividend, SPLF = Stock Split.', error: 'Mistaking DVSE for DVCA triggers invalid cash entitlement postings.' },
+        { tag: ':22F::CAMV//MAND', label: 'Mandatory/Voluntary Indicator', desc: 'MAND = Mandatory (no choice required), VOLU = Voluntary (MT565 election required), CHOS = Mandatory with Choice.' },
+        { tag: ':16S:GENL', label: 'End of General Information Block', desc: 'Closes Section 1.' },
+        { tag: ':16R:CADET', label: 'Header: Corporate Action Details Block', desc: 'Start of Section 2 Key Dates & Rates.' },
+        { tag: ':98A::EXDT//20260810', label: 'Ex-Date Qualifier (:98A::EXDT)', desc: 'August 10, 2026. Date stock begins trading ex-entitlement. Trades on/after this date do NOT receive dividend.' },
+        { tag: ':98A::RECORD//20260811', label: 'Record Date Qualifier (:98A::RECORD)', desc: 'August 11, 2026. Date depository snapshots legal holders of record.' },
+        { tag: ':98A::PAYD//20260825', label: 'Payment Date Qualifier (:98A::PAYD)', desc: 'August 25, 2026. Date cash is credited to Nostro account.' },
+        { tag: ':92A::GRSS//USD1.500000', label: 'Gross Dividend Rate Qualifier (:92A::GRSS)', desc: '$1.50 per share gross dividend rate prior to withholding tax.' },
+        { tag: ':92A::WITX//15.000000', label: 'Withholding Tax Rate (:92A::WITX)', desc: '15.0% statutory withholding tax applied at source.' },
+        { tag: ':16S:CADET', label: 'End of Corporate Action Details Block', desc: 'Closes Section 2.' }
+      ]
+    },
+    MT565: {
+      title: 'MT565 Corporate Action Instruction (Rights Exercise)',
+      lines: [
+        { tag: ':16R:GENL', label: 'Header: General Information Block', desc: 'Start of MT565 Client Instruction.' },
+        { tag: ':20C::SECU//INST998822', label: 'Sender Instruction Reference', desc: 'Client or custodian unique instruction tracking ID.' },
+        { tag: ':20C::CORP//CA10928374', label: 'Corporate Action Reference', desc: 'Must match original MT564 CORP reference exact string.' },
+        { tag: ':22F::CAEV//EXRI', label: 'Event Type: Rights Exercise', desc: 'EXRI = Exercise of Rights.' },
+        { tag: ':16S:GENL', label: 'End of General Block', desc: 'Closes Section 1.' },
+        { tag: ':16R:INSDET', label: 'Header: Instruction Details', desc: 'Contains client election choices.' },
+        { tag: ':13A::STAT//EXER', label: 'Option Code Qualifier (:13A::STAT)', desc: 'EXER = Take Up / Exercise Rights. QOPT = Sell Rights, LAPSE = Allow Rights to Expire.' },
+        { tag: ':36B::QEST//UNIT/5000,', label: 'Instructed Quantity (:36B::QEST)', desc: '5,000 Rights instructed to be exercised.' },
+        { tag: ':16S:INSDET', label: 'End of Instruction Details Block', desc: 'Closes MT565.' }
+      ]
+    },
+    MT566: {
+      title: 'MT566 Corporate Action Confirmation (Payment Credit)',
+      lines: [
+        { tag: ':16R:GENL', label: 'Header: Confirmation Block', desc: 'Start of MT566 Payment Confirmation.' },
+        { tag: ':20C::CORP//CA10928374', label: 'Corporate Action Reference', desc: 'Matches original event reference.' },
+        { tag: ':22F::CAEV//DVCA', label: 'Event Type: Cash Dividend', desc: 'Confirms Cash Dividend payout.' },
+        { tag: ':16S:GENL', label: 'End of General Block', desc: 'Closes Section 1.' },
+        { tag: ':16R:CONF', label: 'Header: Confirmation Details', desc: 'Financial posting confirmation.' },
+        { tag: ':19A::PSTD//USD12750,00', label: 'Net Posted Amount (:19A::PSTD)', desc: '$12,750.00 Net cash credited to Vostro client account ($15,000 gross - $2,250 15% WHT).' },
+        { tag: ':98A::PAYD//20260825', label: 'Value Date', desc: 'Actual value date cash settled in Nostro.' },
+        { tag: ':16S:CONF', label: 'End of Confirmation Details', desc: 'Closes MT566.' }
+      ]
+    }
+  };
+
+  const currentMsg = swiftMessages[activeMsgType];
+  const selectedTag = currentMsg.lines[selectedTagIndex] || currentMsg.lines[0];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">RAW SWIFT Field Inspector & Parser</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Click any SWIFT tag line below to inspect field specs, SWIFT ISO rules, and middle-office operational error risks</p>
+
+      {/* Message Type Selector */}
+      <div className="flex justify-center gap-2 mb-6">
+        {Object.keys(swiftMessages).map((msgKey) => (
+          <button
+            key={msgKey}
+            onClick={() => {
+              setActiveMsgType(msgKey);
+              setSelectedTagIndex(0);
+            }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold font-mono transition-all ${
+              activeMsgType === msgKey ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            {msgKey}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* SWIFT RAW Code Viewer */}
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs space-y-1 shadow-inner">
+          <div className="text-[10px] text-slate-500 border-b border-slate-800 pb-2 mb-2 uppercase font-sans font-bold flex justify-between">
+            <span>RAW SWIFT {activeMsgType} STREAM</span>
+            <span className="text-emerald-400">FIN MT STANDARD</span>
+          </div>
+
+          {currentMsg.lines.map((item, idx) => (
+            <div
+              key={idx}
+              onClick={() => setSelectedTagIndex(idx)}
+              className={`p-2 rounded cursor-pointer transition-all flex items-center justify-between ${
+                selectedTagIndex === idx
+                  ? 'bg-blue-900/60 border border-blue-400/80 text-white font-bold'
+                  : 'hover:bg-slate-900 text-slate-300'
+              }`}
+            >
+              <span>{item.tag}</span>
+              <span className="text-[10px] text-slate-500 font-sans">{item.label.split(':')[0]}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tag Inspector Detail Panel */}
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4 shadow-xl flex flex-col justify-between">
+          <div>
+            <div className="border-b border-slate-700 pb-3 mb-3">
+              <span className="text-[10px] font-mono text-blue-400 uppercase font-bold tracking-wider">SWIFT Tag Specification</span>
+              <h3 className="text-base font-bold text-white font-mono mt-0.5">{selectedTag.tag}</h3>
+              <p className="text-xs font-bold text-amber-300 mt-1">{selectedTag.label}</p>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <span className="text-slate-400 font-bold uppercase block text-[10px]">Operational Definition</span>
+                <p className="text-slate-200 mt-1 leading-relaxed">{selectedTag.desc}</p>
+              </div>
+
+              {selectedTag.error && (
+                <div className="bg-red-950/40 border border-red-800/50 p-3 rounded-lg text-red-200 space-y-1">
+                  <span className="font-bold text-red-400 block uppercase text-[10px]">⚠️ STP Risk & Common Interview Trap</span>
+                  <p className="text-[11px] leading-relaxed">{selectedTag.error}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-slate-900 p-3 rounded-lg border border-slate-700 text-[11px] text-slate-400 font-mono">
+            <span className="text-slate-300 font-bold uppercase block text-[10px] font-sans">Interview Pro Tip</span>
+            <p className="mt-0.5">When shown a raw MT564 in an interview, always locate <code>:22F::CAMV//</code> first to verify if client election is required!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Interview Readiness Widget 2: Middle Office Exception Ticket Debugger ─────
+export function ExceptionDebuggerWidget() {
+  const [selectedTicketId, setSelectedTicketId] = useState('t1');
+  const [userChoice, setUserChoice] = useState(null);
+
+  const tickets = {
+    t1: {
+      id: 'T-9041',
+      title: 'Nostro Cash Break: Overcredited by €45,000',
+      category: 'Taxes & Nostro Reconciliation',
+      summary: 'On French Dividend Pay Date, Nostro cash received from BNP Paribas is €45,000 higher than custodian sub-ledger expectation.',
+      details: {
+        shares: '1,000,000 shares',
+        grossRate: '€0.30 per share (€300,000 Gross)',
+        expectedNet: '€225,000 (after 25% French WHT)',
+        actualNostroReceived: '€270,000 (after 10% DTT treaty rate applied by CSD)'
+      },
+      question: 'Why did this Nostro cash break occur, and how should middle office resolve it?',
+      options: [
+        {
+          id: 'optA',
+          text: 'The CSD applied the 10% Tax Treaty rate because tax relief documentation was filed at source. Update sub-ledger WHT rate to 10% and credit client Vostro accounts.',
+          correct: true,
+          explanation: 'CORRECT! Tax relief at source documentation was successfully processed by BNP Paribas. The 15% difference (€45,000) represents valid net cash belonging to clients under double tax treaties.'
+        },
+        {
+          id: 'optB',
+          text: 'Refund €45,000 back to BNP Paribas immediately as a bank error.',
+          correct: false,
+          explanation: 'INCORRECT! Refunding valid tax treaty proceeds would deprive clients of legitimate dividend income.'
+        },
+        {
+          id: 'optC',
+          text: 'Book €45,000 as middle-office trading profit.',
+          correct: false,
+          explanation: 'INCORRECT! Fiduciary laws prohibit keeping client corporate action proceeds as bank revenue.'
+        }
+      ]
+    },
+    t2: {
+      id: 'T-9042',
+      title: 'Reverse Split CIL Stock Break (1-for-10 Split)',
+      category: 'Fractional Shares & CIL',
+      summary: 'Client holding 125 shares under 1-for-10 Reverse Split expects 12 shares + Cash-in-Lieu for 0.5 fraction. CSD credited 12 shares but zero cash.',
+      details: {
+        position: '125 shares of Parent Co',
+        fractionRuleMT564: ':22F::FRAC//DROP (Drop Fraction)',
+        clientBelief: 'Client assumed CASH disposition rule applied by default'
+      },
+      question: 'Is the custodian liable for the missing 0.5 fraction cash?',
+      options: [
+        {
+          id: 'optA',
+          text: 'No. MT564 tag :22F::FRAC//DROP explicitly defined fraction rule as DROP (extinguish fraction). CSD acted correctly.',
+          correct: true,
+          explanation: 'CORRECT! The issuer specified DROP in the MT564 terms. Custodians are bound by official issuer terms and are not liable for extinguished fractions.'
+        },
+        {
+          id: 'optB',
+          text: 'Yes. Custodian must pay client $50 cash from custodian error account.',
+          correct: false,
+          explanation: 'INCORRECT! Custodians do not compensate clients for issuer-mandated DROP terms.'
+        }
+      ]
+    },
+    t3: {
+      id: 'T-9043',
+      title: 'Lapsed Rights Issue Claim ($80,000 Loss)',
+      category: 'Voluntary MT565 Cut-offs',
+      summary: 'Client submitted MT565 to exercise Rights 10 minutes past custodian internal deadline. Rights expired worthless ($0). Client sues for $80,000 intrinsic value loss.',
+      details: {
+        internalCutoff: '12:00 PM EST',
+        clientSubmission: '12:10 PM EST',
+        csdHardCutoff: '3:00 PM EST'
+      },
+      question: 'How should operations management handle this dispute?',
+      options: [
+        {
+          id: 'optA',
+          text: 'Enforce terms of service. Internal cut-offs are legally binding to ensure processing time. Reject claim.',
+          correct: true,
+          explanation: 'CORRECT! Custodian internal cut-offs protect operational integrity. Since submission violated published cut-off, client assumes lapse risk.'
+        },
+        {
+          id: 'optB',
+          text: 'Pay $80,000 immediately.',
+          correct: false,
+          explanation: 'INCORRECT! Internal cut-offs exist specifically to eliminate custodian liability for late submissions.'
+        }
+      ]
+    }
+  };
+
+  const activeTicket = tickets[selectedTicketId];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Middle Office Exception Ticket Debugger</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Investigate real-world corporate action operational break tickets and select the correct resolution</p>
+
+      {/* Ticket Selector */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        {Object.keys(tickets).map((key) => {
+          const t = tickets[key];
+          return (
+            <button
+              key={key}
+              onClick={() => {
+                setSelectedTicketId(key);
+                setUserChoice(null);
+              }}
+              className={`p-3 rounded-xl border text-left transition-all ${
+                selectedTicketId === key
+                  ? 'bg-slate-800 border-2 border-amber-500 shadow-lg scale-[1.02]'
+                  : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+              }`}
+            >
+              <span className="text-[10px] font-mono text-amber-400 font-bold uppercase">{t.id} | {t.category}</span>
+              <h4 className="text-xs font-bold text-white mt-1 leading-tight">{t.title}</h4>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active Ticket Investigation Panel */}
+      <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-5 shadow-xl">
+        <div className="border-b border-slate-700 pb-3 flex justify-between items-start">
+          <div>
+            <span className="text-[10px] font-mono text-amber-400 font-bold uppercase">EXCEPTION TICKET {activeTicket.id}</span>
+            <h3 className="text-base font-bold text-white mt-0.5">{activeTicket.title}</h3>
+            <p className="text-xs text-slate-300 mt-1">{activeTicket.summary}</p>
+          </div>
+        </div>
+
+        {/* Fact Matrix */}
+        <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+          {Object.entries(activeTicket.details).map(([k, v]) => (
+            <div key={k}>
+              <span className="text-[10px] text-slate-500 uppercase font-sans font-bold block">{k.replace(/([A-Z])/g, ' $1')}</span>
+              <span className="text-slate-200 font-bold">{v}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Question & Options */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">Investigative Task: {activeTicket.question}</h4>
+          <div className="space-y-2">
+            {activeTicket.options.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setUserChoice(opt.id)}
+                className={`w-full p-3.5 rounded-lg border text-left text-xs transition-all flex flex-col ${
+                  userChoice === opt.id
+                    ? opt.correct
+                      ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200'
+                      : 'bg-red-950/80 border-red-500 text-red-200'
+                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <span className="font-bold">{opt.text}</span>
+                {userChoice === opt.id && (
+                  <span className="text-[11px] mt-2 font-mono border-t border-slate-700/60 pt-2 block font-normal">
+                    {opt.explanation}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Interview Readiness Widget 3: Tier-1 Bank Interview Question Simulator ────
+export function InterviewSimulatorWidget() {
+  const [activeCategory, setActiveCategory] = useState('swift'); // 'swift' | 'claims' | 'taxes' | 'math'
+  const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+
+  const questions = {
+    swift: [
+      {
+        q: 'What is the difference between MT564 RECAP and MT564 NEWM?',
+        answer: 'MT564 NEWM is a New announcement creating an event. MT564 RECAP is a Replacement announcement updating previously announced dates, rates, or terms.',
+        bulletPoints: ['NEWM = New event creation', 'RECAP = Re-announcement / amendment', 'CANC = Cancellation of event'],
+        redFlag: 'Do NOT say RECAP stands for Recapitalization!'
+      },
+      {
+        q: 'What SWIFT message is sent by a Custodian to confirm cash/stock credit to a client on Pay Date?',
+        answer: 'MT566 Corporate Action Confirmation.',
+        bulletPoints: ['MT564 = Notification', 'MT565 = Client Instruction', 'MT566 = Payment Confirmation'],
+        redFlag: 'Do NOT confuse MT566 with MT567 (Status Advice).'
+      }
+    ],
+    claims: [
+      {
+        q: 'Why does a Market Claim occur on a trade settled post-Record Date?',
+        answer: 'If trade was executed Cum-Dividend (before Ex-Date), buyer purchased legal right to dividend. If settlement settles post-Record Date, seller received cash from CSD. Buyer files a Market Claim to demand cash from seller.',
+        bulletPoints: ['Executed Cum-Dividend', 'Settled post-Record Date', 'CSD paid seller legal holder', 'Market claim transfers cash to buyer'],
+        redFlag: 'Do NOT say CSD made a mistake — CSD pays registered holder on Record Date.'
+      }
+    ],
+    taxes: [
+      {
+        q: 'Explain Nostro vs Vostro accounts in cross-border Corporate Actions.',
+        answer: 'Nostro ("Our account with you") is custodian account at local sub-custodian. Vostro ("Your account with us") is client cash account held at custodian bank.',
+        bulletPoints: ['Nostro = Cash at local agent bank', 'Vostro = Cash owed to underlying client', 'Dividend flows CSD -> Nostro -> Vostro'],
+        redFlag: 'Do NOT confuse Nostro and Vostro directional ownership!'
+      }
+    ],
+    math: [
+      {
+        q: 'How is Theoretical Ex-Rights Price (TERP) calculated in a Rights Issue?',
+        answer: 'TERP = [(Old Shares × Old Price) + (New Shares × Subscription Price)] / (Old Shares + New Shares).',
+        bulletPoints: ['Balances old market cap with new subscription capital', 'Stock price drops to TERP on Ex-Date', 'Rights intrinsic value = Ex-Price - Subscription Price'],
+        redFlag: 'Do NOT forget to include the subscription price of new shares in numerator!'
+      }
+    ]
+  };
+
+  const categoryList = questions[activeCategory];
+  const qData = categoryList[currentQIndex] || categoryList[0];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Tier-1 Bank Interview Question Simulator</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Test yourself with technical questions asked by State Street, BNY Mellon, JPMorgan, and Citi</p>
+
+      {/* Category Tabs */}
+      <div className="flex flex-wrap justify-center gap-2 mb-6">
+        {[
+          { id: 'swift', label: 'SWIFT & Lifecycles' },
+          { id: 'claims', label: 'Market Claims & Cum/Ex' },
+          { id: 'taxes', label: 'Nostro/Vostro & Taxes' },
+          { id: 'math', label: 'Corporate Action Math (TERP)' }
+        ].map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => {
+              setActiveCategory(cat.id);
+              setCurrentQIndex(0);
+              setShowAnswer(false);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Flashcard Card */}
+      <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6 shadow-xl max-w-2xl mx-auto w-full flex flex-col justify-between min-h-[300px]">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center text-xs font-mono border-b border-slate-700 pb-2">
+            <span className="text-indigo-400 uppercase font-bold tracking-wider">Interview Question {currentQIndex + 1} of {categoryList.length}</span>
+            <span className="text-slate-500">Tier-1 Bank Technical Screening</span>
+          </div>
+
+          <h3 className="text-base sm:text-lg font-bold text-white leading-relaxed">{qData.q}</h3>
+
+          {showAnswer ? (
+            <div className="space-y-4 border-t border-slate-700 pt-4 animate-fadeIn">
+              <div className="bg-slate-900 p-4 rounded-lg border border-emerald-500/40 space-y-2">
+                <span className="text-xs font-bold text-emerald-400 uppercase font-mono block">Model Interview Answer</span>
+                <p className="text-xs text-slate-200 leading-relaxed font-sans">{qData.answer}</p>
+              </div>
+
+              <div className="space-y-1 text-xs font-mono">
+                <span className="text-slate-400 font-bold uppercase text-[10px]">Key Technical Bullet Points to Mention</span>
+                <ul className="text-slate-300 space-y-1 list-disc pl-4 font-sans">
+                  {qData.bulletPoints.map((bp, idx) => (
+                    <li key={idx}>{bp}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-red-950/40 border border-red-800/40 p-3 rounded-lg text-xs text-red-200 font-mono">
+                <span className="font-bold text-red-400 block uppercase text-[10px]">⚠️ Red Flag to Avoid Saying</span>
+                <p className="text-[11px] mt-0.5">{qData.redFlag}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-slate-500 text-xs italic">
+              Formulate your response out loud, then click &quot;Reveal Answer &amp; Key Points&quot; below.
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between gap-3 pt-4 border-t border-slate-700/60">
+          <button
+            onClick={() => {
+              setCurrentQIndex(prev => (prev > 0 ? prev - 1 : categoryList.length - 1));
+              setShowAnswer(false);
+            }}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-all"
+          >
+            ← Previous Question
+          </button>
+
+          <button
+            onClick={() => setShowAnswer(!showAnswer)}
+            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-md"
+          >
+            {showAnswer ? 'Hide Answer' : 'Reveal Model Answer'}
+          </button>
+
+          <button
+            onClick={() => {
+              setCurrentQIndex(prev => (prev < categoryList.length - 1 ? prev + 1 : 0));
+              setShowAnswer(false);
+            }}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-all"
+          >
+            Next Question →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Interview Readiness Widget 4: ISO 15022 vs ISO 20022 Cross-Reference Matrix ───
+export function IsoMatrixWidget() {
+  const matrixData = [
+    { mt: 'MT564', seev: 'seev.031.001.09', name: 'Corporate Action Notification', function: 'Announces event dates, terms, and default options.' },
+    { mt: 'MT565', seev: 'seev.033.001.08', name: 'Corporate Action Instruction', function: 'Transmits client election options for voluntary events.' },
+    { mt: 'MT566', seev: 'seev.036.001.08', name: 'Corporate Action Confirmation', function: 'Confirms financial cash or stock posting to account.' },
+    { mt: 'MT567', seev: 'seev.034.001.08', name: 'Instruction Status & Advice', function: 'Reports MT565 instruction acceptance, rejection, or processing status.' },
+    { mt: 'MT568', seev: 'seev.035.001.08', name: 'Corporate Action Narrative', function: 'Provides unstructured text notes and legal tax disclaimers.' },
+    { mt: 'MT508', seev: 'seev.003.001.06', name: 'Intra-Position Advice', function: 'Notifies blocking or unblocking of shares during election period.' },
+    { mt: 'MT564 (seev.001)', seev: 'seev.001.001.06', name: 'Meeting Notification', function: 'Announces AGM/EGM agenda resolutions and proxy voting dates.' },
+    { mt: 'MT565 (seev.004)', seev: 'seev.004.001.06', name: 'Meeting Instruction', function: 'Transmits proxy votes (For/Against/Abstain) to tabulator.' }
+  ];
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">SWIFT ISO 15022 vs ISO 20022 Reference Matrix</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Cross-reference legacy FIN MT500 series messages with rich XML seev ISO 20022 standards</p>
+
+      <div className="overflow-x-auto border border-slate-700 rounded-xl shadow-xl">
+        <table className="w-full text-left text-xs font-mono">
+          <thead className="bg-slate-800 text-slate-300 uppercase tracking-wider text-[10px]">
+            <tr>
+              <th className="p-3 border-b border-slate-700">Legacy ISO 15022 (MT)</th>
+              <th className="p-3 border-b border-slate-700 text-emerald-400">Target ISO 20022 (seev XML)</th>
+              <th className="p-3 border-b border-slate-700">Message Name</th>
+              <th className="p-3 border-b border-slate-700 font-sans">Operational Function</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800 bg-slate-900 text-slate-300">
+            {matrixData.map((row, idx) => (
+              <tr key={idx} className="hover:bg-slate-800/50 transition-all">
+                <td className="p-3 font-bold text-white">{row.mt}</td>
+                <td className="p-3 font-bold text-emerald-400">{row.seev}</td>
+                <td className="p-3 text-amber-300 font-bold">{row.name}</td>
+                <td className="p-3 font-sans text-slate-300">{row.function}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
 
 
 
