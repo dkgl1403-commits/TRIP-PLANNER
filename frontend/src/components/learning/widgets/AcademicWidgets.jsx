@@ -85,7 +85,8 @@ import {
   WealthDistributionWidget,
   RightsIssueWidget,
   MergerProrationWidget,
-  ProxyVotingWidget
+  ProxyVotingWidget,
+  FintechMarketNuancesWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1404,5 +1405,8 @@ export const WidgetRegistry = {
   'ca-spinoff-cost-basis': MergerProrationWidget,
   'ca-proxy-voting-engine': ProxyVotingWidget,
   'ca-proxy-voting': ProxyVotingWidget,
-  'ca-governance': ProxyVotingWidget
+  'ca-governance': ProxyVotingWidget,
+  'ca-fintech-market-nuances': FintechMarketNuancesWidget,
+  'ca-fintech-ecosystem': FintechMarketNuancesWidget,
+  'ca-market-nuances': FintechMarketNuancesWidget
 };

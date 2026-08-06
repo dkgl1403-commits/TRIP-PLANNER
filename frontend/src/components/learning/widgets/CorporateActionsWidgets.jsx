@@ -3115,6 +3115,224 @@ export function ProxyVotingWidget() {
   );
 }
 
+// ─── Chapters 15 & 16 Widget: The FinTech Ecosystem & Market Nuances ────────
+export function FintechMarketNuancesWidget() {
+  const [activeTab, setActiveTab] = useState('fintech'); // 'fintech' | 'nuances' | 'certificate'
+  const [auInvestorType, setAuInvestorType] = useState('domestic'); // 'domestic' | 'foreign'
+  const [dividendAmount, setDividendAmount] = useState(10000); // $10,000 AU dividend
+
+  // Australian Franking Credit Math (Fully Franked @ 30% Corporate Tax)
+  const corpTaxRate = 0.30;
+  const netCashDiv = dividendAmount * (1 - corpTaxRate); // $7,000
+  const frankingCredit = dividendAmount * corpTaxRate; // $3,000
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">The FinTech Ecosystem & Market Nuances</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Explore enterprise FinTech software platforms, regional market nuances, and claim your Master Certificate</p>
+
+      {/* Main Tabs */}
+      <div className="flex justify-center gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('fintech')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'fintech' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          💻 FinTech Enterprise Stack
+        </button>
+        <button
+          onClick={() => setActiveTab('nuances')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'nuances' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🌏 Regional Market Nuances
+        </button>
+        <button
+          onClick={() => setActiveTab('certificate')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'certificate' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🏆 Master Certificate
+        </button>
+      </div>
+
+      {activeTab === 'fintech' ? (
+        <div className="space-y-4">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Enterprise Software Processing Architecture</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {/* IHS Markit */}
+            <div className="bg-slate-800 border border-purple-500/40 p-4 rounded-xl space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-purple-400 text-sm">1. IHS Markit (S&P Global MCA)</span>
+                <span className="text-[10px] bg-purple-950 text-purple-300 font-mono px-2 py-0.5 rounded border border-purple-800">Golden Copy Data</span>
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                Ingests raw, messy announcements from 50+ vendor feeds (Bloomberg, Refinitiv, SIX, PDFs) and scrubs them into a single, validated machine-readable <strong>Golden Copy</strong>.
+              </p>
+            </div>
+
+            {/* TCS BaNCS */}
+            <div className="bg-slate-800 border border-blue-500/40 p-4 rounded-xl space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-blue-400 text-sm">2. TCS BaNCS</span>
+                <span className="text-[10px] bg-blue-950 text-blue-300 font-mono px-2 py-0.5 rounded border border-blue-800">Core CA Engine</span>
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                The ubiquitous core corporate actions processing platform. Calculates client entitlements, manages MT564/MT565/MT566 lifecycles, and auto-generates SWIFT messages.
+              </p>
+            </div>
+
+            {/* SmartStream TLM */}
+            <div className="bg-slate-800 border border-amber-500/40 p-4 rounded-xl space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-amber-400 text-sm">3. SmartStream TLM</span>
+                <span className="text-[10px] bg-amber-950 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-800">Reconciliation & Breaks</span>
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                Transaction Lifecycle Management suite specializing in Nostro/Vostro cash and stock reconciliations, exception management, and automated break detection.
+              </p>
+            </div>
+
+            {/* FIS / Broadridge */}
+            <div className="bg-slate-800 border border-emerald-500/40 p-4 rounded-xl space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-emerald-400 text-sm">4. FIS / Broadridge</span>
+                <span className="text-[10px] bg-emerald-950 text-emerald-300 font-mono px-2 py-0.5 rounded border border-emerald-800">Sub-Ledger & Tax</span>
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                Back-office sub-ledger accounting engines handling physical custody postings, tax withholding matrices, tax reclaim filings, and client statement reporting.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'nuances' ? (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-5 shadow-xl">
+          <div className="border-b border-slate-700 pb-3">
+            <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">🇦🇺 Australia (AU) Franking Credits Simulator</h3>
+            <p className="text-xs text-slate-300 mt-1">Under Dividend Imputation, Australian corporate tax (30%) paid by companies is passed to investors as a Franking Credit.</p>
+          </div>
+
+          {/* Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+            <div>
+              <span className="text-slate-400 font-bold uppercase block text-[10px] font-sans mb-1">Gross Dividend Payout (AUD)</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="5000"
+                  max="50000"
+                  step="5000"
+                  value={dividendAmount}
+                  onChange={(e) => setDividendAmount(Number(e.target.value))}
+                  className="w-full accent-amber-500"
+                />
+                <span className="text-white font-bold shrink-0">${dividendAmount.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div>
+              <span className="text-slate-400 font-bold uppercase block text-[10px] font-sans mb-1">Investor Tax Status</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setAuInvestorType('domestic')}
+                  className={`flex-1 py-1.5 rounded text-xs font-bold font-sans transition-all ${
+                    auInvestorType === 'domestic' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  AU Domestic Investor
+                </button>
+                <button
+                  onClick={() => setAuInvestorType('foreign')}
+                  className={`flex-1 py-1.5 rounded text-xs font-bold font-sans transition-all ${
+                    auInvestorType === 'foreign' ? 'bg-blue-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Foreign Offshore Investor
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Franking Output Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Net Cash Dividend</span>
+              <span className="text-emerald-400 font-bold text-sm">${netCashDiv.toLocaleString()} AUD</span>
+              <span className="text-[10px] text-slate-500 block">70% Cash Distributed</span>
+            </div>
+
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Attached Franking Credit</span>
+              <span className="text-amber-400 font-bold text-sm">${frankingCredit.toLocaleString()} AUD</span>
+              <span className="text-[10px] text-slate-500 block">30% Corp Tax Paid by Issuer</span>
+            </div>
+
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Usable Tax Credit Benefit</span>
+              <span className={`font-bold text-sm ${auInvestorType === 'domestic' ? 'text-emerald-300' : 'text-slate-500'}`}>
+                {auInvestorType === 'domestic' ? `+$${frankingCredit.toLocaleString()} AUD` : '$0 AUD (Unusable)'}
+              </span>
+              <span className="text-[10px] text-slate-500 block">{auInvestorType === 'domestic' ? 'Offsets Personal Income Tax' : 'Foreigners cannot use AU credits'}</span>
+            </div>
+          </div>
+
+          <div className="bg-blue-950/40 p-3.5 rounded-lg border border-blue-800/40 text-xs font-mono">
+            <span className="text-blue-400 font-bold uppercase block text-[10px] font-sans">Other Regional Market Nuances</span>
+            <ul className="text-blue-200 space-y-1 mt-1 font-sans">
+              <li>• <strong>Taiwan (TW):</strong> Regulatory approval dates unexpectedly shift Ex-Dates, causing custodian timeline breaks.</li>
+              <li>• <strong>Hong Kong (HK):</strong> Scrip Dividends feature FX rate locks (HKD/USD) on dates completely separate from Ex-Date.</li>
+              <li>• <strong>Europe (EMEA SRD II):</strong> Mandates same-day turnaround for passing MT564 meeting notices down omnibus custody tiers.</li>
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-slate-800 border-2 border-emerald-500/50 rounded-2xl p-6 sm:p-8 text-center space-y-5 shadow-2xl bg-gradient-to-b from-slate-800 to-slate-900">
+          <div className="inline-flex p-4 rounded-full bg-emerald-950/60 border-2 border-emerald-400/40 text-4xl mb-1 shadow-lg animate-bounce">
+            🏆
+          </div>
+
+          <h3 className="text-2xl sm:text-3xl font-black text-white tracking-wide">
+            Master of Corporate Actions
+          </h3>
+
+          <p className="text-slate-300 text-sm max-w-xl mx-auto leading-relaxed">
+            Congratulations! You have completed the complete 16-chapter Masterclass trajectory: from Boardroom Announcements (CAMV) and SWIFT ISO 20022 messaging, through Custody Chains, Nostro/Vostro reconciliations, Market Claims, Rights Issues, M&amp;A Proration, and Enterprise FinTech architecture.
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto font-mono text-xs pt-2">
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+              <span className="text-emerald-400 font-bold block text-sm">16 / 16</span>
+              <span className="text-[10px] text-slate-400">Chapters Mastered</span>
+            </div>
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+              <span className="text-blue-400 font-bold block text-sm">SWIFT STP</span>
+              <span className="text-[10px] text-slate-400">MT564 - seev.004</span>
+            </div>
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+              <span className="text-amber-400 font-bold block text-sm">Nostro / Vostro</span>
+              <span className="text-[10px] text-slate-400">Cash Reconciliations</span>
+            </div>
+            <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+              <span className="text-purple-400 font-bold block text-sm">M&amp;A / Taxes</span>
+              <span className="text-[10px] text-slate-400">Proration &amp; WHT</span>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <span className="px-4 py-2 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold font-mono border border-emerald-500/40">
+              Official Masterclass Completion Status: VERIFIED 100%
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 
 

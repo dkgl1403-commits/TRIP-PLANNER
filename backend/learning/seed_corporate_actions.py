@@ -25,7 +25,8 @@ def seed_corporate_actions():
             "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)",
             "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)",
             "The Game Changers (Mergers, Acquisitions & Spin-offs)",
-            "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)"
+            "Corporate Governance & Proxy Voting (AGM/EGM, ISS & seev.004)",
+            "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)"
         ]
 
         for topic_name in topics:
@@ -443,6 +444,34 @@ def seed_corporate_actions():
                                 "narrative": "<p>Simulate AGM/EGM resolution voting, toggle ISS Proxy Advisory recommendations, and aggregate omnibus client instructions into a master SWIFT ISO 20022 seev.004 message below.</p>",
                                 "widgetType": "ca-proxy-voting-engine",
                                 "alt": "Interactive Proxy Voting & Resolution Engine Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTERS 15 & 16
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "1. THE FINTECH ECOSYSTEM (Who Builds the Plumbing?)",
+                                "narrative": "<p>Global custodian banks do not build core corporate action software from scratch. SWIFT standards update annually and regional market rules evolve constantly. Custodians license enterprise platforms from niche FinTech giants:</p><ul><li><strong>TCS BaNCS (Tata Consultancy Services):</strong> Ubiquitous core processing platform managing end-to-end event lifecycles, entitlement math, and automated SWIFT generation.</li><li><strong>SmartStream TLM:</strong> Transaction Lifecycle Management platform specializing in Nostro/Vostro cash and stock reconciliations and exception management (STP breaks).</li><li><strong>IHS Markit (S&amp;P Global MCA):</strong> Gold standard for &quot;Golden Copy&quot; data scrubbing. Ingests raw announcements from 50+ sources and outputs a single machine-readable record.</li><li><strong>FIS / Broadridge:</strong> Back-office sub-ledger processing engines for physical custody postings, tax withholding matrices, and statement reporting.</li></ul>"
+                            },
+                            {
+                                "title": "2. MARKET SPECIFIC NUANCES (Regional Quirks)",
+                                "narrative": "<p>While SWIFT ISO standards attempt to unify global operations, local market laws override global conventions:</p><ul><li><strong>Australia (AU) Franking Credits:</strong> Dividend Imputation system where corporate tax (30%) paid by companies attaches to dividends as &quot;franking credits&quot;. Domestic AU investors use credits to offset income tax; foreign investors cannot.</li><li><strong>Taiwan (TW) Stock Dividends:</strong> Local regulatory approval dates shift Ex-Dates unexpectedly, causing timeline breaks for foreign custodians.</li><li><strong>Hong Kong (HK) Scrip Dividends:</strong> Stock chosen instead of cash at a discount, with FX locks (HKD/USD) set on pricing dates completely separate from Ex-Date.</li><li><strong>Europe (EMEA SRD II):</strong> Shareholder Rights Directive II mandates strict same-day deadlines for passing MT564 meeting notices down omnibus custody tiers.</li></ul>"
+                            },
+                            {
+                                "title": "🏆 Achievement Unlocked: The Master of Corporate Actions",
+                                "narrative": "<p><strong>Congratulations!</strong> You have traversed the complete corporate action universe: from Boardroom Decisions (CAMV) and SWIFT ISO 20022 messaging, through Custody Chains, Nostro/Vostro Reconciliations, Market Claims, Rights Issues, M&amp;A Proration, and Enterprise FinTech architecture!</p>"
+                            },
+                            {
+                                "title": "INTERACTIVE: FinTech Ecosystem & Market Nuances Engine",
+                                "narrative": "<p>Explore enterprise software processing architectures, simulate Australian Franking Credit tax imputations, and view your official Master of Corporate Actions Certificate below.</p>",
+                                "widgetType": "ca-fintech-market-nuances",
+                                "alt": "Interactive FinTech Ecosystem & Market Nuances Simulator."
                             }
                         ]
                     })
