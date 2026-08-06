@@ -1,18 +1,17 @@
 import json
-from db import get_db
-from models import Subject, LearningTopic
+from db import SessionLocal, LearningClass, LearningSubject, LearningTopic
 
-def seed_trade_lifecycle(db=None):
-    close_db = False
-    if db is None:
-        db_gen = get_db()
-        db = next(db_gen)
-        close_db = True
-
+def seed_trade_lifecycle():
+    db = SessionLocal()
     try:
-        tl_subject = db.query(Subject).filter_by(name="Trade Lifecycle").first()
+        class_master = db.query(LearningClass).filter_by(level=11, name="Masterclass").first()
+        if not class_master:
+            print("Masterclass not found.")
+            return
+
+        tl_subject = db.query(LearningSubject).filter_by(name="Trade Lifecycle", class_id=class_master.id).first()
         if not tl_subject:
-            print("Subject 'Trade Lifecycle' not found. Ensure main seed registers it.")
+            print("Subject 'Trade Lifecycle' not found.")
             return
 
         topics = [
@@ -57,8 +56,7 @@ def seed_trade_lifecycle(db=None):
 
         db.commit()
     finally:
-        if close_db:
-            db.close()
+        db.close()
 
 if __name__ == "__main__":
     seed_trade_lifecycle()
