@@ -2296,6 +2296,211 @@ export function SecuritiesLendingWidget() {
   );
 }
 
+// ─── Chapter 10 Widget: The Wealth Distribution Engine ────────────────────────
+export function WealthDistributionWidget() {
+  const [method, setMethod] = useState('dvca'); // 'dvca' | 'buyback' | 'bonu'
+  const [tenderTendered, setTenderTendered] = useState(200000); // 200k shares tendered in buyback
+
+  // Baseline Company Metrics
+  const baseShares = 1000000;
+  const basePrice = 100;
+  const baseMarketCap = 100000000; // $100M
+  const baseEarnings = 10000000; // $10M Net Income -> EPS = $10.00
+
+  // Calculation per Method
+  let result = {
+    methodCode: 'DVCA',
+    title: 'Cash Dividend ($10.00 / Share)',
+    swiftTag: ':22F::CAEV//DVCA',
+    newShares: baseShares,
+    newPrice: 90.0,
+    newMarketCap: 90000000,
+    newEps: 10.0,
+    cashDistributed: 10000000,
+    shareholderStockVal: 9000, // For 100 shares
+    shareholderCashVal: 1000,
+    taxTreatment: 'Immediate Withholding Tax (WHT) applied on $1,000 cash dividend.',
+    accountingImpact: '$10M debited from Retained Earnings -> Credited to Nostro Cash accounts.',
+    prorationPct: null
+  };
+
+  if (method === 'buyback') {
+    const buybackCash = 10000000; // $10M budget
+    const buybackSharesAccepted = 100000; // 100k shares bought back at $100
+    const finalShares = baseShares - buybackSharesAccepted; // 900k shares
+    const finalEps = baseEarnings / finalShares; // $11.11 EPS
+    const prorationRate = Math.min(100, (buybackSharesAccepted / tenderTendered) * 100);
+
+    result = {
+      methodCode: 'BIDS / TEND',
+      title: 'Tender Offer Share Buyback ($10M Pool)',
+      swiftTag: ':22F::CAEV//BIDS',
+      newShares: finalShares,
+      newPrice: 100.0,
+      newMarketCap: 90000000,
+      newEps: finalEps,
+      cashDistributed: 10000000,
+      shareholderStockVal: 10000, // Assuming investor tendered or held
+      shareholderCashVal: 0,
+      taxTreatment: 'Capital Gains Tax treatment (only applied if investor tendered shares).',
+      accountingImpact: '$10M cash leaves company. 100,000 shares retired, inflating EPS by +11.1%.',
+      prorationPct: prorationRate.toFixed(1)
+    };
+  } else if (method === 'bonu') {
+    const bonusRatio = 1; // 1-for-1 Bonus
+    const finalShares = baseShares * (1 + bonusRatio); // 2.0M shares
+    const finalPrice = basePrice / (1 + bonusRatio); // $50.00
+    const finalEps = baseEarnings / finalShares; // $5.00 EPS
+
+    result = {
+      methodCode: 'BONU / CAPG',
+      title: '1-for-1 Bonus Issue (Capitalization Issue)',
+      swiftTag: ':22F::CAEV//BONU',
+      newShares: finalShares,
+      newPrice: finalPrice,
+      newMarketCap: baseMarketCap,
+      newEps: finalEps,
+      cashDistributed: 0,
+      shareholderStockVal: 10000, // 200 shares @ $50 = $10,000
+      shareholderCashVal: 0,
+      taxTreatment: 'Generally non-taxable distribution at time of receipt (adjusts cost basis per share).',
+      accountingImpact: 'Retained Earnings capitalized into Share Capital. Par Value remains UNCHANGED (vs SPLF).',
+      prorationPct: null
+    };
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">The Wealth Distribution Engine</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Compare corporate balance sheets and shareholder portfolios across Dividends, Buybacks, and Bonus Issues</p>
+
+      {/* Distribution Method Selector */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        {[
+          { id: 'dvca', label: '💵 Cash Dividend (DVCA)', desc: 'Direct cash payout to shareholders' },
+          { id: 'buyback', label: '🎯 Tender Buyback (BIDS)', desc: 'Retire shares & inflate EPS' },
+          { id: 'bonu', label: '🎁 Bonus Issue (BONU)', desc: 'Free shares from Retained Earnings' }
+        ].map((btn) => (
+          <button
+            key={btn.id}
+            onClick={() => setMethod(btn.id)}
+            className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+              method === btn.id
+                ? 'bg-slate-800 border-2 border-blue-500 shadow-lg scale-[1.02]'
+                : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+            }`}
+          >
+            <span className="text-xs font-bold text-white leading-tight">{btn.label}</span>
+            <span className="text-[10px] text-slate-400 mt-1">{btn.desc}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tender Offer Proration Slider (Only for Buyback) */}
+      {method === 'buyback' && (
+        <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">Oversubscription Proration Simulator</span>
+            <span className="text-xs text-slate-300">Target Buyback: 100,000 shares. Total Shares Tendered by Market:</span>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <input
+              type="range"
+              min="100000"
+              max="400000"
+              step="10000"
+              value={tenderTendered}
+              onChange={(e) => setTenderTendered(Number(e.target.value))}
+              className="w-32 accent-amber-500"
+            />
+            <span className="text-xs font-mono font-bold text-white w-20">{tenderTendered.toLocaleString()} shs</span>
+          </div>
+        </div>
+      )}
+
+      {/* Dual Lens Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Lens 1: Company Balance Sheet */}
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl space-y-4">
+          <div className="border-b border-slate-700 pb-3 flex justify-between items-center">
+            <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider">🏢 Lens 1: Company Balance Sheet & EPS</h3>
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-900 text-blue-300 border border-slate-700">
+              {result.swiftTag}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Shares Outstanding</span>
+              <span className="text-white font-bold">{result.newShares.toLocaleString()}</span>
+              <span className="text-[10px] text-slate-500 block">Baseline: 1,000,000</span>
+            </div>
+
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Share Price</span>
+              <span className="text-amber-400 font-bold">${result.newPrice.toFixed(2)}</span>
+              <span className="text-[10px] text-slate-500 block">Baseline: $100.00</span>
+            </div>
+
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Earnings Per Share (EPS)</span>
+              <span className="text-emerald-400 font-bold">${result.newEps.toFixed(2)}</span>
+              <span className="text-[10px] text-slate-500 block">Baseline: $10.00</span>
+            </div>
+
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Cash Outflow</span>
+              <span className="text-red-400 font-bold">${result.cashDistributed.toLocaleString()}</span>
+              <span className="text-[10px] text-slate-500 block">Company Capital Paid Out</span>
+            </div>
+          </div>
+
+          {result.prorationPct && (
+            <div className="bg-amber-950/40 p-3 rounded-lg border border-amber-800/40 font-mono text-xs">
+              <span className="text-amber-400 font-bold block text-[10px] uppercase font-sans">Tender Proration Acceptance Rate</span>
+              <div className="text-amber-200 font-bold text-sm mt-0.5">{result.prorationPct}% Acceptance Rate</div>
+              <span className="text-amber-300/80 text-[10px]">
+                {(100 - Number(result.prorationPct)).toFixed(1)}% of tendered shares unblocked and returned to client free balances.
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Lens 2: Shareholder Portfolio */}
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl space-y-4">
+          <div className="border-b border-slate-700 pb-3 flex justify-between items-center">
+            <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">👤 Lens 2: 100-Share Holder Portfolio</h3>
+            <span className="text-xs font-mono text-emerald-300">Initial: $10,000</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Stock Holding Value</span>
+              <span className="text-white font-bold">${result.shareholderStockVal.toLocaleString()}</span>
+            </div>
+
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Cash Received</span>
+              <span className="text-emerald-400 font-bold">${result.shareholderCashVal.toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700 space-y-1 text-xs">
+            <span className="text-slate-400 font-bold uppercase block text-[10px]">Tax & Regulatory Processing</span>
+            <p className="text-slate-200 leading-relaxed">{result.taxTreatment}</p>
+          </div>
+
+          <div className="bg-blue-950/40 p-3.5 rounded-lg border border-blue-800/40 space-y-1 text-xs font-mono">
+            <span className="text-blue-400 font-bold uppercase block text-[10px] font-sans">General Ledger & Accounting Impact</span>
+            <p className="text-blue-200 leading-relaxed">{result.accountingImpact}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 
 

@@ -486,7 +486,8 @@ def seed_curriculum():
                         {"name": "The Taxonomy of Events (Income, Restructuring, Redemptions)", "board": "BOTH"},
                         {"name": "Market Claims & Transformations (Cum vs Ex)", "board": "BOTH"},
                         {"name": "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)", "board": "BOTH"},
-                        {"name": "Securities Lending, Repo & Manufactured Payments", "board": "BOTH"}
+                        {"name": "Securities Lending, Repo & Manufactured Payments", "board": "BOTH"},
+                        {"name": "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)", "board": "BOTH"}
                     ]
                 }
             ]

@@ -81,7 +81,8 @@ import {
   ClaimsTransformationWidget,
   NostroVostroWidget,
   CrossBorderEntitlementWidget,
-  SecuritiesLendingWidget
+  SecuritiesLendingWidget,
+  WealthDistributionWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1390,5 +1391,7 @@ export const WidgetRegistry = {
   'ca-cross-border-simulator': CrossBorderEntitlementWidget,
   'ca-accounts-taxes-fx': CrossBorderEntitlementWidget,
   'ca-sec-lending-flow': SecuritiesLendingWidget,
-  'ca-sec-lending': SecuritiesLendingWidget
+  'ca-sec-lending': SecuritiesLendingWidget,
+  'ca-wealth-distribution': WealthDistributionWidget,
+  'ca-wealth-engine': WealthDistributionWidget
 };

@@ -21,7 +21,8 @@ def seed_corporate_actions():
             "The Taxonomy of Events (Income, Restructuring, Redemptions)",
             "Market Claims & Transformations (Cum vs Ex)",
             "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)",
-            "Securities Lending, Repo & Manufactured Payments"
+            "Securities Lending, Repo & Manufactured Payments",
+            "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)"
         ]
 
         for topic_name in topics:
@@ -315,6 +316,38 @@ def seed_corporate_actions():
                                 "narrative": "<p>Test GMSLA recall notices, manufactured PIL cash flows, tax gross-ups, and Repo collateral substitutions using the interactive flow simulator below.</p>",
                                 "widgetType": "ca-sec-lending-flow",
                                 "alt": "Interactive Securities Lending & Manufactured Dividend Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 10
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: The Capital Allocation Dilemma",
+                                "narrative": "<p>When a mature, profitable public company generates more cash than it needs for R&amp;D or expansion, the Board of Directors faces a critical decision: <strong>How do we return this excess capital to our shareholders?</strong></p><p>Historically, the answer was simple: pay a dividend. Today, the landscape of wealth distribution is highly optimized for tax efficiency and market psychology. As middle-office professionals, we process these decisions as distinct SWIFT events, each carrying unique reconciliation challenges.</p>"
+                            },
+                            {
+                                "title": "1. CASH DIVIDENDS (SWIFT: DVCA)",
+                                "narrative": "<p>The most traditional method of wealth distribution. A portion of corporate earnings is paid directly to shareholders as cash.</p><ul><li><strong>Ordinary Dividends (Interim &amp; Final):</strong> Paid on a regular schedule (quarterly or annually). Interim is declared alongside earnings; Final requires AGM shareholder approval.</li><li><strong>Special Dividends:</strong> A one-time, unusually large payout resulting from a windfall (e.g. selling a major subsidiary).</li><li><strong>The DRIP Complication (Dividend Reinvestment Plan):</strong> Processed as a Choice event (<code>CHOS</code>), DRIP allows investors to automatically use their cash dividend to buy more shares without brokerage fees. Operations must determine if shares are issued from treasury (dilutive) or purchased on the open market, and route remaining fractional cash back to the Vostro account.</li></ul>"
+                            },
+                            {
+                                "title": "2. SHARE BUYBACKS / REPURCHASES (SWIFT: BIDS / TEND)",
+                                "narrative": "<p>Over the last two decades, share buybacks have overtaken dividends as the preferred method of returning capital due to tax efficiency. By reducing the total number of Shares Outstanding, earnings are divided among fewer shares, artificially inflating <strong>Earnings Per Share (EPS)</strong>.</p><ul><li><strong>Open Market Repurchase (OMR):</strong> Company buys shares slowly on the open market. Operations impact is zero until outstanding share count updates.</li><li><strong>Tender Offer (SWIFT: BIDS / TEND):</strong> Voluntary (<code>VOLU</code>) offer to buy back a massive block of shares at a premium price. Custodians solicit MT565 client instructions. If oversubscribed, issuers apply <strong>Proration</strong>, requiring analysts to calculate exact acceptance rates and unblock unaccepted shares back to client free balances.</li></ul>"
+                            },
+                            {
+                                "title": "3. BONUS ISSUES / CAPITALIZATION (SWIFT: BONU / CAPG)",
+                                "narrative": "<p>A Bonus Issue (also known as a Scrip Issue or Capitalization Issue) is the issuance of free shares to existing shareholders, paid out of Retained Earnings.</p><ul><li><strong>The Accounting Reality:</strong> Retail investors often view bonus shares as &quot;free money.&quot; In reality, the company transfers funds from &quot;Retained Earnings&quot; to &quot;Share Capital.&quot; Share count doubles, but share price instantly halves &mdash; total economic portfolio value is identical.</li><li><strong>Bonus Issue vs. Stock Split (SPLF):</strong> In a Stock Split (<code>SPLF</code>), the Par Value (face value) of the stock decreases and no cash moves on the balance sheet. In a Bonus Issue (<code>BONU</code>), Par Value remains UNCHANGED while retained earnings are physically converted into share capital.</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: The Wealth Distribution Engine",
+                                "narrative": "<p>Compare corporate balance sheets, EPS impacts, and 100-share investor portfolios across Cash Dividends, Tender Buybacks, and Bonus Issues below.</p>",
+                                "widgetType": "ca-wealth-distribution",
+                                "alt": "Interactive Wealth Distribution Engine Simulator."
                             }
                         ]
                     })
