@@ -494,6 +494,10 @@ def seed_curriculum():
                         {"name": "The FinTech Ecosystem & Market Nuances (TCS BaNCS, Franking Credits & SRD II)", "board": "BOTH"},
                         {"name": "Tier-1 Bank Interview Simulator & SWIFT Parser", "board": "BOTH"}
                     ]
+                },
+                {
+                    "name": "Trade Lifecycle",
+                    "topics": []
                 }
             ]
         },
