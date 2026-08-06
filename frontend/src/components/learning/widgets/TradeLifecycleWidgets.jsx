@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ─── Trade Lifecycle Chapter 1: The Interactive Roadmaps Widget ───────────────
+// ─── Trade Lifecycle Chapter 1: Standard Market Terminology Widget ───────────
 export function TradeLifecycleRoadmapWidget() {
   const [activeTab, setActiveTab] = useState('roadmap'); // 'roadmap' | 'dual'
   const [activeStepIdx, setActiveStepIdx] = useState(0);
@@ -10,147 +10,147 @@ export function TradeLifecycleRoadmapWidget() {
   const [dualStepIdx, setDualStepIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Stage 1: Macro Roadmap Data (6 Stages)
+  // 6 Standard Market Stages of the Trade Lifecycle
   const roadmapStages = [
     {
       id: 's1',
       number: 1,
-      title: '1. Order Generation & Decision',
+      title: '1. Pre-Trade Preparation & Trade Initiation',
       office: 'Front Office (Buy-Side)',
-      actor: 'Portfolio Manager (PM)',
+      actor: 'Portfolio Manager (PM) & Execution Desk',
       systems: 'Order Management System (OMS)',
-      protocol: 'Internal FIX / Proprietary OMS API',
+      protocol: 'Internal FIX / Compliance & Credit Engine',
       color: '#3b82f6',
       icon: '💡',
-      summary: 'The Portfolio Manager decides to buy 100,000 shares of Apple (AAPL) for a fund. The OMS checks portfolio compliance, liquidity limits, and cash availability before creating the order ticket.',
+      summary: 'Pre-trade credit limit checks, compliance validation, and trade initiation. The Portfolio Manager (PM) decides to buy 100,000 shares of Apple (AAPL) for a fund. The OMS checks portfolio compliance, liquidity limits, and cash availability before generating the order.',
       details: {
-        inputs: 'Investment Thesis, Cash Balance, Risk & Compliance Rules',
+        inputs: 'Investment Thesis, Client Mandate, Credit Limits & Cash Balance',
         outputs: 'Approved Order Ticket in OMS',
-        keyRisk: 'Fat-finger order entry errors or buying securities violating fund ESG/concentration limits.'
+        keyRisk: 'Pre-trade compliance breach, credit limit overload, or fat-finger order entry errors.'
       }
     },
     {
       id: 's2',
       number: 2,
-      title: '2. Order Execution & Matching Engine',
+      title: '2. Trade Execution & Trade Capture',
       office: 'Front Office (Executing Desk & Venue)',
       actor: 'Execution Trader / Market Maker',
       systems: 'Execution Management System (EMS), CLOB, FIX Router',
-      protocol: 'FIX 4.2 / 4.4 Protocol (Tag 35=D New Order Single, 35=8 Execution Report)',
+      protocol: 'FIX Protocol (Tag 35=D New Order Single, Tag 35=8 Execution Report)',
       color: '#10b981',
       icon: '⚡',
-      summary: 'The Execution Trader routes the order to lit exchanges (NYSE/NASDAQ) or dark pools via TWAP/VWAP algorithms. The exchange matching engine matches buyer and seller orders in milliseconds.',
+      summary: 'The order is submitted via FIX protocol to an exchange (NYSE/NASDAQ) or dark pool. The exchange matching engine matches buyer and seller orders. Trade Capture logs the execution details (price, time, quantity, counterparty) into the trading system.',
       details: {
-        inputs: 'FIX 35=D (New Order Single), Limit Price, Order Type',
+        inputs: 'FIX 35=D (New Order Single), Order Type, Limit Price',
         outputs: 'FIX 35=8 (Execution Report / Fill Confirmation)',
-        keyRisk: 'Market impact (slippage) and execution latency in volatile markets.'
+        keyRisk: 'Execution latency, slippage, and incomplete trade capture logs.'
       }
     },
     {
       id: 's3',
       number: 3,
-      title: '3. Allocation & Central Trade Matching',
+      title: '3. Trade Enrichment, Confirmation & Affirmation',
       office: 'Middle Office (Buy-Side & Sell-Side)',
       actor: 'Middle Office Trade Support Analyst',
       systems: 'DTCC CTM (Central Trade Matching), OASYS, Omgeo',
-      protocol: 'Electronic Trade Confirmation (ETC) & SWIFT MT515',
+      protocol: 'Electronic Trade Confirmation (ETC) & DTCC ALERT (SSI)',
       color: '#f59e0b',
       icon: '🤝',
-      summary: 'The 100,000 share block trade execution is sliced into 50 underlying client sub-accounts. The broker and buy-side middle office submit trade details to DTCC CTM for electronic matching and Affirmation.',
+      summary: 'Trade Enrichment attaches Standing Settlement Instructions (SSIs), custodian details, and ISIN/CUSIP codes to the trade record. Middle office teams verify trade details with counterparties via DTCC CTM for Electronic Trade Confirmation (ETC) and Affirmation.',
       details: {
-        inputs: 'Block Execution Fill + Sub-Account Allocation Instructions',
+        inputs: 'Block Execution Fill + Sub-Account Allocation Instructions + SSI Data',
         outputs: 'Affirmed Trade Status in DTCC CTM',
-        keyRisk: 'Allocation mismatches or late affirmation causing trade settlement fails.'
+        keyRisk: 'Allocation breakdown mismatches, incorrect SSIs, or late affirmation resulting in settlement fails.'
       }
     },
     {
       id: 's4',
       number: 4,
-      title: '4. Clearing, Novation & Risk Shield',
-      office: 'Clearing House (Central Counterparty)',
+      title: '4. Clearing & CCP Novation',
+      office: 'Clearing House (Central Counterparty - CCP)',
       actor: 'CCP Risk Manager / Clearing Member Bank',
       systems: 'CCP Clearing Engine (NSCC / LCH / Eurex)',
       protocol: 'Real-Time Clearing API & ISO 20022 Margin Calls',
       color: '#8b5cf6',
       icon: '🛡️',
-      summary: 'The CCP steps in between buyer and seller through Novation — becoming the legal Buyer to every Seller and Seller to every Buyer. The CCP calls Initial/Variation Margin to guarantee trade performance.',
+      summary: 'Clearing verifies trade details, calculates gross/net obligations, and prepares trades for settlement. The Central Counterparty (CCP) steps in through Novation — replacing the original contract to become Buyer to every Seller and Seller to every Buyer, calling Initial and Variation Margin.',
       details: {
         inputs: 'Affirmed Matched Trade Data from CTM / Exchange',
         outputs: 'Novated Net Settlement Obligation + Daily Margin Calls',
-        keyRisk: 'Counterparty default during volatile market swings between trade date and settlement.'
+        keyRisk: 'Counterparty default during volatile market swings between trade date and settlement date.'
       }
     },
     {
       id: 's5',
       number: 5,
-      title: '5. Custodian SWIFT Settlement Instructions',
+      title: '5. Custodian Instructions & Matching',
       office: 'Back Office (Global & Local Custodians)',
       actor: 'Settlement Operations Analyst',
       systems: 'Core Settlement Engine (TCS BaNCS / Broadridge)',
-      protocol: 'SWIFT ISO 15022 (MT541 RVP / MT543 DVP / MT548 Status)',
+      protocol: 'SWIFT ISO 15022 (MT541 RVP / MT543 DVP / MT548 Status Advice)',
       color: '#ec4899',
       icon: '📨',
-      summary: 'Buyer Custodian sends MT541 (Receive Against Payment - RVP); Seller Custodian sends MT543 (Deliver Against Payment - DVP). The CSD matches standing settlement instructions (SSIs).',
+      summary: 'Custodian banks receive settlement instructions to safeguard assets and prepare funds transfer. Buyer Custodian sends MT541 (Receive Against Payment - RVP); Seller Custodian sends MT543 (Deliver Against Payment - DVP). The CSD matches instructions and issues MT548 Matched status.',
       details: {
         inputs: 'Internal Settled Trade Ticket + DTCC ALERT SSI Master Data',
         outputs: 'SWIFT MT541 / MT543 Outbound Stream -> MT548 Matched Advice',
-        keyRisk: 'Mismatched Standing Settlement Instructions (SSIs) causing instant settlement fails.'
+        keyRisk: 'Unmatched settlement instructions at CSD due to SSI discrepancies or missing cash/stock.'
       }
     },
     {
       id: 's6',
       number: 6,
-      title: '6. CSD Settlement & Account Posting',
-      office: 'Central Securities Depository (CSD)',
-      actor: 'Depository Clearing Agent / Settlement Agent',
+      title: '6. Settlement (DvP) & Post-Trade Reconciliation',
+      office: 'Central Securities Depository (CSD) & Back Office',
+      actor: 'Depository Clearing Agent & Reconciliation Specialist',
       systems: 'CSD Core Settlement System (DTCC / Euroclear / Clearstream)',
-      protocol: 'Delivery vs Payment (DvP) Lock & SWIFT MT566 / MT545',
+      protocol: 'Delivery vs Payment (DvP) & SWIFT MT566 / MT545 / MT547',
       color: '#06b6d4',
       icon: '🔒',
-      summary: 'On Settlement Date (T+1), the CSD executes simultaneous Delivery vs Payment (DvP) — locking shares and transferring cash via Clearing Bank accounts. Legal title is updated in the central register.',
+      summary: 'The final, irrevocable transfer of securities and cash between buyer and seller (Delivery vs Payment - DvP). Legal title of ownership transfers at the CSD. Post-trade management completes Nostro/Vostro cash reconciliation, position updates, and regulatory reporting.',
       details: {
         inputs: 'Matched MT541/MT543 Instructions + Central Bank Cash Cover',
-        outputs: 'Final Irrevocable Stock & Cash Posting (MT545/MT547 Confirmation)',
-        keyRisk: 'Lack of stock inventory (short settlement fail) or cash shortfall.'
+        outputs: 'Final Irrevocable Stock & Cash Posting + Nostro/Vostro Reconciliation Log',
+        keyRisk: 'Lack of stock inventory (short settlement fail), cash shortfall, or Nostro cash breaks.'
       }
     }
   ];
 
-  // Stage 2: Dual-Sided Symmetrical Engine Stages
+  // Stage 2: Dual-Sided Symmetrical Engine Stages (Standard Market Flow)
   const dualStages = [
     {
       step: 1,
-      name: 'Stage 1: Trade Conception & Execution',
+      name: 'Stage 1: Pre-Trade & Trade Initiation / Execution',
       buyer: { title: 'Buy-Side Fund A (Buyer)', action: 'PM generates Buy Order for 10,000 AAPL @ $200. OMS routes FIX 35=D to Exchange.', status: 'FIX Sent (35=D)' },
       seller: { title: 'Hedge Fund B (Seller)', action: 'Execution Trader submits Sell Order for 10,000 AAPL @ $200. OMS routes FIX 35=D to Exchange.', status: 'FIX Sent (35=D)' },
-      middle: 'Exchange CLOB Matching Engine matches Buy & Sell orders @ $200. Emits FIX 35=8 Execution Reports to both parties.'
+      middle: 'Exchange Matching Engine matches Buy & Sell orders @ $200. Emits FIX 35=8 Execution Reports to both parties for Trade Capture.'
     },
     {
       step: 2,
-      name: 'Stage 2: Middle Office Allocation & CTM Match',
-      buyer: { title: 'Buyer Middle Office', action: 'Submits 10,000 share allocation breakdown across 4 client sub-accounts into DTCC CTM.', status: 'CTM Allocated' },
-      seller: { title: 'Seller Middle Office', action: 'Submits trade confirmation details into DTCC CTM for Electronic Trade Confirmation.', status: 'CTM Submitted' },
+      name: 'Stage 2: Trade Enrichment, Confirmation & Affirmation',
+      buyer: { title: 'Buyer Middle Office', action: 'Enriches trade with SSIs and submits 10,000 share allocation breakdown into DTCC CTM.', status: 'CTM Allocated' },
+      seller: { title: 'Seller Middle Office', action: 'Enriches trade with custodian SSIs and submits confirmation details into DTCC CTM.', status: 'CTM Confirmed' },
       middle: 'DTCC CTM compares trade economics & allocations. Status updates to AFFIRMED & MATCHED.'
     },
     {
       step: 3,
-      name: 'Stage 3: CCP Novation & Multilateral Netting',
-      buyer: { title: 'Buyer Clearing Member Bank', action: 'Pledges $200,000 Initial Margin to CCP. Contract novated: CCP becomes Seller to Buyer A.', status: 'Novated & Margined' },
-      seller: { title: 'Seller Clearing Member Bank', action: 'Pledges securities collateral to CCP. Contract novated: CCP becomes Buyer to Seller B.', status: 'Novated & Margined' },
-      middle: 'CCP Novation Shield cancels original bilateral contract. CCP guarantees completion against default.'
+      name: 'Stage 3: Clearing & CCP Novation',
+      buyer: { title: 'Buyer Clearing Member Bank', action: 'Pledges Initial Margin to CCP. Contract novated: CCP becomes Seller to Buyer A.', status: 'Novated & Margined' },
+      seller: { title: 'Seller Clearing Member Bank', action: 'Pledges collateral to CCP. Contract novated: CCP becomes Buyer to Seller B.', status: 'Novated & Margined' },
+      middle: 'CCP Novation Shield replaces bilateral contract with two central contracts, guaranteeing performance.'
     },
     {
       step: 4,
-      name: 'Stage 4: Custodian SWIFT Instruction Dispatch',
+      name: 'Stage 4: Custodian Settlement Instructions',
       buyer: { title: 'Custodian Bank A (Buyer)', action: 'Dispatches SWIFT MT541 (Receive Against Payment - RVP) to CSD specifying SSI details.', status: 'MT541 Outbound' },
       seller: { title: 'Custodian Bank B (Seller)', action: 'Dispatches SWIFT MT543 (Deliver Against Payment - DVP) to CSD specifying stock line.', status: 'MT543 Outbound' },
       middle: 'CSD settlement engine matches MT541 & MT543 instructions. Emits SWIFT MT548 MATCHED advice.'
     },
     {
       step: 5,
-      name: 'Stage 5: Final DvP Settlement at Depository',
-      buyer: { title: 'Custodian A Account', action: '$2,000,000 cash debited; 10,000 AAPL shares credited to client Vostro ledger. Settlement complete!', status: 'DvP Settled (MT545)' },
-      seller: { title: 'Custodian B Account', action: '10,000 AAPL shares debited; $2,000,000 cash credited to Nostro account. Trade closed!', status: 'DvP Settled (MT547)' },
+      name: 'Stage 5: Final Settlement (DvP) & Post-Trade Reconciliation',
+      buyer: { title: 'Custodian A Account', action: '$2,000,000 cash debited; 10,000 AAPL shares credited to client ledger. Post-trade reconciliation clean!', status: 'DvP Settled (MT545)' },
+      seller: { title: 'Custodian B Account', action: '10,000 AAPL shares debited; $2,000,000 cash credited to Nostro account. Trade complete!', status: 'DvP Settled (MT547)' },
       middle: 'CSD simultaneously transfers legal title of 10,000 shares and sweeps $2,000,000 via Central Bank cash ledger. Finality achieved!'
     }
   ];
@@ -176,7 +176,7 @@ export function TradeLifecycleRoadmapWidget() {
   return (
     <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
       <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Trade Lifecycle Macro Roadmap</h2>
-      <p className="text-slate-400 text-sm text-center mb-6">Deconstruct the complete front-to-back office lifespan of a security trade</p>
+      <p className="text-slate-400 text-sm text-center mb-6">Deconstruct the end-to-end industry standard stages of a securities trade</p>
 
       {/* Main Mode Navigation Tabs */}
       <div className="flex justify-center gap-3 mb-6">
@@ -194,7 +194,7 @@ export function TradeLifecycleRoadmapWidget() {
             activeTab === 'dual' ? 'bg-indigo-600 text-white shadow-lg scale-[1.02]' : 'bg-slate-800 text-slate-400 hover:text-white'
           }`}
         >
-          <span>🔄 The Dual-Sided Symmetrical Trade Engine</span>
+          <span>🔄 Dual-Sided Trade Lifecycle Engine</span>
         </button>
       </div>
 
@@ -215,7 +215,7 @@ export function TradeLifecycleRoadmapWidget() {
               >
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-lg">{stg.icon}</span>
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Step {stg.number}</span>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Stage {stg.number}</span>
                 </div>
                 <span className="text-xs font-bold text-white leading-tight truncate">{stg.title.split('.')[1]}</span>
               </button>
@@ -231,7 +231,7 @@ export function TradeLifecycleRoadmapWidget() {
                   <h3 className="text-lg md:text-xl font-bold text-white">{activeStage.title}</h3>
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-xs font-mono">
-                  <span className="text-slate-400">Desk / Actor:</span>
+                  <span className="text-slate-400">Participants / Desk:</span>
                   <span className="text-amber-400 font-bold">{activeStage.actor} ({activeStage.office})</span>
                 </div>
               </div>
@@ -247,13 +247,13 @@ export function TradeLifecycleRoadmapWidget() {
             {/* Technical Inputs & Outputs Matrix */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
               <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Systems & Software Used</span>
+                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Market Infrastructure & Systems</span>
                 <span className="text-blue-300 font-bold">{activeStage.systems}</span>
                 <span className="text-[10px] text-slate-400 block font-sans border-t border-slate-800 pt-1 mt-1">Protocol: {activeStage.protocol}</span>
               </div>
 
               <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-1">
-                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Input / Output Messages</span>
+                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Input / Output Artifacts</span>
                 <span className="text-emerald-300 font-bold">{activeStage.details.outputs}</span>
                 <span className="text-[10px] text-slate-400 block font-sans border-t border-slate-800 pt-1 mt-1">Inputs: {activeStage.details.inputs}</span>
               </div>
@@ -291,7 +291,7 @@ export function TradeLifecycleRoadmapWidget() {
           {/* Controls Bar for Dual Engine */}
           <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
             <div>
-              <span className="text-amber-400 font-bold uppercase tracking-wider text-[10px] font-mono block">Symmetrical Market Simulator</span>
+              <span className="text-amber-400 font-bold uppercase tracking-wider text-[10px] font-mono block">Symmetrical Market Flow Simulator</span>
               <h3 className="text-sm font-bold text-white">{activeDualStage.name}</h3>
             </div>
 
@@ -345,7 +345,7 @@ export function TradeLifecycleRoadmapWidget() {
             </div>
           </div>
 
-          {/* Central Counterparty (CCP) & CSD Infrastructure Convergence Card */}
+          {/* Central Infrastructure Convergence Card */}
           <div className="bg-slate-950 border-2 border-purple-500/60 p-5 rounded-xl space-y-2 shadow-2xl text-center font-mono">
             <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block font-sans">Central Infrastructure Handoff & Novation Shield</span>
             <p className="text-xs text-purple-200 leading-relaxed">{activeDualStage.middle}</p>
