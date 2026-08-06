@@ -205,15 +205,15 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
         )}
       </div>
 
-      {/* Floating Bottom Navigation (Glassmorphic Transparent Style) */}
+      {/* Floating Bottom Navigation (Compact Glass Back Arrow <) */}
       <div className="absolute bottom-6 left-6 z-50">
         <button 
           onClick={handlePrev} 
           disabled={currentPartIdx === 0}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-semibold text-white hover:bg-white/20 hover:border-white/40 disabled:opacity-0 transition-all shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]"
+          className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/25 hover:border-white/40 disabled:opacity-0 transition-all shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:scale-105"
+          title="Previous Step"
         >
-          <span className="material-symbols-outlined text-base">arrow_left_alt</span>
-          Previous
+          <span className="text-xl font-bold font-mono">‹</span>
         </button>
       </div>
       

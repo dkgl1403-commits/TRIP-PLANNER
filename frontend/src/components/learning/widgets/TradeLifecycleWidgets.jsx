@@ -307,7 +307,7 @@ export function TradeLifecycleRoadmapWidget() {
       ref={containerRef}
       className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
         isFullscreen
-          ? 'fixed inset-0 z-50 rounded-none h-screen w-screen'
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
           : 'rounded-xl h-full'
       }`}
     >
