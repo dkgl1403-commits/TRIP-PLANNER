@@ -2500,6 +2500,256 @@ export function WealthDistributionWidget() {
   );
 }
 
+// ─── Chapter 11 Widget: Rights Issue & Fractional Split Engine ──────────────
+export function RightsIssueWidget() {
+  const [activeTab, setActiveTab] = useState('rights'); // 'rights' | 'fractions'
+  const [mt565Choice, setMt565Choice] = useState('exercise'); // 'exercise' | 'sell' | 'lapse'
+  const [dispRule, setDispRule] = useState('CASH'); // 'DROP' | 'RDUP' | 'CASH'
+
+  // Rights Issue Baseline Math (1-for-4 @ $60, Stock @ $100)
+  const oldPrice = 100;
+  const subPrice = 60;
+  const ratioOld = 4;
+  const ratioNew = 1;
+
+  const terp = ((ratioOld * oldPrice) + (ratioNew * subPrice)) / (ratioOld + ratioNew); // $92.00
+  const rightIntrinsicVal = terp - subPrice; // $32.00
+
+  // 100 Shares Initial Position -> 25 Rights
+  const initialShares = 100;
+  const rightsReceived = 25;
+
+  let rightsResult = {
+    title: 'Exercise / Take Up Rights (EXRI)',
+    color: '#10b981',
+    cashFlow: '-$1,500 (25 × $60 Sub Price)',
+    newSharesCredited: 25,
+    finalShares: 125,
+    finalStockVal: 125 * terp, // $11,500
+    finalCashVal: -1500,
+    netWealth: (125 * terp) - 1500, // $10,000
+    dilutionLoss: 0,
+    opsNote: 'STP Engine debits $1,500 Nostro cash and credits 25 new shares. Client maintains 100% relative ownership without dilution.'
+  };
+
+  if (mt565Choice === 'sell') {
+    rightsResult = {
+      title: 'Sell Rights on Open Market',
+      color: '#3b82f6',
+      cashFlow: '+$800 (25 × $32 Right Intrinsic Value)',
+      newSharesCredited: 0,
+      finalShares: 100,
+      finalStockVal: 100 * terp, // $9,200
+      finalCashVal: 800,
+      netWealth: (100 * terp) + 800, // $10,000
+      dilutionLoss: 0,
+      opsNote: 'Rights sold on exchange. Cash proceeds compensate client for stock price adjustment down to TERP ($92.00).'
+    };
+  } else if (mt565Choice === 'lapse') {
+    rightsResult = {
+      title: 'Do Nothing / Rights Lapsed (EXPI)',
+      color: '#ef4444',
+      cashFlow: '$0 (Rights Expire Worthless)',
+      newSharesCredited: 0,
+      finalShares: 100,
+      finalStockVal: 100 * terp, // $9,200
+      finalCashVal: 0,
+      netWealth: 100 * terp, // $9,200
+      dilutionLoss: 800,
+      opsNote: 'CRITICAL OPS FAILURE: Client missed deadline! $800 intrinsic value destroyed. Client suffered severe share dilution loss.'
+    };
+  }
+
+  // Fractional Split Math (125 shares -> 1-for-10 Reverse Split)
+  const origSplitShares = 125;
+  const splitRatio = 10;
+  const postSplitExact = origSplitShares / splitRatio; // 12.5 shares
+  const wholeShares = Math.floor(postSplitExact); // 12 shares
+  const fraction = postSplitExact - wholeShares; // 0.5 fraction
+  const newPostPrice = 1000; // $1000/share post split
+
+  let fractionOutcome = {
+    rule: 'CASH',
+    sharesCredited: wholeShares,
+    cashCredited: fraction * newPostPrice, // $500 cash
+    desc: 'Cash-in-Lieu (CIL): Sub-custodian aggregates fractions, sells on open market, and credits $500 cash to Vostro account.',
+    status: 'Standard Market Practice (No Stock Break)'
+  };
+
+  if (dispRule === 'DROP') {
+    fractionOutcome = {
+      rule: 'DROP',
+      sharesCredited: wholeShares,
+      cashCredited: 0,
+      desc: 'Drop Fraction: The 0.5 fraction is extinguished without compensation ($0). Client loses $500 value.',
+      status: 'High Break Risk if client expects CIL'
+    };
+  } else if (dispRule === 'RDUP') {
+    fractionOutcome = {
+      rule: 'RDUP',
+      sharesCredited: wholeShares + 1,
+      cashCredited: 0,
+      desc: 'Round Up: Custodian rounds 12.5 up to 13 whole shares. Company absorbs rounding cost.',
+      status: 'Generous Issuer Incentive Rule'
+    };
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Rights Issue & Fractional Split Engine</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Calculate TERP, MT565 client instructions, dilution losses, and CIL fractional disposition rules</p>
+
+      {/* Main Tabs */}
+      <div className="flex justify-center gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('rights')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'rights' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🎯 Rights Issue Strategy Engine (EXRI)
+        </button>
+        <button
+          onClick={() => setActiveTab('fractions')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'fractions' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          ✂️ Reverse Split & Cash-in-Lieu (CIL)
+        </button>
+      </div>
+
+      {activeTab === 'rights' ? (
+        <div className="space-y-6">
+          {/* Top Formula Banner */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">1-for-4 Subscription</span>
+              <span className="text-white font-bold">Old: $100 | Sub: $60</span>
+            </div>
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Theoretical Ex-Rights Price (TERP)</span>
+              <span className="text-amber-400 font-bold">${terp.toFixed(2)}</span>
+            </div>
+            <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span className="text-slate-500 block text-[10px] uppercase font-sans">Right Intrinsic Value</span>
+              <span className="text-emerald-400 font-bold">${rightIntrinsicVal.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* MT565 Client Options Selector */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { id: 'exercise', label: '✅ Exercise Rights (EXRI)', desc: 'Pay $60/sh & avoid dilution' },
+              { id: 'sell', label: '💵 Sell Rights on Market', desc: 'Pocket $32/right cash premium' },
+              { id: 'lapse', label: '❌ Do Nothing / Lapse (EXPI)', desc: 'Rights expire $0 (Dilution Loss!)' }
+            ].map((btn) => (
+              <button
+                key={btn.id}
+                onClick={() => setMt565Choice(btn.id)}
+                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                  mt565Choice === btn.id
+                    ? 'bg-slate-800 border-2 border-blue-500 shadow-lg scale-[1.02]'
+                    : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+                }`}
+              >
+                <span className="text-xs font-bold text-white leading-tight">{btn.label}</span>
+                <span className="text-[10px] text-slate-400 mt-1">{btn.desc}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Result Card */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mt565Choice}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-slate-800 border-2 rounded-xl p-5 shadow-xl space-y-4"
+              style={{ borderColor: rightsResult.color }}
+            >
+              <div className="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>⚡</span> {rightsResult.title}
+                </h3>
+                <span className="text-xs font-mono font-bold px-3 py-1 rounded-full border" style={{ backgroundColor: rightsResult.color + '20', color: rightsResult.color, borderColor: rightsResult.color + '50' }}>
+                  Net Wealth: ${rightsResult.netWealth.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+                <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                  <span className="text-slate-500 block text-[10px] uppercase font-sans">Cash Impact</span>
+                  <span className="text-white font-bold">{rightsResult.cashFlow}</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                  <span className="text-slate-500 block text-[10px] uppercase font-sans">Final Shares</span>
+                  <span className="text-blue-400 font-bold">{rightsResult.finalShares} shares</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                  <span className="text-slate-500 block text-[10px] uppercase font-sans">Stock Value (@ TERP)</span>
+                  <span className="text-emerald-400 font-bold">${rightsResult.finalStockVal.toLocaleString()}</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                  <span className="text-slate-500 block text-[10px] uppercase font-sans">Dilution Value Loss</span>
+                  <span className={`font-bold ${rightsResult.dilutionLoss > 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                    ${rightsResult.dilutionLoss}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700 text-xs">
+                <span className="text-amber-400 font-bold uppercase block text-[10px]">Operations & Risk Management Note</span>
+                <p className="text-slate-200 leading-relaxed mt-1 font-mono">{rightsResult.opsNote}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      ) : (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-5 shadow-xl">
+          <div className="border-b border-slate-700 pb-3">
+            <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">125 Shares → 1-for-10 Reverse Split (SPLR)</h3>
+            <p className="text-xs text-slate-300 mt-1">Exact post-split entitlement: <strong>12.5 shares</strong>. How does the CSD handle the 0.5 fraction?</p>
+          </div>
+
+          {/* Disposition Rule Selector */}
+          <div className="flex gap-2">
+            {['CASH', 'DROP', 'RDUP'].map((rule) => (
+              <button
+                key={rule}
+                onClick={() => setDispRule(rule)}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                  dispRule === rule ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                SWIFT: :22F::DISP//{rule}
+              </button>
+            ))}
+          </div>
+
+          {/* Fraction Breakdown */}
+          <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 font-mono text-xs space-y-3">
+            <div className="flex justify-between text-slate-300">
+              <span>Whole Shares Credited to Account:</span>
+              <span className="text-emerald-400 font-bold">{fractionOutcome.sharesCredited} shares</span>
+            </div>
+            <div className="flex justify-between text-slate-300">
+              <span>Cash-in-Lieu (CIL) Vostro Credit:</span>
+              <span className="text-blue-400 font-bold">${fractionOutcome.cashCredited.toFixed(2)}</span>
+            </div>
+            <div className="border-t border-slate-700 pt-2 text-slate-200 font-sans">
+              <span className="text-slate-400 font-bold uppercase block text-[10px]">Processing Details</span>
+              <p className="text-xs mt-1">{fractionOutcome.desc}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 
 

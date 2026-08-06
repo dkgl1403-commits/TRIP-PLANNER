@@ -22,7 +22,8 @@ def seed_corporate_actions():
             "Market Claims & Transformations (Cum vs Ex)",
             "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)",
             "Securities Lending, Repo & Manufactured Payments",
-            "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)"
+            "The Wealth Distributors (Cash Dividends, Buybacks & Bonus Issues)",
+            "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)"
         ]
 
         for topic_name in topics:
@@ -348,6 +349,34 @@ def seed_corporate_actions():
                                 "narrative": "<p>Compare corporate balance sheets, EPS impacts, and 100-share investor portfolios across Cash Dividends, Tender Buybacks, and Bonus Issues below.</p>",
                                 "widgetType": "ca-wealth-distribution",
                                 "alt": "Interactive Wealth Distribution Engine Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 11
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "The Restructurers (Stock Splits, Reverse Splits & Rights Issues)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: Manipulating the Capital Structure",
+                                "narrative": "<p>When a company wants to alter its stock price without changing its underlying market capitalization, or when it needs to raise emergency capital without taking on bank debt, it restructures its share count.</p><p>For middle-office operations, these events are mathematically intensive and highly prone to Straight-Through Processing (STP) breaks &mdash; particularly surrounding rounding rules and fractional share dispositions.</p>"
+                            },
+                            {
+                                "title": "1. STOCK SPLITS & REVERSE SPLITS (SWIFT: SPLF / SPLR)",
+                                "narrative": "<p>Splits are Mandatory (<code>MAND</code>) events that change the Par Value and total number of outstanding shares:</p><ul><li><strong>Forward Split (SPLF):</strong> e.g. 2-for-1. Used to lower share price, making stock psychologically attractive and liquid for retail traders.</li><li><strong>Reverse Split (SPLR):</strong> e.g. 1-for-10. Artificially inflates share price. Defensive move to avoid exchange delisting (e.g. maintaining NASDAQ $1.00 minimum bid rule).</li><li><strong>The Operations Nightmare (Fractional Shares &amp; CIL):</strong> Holding 125 shares under a 1-for-10 Reverse Split creates 12.5 shares. Because depositories do not support fractional registries, company agents aggregate 0.5 fractions, sell them as whole shares on the open market, and distribute cash back to custodians as <strong>Cash-in-Lieu (CIL)</strong>.</li><li><strong>STP Fractional Disposition Rules:</strong> MT564 messages specify fractional rules: <code>DROP</code> (forfeit fraction), <code>RDUP</code> (round up to whole share), or <code>CASH</code> (pay CIL). A system mismatch between custodian and CSD causes an instant stock break on Pay Date.</li></ul>"
+                            },
+                            {
+                                "title": "2. THE RIGHTS ISSUE (SWIFT: EXRI / RHDI)",
+                                "narrative": "<p>A Rights Issue (or Subscription Offer) is a Voluntary (<code>VOLU</code>) capital-raising event where existing shareholders are offered the right to buy newly issued shares at a steep discount to the market price.</p><ul><li><strong>The Nil-Paid Right (RHDI):</strong> On Ex-Date, the company distributes a temporary, tradable derivative called a &quot;Nil-Paid Right&quot; to shareholders.</li><li><strong>TERP (Theoretical Ex-Rights Price):</strong> On Ex-Date, the stock price drops to the TERP, mathematically balancing old expensive shares with new discounted shares: <br/><code>TERP = [(Old Shares × Old Price) + (New Shares × Subscription Price)] / (Old Shares + New Shares)</code></li><li><strong>The 3 Client MT565 Options:</strong> <br/>1. <strong>Exercise / Take Up (EXRI):</strong> Pay subscription price, receive new shares, avoid dilution. <br/>2. <strong>Sell Rights:</strong> Sell rights on open market to pocket cash premium compensating for TERP drop. <br/>3. <strong>Do Nothing / Lapse (EXPI):</strong> Absolute worst case. Rights expire worthless $0, original stock drops to TERP, and client suffers severe uncompensated dilution loss!</li><li><strong>Middle-Office Liability:</strong> If a custodian fails to execute an MT565 <code>EXRI</code> instruction before the CSD deadline, rights lapse. Clients will sue for lost intrinsic value. Operations teams work 24/7 matching cash balances to instruction files to ensure no in-the-money right lapses by mistake.</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Rights Issue & Fractional Split Engine",
+                                "narrative": "<p>Calculate TERP, test MT565 client instruction options, observe dilution losses, and explore Reverse Split Cash-in-Lieu (CIL) disposition rules below.</p>",
+                                "widgetType": "ca-rights-issue-engine",
+                                "alt": "Interactive Rights Issue & Fractional Split Engine Simulator."
                             }
                         ]
                     })
