@@ -78,7 +78,9 @@ import {
   CustodyChainPyramidWidget,
   OmnibusAllocationWidget,
   EventTaxonomyWidget,
-  ClaimsTransformationWidget
+  ClaimsTransformationWidget,
+  NostroVostroWidget,
+  CrossBorderEntitlementWidget
 } from './CorporateActionsWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1382,5 +1384,8 @@ export const WidgetRegistry = {
   'ca-omnibus-allocation': OmnibusAllocationWidget,
   'ca-event-taxonomy': EventTaxonomyWidget,
   'ca-claims-transformations': ClaimsTransformationWidget,
-  'trade-vs-settlement-timeline': ClaimsTransformationWidget
+  'trade-vs-settlement-timeline': ClaimsTransformationWidget,
+  'ca-nostro-vostro': NostroVostroWidget,
+  'ca-cross-border-simulator': CrossBorderEntitlementWidget,
+  'ca-accounts-taxes-fx': CrossBorderEntitlementWidget
 };

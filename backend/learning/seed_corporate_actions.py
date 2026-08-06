@@ -19,7 +19,8 @@ def seed_corporate_actions():
             "The SWIFT Messaging Protocol",
             "The Custody Chain & Entitlement Flow",
             "The Taxonomy of Events (Income, Restructuring, Redemptions)",
-            "Market Claims & Transformations (Cum vs Ex)"
+            "Market Claims & Transformations (Cum vs Ex)",
+            "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)"
         ]
 
         for topic_name in topics:
@@ -231,6 +232,48 @@ def seed_corporate_actions():
                                 "narrative": "<p>Test trade timing, settlement failures, and Special OTC flags below to see how the middle office automatically generates Market Claims, Reverse Claims, or Trade Transformations.</p>",
                                 "widgetType": "ca-claims-transformations",
                                 "alt": "Interactive Market Claims & Transformations Simulator."
+                            }
+                        ]
+                    })
+
+                # ─────────────────────────────────────────────────────────────
+                # CHAPTER 8
+                # ─────────────────────────────────────────────────────────────
+                elif topic_name == "Accounts, Taxes & FX (Nostro/Vostro, WHT & Corporate FX)":
+                    topic.lesson_config_json = json.dumps({
+                        "type": "narrative",
+                        "parts": [
+                            {
+                                "title": "INTRODUCTION: The Illusion of Cash",
+                                "narrative": "<p>In retail finance, cash just &quot;appears&quot; in an account. In the back office, cash does not teleport. It moves through a rigid network of correspondent banks, cross-border wires, and highly scrutinized ledgers.</p><p>When a corporate action generates cash &mdash; whether from a dividend, a tender offer, or a fractional share liquidation &mdash; the journey of that cash is fraught with regulatory hurdles, withholding tax liabilities, and reconciliation breaks.</p>"
+                            },
+                            {
+                                "title": "1. THE RECONCILIATION LEDGERS: Nostro vs. Vostro",
+                                "narrative": "<p>To process a cross-border corporate action, a Global Custodian operates two sets of books. You must understand the difference to investigate a &quot;Cash Break&quot;:</p><ul><li><strong>Nostro Account (&quot;Ours&quot;):</strong> Held by the Global Custodian at the local Sub-Custodian bank (e.g. State Street&apos;s EUR account at BNP Paribas in France). <em>&quot;Our money held by You.&quot;</em></li><li><strong>Vostro Account (&quot;Yours&quot;):</strong> Internal sub-ledger account held by the Global Custodian for the end client (Beneficial Owner). <em>&quot;Your money held by Us.&quot;</em></li></ul><p><strong>The STP Break:</strong> A cash break occurs when the Sub-Custodian credits Nostro with &euro;100,000, but the Global Custodian&apos;s MT564 entitlement engine expected &euro;100,005. Until that &euro;5 discrepancy (often a tax rounding mismatch) is investigated and resolved, funds are locked to prevent client overdraft.</p>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Nostro vs Vostro & Cash Break Explorer",
+                                "narrative": "<p>Explore the Nostro vs Vostro ledger structure below and investigate how a &euro;5 cash break is resolved in middle-office operations.</p>",
+                                "widgetType": "ca-nostro-vostro",
+                                "alt": "Interactive Nostro vs Vostro & Cash Break Explorer."
+                            },
+                            {
+                                "title": "2. HOLDING STRUCTURES: Omnibus vs. Segregated",
+                                "narrative": "<p>How assets are held at the CSD directly impacts corporate action tax processing and entitlement allocation:</p><ul><li><strong>Omnibus Accounts:</strong> Multiple clients&apos; assets pooled into a single account at the Sub-Custodian. Highly cost-effective for settlement, but creates aggregation nightmares when slicing gross dividend payouts across clients with different tax statuses.</li><li><strong>Segregated Accounts (Name-on-Register):</strong> Each client has a distinct, ring-fenced account at the local CSD. Provides absolute transparency and penny-perfect tax calculations, but is extremely expensive to maintain (usually reserved for Sovereign Wealth Funds).</li></ul>"
+                            },
+                            {
+                                "title": "3. THE TAX BURDEN: Withholding Tax (WHT)",
+                                "narrative": "<p>When income is paid across borders, local tax authorities deduct Withholding Tax (WHT) at source before cash leaves the country. Rates are governed by <strong>Statutory Rates</strong> vs <strong>Double Taxation Treaties (DTT)</strong>:</p><ol><li><strong>Relief at Source (RAS):</strong> The Holy Grail. If tax documentation (e.g. W-8BEN) is lodged before Record Date, the dividend is paid minus only the lower treaty rate (e.g. 15% instead of 26.375%).</li><li><strong>Quick Refund:</strong> Dividend is paid at max statutory rate. Shortly after Pay Date, tax certificates are rapidly batched to the foreign tax authority to receive the refund in 2 to 4 weeks.</li><li><strong>Standard Reclaim:</strong> Dividend paid at max statutory rate. Paper-based claims are submitted to the foreign tax authority, taking 1 to 5 years to process.</li></ol>"
+                            },
+                            {
+                                "title": "4. CORPORATE ACTION FOREX (FX)",
+                                "narrative": "<p>If a Japanese company pays a JPY dividend to a USD client, currency conversion is required:</p><ul><li><strong>Depo FX (Issuer FX):</strong> Issuer/CSD converts bulk cash before paying custodian. Simple operations, but uses wide mandatory exchange rate spreads (typically 1.5% loss).</li><li><strong>Client FX (Custodian FX):</strong> Custodian receives local currency (JPY) into Nostro, then internal FX desk executes bulk spot FX to convert to USD at a tight institutional spread (0.2%).</li></ul>"
+                            },
+                            {
+                                "title": "INTERACTIVE: Cross-Border Entitlement Simulator",
+                                "narrative": "<p>Configure holding structures, tax methods, and FX execution modes below to watch a gross &euro;100,000 European dividend bleed down to the net USD Vostro credit.</p>",
+                                "widgetType": "ca-cross-border-simulator",
+                                "alt": "Interactive Cross-Border Entitlement Simulator."
                             }
                         ]
                     })

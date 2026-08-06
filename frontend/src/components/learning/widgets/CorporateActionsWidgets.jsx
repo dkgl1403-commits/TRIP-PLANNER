@@ -1859,4 +1859,288 @@ export function ClaimsTransformationWidget() {
   );
 }
 
+// ─── Chapter 8 Widget 1: Nostro vs Vostro & Cash Break Explorer ─────────────
+export function NostroVostroWidget() {
+  const [activeTab, setActiveTab] = useState('ledgers'); // 'ledgers' | 'break'
+  const [nostroAmount, setNostroAmount] = useState(100000);
+  const [expectedAmount, setExpectedAmount] = useState(100005);
+  const [resolved, setResolved] = useState(false);
+
+  const diff = nostroAmount - expectedAmount;
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Nostro vs Vostro Ledger & Cash Break Simulator</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Understand correspondent bank ledgers and investigate corporate action cash breaks</p>
+
+      {/* Tabs */}
+      <div className="flex justify-center gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('ledgers')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'ledgers' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🏦 Nostro ("Ours") vs Vostro ("Yours")
+        </button>
+        <button
+          onClick={() => setActiveTab('break')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            activeTab === 'break' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          🔍 €5 Cash Break Investigation
+        </button>
+      </div>
+
+      {activeTab === 'ledgers' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Nostro Account Card */}
+          <div className="bg-slate-800 border border-blue-500/50 rounded-xl p-5 shadow-xl space-y-4">
+            <div className="flex justify-between items-start border-b border-slate-700 pb-3">
+              <div>
+                <span className="text-xs font-mono font-bold text-blue-400 uppercase tracking-wider block">External Ledger</span>
+                <h3 className="text-lg font-bold text-white mt-1">Nostro Account ("Ours")</h3>
+              </div>
+              <span className="text-[10px] px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/40">
+                Our Money at Sub-Custodian
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              An account held by the Global Custodian (State Street) at a local Sub-Custodian bank (BNY Paribas in France).
+            </p>
+            <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700 font-mono text-xs space-y-1">
+              <span className="text-slate-500 block font-bold text-[10px] uppercase">Example Entry (French Dividend)</span>
+              <div className="text-emerald-400">+ €100,000.00 credited by Sub-Custodian</div>
+              <span className="text-slate-400 text-[10px]">Pertains to gross French dividend cash pool</span>
+            </div>
+          </div>
+
+          {/* Vostro Account Card */}
+          <div className="bg-slate-800 border border-purple-500/50 rounded-xl p-5 shadow-xl space-y-4">
+            <div className="flex justify-between items-start border-b border-slate-700 pb-3">
+              <div>
+                <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-wider block">Internal Sub-Ledger</span>
+                <h3 className="text-lg font-bold text-white mt-1">Vostro Account ("Yours")</h3>
+              </div>
+              <span className="text-[10px] px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/40">
+                Client Money Held by Us
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              An account held by the Global Custodian for the beneficial owner (Pension Fund / Client).
+            </p>
+            <div className="bg-slate-900 p-3.5 rounded-lg border border-slate-700 font-mono text-xs space-y-1">
+              <span className="text-slate-500 block font-bold text-[10px] uppercase">Example Entry (Client Posting)</span>
+              <div className="text-blue-400">+ €85,000.00 posted to Client Vostro</div>
+              <span className="text-slate-400 text-[10px]">Net cash posted after 15% WHT deduction</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4 shadow-xl">
+          <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">The €5 Nostro vs Expected Entitlement Cash Break</h3>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            The Sub-Custodian credited the Nostro account with <strong>€{nostroAmount.toLocaleString()}</strong>.
+            However, the Global Custodian's corporate action engine calculated an expected MT564 entitlement of <strong>€{expectedAmount.toLocaleString()}</strong>.
+          </p>
+
+          <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 font-mono text-xs space-y-2">
+            <div className="flex justify-between text-slate-300">
+              <span>Actual Nostro Cash Received:</span>
+              <span className="text-emerald-400 font-bold">€{nostroAmount.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-slate-300">
+              <span>Expected MT564 Entitlement:</span>
+              <span className="text-blue-400 font-bold">€{expectedAmount.toLocaleString()}</span>
+            </div>
+            <div className={`border-t border-slate-700 pt-2 flex justify-between font-bold ${diff < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <span>Unreconciled Cash Break:</span>
+              <span>{diff < 0 ? `-€${Math.abs(diff)}` : `+€${diff}`}</span>
+            </div>
+          </div>
+
+          {!resolved ? (
+            <div className="bg-red-950/30 border border-red-500/30 p-4 rounded-lg text-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-red-400">⚠️ Vostro Posting Lock Active</span>
+                <button
+                  onClick={() => setResolved(true)}
+                  className="px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-all"
+                >
+                  Apply €5 Tax Discrepancy Adjustment
+                </button>
+              </div>
+              <p className="text-red-200 leading-relaxed">
+                Because Nostro received €5 less than expected, Vostro credits are BLOCKED to prevent custodian cash overdraft. Root cause: Sub-custodian deducted 15.005% tax due to rounding rather than flat 15%.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-emerald-950/30 border border-emerald-500/30 p-4 rounded-lg text-xs space-y-2">
+              <span className="font-bold text-emerald-400 block">✅ Break Resolved & Vostro Unlocked</span>
+              <p className="text-emerald-200 leading-relaxed">
+                Analyst adjusted tax GL account for €5 rounding variance. Nostro cash matched expected sub-ledger credits. €85,000 successfully released to Client Vostro accounts!
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Chapter 8 Widget 2: Cross-Border Entitlement Simulator (WHT & FX) ───────
+export function CrossBorderEntitlementWidget() {
+  const [grossEur, setGrossEur] = useState(100000); // €100,000 EUR dividend from Germany
+  const [structure, setStructure] = useState('omnibus'); // 'omnibus' | 'segregated'
+  const [whtMethod, setWhtMethod] = useState('ras'); // 'ras' (Relief at Source 15%) | 'quick' (Quick Refund) | 'standard' (Standard Reclaim)
+  const [fxType, setFxType] = useState('custodian'); // 'issuer' (Depo FX spread 1.5%) | 'custodian' (Custodian FX spread 0.2%)
+
+  // Calculation Logic
+  const statutoryRate = 26.375; // German statutory WHT
+  const treatyRate = 15.0; // US-Germany DTT rate
+
+  // Applied WHT at payout time
+  const initialWhtRate = whtMethod === 'ras' ? treatyRate : statutoryRate;
+  const initialTaxEur = grossEur * (initialWhtRate / 100);
+  const netEurReceived = grossEur - initialTaxEur;
+
+  // Reclaimable Tax (if non-RAS)
+  const reclaimableTaxEur = (whtMethod === 'quick' || whtMethod === 'standard') 
+    ? grossEur * ((statutoryRate - treatyRate) / 100) 
+    : 0;
+
+  // FX Rates
+  const baseEurUsdRate = 1.0850; // Spot rate
+  const fxSpread = fxType === 'issuer' ? 0.015 : 0.002; // Issuer 1.5% vs Custodian 0.2%
+  const effectiveEurUsdRate = baseEurUsdRate * (1 - fxSpread);
+
+  // Final Net USD Vostro Credit
+  const netUsdCredit = netEurReceived * effectiveEurUsdRate;
+
+  return (
+    <div className="w-full h-full flex flex-col p-4 md:p-6 bg-slate-900 rounded-xl font-sans text-slate-200 overflow-y-auto">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 text-center">Cross-Border Entitlement Simulator</h2>
+      <p className="text-slate-400 text-sm text-center mb-6">Watch a gross €100,000 European dividend bleed through statutory WHT, tax treaty relief, and FX spreads</p>
+
+      {/* Inputs Control Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {/* Structure */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">1. Holding Structure</span>
+          <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+            <button
+              onClick={() => setStructure('omnibus')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                structure === 'omnibus' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Omnibus
+            </button>
+            <button
+              onClick={() => setStructure('segregated')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                structure === 'segregated' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Segregated
+            </button>
+          </div>
+        </div>
+
+        {/* WHT Method */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">2. WHT Tax Method</span>
+          <select
+            value={whtMethod}
+            onChange={(e) => setWhtMethod(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-500"
+          >
+            <option value="ras">Relief at Source (15% DTT)</option>
+            <option value="quick">Quick Refund (26.375% → 3 Weeks)</option>
+            <option value="standard">Standard Reclaim (26.375% → 3 Years)</option>
+          </select>
+        </div>
+
+        {/* FX Execution */}
+        <div className="bg-slate-800 p-3.5 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">3. Corporate FX Mode</span>
+          <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+            <button
+              onClick={() => setFxType('custodian')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                fxType === 'custodian' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Custodian Spot FX (0.2%)
+            </button>
+            <button
+              onClick={() => setFxType('issuer')}
+              className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
+                fxType === 'issuer' ? 'bg-amber-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Depo Issuer FX (1.5%)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Waterfall Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">1. Gross Dividend (EUR)</span>
+          <div className="text-lg font-black text-emerald-400 font-mono mt-1">€{grossEur.toLocaleString()}</div>
+          <span className="text-[10px] text-slate-500">German Issuer Payout</span>
+        </div>
+
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">2. Tax Deducted (WHT)</span>
+          <div className="text-lg font-black text-amber-400 font-mono mt-1">-€{initialTaxEur.toLocaleString()}</div>
+          <span className="text-[10px] text-slate-500">{initialWhtRate}% ({whtMethod.toUpperCase()})</span>
+        </div>
+
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">3. Net Nostro EUR</span>
+          <div className="text-lg font-black text-blue-400 font-mono mt-1">€{netEurReceived.toLocaleString()}</div>
+          <span className="text-[10px] text-slate-500">Credited to Sub-Custodian</span>
+        </div>
+
+        <div className="bg-slate-800 p-4 rounded-xl border border-emerald-500/40">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">4. Net Client Vostro USD</span>
+          <div className="text-lg font-black text-emerald-300 font-mono mt-1">${netUsdCredit.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+          <span className="text-[10px] text-slate-400">Rate: {effectiveEurUsdRate.toFixed(4)} USD/EUR</span>
+        </div>
+      </div>
+
+      {/* Reclaim & Operational Insights Panel */}
+      <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3 shadow-xl">
+        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Operational & Tax Reclaim Summary</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+            <span className="text-slate-400 font-bold uppercase block text-[10px]">Reclaimable Pending Tax</span>
+            <div className="text-sm font-bold text-amber-300 font-mono mt-0.5">
+              €{reclaimableTaxEur.toLocaleString()} ({((statutoryRate - treatyRate)).toFixed(3)}% difference)
+            </div>
+            <span className="text-[10px] text-slate-500">
+              {whtMethod === 'ras' ? 'None (Relief granted upfront at source)' : whtMethod === 'quick' ? 'Filed via Quick Refund (Expected in 3 weeks)' : 'Paper claim filed with BZSt (Expected in 1-5 years)'}
+            </span>
+          </div>
+
+          <div className="bg-slate-900 p-3 rounded-lg border border-slate-700">
+            <span className="text-slate-400 font-bold uppercase block text-[10px]">FX Spread Cost Comparison</span>
+            <div className="text-sm font-bold text-blue-300 font-mono mt-0.5">
+              {fxType === 'custodian' ? 'Saved ~$1,410 vs Issuer FX' : 'Lost ~$1,410 due to Depo FX spread'}
+            </div>
+            <span className="text-[10px] text-slate-500">
+              {fxType === 'custodian' ? 'Custodian bulk spot desk executed @ 0.2% spread' : 'Issuer Depo converted @ mandatory 1.5% spread'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
