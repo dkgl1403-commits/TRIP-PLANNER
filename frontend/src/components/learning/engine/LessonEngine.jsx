@@ -220,15 +220,15 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       <div className="absolute bottom-6 right-6 z-50">
         <button 
           onClick={handleNext}
-          className={`flex items-center gap-2 px-6 py-3 rounded-full text-base font-bold text-white backdrop-blur-md border border-white/30 transition-all group shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:scale-105 ${
+          title={isFinalScene ? 'Finish Lesson' : 'Next Step'}
+          className={`w-12 h-12 flex items-center justify-center rounded-full text-white backdrop-blur-md border transition-all shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:scale-110 ${
             isFinalScene 
-              ? 'bg-emerald-500/30 hover:bg-emerald-500/50 hover:border-emerald-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.5)]' 
-              : 'bg-blue-600/30 hover:bg-blue-500/50 hover:border-blue-300 hover:shadow-[0_0_25px_rgba(59,130,246,0.5)]'
+              ? 'bg-emerald-500/40 border-emerald-400/50 hover:bg-emerald-500/60 hover:border-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.5)]' 
+              : 'bg-blue-600/30 border-blue-400/40 hover:bg-blue-500/50 hover:border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.5)]'
           }`}
         >
-          {isFinalScene ? 'Finish Lesson' : 'Continue'}
-          <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-            {isFinalScene ? 'check_circle' : 'arrow_right_alt'}
+          <span className="text-xl font-bold font-mono">
+            {isFinalScene ? '✓' : '›'}
           </span>
         </button>
       </div>
