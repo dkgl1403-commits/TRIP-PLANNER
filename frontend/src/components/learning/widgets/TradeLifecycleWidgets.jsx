@@ -439,14 +439,14 @@ export function TradeLifecycleRoadmapWidget() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={handleReset}
-                className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold font-mono transition-colors"
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-bold font-mono transition-all shadow-[0_4px_16px_0_rgba(0,0,0,0.3)]"
               >
                 🔄 Reset
               </button>
               <button
                 onClick={handleNextStep}
                 disabled={isAnimating || simStep === simSteps.length - 1}
-                className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-white text-xs md:text-sm font-bold shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-500/50 backdrop-blur-md border border-blue-400/40 disabled:opacity-30 text-white text-xs md:text-sm font-bold shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all flex items-center gap-2"
               >
                 <span>{simStep === simSteps.length - 1 ? 'Cycle Complete ✅' : currentSimNarrative.nextBtn}</span>
                 <span>→</span>
@@ -464,8 +464,8 @@ export function TradeLifecycleRoadmapWidget() {
                 onClick={() => setActiveStepIdx(idx)}
                 className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
                   activeStepIdx === idx
-                    ? 'bg-slate-800 border-2 shadow-lg scale-[1.02]'
-                    : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+                    ? 'bg-white/15 border-blue-400/50 backdrop-blur-md shadow-lg scale-[1.02]'
+                    : 'bg-slate-950/60 border-slate-800 hover:bg-white/10 backdrop-blur-sm'
                 }`}
                 style={{ borderColor: activeStepIdx === idx ? stg.color : undefined }}
               >
@@ -479,7 +479,7 @@ export function TradeLifecycleRoadmapWidget() {
           </div>
 
           {/* Active Stage Inspection Card */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 md:p-6 shadow-xl space-y-5">
+          <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-5 md:p-6 shadow-xl space-y-5 backdrop-blur-md">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700 pb-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -520,12 +520,12 @@ export function TradeLifecycleRoadmapWidget() {
               </div>
             </div>
 
-            {/* Navigation Stepper Controls */}
+            {/* Navigation Stepper Controls (Glassmorphic Transparent Style) */}
             <div className="flex justify-between items-center pt-2">
               <button
                 onClick={() => setActiveStepIdx(prev => Math.max(0, prev - 1))}
                 disabled={activeStepIdx === 0}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-700 text-slate-300 disabled:opacity-30 rounded-lg text-xs font-bold transition-all"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white disabled:opacity-30 rounded-xl text-xs font-bold transition-all shadow"
               >
                 ← Previous Stage
               </button>
@@ -535,7 +535,7 @@ export function TradeLifecycleRoadmapWidget() {
               <button
                 onClick={() => setActiveStepIdx(prev => Math.min(roadmapStages.length - 1, prev + 1))}
                 disabled={activeStepIdx === roadmapStages.length - 1}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-30 rounded-lg text-xs font-bold transition-all shadow"
+                className="px-4 py-2 bg-blue-600/30 hover:bg-blue-500/50 backdrop-blur-md border border-blue-400/40 text-white disabled:opacity-30 rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)]"
               >
                 Next Stage →
               </button>

@@ -205,12 +205,12 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
         )}
       </div>
 
-      {/* Floating Bottom Navigation */}
+      {/* Floating Bottom Navigation (Glassmorphic Transparent Style) */}
       <div className="absolute bottom-6 left-6 z-50">
         <button 
           onClick={handlePrev} 
           disabled={currentPartIdx === 0}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/80 backdrop-blur border border-white/10 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-0 transition-all shadow-lg"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-semibold text-white hover:bg-white/20 hover:border-white/40 disabled:opacity-0 transition-all shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]"
         >
           <span className="material-symbols-outlined text-base">arrow_left_alt</span>
           Previous
@@ -220,10 +220,16 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       <div className="absolute bottom-6 right-6 z-50">
         <button 
           onClick={handleNext}
-          className="flex items-center gap-2 px-6 py-3 bg-neon-coral text-white text-base font-bold rounded-full hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] hover:scale-105 transition-all group shadow-xl"
+          className={`flex items-center gap-2 px-6 py-3 rounded-full text-base font-bold text-white backdrop-blur-md border border-white/30 transition-all group shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:scale-105 ${
+            isFinalScene 
+              ? 'bg-emerald-500/30 hover:bg-emerald-500/50 hover:border-emerald-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.5)]' 
+              : 'bg-blue-600/30 hover:bg-blue-500/50 hover:border-blue-300 hover:shadow-[0_0_25px_rgba(59,130,246,0.5)]'
+          }`}
         >
           {isFinalScene ? 'Finish Lesson' : 'Continue'}
-          <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
+          <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+            {isFinalScene ? 'check_circle' : 'arrow_right_alt'}
+          </span>
         </button>
       </div>
       
