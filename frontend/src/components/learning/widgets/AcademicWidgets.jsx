@@ -93,7 +93,8 @@ import {
   IsoMatrixWidget
 } from './CorporateActionsWidgets';
 import {
-  TradeLifecycleRoadmapWidget
+  TradeLifecycleRoadmapWidget,
+  TradeLifecycleChapter2Widget
 } from './TradeLifecycleWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1424,5 +1425,8 @@ export const WidgetRegistry = {
   // Trade Lifecycle
   'tl-macro-roadmap': TradeLifecycleRoadmapWidget,
   'tl-dual-engine': TradeLifecycleRoadmapWidget,
-  'tl-roadmap': TradeLifecycleRoadmapWidget
+  'tl-roadmap': TradeLifecycleRoadmapWidget,
+  'tl-clob-engine': TradeLifecycleChapter2Widget,
+  'tl-exchange-evolution': TradeLifecycleChapter2Widget,
+  'tl-clob': TradeLifecycleChapter2Widget
 };

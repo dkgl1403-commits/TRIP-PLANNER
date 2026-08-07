@@ -499,7 +499,8 @@ def seed_curriculum():
                 {
                     "name": "Trade Lifecycle",
                     "topics": [
-                        {"name": "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)", "board": "BOTH"}
+                        {"name": "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)", "board": "BOTH"},
+                        {"name": "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)", "board": "BOTH"}
                     ]
                 }
             ]

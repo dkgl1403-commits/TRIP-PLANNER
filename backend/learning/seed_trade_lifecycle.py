@@ -15,16 +15,17 @@ def seed_trade_lifecycle():
             return
 
         topics = [
-            "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)"
+            "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)",
+            "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)"
         ]
 
-        for topic_name in topics:
+        for idx, topic_name in enumerate(topics):
             topic = db.query(LearningTopic).filter_by(name=topic_name, subject_id=tl_subject.id).first()
             if not topic:
                 topic = LearningTopic(
                     subject_id=tl_subject.id,
                     name=topic_name,
-                    order=1
+                    order=idx + 1
                 )
                 db.add(topic)
                 db.flush()
@@ -50,6 +51,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Explore the 6 standard market stages and simulate the dual-sided trade lifecycle engine below.</p>",
                             "widgetType": "tl-macro-roadmap",
                             "alt": "Interactive Trade Lifecycle Macro Roadmap & Dual-Sided Engine Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Transformation of the Marketplace",
+                            "narrative": "<p>For over two centuries, stock exchanges were physical locations where human brokers gathered to trade. On May 17, 1792, 24 stockbrokers signed the <strong>Buttonwood Agreement</strong> under a sycamore tree outside 68 Wall Street, establishing fixed commissions and giving birth to the New York Stock Exchange (NYSE).</p><p>For decades, trading relied on <strong>Open Outcry</strong> pits &mdash; where floor brokers shouted prices and used complex hand signals to execute paper trade slips. Today, open outcry is obsolete. Global equity trading is executed entirely by electronic matching engines running in microsecond datacenters.</p>"
+                        },
+                        {
+                            "title": "1. CENTRAL LIMIT ORDER BOOK (CLOB) MECHANICS",
+                            "narrative": "<p>Modern exchanges operate a <strong>Central Limit Order Book (CLOB)</strong>. The CLOB is a continuous ledger containing two distinct lists:</p><ul><li><strong>Bids (Buying Demand):</strong> Orders from buyers specifying the maximum price they are willing to pay, sorted from highest price to lowest price.</li><li><strong>Asks / Offers (Selling Supply):</strong> Orders from sellers specifying the minimum price they are willing to accept, sorted from lowest price to highest price.</li><li><strong>The Bid-Ask Spread:</strong> The price gap between the highest Bid (Touch Bid) and the lowest Ask (Touch Ask).</li></ul>"
+                        },
+                        {
+                            "title": "2. PRICE-TIME PRIORITY & MAKER/TAKER ECONOMICS",
+                            "narrative": "<p>Matching engines execute orders according to strict <strong>Price-Time Priority</strong>:</p><ol><li><strong>Price Priority:</strong> Orders with the best price (highest bid or lowest ask) are always executed first.</li><li><strong>Time Priority:</strong> Among orders at the exact same price level, the order that arrived earliest at the matching engine gets filled first.</li></ol><p><strong>Maker vs Taker Economics:</strong> Exchanges incentivize liquidity through rebate models. A trader placing a Limit Order that rests on the book provides liquidity (<strong>Liquidity Maker</strong>) and earns a rebate (e.g. +$0.02/share). A trader placing a Market Order that executes immediately consumes liquidity (<strong>Liquidity Taker</strong>) and pays a venue fee (e.g. -$0.05/share).</p>"
+                        },
+                        {
+                            "title": "INTERACTIVE: Live CLOB Matching Engine & Evolution Timeline",
+                            "narrative": "<p>Simulate placing Limit Orders (Maker) vs Market Orders (Taker) into a live CLOB matching engine and explore the history of exchange venues below.</p>",
+                            "widgetType": "tl-clob-engine",
+                            "alt": "Interactive Central Limit Order Book (CLOB) & Exchange Evolution Timeline."
                         }
                     ]
                 })

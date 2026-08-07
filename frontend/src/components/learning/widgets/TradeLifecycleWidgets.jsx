@@ -557,3 +557,413 @@ export function TradeLifecycleRoadmapWidget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 2: The Evolution of the Exchange & CLOB ─────────
+export function TradeLifecycleChapter2Widget() {
+  const [activeTab, setActiveTab] = useState('clob'); // 'clob' | 'history'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // CLOB Order Book State
+  const [asks, setAsks] = useState([
+    { price: 200.25, shares: 1500, orders: 3, total: 1500 },
+    { price: 200.20, shares: 2500, orders: 4, total: 4000 },
+    { price: 200.15, shares: 1000, orders: 2, total: 5000 },
+    { price: 200.10, shares: 800, orders: 1, total: 5800 }
+  ]);
+
+  const [bids, setBids] = useState([
+    { price: 200.05, shares: 1200, orders: 2, total: 1200 },
+    { price: 200.00, shares: 3000, orders: 5, total: 4200 },
+    { price: 199.95, shares: 2000, orders: 3, total: 6200 },
+    { price: 199.90, shares: 1500, orders: 2, total: 7700 }
+  ]);
+
+  // Order Ticket Input State
+  const [orderSide, setOrderSide] = useState('BUY'); // 'BUY' | 'SELL'
+  const [orderType, setOrderType] = useState('LIMIT'); // 'LIMIT' (Maker) | 'MARKET' (Taker)
+  const [orderShares, setOrderShares] = useState(500);
+  const [orderPrice, setOrderPrice] = useState(200.05);
+
+  // Execution Log Feed
+  const [tradeLogs, setTradeLogs] = useState([
+    { id: 1, time: '10:14:02.120', side: 'BUY', shares: 500, price: 200.10, fee: '-$0.05 (Taker Fee)', type: 'FILL' },
+    { id: 2, time: '10:13:58.045', side: 'SELL', shares: 1000, price: 200.05, fee: '+$0.02 (Maker Rebate)', type: 'FILL' }
+  ]);
+
+  // Exchange Evolution Eras Data
+  const evolutionEras = [
+    {
+      year: '1792',
+      title: 'The Buttonwood Agreement',
+      venue: 'Physical Sycamore Tree (NYSE Precursor)',
+      tech: 'Paper Ledgers & Handshakes',
+      desc: '24 stockbrokers gathered under a buttonwood tree at 68 Wall Street to establish fixed commission rates and trade government bonds and bank stocks.'
+    },
+    {
+      year: '1865-1970s',
+      title: 'Open Outcry Trading Pits',
+      venue: 'NYSE / CBOT Floor Trading Pits',
+      tech: 'Hand Signals, Paper Tickets, Pit Noise',
+      desc: 'Traders shouted prices and used complex hand signals in crowded trading pits. Floor brokers matched orders manually on paper trade slips.'
+    },
+    {
+      year: '1971',
+      title: 'The NASDAQ Revolution',
+      venue: 'Automated Quotation System',
+      tech: 'Computerized Display Terminals',
+      desc: 'The world\'s first electronic stock market launched, allowing market makers to broadcast automated Bid/Ask quotes without a physical trading floor.'
+    },
+    {
+      year: '1990s',
+      title: 'ECNs & Electronic Matching',
+      venue: 'Island, Instinet, Archipelago',
+      tech: 'Central Limit Order Books (CLOB)',
+      desc: 'Electronic Communication Networks (ECNs) eliminated human intermediaries, introducing microsecond matching based on strict Price-Time Priority.'
+    },
+    {
+      year: '2010s-Present',
+      title: 'HFT & Dark Pool Fragmentation',
+      venue: 'Lit Exchanges, Dark Pools (ATS/MTFs)',
+      tech: 'High-Frequency Trading (HFT), Microwave Links, Smart Routers',
+      desc: 'Modern equity markets execute orders in nanoseconds across fragmented lit exchanges and dark pools, governed by Maker/Taker rebate models.'
+    }
+  ];
+
+  const [activeEraIdx, setActiveEraIdx] = useState(0);
+
+  // Calculate Bid/Ask Spread
+  const bestAsk = asks.length > 0 ? Math.min(...asks.map(a => a.price)) : 0;
+  const bestBid = bids.length > 0 ? Math.max(...bids.map(b => b.price)) : 0;
+  const spread = (bestAsk - bestBid).toFixed(2);
+
+  // Submit Order into CLOB Matching Engine
+  const handlePlaceOrder = () => {
+    const qty = parseInt(orderShares);
+    const prc = parseFloat(orderPrice);
+    if (!qty || qty <= 0) return;
+
+    const timeStr = new Date().toISOString().split('T')[1].slice(0, 12);
+
+    if (orderType === 'MARKET') {
+      // Market Order (Taker) -> Immediately matches best opposing order
+      if (orderSide === 'BUY') {
+        const fillPrice = bestAsk;
+        setTradeLogs(prev => [
+          { id: Date.now(), time: timeStr, side: 'BUY (TAKER)', shares: qty, price: fillPrice, fee: '-$0.05 (Taker Fee)', type: 'MARKET FILL' },
+          ...prev
+        ]);
+        // Reduce Ask volume at best ask
+        setAsks(prevAsks => prevAsks.map(a => a.price === fillPrice ? { ...a, shares: Math.max(0, a.shares - qty) } : a).filter(a => a.shares > 0));
+      } else {
+        const fillPrice = bestBid;
+        setTradeLogs(prev => [
+          { id: Date.now(), time: timeStr, side: 'SELL (TAKER)', shares: qty, price: fillPrice, fee: '-$0.05 (Taker Fee)', type: 'MARKET FILL' },
+          ...prev
+        ]);
+        // Reduce Bid volume at best bid
+        setBids(prevBids => prevBids.map(b => b.price === fillPrice ? { ...b, shares: Math.max(0, b.shares - qty) } : b).filter(b => b.shares > 0));
+      }
+    } else {
+      // Limit Order (Maker) -> Rests on the book or matches if crosses spread
+      if (orderSide === 'BUY') {
+        if (prc >= bestAsk && bestAsk > 0) {
+          // Crosses spread -> Taker Fill
+          setTradeLogs(prev => [
+            { id: Date.now(), time: timeStr, side: 'BUY (CROSS TAKER)', shares: qty, price: bestAsk, fee: '-$0.05 (Taker Fee)', type: 'LIMIT FILL' },
+            ...prev
+          ]);
+          setAsks(prevAsks => prevAsks.map(a => a.price === bestAsk ? { ...a, shares: Math.max(0, a.shares - qty) } : a).filter(a => a.shares > 0));
+        } else {
+          // Rests on book -> Maker
+          const existing = bids.find(b => b.price === prc);
+          if (existing) {
+            setBids(prev => prev.map(b => b.price === prc ? { ...b, shares: b.shares + qty, orders: b.orders + 1 } : b));
+          } else {
+            setBids(prev => [...prev, { price: prc, shares: qty, orders: 1, total: qty }].sort((a, b) => b.price - a.price));
+          }
+          setTradeLogs(prev => [
+            { id: Date.now(), time: timeStr, side: 'BUY (MAKER)', shares: qty, price: prc, fee: '+$0.02 (Maker Rebate)', type: 'ORDER RESTING' },
+            ...prev
+          ]);
+        }
+      } else {
+        // SELL LIMIT
+        if (prc <= bestBid && bestBid > 0) {
+          // Crosses spread -> Taker Fill
+          setTradeLogs(prev => [
+            { id: Date.now(), time: timeStr, side: 'SELL (CROSS TAKER)', shares: qty, price: bestBid, fee: '-$0.05 (Taker Fee)', type: 'LIMIT FILL' },
+            ...prev
+          ]);
+          setBids(prevBids => prevBids.map(b => b.price === bestBid ? { ...b, shares: Math.max(0, b.shares - qty) } : b).filter(b => b.shares > 0));
+        } else {
+          // Rests on book -> Maker
+          const existing = asks.find(a => a.price === prc);
+          if (existing) {
+            setAsks(prev => prev.map(a => a.price === prc ? { ...a, shares: a.shares + qty, orders: a.orders + 1 } : a));
+          } else {
+            setAsks(prev => [...prev, { price: prc, shares: qty, orders: 1, total: qty }].sort((a, b) => a.price - b.price));
+          }
+          setTradeLogs(prev => [
+            { id: Date.now(), time: timeStr, side: 'SELL (MAKER)', shares: qty, price: prc, fee: '+$0.02 (Maker Rebate)', type: 'ORDER RESTING' },
+            ...prev
+          ]);
+        }
+      }
+    }
+  };
+
+  const currentEra = evolutionEras[activeEraIdx];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Central Limit Order Book (CLOB) Engine</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Simulate Price-Time Priority matching, Bid/Ask depth, and Maker/Taker liquidity economics
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('clob')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'clob' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📊 Live CLOB Engine
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'history' ? 'bg-amber-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🏛️ Exchange Evolution Timeline
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'clob' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Order Book Ladder (Left Column - 7 Cols) */}
+          <div className="lg:col-span-7 bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold text-sm">AAPL</span>
+                <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-sans">CLOB Matching Engine</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 text-[10px] block">BID / ASK SPREAD</span>
+                <span className="text-emerald-400 font-bold">${spread}</span>
+              </div>
+            </div>
+
+            {/* Asks Section (Red - Selling Offer Depth) */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-sans font-bold text-red-400 uppercase tracking-wider block">Asks / Sell Offers (Red)</span>
+              {asks.map((ask, idx) => (
+                <div key={idx} className="relative flex justify-between items-center p-2 rounded bg-red-950/30 border border-red-900/40 text-red-300">
+                  <div className="absolute left-0 top-0 bottom-0 bg-red-600/20 rounded pointer-events-none" style={{ width: `${Math.min(100, (ask.shares / 5000) * 100)}%` }} />
+                  <span className="font-bold text-red-400">${ask.price.toFixed(2)}</span>
+                  <span>{ask.shares.toLocaleString()} shares</span>
+                  <span className="text-slate-500 text-[10px]">{ask.orders} orders</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Spread Divider Bar */}
+            <div className="py-2 px-4 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center text-slate-300 font-sans text-xs">
+              <span className="font-bold text-amber-400">⚡ Touch Price Spread</span>
+              <span className="font-mono">Best Bid: ${bestBid.toFixed(2)} | Best Ask: ${bestAsk.toFixed(2)}</span>
+            </div>
+
+            {/* Bids Section (Green - Buying Demand Depth) */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-sans font-bold text-emerald-400 uppercase tracking-wider block">Bids / Buy Orders (Green)</span>
+              {bids.map((bid, idx) => (
+                <div key={idx} className="relative flex justify-between items-center p-2 rounded bg-emerald-950/30 border border-emerald-900/40 text-emerald-300">
+                  <div className="absolute left-0 top-0 bottom-0 bg-emerald-600/20 rounded pointer-events-none" style={{ width: `${Math.min(100, (bid.shares / 5000) * 100)}%` }} />
+                  <span className="font-bold text-emerald-400">${bid.price.toFixed(2)}</span>
+                  <span>{bid.shares.toLocaleString()} shares</span>
+                  <span className="text-slate-500 text-[10px]">{bid.orders} orders</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Order Ticket & Execution Log (Right Column - 5 Cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Order Entry Form */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block font-mono">Order Ticket & Matching Simulator</span>
+
+              {/* Buy / Sell Toggle */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setOrderSide('BUY')}
+                  className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                    orderSide === 'BUY' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🟢 BUY (Bid)
+                </button>
+                <button
+                  onClick={() => setOrderSide('SELL')}
+                  className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                    orderSide === 'SELL' ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🔴 SELL (Ask)
+                </button>
+              </div>
+
+              {/* Limit / Market Order Type Toggle */}
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <button
+                  onClick={() => setOrderType('LIMIT')}
+                  className={`py-1.5 rounded-lg border font-bold transition-all ${
+                    orderType === 'LIMIT' ? 'bg-blue-600/40 border-blue-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'
+                  }`}
+                >
+                  Limit Order (Maker)
+                </button>
+                <button
+                  onClick={() => setOrderType('MARKET')}
+                  className={`py-1.5 rounded-lg border font-bold transition-all ${
+                    orderType === 'MARKET' ? 'bg-amber-600/40 border-amber-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'
+                  }`}
+                >
+                  Market Order (Taker)
+                </button>
+              </div>
+
+              {/* Order Quantity & Price Inputs */}
+              <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                <div>
+                  <label className="text-slate-400 block text-[10px] mb-1 font-sans">Shares Quantity</label>
+                  <input
+                    type="number"
+                    value={orderShares}
+                    onChange={(e) => setOrderShares(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                {orderType === 'LIMIT' && (
+                  <div>
+                    <label className="text-slate-400 block text-[10px] mb-1 font-sans">Limit Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      value={orderPrice}
+                      onChange={(e) => setOrderPrice(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Maker / Taker Economics Info */}
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700 text-[11px] font-mono text-slate-300">
+                <span className="text-amber-400 font-bold block mb-1 font-sans">Maker vs Taker Fee Economics:</span>
+                {orderType === 'LIMIT' ? (
+                  <span>Limit Orders rest on book as <strong>Liquidity Maker</strong> &rarr; Earns <strong>+$0.02/share Rebate</strong> when filled.</span>
+                ) : (
+                  <span>Market Orders execute instantly as <strong>Liquidity Taker</strong> &rarr; Pays <strong>-$0.05/share Fee</strong>.</span>
+                )}
+              </div>
+
+              {/* Submit Order Button */}
+              <button
+                onClick={handlePlaceOrder}
+                className={`w-full py-3 rounded-xl text-xs font-bold text-white transition-all shadow-lg font-mono ${
+                  orderSide === 'BUY'
+                    ? 'bg-emerald-600/40 hover:bg-emerald-500/60 border border-emerald-400/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                    : 'bg-red-600/40 hover:bg-red-500/60 border border-red-400/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                }`}
+              >
+                Submit {orderSide} {orderType} Order to CLOB Engine →
+              </button>
+            </div>
+
+            {/* Execution Audit Log Feed */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-xl space-y-3 font-mono text-xs max-h-[220px] overflow-y-auto">
+              <span className="text-[10px] font-sans font-bold uppercase tracking-wider text-slate-400 block">Matching Engine Audit Log</span>
+              {tradeLogs.map(log => (
+                <div key={log.id} className="p-2 rounded bg-slate-900 border border-slate-700 flex justify-between items-center text-[11px]">
+                  <div>
+                    <span className="text-slate-500 text-[9px] block">{log.time}</span>
+                    <span className="text-white font-bold">{log.side} {log.shares} shares @ ${parseFloat(log.price).toFixed(2)}</span>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${log.fee.includes('Rebate') ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-red-950 text-red-300 border border-red-800'}`}>
+                    {log.fee}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Exchange Evolution Timeline */
+        <div className="space-y-6">
+          {/* Era Header Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {evolutionEras.map((era, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveEraIdx(idx)}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  activeEraIdx === idx
+                    ? 'bg-amber-600/30 border-amber-400 text-white shadow-lg scale-[1.02]'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span className="text-xs font-mono font-bold text-amber-400 block">{era.year}</span>
+                <span className="text-xs font-bold truncate block">{era.title}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Active Era Inspector Card */}
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-start border-b border-slate-700 pb-4">
+              <div>
+                <span className="text-xs font-mono text-amber-400 font-bold uppercase">{currentEra.year} Era</span>
+                <h3 className="text-xl md:text-2xl font-bold text-white">{currentEra.title}</h3>
+              </div>
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-slate-900 text-blue-400 border border-slate-700">
+                {currentEra.venue}
+              </span>
+            </div>
+
+            <p className="text-sm text-slate-200 leading-relaxed font-sans bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+              {currentEra.desc}
+            </p>
+
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-700 font-mono text-xs">
+              <span className="text-slate-500 uppercase text-[10px] font-bold block mb-1">Trading Technology & Plumbing</span>
+              <span className="text-emerald-300 font-bold">{currentEra.tech}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
