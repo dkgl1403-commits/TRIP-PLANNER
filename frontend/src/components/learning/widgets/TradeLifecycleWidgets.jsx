@@ -962,6 +962,392 @@ export function TradeLifecycleChapter2Widget() {
               <span className="text-emerald-300 font-bold">{currentEra.tech}</span>
             </div>
           </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Trade Lifecycle Chapter 3: The Cast of Characters ────────────────────────
+export function TradeLifecycleChapter3Widget() {
+  const [activeTab, setActiveTab] = useState('ecosystem'); // 'ecosystem' | 'darkpool'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedPillarId, setSelectedPillarId] = useState('buyside');
+  const [selectedActorId, setSelectedActorId] = useState('pm');
+
+  // Lit vs Dark Pool Simulation State
+  const [simVenue, setSimVenue] = useState('lit'); // 'lit' | 'dark'
+  const [orderSize] = useState(500000); // 500k shares block
+
+  // 5 Pillars of Market Participants
+  const pillars = [
+    {
+      id: 'buyside',
+      title: '1. The Buy-Side',
+      subtitle: 'Asset Managers & Funds',
+      icon: '💼',
+      color: '#3b82f6',
+      actors: [
+        {
+          id: 'pm',
+          title: 'Portfolio Manager (PM)',
+          role: 'Generates trade ideas, allocates capital, manages fund risk & investment mandates.',
+          systems: 'Order Management System (OMS), Bloomberg AIM, Charles River',
+          protocols: 'Internal FIX / Portfolio Compliance Rules Engine',
+          revenue: 'Management Fees (% AUM) + Performance Fees',
+          risk: 'Fat-finger entries, ESG compliance breaches, or cash overdrafts.'
+        },
+        {
+          id: 'buytrader',
+          title: 'Buy-Side Execution Trader',
+          role: 'Executes PM orders efficiently on market venues to minimize market impact & slippage.',
+          systems: 'Execution Management System (EMS), FlexTrade, Portware',
+          protocols: 'FIX 4.2 / 4.4 Protocol (Tag 35=D New Order Single)',
+          revenue: 'Salary + Performance Bonus',
+          risk: 'Order leakage, excessive market impact slippage, or algo routing errors.'
+        }
+      ]
+    },
+    {
+      id: 'sellside',
+      title: '2. The Sell-Side',
+      subtitle: 'Brokers & Market Makers',
+      icon: '📡',
+      color: '#f59e0b',
+      actors: [
+        {
+          id: 'execbroker',
+          title: 'Executing Broker',
+          role: 'Provides direct market access (DMA) and smart order routing (SOR) to lit and dark venues.',
+          systems: 'Smart Order Router (SOR), FIX Engines, Order Execution Management',
+          protocols: 'FIX Protocol & Market Data Feeds (ITCH/OUCH, FIX 35=8)',
+          revenue: 'Execution Commissions per Share / Basis Points',
+          risk: 'Venue outage, SOR routing failures, or execution misreporting.'
+        },
+        {
+          id: 'pb',
+          title: 'Prime Broker (PB)',
+          role: 'Provides synthetic leverage, stock borrowing for short sales, clearing, and portfolio financing for hedge funds.',
+          systems: 'Margin Engines, Stock Loan Systems, Custody Clearing Platforms',
+          protocols: 'SWIFT MT515 / MT541 / MT543 & FIX Post-Trade',
+          revenue: 'Net Interest Margin, Stock Loan Borrow Fees & Clearing Fees',
+          risk: 'Counterparty credit default (e.g. Archegos capital collapse) & margin shortfalls.'
+        },
+        {
+          id: 'mm',
+          title: 'Market Maker (MM)',
+          role: 'Provides continuous two-sided Bid and Ask quotes on lit venues, earning the Bid/Ask spread.',
+          systems: 'High-Frequency Algorithmic Pricing Engines, Microwave Links',
+          protocols: 'Exchange Native Protocols (NASDAQ OUCH, NYSE Pillar)',
+          revenue: 'Bid-Ask Spread Capture + Exchange Maker Rebates',
+          risk: 'Adverse selection risk (trading against informed institutional flow).'
+        }
+      ]
+    },
+    {
+      id: 'venues',
+      title: '3. The Venues',
+      subtitle: 'Exchanges & Dark Pools',
+      icon: '🏛️',
+      color: '#10b981',
+      actors: [
+        {
+          id: 'lit',
+          title: 'Lit Exchange (NYSE, NASDAQ, LSE)',
+          role: 'Public trading venue with full pre-trade transparency (visible Bid/Ask depth). Order book is visible to all.',
+          systems: 'Central Limit Order Book (CLOB) Matching Engine',
+          protocols: 'Exchange Market Data (ITCH) & Order Entry (OUCH/FIX)',
+          revenue: 'Listing Fees, Market Data Subscription Fees & Trading Fees',
+          risk: 'Market impact leakage when institutional investors place large block orders.'
+        },
+        {
+          id: 'dark',
+          title: 'Dark Pool (ATS / MTF)',
+          role: 'Non-displayed private trading venue with zero pre-trade transparency. Orders match at NBBO midpoint anonymously.',
+          systems: 'Alternative Trading System (ATS) Midpoint Matcher',
+          protocols: 'FIX Protocol & Private Dark Aggregator API',
+          revenue: 'Trading Commission Per Share',
+          risk: 'Lower fill rates and potential conflict of interest from internal internalization.'
+        }
+      ]
+    },
+    {
+      id: 'securities_infra',
+      title: '4. Securities Infrastructure',
+      subtitle: 'CCPs, CSDs & Custodians',
+      icon: '🛡️',
+      color: '#8b5cf6',
+      actors: [
+        {
+          id: 'ccp',
+          title: 'Central Counterparty (CCP)',
+          role: 'Shields market risk through Novation (replacing bilateral contracts) and performs Multilateral Netting & Margin Calls.',
+          systems: 'NSCC / EuroCCP / LCH Clearnet Risk Engines',
+          protocols: 'Real-Time Clearing API & ISO 20022 Margin Messages',
+          revenue: 'Clearing Fees & Interest on Collateral Deposits',
+          risk: 'Member default cascade during extreme multi-sigma market crises.'
+        },
+        {
+          id: 'csd',
+          title: 'Central Securities Depository (CSD)',
+          role: 'Holds central legal register of immobilised/dematerialised securities. Executes Delivery vs Payment (DvP) finality.',
+          systems: 'DTCC / Euroclear / Clearstream Core CSD Settlement Engine',
+          protocols: 'SWIFT ISO 15022 (MT54x / MT548) & ISO 20022 seev/sese',
+          revenue: 'Custody Safekeeping Fees & Settlement Transaction Fees',
+          risk: 'Settlement fails due to lack of stock inventory or SSI mismatches.'
+        },
+        {
+          id: 'custodian',
+          title: 'Global & Local Custodians',
+          role: 'Safeguards client assets, handles corporate actions, and dispatches settlement instructions to CSDs.',
+          systems: 'TCS BaNCS, Broadridge, BNY Mellon Custody Platform',
+          protocols: 'SWIFT ISO 15022 (MT541 RVP / MT543 DVP / MT548 Status)',
+          revenue: 'Assets Under Custody (AUC) Basis Points & Transaction Fees',
+          risk: 'Sub-custodian fail, tax treaty withholding error, or Nostro cash break.'
+        }
+      ]
+    },
+    {
+      id: 'cash_infra',
+      title: '5. Cash Infrastructure',
+      subtitle: 'Clearing Banks & Central Bank',
+      icon: '💵',
+      color: '#ec4899',
+      actors: [
+        {
+          id: 'clearbank',
+          title: 'Clearing Bank (Ultimate Cash Conduit)',
+          role: 'Facilitates real-time fiat currency transfers for CCP margin calls and final DvP settlement via master Central Bank accounts.',
+          systems: 'Fedwire, TARGET2, CHAPS Core Payment Gateways',
+          protocols: 'SWIFT MT202 Cover / MT103 & ISO 20022 camt/pacs',
+          revenue: 'Wire Transfer Fees & Overnight Liquidity Interest',
+          risk: 'Intraday liquidity shortfall or Central Bank payment gateway outage.'
+        }
+      ]
+    }
+  ];
+
+  const currentPillar = pillars.find(p => p.id === selectedPillarId) || pillars[0];
+  const currentActor = currentPillar.actors.find(a => a.id === selectedActorId) || currentPillar.actors[0];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">The Cast of Characters & Market Infrastructure</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Explore the roles, systems, protocols, and legal liabilities of Buy-Side, Sell-Side, Venues, and Infrastructure
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('ecosystem')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'ecosystem' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🏛️ Cast of Characters Ecosystem
+            </button>
+            <button
+              onClick={() => setActiveTab('darkpool')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'darkpool' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🕶️ Lit Exchange vs Dark Pool Simulator
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'ecosystem' ? (
+        <div className="space-y-6">
+          {/* 5 Pillar Navigation Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {pillars.map(p => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setSelectedPillarId(p.id);
+                  setSelectedActorId(p.actors[0].id);
+                }}
+                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                  selectedPillarId === p.id
+                    ? 'bg-slate-800 border-2 shadow-lg scale-[1.02]'
+                    : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800/60'
+                }`}
+                style={{ borderColor: selectedPillarId === p.id ? p.color : undefined }}
+              >
+                <span className="text-xl mb-1">{p.icon}</span>
+                <div>
+                  <span className="text-xs font-bold text-white block leading-tight">{p.title}</span>
+                  <span className="text-[10px] text-slate-400 font-mono">{p.subtitle}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Sub-Actor Navigation Tabs */}
+          <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+            {currentPillar.actors.map(actor => (
+              <button
+                key={actor.id}
+                onClick={() => setSelectedActorId(actor.id)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold font-mono transition-all ${
+                  selectedActorId === actor.id
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                {actor.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Active Actor Detailed Inspector Panel */}
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700 pb-4">
+              <div>
+                <span className="text-xs font-mono text-amber-400 font-bold uppercase">{currentPillar.title}</span>
+                <h3 className="text-xl md:text-2xl font-bold text-white mt-0.5">{currentActor.title}</h3>
+              </div>
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-slate-900 text-emerald-400 border border-slate-700">
+                Pillar: {currentPillar.subtitle}
+              </span>
+            </div>
+
+            {/* Core Role Description */}
+            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-700/60">
+              <span className="text-[10px] font-mono text-slate-400 uppercase font-bold block mb-1">Role & Market Responsibility</span>
+              <p className="text-sm text-slate-200 leading-relaxed font-sans">{currentActor.role}</p>
+            </div>
+
+            {/* Systems, Protocols & Economics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
+              <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Core Enterprise Systems</span>
+                <span className="text-blue-300 font-bold">{currentActor.systems}</span>
+              </div>
+
+              <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Messaging Protocols</span>
+                <span className="text-purple-300 font-bold">{currentActor.protocols}</span>
+              </div>
+
+              <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-1">
+                <span className="text-[10px] text-slate-500 font-sans font-bold uppercase block">Primary Revenue Model</span>
+                <span className="text-emerald-300 font-bold">{currentActor.revenue}</span>
+              </div>
+
+              <div className="bg-slate-900 p-3.5 rounded-xl border border-red-900/50 space-y-1">
+                <span className="text-[10px] text-red-400 font-sans font-bold uppercase block">⚠️ Primary Liability / Risk</span>
+                <p className="text-red-200 text-[11px] font-sans leading-relaxed">{currentActor.risk}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Lit Exchange vs Dark Pool Simulator */
+        <div className="space-y-6">
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Institutional Order Routing Simulator</span>
+              <h3 className="text-sm font-bold text-white">Block Order Routing: 500,000 Shares of AAPL</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSimVenue('lit')}
+                className={`px-4 py-2 rounded-lg font-bold transition-all ${
+                  simVenue === 'lit' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                🏛️ Lit Exchange (NYSE/NASDAQ)
+              </button>
+              <button
+                onClick={() => setSimVenue('dark')}
+                className={`px-4 py-2 rounded-lg font-bold transition-all ${
+                  simVenue === 'dark' ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 hover:text-white'
+                }`}
+              >
+                🕶️ Dark Pool (ATS / MTF)
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Visualizer Panel */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 font-mono text-xs">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-white font-bold">{simVenue === 'lit' ? 'Lit Exchange CLOB Order Book' : 'Dark Pool Midpoint Matcher'}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${simVenue === 'lit' ? 'bg-blue-950 text-blue-300 border border-blue-800' : 'bg-purple-950 text-purple-300 border border-purple-800'}`}>
+                  {simVenue === 'lit' ? 'Pre-Trade TRANSPARENT' : 'Pre-Trade ANONYMOUS'}
+                </span>
+              </div>
+
+              {simVenue === 'lit' ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-red-950/40 border border-red-900/50 rounded-xl space-y-1">
+                    <span className="text-red-400 font-bold block text-[10px]">Visible Asks Depth (Order Book Impact Leakage)</span>
+                    <div className="flex justify-between text-[11px] text-red-300"><span>100,000 @ $200.05</span><span>Walks Book &rarr;</span></div>
+                    <div className="flex justify-between text-[11px] text-red-300"><span>200,000 @ $200.25</span><span>Price Slippage</span></div>
+                    <div className="flex justify-between text-[11px] text-red-300"><span>200,000 @ $200.50</span><span>Highest Impact</span></div>
+                  </div>
+
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-700 text-[11px] text-slate-300">
+                    <span className="text-amber-400 font-bold block mb-1">Lit Market Result:</span>
+                    <span>Average Execution Price: <strong className="text-red-400">$200.31</strong> (+31 bps price slippage due to public book leakage).</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-3 bg-purple-950/40 border border-purple-900/50 rounded-xl space-y-1">
+                    <span className="text-purple-300 font-bold block text-[10px]">Non-Displayed Midpoint Cross (Zero Information Leakage)</span>
+                    <div className="flex justify-between text-[11px] text-purple-200"><span>Institutional Buyer: 500,000 Shares</span><span>Anonymous</span></div>
+                    <div className="flex justify-between text-[11px] text-purple-200"><span>Institutional Seller: 500,000 Shares</span><span>NBBO Midpoint</span></div>
+                  </div>
+
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-700 text-[11px] text-slate-300">
+                    <span className="text-emerald-400 font-bold block mb-1">Dark Pool Result:</span>
+                    <span>Execution Price: <strong className="text-emerald-400">$200.025</strong> (Exact NBBO Midpoint — Zero price slippage & $142,500 price improvement saved!).</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Explanatory Comparison Card */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-xl space-y-4 text-xs font-sans">
+              <span className="text-xs font-mono font-bold text-amber-400 uppercase block">Venue Microstructure Comparison</span>
+
+              {simVenue === 'lit' ? (
+                <div className="space-y-3 text-slate-300 leading-relaxed">
+                  <p><strong>Lit Exchanges (NYSE, NASDAQ, LSE):</strong> Every order submitted to a lit exchange is broadcast to the market in real-time via high-speed market data feeds (e.g. NASDAQ ITCH).</p>
+                  <p><strong>The Risk for Block Orders:</strong> High-frequency traders (HFTs) detect large buy orders on the lit order book, front-run the order across venues, and push the price up before the rest of the block can be filled.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 text-slate-300 leading-relaxed">
+                  <p><strong>Dark Pools (ATS / MTFs):</strong> Dark pools are private alternative trading systems that do not display Bid/Ask quotes publicly prior to execution.</p>
+                  <p><strong>The Benefit for Block Orders:</strong> Large pension funds and hedge funds can cross 500,000+ share blocks against matching institutional counterparties at the exact NBBO midpoint price without alerting the open market.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

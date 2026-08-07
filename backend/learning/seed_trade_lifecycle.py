@@ -16,7 +16,8 @@ def seed_trade_lifecycle():
 
         topics = [
             "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)",
-            "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)"
+            "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)",
+            "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -76,6 +77,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Simulate placing Limit Orders (Maker) vs Market Orders (Taker) into a live CLOB matching engine and explore the history of exchange venues below.</p>",
                             "widgetType": "tl-clob-engine",
                             "alt": "Interactive Central Limit Order Book (CLOB) & Exchange Evolution Timeline."
+                        }
+                    ]
+                })
+
+            elif topic_name == "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Market Ecosystem & Liability Chain",
+                            "narrative": "<p>Institutional trading is an interconnected web of specialized participants. Each entity fulfills a distinct operational mandate and assumes specific legal liability under regulatory frameworks (SEC, FINRA, MiFID II).</p><p>Understanding capital markets requires deconstructing the 5 core pillars of market participants: <strong>Buy-Side</strong>, <strong>Sell-Side</strong>, <strong>Trading Venues</strong>, <strong>Securities Infrastructure</strong>, and <strong>Cash Infrastructure</strong>.</p>"
+                        },
+                        {
+                            "title": "1. THE BUY-SIDE vs THE SELL-SIDE",
+                            "narrative": "<ul><li><strong>The Buy-Side (Capital Allocators):</strong> Asset Managers, Pension Funds, Mutual Funds, and Hedge Funds. The Portfolio Manager (PM) generates investment mandates while Buy-Side Execution Traders utilize Execution Management Systems (EMS) and FIX protocol to route orders.</li><li><strong>The Sell-Side (Intermediaries & Liquidity Providers):</strong> Executing Brokers provide Direct Market Access (DMA) and Smart Order Routing (SOR). Prime Brokers (PBs) provide synthetic leverage, stock borrowing for short sales, and consolidated clearing. Market Makers (MMs) provide continuous two-sided liquidity.</li></ul>"
+                        },
+                        {
+                            "title": "2. TRADING VENUES & DUAL INFRASTRUCTURE (SECURITIES vs CASH)",
+                            "narrative": "<ul><li><strong>Lit Exchanges vs Dark Pools:</strong> Lit Venues (NYSE, NASDAQ) broadcast full pre-trade order book transparency. Dark Pools (ATS/MTFs) offer anonymous non-displayed midpoint execution, shielding large institutional block orders (e.g., 500,000 shares) from market price slippage.</li><li><strong>Securities Infrastructure:</strong> Central Counterparties (CCPs) perform Novation and multilateral netting. Central Securities Depositories (CSDs) hold the central legal register of dematerialised shares. Custodians safeguard assets and dispatch SWIFT settlement instructions (<code>MT541</code>/<code>MT543</code>).</li><li><strong>Cash Infrastructure (Clearing Banks):</strong> While custodians hold stock, <strong>Clearing Banks</strong> act as ultimate cash conduits. Holding master accounts at the Central Bank (Fedwire, TARGET2), Clearing Banks execute fiat currency sweeps for CCP margin calls and final DvP settlement.</li></ul>"
+                        },
+                        {
+                            "title": "INTERACTIVE: Cast of Characters Ecosystem & Lit vs Dark Pool Simulator",
+                            "narrative": "<p>Explore the 5 pillars of market participants and simulate institutional block order routing across Lit Exchanges vs Dark Pools below.</p>",
+                            "widgetType": "tl-cast-characters",
+                            "alt": "Interactive Cast of Characters Ecosystem & Lit vs Dark Pool Simulator."
                         }
                     ]
                 })
