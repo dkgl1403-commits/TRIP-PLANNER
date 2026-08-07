@@ -430,9 +430,9 @@ def start_scheduler():
     scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
     
     # V2 Jobs
-    scheduler.add_job(v2_daily_ingestion, 'cron', hour=16, minute=0)
-    scheduler.add_job(v2_feature_pipeline, 'cron', hour=16, minute=15)
-    scheduler.add_job(v2_eod_predictor, 'cron', hour=16, minute=30)
+    scheduler.add_job(v2_daily_ingestion, 'cron', hour=6, minute=0)
+    scheduler.add_job(v2_feature_pipeline, 'cron', hour=6, minute=15)
+    scheduler.add_job(v2_eod_predictor, 'cron', hour=6, minute=30)
     scheduler.add_job(v2_monthly_retraining, 'cron', day=1, hour=0, minute=0)
     
     scheduler.start()
