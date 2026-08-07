@@ -95,7 +95,8 @@ import {
 import {
   TradeLifecycleRoadmapWidget,
   TradeLifecycleChapter2Widget,
-  TradeLifecycleChapter3Widget
+  TradeLifecycleChapter3Widget,
+  TradeLifecycleChapter4Widget
 } from './TradeLifecycleWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1432,5 +1433,8 @@ export const WidgetRegistry = {
   'tl-clob': TradeLifecycleChapter2Widget,
   'tl-cast-characters': TradeLifecycleChapter3Widget,
   'tl-venue-comparator': TradeLifecycleChapter3Widget,
-  'tl-characters': TradeLifecycleChapter3Widget
+  'tl-characters': TradeLifecycleChapter3Widget,
+  'tl-fix-parser': TradeLifecycleChapter4Widget,
+  'tl-algo-execution': TradeLifecycleChapter4Widget,
+  'tl-front-office': TradeLifecycleChapter4Widget
 };

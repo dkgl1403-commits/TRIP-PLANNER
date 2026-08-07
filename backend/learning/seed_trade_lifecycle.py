@@ -17,7 +17,8 @@ def seed_trade_lifecycle():
         topics = [
             "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)",
             "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)",
-            "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)"
+            "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)",
+            "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -102,6 +103,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Explore the 5 pillars of market participants and simulate institutional block order routing across Lit Exchanges vs Dark Pools below.</p>",
                             "widgetType": "tl-cast-characters",
                             "alt": "Interactive Cast of Characters Ecosystem & Lit vs Dark Pool Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: OMS vs EMS Systems",
+                            "narrative": "<p>The Front Office is the trade engine of capital markets. Front-office operations rely on two critical systems:</p><ul><li><strong>Order Management Systems (OMS):</strong> Used by Portfolio Managers (PMs) for portfolio accounting, cash tracking, pre-trade compliance checks, and allocation generation.</li><li><strong>Execution Management Systems (EMS):</strong> Used by Execution Traders for high-speed order routing, direct market access (DMA), real-time market data analysis, and algorithmic order slicing.</li></ul>"
+                        },
+                        {
+                            "title": "1. THE FIX PROTOCOL (Financial Information eXchange)",
+                            "narrative": "<p>The <strong>FIX Protocol</strong> is the universal messaging standard of global financial markets. Every institutional order, execution fill, and cancel request is transmitted as SOH-delimited tag-value pairs:</p><ul><li><code>Tag 35 (MsgType):</code> Defines message purpose (e.g., <code>35=D</code> New Order Single, <code>35=8</code> Execution Report, <code>35=G</code> Order Cancel/Replace).</li><li><code>Tag 54 (Side):</code> <code>54=1</code> (Buy), <code>54=2</code> (Sell), <code>54=5</code> (Sell Short).</li><li><code>Tag 38 &amp; Tag 44:</code> Order Quantity (<code>38=50000</code>) and Limit Price (<code>44=200.00</code>).</li><li><code>Tag 39 &amp; Tag 150:</code> Order Status (<code>39=2</code> Filled) and Execution Type (<code>150=2</code> Fill).</li></ul>"
+                        },
+                        {
+                            "title": "2. INSTITUTIONAL EXECUTION ALGORITHMS",
+                            "narrative": "<p>Executing a 1,000,000 share block order directly on lit venues would cause severe price slippage. Front-office execution desks utilize <strong>Algorithmic Order Slicing</strong>:</p><ol><li><strong>TWAP (Time-Weighted Average Price):</strong> Slices the block order into equal volume chunks executed at uniform time intervals throughout the day.</li><li><strong>VWAP (Volume-Weighted Average Price):</strong> Slices the order dynamically to match historical intraday U-shaped volume curves (heavy volume at open/close, light at midday).</li><li><strong>Implementation Shortfall (IS / Arrival Price):</strong> High-urgency front-loaded slicing algorithm designed to minimize price opportunity risk against arrival price benchmark.</li></ol>"
+                        },
+                        {
+                            "title": "INTERACTIVE: FIX Protocol Parser & Algorithmic Slicing Simulator",
+                            "narrative": "<p>Deconstruct raw FIX protocol messages tag-by-tag and simulate institutional TWAP, VWAP, and IS algorithmic order slicing below.</p>",
+                            "widgetType": "tl-fix-parser",
+                            "alt": "Interactive FIX Protocol Parser & Algorithmic Slicing Simulator."
                         }
                     ]
                 })

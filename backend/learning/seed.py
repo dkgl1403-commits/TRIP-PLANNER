@@ -501,7 +501,8 @@ def seed_curriculum():
                     "topics": [
                         {"name": "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)", "board": "BOTH"},
                         {"name": "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)", "board": "BOTH"},
-                        {"name": "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)", "board": "BOTH"}
+                        {"name": "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)", "board": "BOTH"},
+                        {"name": "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)", "board": "BOTH"}
                     ]
                 }
             ]

@@ -1354,3 +1354,283 @@ export function TradeLifecycleChapter3Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 4: The Front Office (Execution & FIX) ────────────
+export function TradeLifecycleChapter4Widget() {
+  const [activeTab, setActiveTab] = useState('fix'); // 'fix' | 'algo'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // FIX Parser State
+  const [selectedFixMsgId, setSelectedFixMsgId] = useState('nos'); // 'nos' | 'exec' | 'replace'
+  const [selectedTagNum, setSelectedTagNum] = useState('35');
+
+  // Algorithmic Execution State
+  const [selectedAlgo, setSelectedAlgo] = useState('vwap'); // 'twap' | 'vwap' | 'is'
+
+  const fixMessages = [
+    {
+      id: 'nos',
+      title: 'New Order Single (35=D)',
+      desc: 'Buy-Side OMS/EMS dispatches order to Executing Broker.',
+      raw: '8=FIX.4.2|9=145|35=D|49=ALPHA_CAPITAL|56=GOLDMAN_SACHS|11=ORD_99401|55=AAPL|54=1|38=50000|40=2|44=200.00|59=0|10=184|',
+      tags: [
+        { tag: '8', name: 'BeginString', type: 'Header', val: 'FIX.4.2', desc: 'Protocol version identifier.' },
+        { tag: '9', name: 'BodyLength', type: 'Header', val: '145', desc: 'Character count of message body.' },
+        { tag: '35', name: 'MsgType', type: 'Header', val: 'D', desc: 'D = New Order Single.' },
+        { tag: '49', name: 'SenderCompID', type: 'Header', val: 'ALPHA_CAPITAL', desc: 'Buy-Side Institution Sender ID.' },
+        { tag: '56', name: 'TargetCompID', type: 'Header', val: 'GOLDMAN_SACHS', desc: 'Executing Broker Target ID.' },
+        { tag: '11', name: 'ClOrdID', type: 'Body', val: 'ORD_99401', desc: 'Unique Client Order Identifier.' },
+        { tag: '55', name: 'Symbol', type: 'Body', val: 'AAPL', desc: 'Financial instrument ticker.' },
+        { tag: '54', name: 'Side', type: 'Body', val: '1', desc: '1 = Buy, 2 = Sell, 5 = Sell Short.' },
+        { tag: '38', name: 'OrderQty', type: 'Body', val: '50,000', desc: 'Total shares quantity.' },
+        { tag: '40', name: 'OrdType', type: 'Body', val: '2', desc: '1 = Market, 2 = Limit, 3 = Stop.' },
+        { tag: '44', name: 'Price', type: 'Body', val: '200.00', desc: 'Limit Price per share.' },
+        { tag: '59', name: 'TimeInForce', type: 'Body', val: '0', desc: '0 = Day, 1 = GTC, 3 = IOC, 4 = FOK.' },
+        { tag: '10', name: 'CheckSum', type: 'Trailer', val: '184', desc: '3-digit checksum verification.' }
+      ]
+    },
+    {
+      id: 'exec',
+      title: 'Execution Report (35=8)',
+      desc: 'Venue / Broker confirms trade execution fill back to OMS.',
+      raw: '8=FIX.4.2|9=168|35=8|49=GOLDMAN_SACHS|56=ALPHA_CAPITAL|37=EX_55102|11=ORD_99401|17=EXEC_8820|150=2|39=2|55=AAPL|54=1|38=50000|32=10000|31=200.00|151=40000|10=202|',
+      tags: [
+        { tag: '8', name: 'BeginString', type: 'Header', val: 'FIX.4.2', desc: 'Protocol version identifier.' },
+        { tag: '9', name: 'BodyLength', type: 'Header', val: '168', desc: 'Character count of message body.' },
+        { tag: '35', name: 'MsgType', type: 'Header', val: '8', desc: '8 = Execution Report.' },
+        { tag: '49', name: 'SenderCompID', type: 'Header', val: 'GOLDMAN_SACHS', desc: 'Executing Broker Sender ID.' },
+        { tag: '56', name: 'TargetCompID', type: 'Header', val: 'ALPHA_CAPITAL', desc: 'Buy-Side Institution Target ID.' },
+        { tag: '37', name: 'OrderID', type: 'Body', val: 'EX_55102', desc: 'Broker System Assigned Order ID.' },
+        { tag: '11', name: 'ClOrdID', type: 'Body', val: 'ORD_99401', desc: 'Original Client Order Reference.' },
+        { tag: '17', name: 'ExecID', type: 'Body', val: 'EXEC_8820', desc: 'Unique Trade Execution ID.' },
+        { tag: '150', name: 'ExecType', type: 'Body', val: '2', desc: '2 = Fill, 1 = Partial Fill, 0 = New.' },
+        { tag: '39', name: 'OrdStatus', type: 'Body', val: '2', desc: '2 = Filled, 1 = Partially Filled, 0 = New.' },
+        { tag: '55', name: 'Symbol', type: 'Body', val: 'AAPL', desc: 'Financial instrument ticker.' },
+        { tag: '54', name: 'Side', type: 'Body', val: '1', desc: '1 = Buy.' },
+        { tag: '32', name: 'LastShares', type: 'Body', val: '10,000', desc: 'Shares executed in this fill.' },
+        { tag: '31', name: 'LastPx', type: 'Body', val: '200.00', desc: 'Execution Price for this fill.' },
+        { tag: '151', name: 'LeavesQty', type: 'Body', val: '40,000', desc: 'Shares remaining open on order.' },
+        { tag: '10', name: 'CheckSum', type: 'Trailer', val: '202', desc: '3-digit checksum verification.' }
+      ]
+    }
+  ];
+
+  const currentFixMsg = fixMessages.find(m => m.id === selectedFixMsgId) || fixMessages[0];
+  const selectedTagObj = currentFixMsg.tags.find(t => t.tag === selectedTagNum) || currentFixMsg.tags[0];
+
+  // Algorithmic Slicing Schedule Data (1,000,000 Shares)
+  const algoSchedules = {
+    twap: {
+      name: 'TWAP (Time-Weighted Average Price)',
+      objective: 'Slices order into equal volume blocks at equal time intervals throughout the trading day to ensure linear execution.',
+      slices: [
+        { time: '09:30 - 10:30', shares: 142857, pct: 14.3, rationale: 'Equal Time Slice 1' },
+        { time: '10:30 - 11:30', shares: 142857, pct: 14.3, rationale: 'Equal Time Slice 2' },
+        { time: '11:30 - 12:30', shares: 142857, pct: 14.3, rationale: 'Equal Time Slice 3' },
+        { time: '12:30 - 13:30', shares: 142857, pct: 14.3, rationale: 'Equal Time Slice 4' },
+        { time: '13:30 - 14:30', shares: 142857, pct: 14.3, rationale: 'Equal Time Slice 5' },
+        { time: '14:30 - 15:30', shares: 142857, pct: 14.3, rationale: 'Equal Time Slice 6' },
+        { time: '15:30 - 16:00', shares: 142858, pct: 14.3, rationale: 'Equal Time Slice 7' }
+      ]
+    },
+    vwap: {
+      name: 'VWAP (Volume-Weighted Average Price)',
+      objective: 'Slices order dynamically to match historical intraday U-shaped volume curve (heavy market open/close, light midday).',
+      slices: [
+        { time: '09:30 - 10:30', shares: 250000, pct: 25.0, rationale: 'High Market Open Volume Spike' },
+        { time: '10:30 - 11:30', shares: 150000, pct: 15.0, rationale: 'Morning Liquidity Stream' },
+        { time: '11:30 - 12:30', shares: 80000, pct: 8.0, rationale: 'Midday Lull (Lunch Hour)' },
+        { time: '12:30 - 13:30', shares: 70000, pct: 7.0, rationale: 'Midday Low Volume' },
+        { time: '13:30 - 14:30', shares: 100000, pct: 10.0, rationale: 'Afternoon Re-activation' },
+        { time: '14:30 - 15:30', shares: 150000, pct: 15.0, rationale: 'Pre-Close Institutional Acceleration' },
+        { time: '15:30 - 16:00', shares: 200000, pct: 20.0, rationale: 'Market Close Auction Surcharge' }
+      ]
+    },
+    is: {
+      name: 'Implementation Shortfall (IS / Arrival Price)',
+      objective: 'High-urgency front-loaded slicing algorithm designed to minimize price opportunity risk against arrival price benchmark.',
+      slices: [
+        { time: '09:30 - 10:30', shares: 400000, pct: 40.0, rationale: 'Aggressive Front-Load Execution' },
+        { time: '10:30 - 11:30', shares: 300000, pct: 30.0, rationale: 'Morning Opportunistic Sweep' },
+        { time: '11:30 - 12:30', shares: 150000, pct: 15.0, rationale: 'Midday Taper' },
+        { time: '12:30 - 13:30', shares: 80000, pct: 8.0, rationale: 'Residual Clean-up' },
+        { time: '13:30 - 14:30', shares: 40000, pct: 4.0, rationale: 'Tail Residual' },
+        { time: '14:30 - 15:30', shares: 20000, pct: 2.0, rationale: 'Final Residual' },
+        { time: '15:30 - 16:00', shares: 10000, pct: 1.0, rationale: 'Complete' }
+      ]
+    }
+  };
+
+  const currentAlgo = algoSchedules[selectedAlgo];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Front Office: FIX Protocol & Algorithmic Slicing</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Deconstruct raw FIX protocol tag-value messages and simulate institutional TWAP, VWAP, and IS execution algorithms
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('fix')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'fix' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🏷️ FIX Protocol Parser
+            </button>
+            <button
+              onClick={() => setActiveTab('algo')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'algo' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚡ Algo Execution Slicer
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'fix' ? (
+        <div className="space-y-6">
+          {/* FIX Message Type Selector */}
+          <div className="flex flex-wrap gap-2">
+            {fixMessages.map(m => (
+              <button
+                key={m.id}
+                onClick={() => {
+                  setSelectedFixMsgId(m.id);
+                  setSelectedTagNum(m.tags[0].tag);
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all border ${
+                  selectedFixMsgId === m.id
+                    ? 'bg-blue-600/30 border-blue-400 text-white shadow-lg'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                {m.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Raw FIX String Interactive Inspector */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-amber-400 font-bold">RAW FIX STREAM (SOH Delimited)</span>
+              <span className="text-slate-500 text-[10px]">{currentFixMsg.desc}</span>
+            </div>
+
+            {/* Clickable Tag Badges Stream */}
+            <div className="flex flex-wrap gap-1.5 p-4 rounded-xl bg-slate-900 border border-slate-800 leading-relaxed">
+              {currentFixMsg.tags.map((t, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedTagNum(t.tag)}
+                  className={`px-2 py-1 rounded border transition-all ${
+                    selectedTagNum === t.tag
+                      ? 'bg-amber-500 text-slate-950 font-bold border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105'
+                      : 'bg-slate-800 text-blue-300 border-slate-700 hover:bg-slate-700'
+                  }`}
+                >
+                  <span className="text-slate-400">{t.tag}=</span>
+                  <span className="font-bold">{t.val}</span>
+                  <span className="text-slate-500 text-[10px] ml-1">|</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Tag Inspector Card */}
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 space-y-3 font-sans">
+              <div className="flex justify-between items-center border-b border-slate-700 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Tag {selectedTagObj.tag}
+                  </span>
+                  <h4 className="text-base font-bold text-white font-mono">{selectedTagObj.name}</h4>
+                </div>
+                <span className="text-xs font-mono px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                  {selectedTagObj.type} Field
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Decoded Value</span>
+                  <span className="text-emerald-400 font-bold text-sm">{selectedTagObj.val}</span>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Operational Impact</span>
+                  <span className="text-slate-200 text-[11px] font-sans">{selectedTagObj.desc}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Algorithmic Execution Simulator */
+        <div className="space-y-6">
+          {/* Algo Type Selector */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {Object.keys(algoSchedules).map(key => (
+              <button
+                key={key}
+                onClick={() => setSelectedAlgo(key)}
+                className={`p-4 rounded-2xl border text-left transition-all ${
+                  selectedAlgo === key
+                    ? 'bg-indigo-600/30 border-indigo-400 text-white shadow-xl scale-[1.02]'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span className="text-xs font-mono font-bold text-indigo-400 uppercase block mb-1">{key.toUpperCase()}</span>
+                <span className="text-sm font-bold text-white block">{algoSchedules[key].name}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Active Algo Inspector Card */}
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="border-b border-slate-700 pb-4">
+              <span className="text-xs font-mono text-indigo-400 font-bold uppercase">1,000,000 Share Block Execution Slicer</span>
+              <h3 className="text-xl md:text-2xl font-bold text-white mt-1">{currentAlgo.name}</h3>
+              <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
+                {currentAlgo.objective}
+              </p>
+            </div>
+
+            {/* Slicing Schedule Table */}
+            <div className="space-y-2 font-mono text-xs">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Intraday Execution Slicing Schedule</span>
+              {currentAlgo.slices.map((slice, idx) => (
+                <div key={idx} className="relative flex justify-between items-center p-3 rounded-xl bg-slate-900 border border-slate-700">
+                  <div className="absolute left-0 top-0 bottom-0 bg-indigo-600/20 rounded-xl pointer-events-none" style={{ width: `${slice.pct * 3}%` }} />
+                  <span className="font-bold text-amber-400">{slice.time}</span>
+                  <span className="text-white font-bold">{slice.shares.toLocaleString()} shares ({slice.pct}%)</span>
+                  <span className="text-slate-400 text-[11px] font-sans truncate">{slice.rationale}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
