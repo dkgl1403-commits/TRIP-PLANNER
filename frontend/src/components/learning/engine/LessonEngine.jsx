@@ -167,10 +167,12 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
               )}
 
               {currentPart.narrative && (
-                <div 
-                  className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-headings:text-neon-coral prose-strong:text-white prose-strong:font-bold"
-                  dangerouslySetInnerHTML={{ __html: currentPart.narrative }}
-                />
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 md:p-8 backdrop-blur-md shadow-2xl space-y-6">
+                  <div 
+                    className="prose prose-invert max-w-none font-sans"
+                    dangerouslySetInnerHTML={{ __html: currentPart.narrative }}
+                  />
+                </div>
               )}
 
               {currentPart.miniChallenge && (
