@@ -962,6 +962,7 @@ export function TradeLifecycleChapter2Widget() {
               <span className="text-emerald-300 font-bold">{currentEra.tech}</span>
             </div>
           </div>
+        </div>
       )}
     </div>
   );
