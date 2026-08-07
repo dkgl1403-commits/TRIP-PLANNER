@@ -204,11 +204,11 @@ const FinanceDashboard = ({ onBack }) => {
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-glass-stroke flex justify-between">
                                     <div className="flex flex-col">
-                                        <span className="font-label-sm text-on-surface-variant">BOD Open</span>
-                                        <span className="font-title-md font-bold">{getIndexData('sensex').open.toFixed(2)}</span>
+                                        <span className="font-label-sm text-on-surface-variant">Last EOD Close</span>
+                                        <span className="font-title-md font-bold">{history && history.length > 0 ? history[history.length - 1].sensex_close.toFixed(2) : getIndexData('sensex').open.toFixed(2)}</span>
                                     </div>
                                     <div className="flex flex-col text-center">
-                                        <span className="font-label-sm text-on-surface-variant">EOD Close</span>
+                                        <span className="font-label-sm text-on-surface-variant">Today's EOD Close</span>
                                         <span className="font-title-md font-bold">{indices.sensex.toFixed(2)}</span>
                                     </div>
                                     <div className="flex flex-col text-right">
@@ -248,11 +248,11 @@ const FinanceDashboard = ({ onBack }) => {
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-glass-stroke flex justify-between">
                                     <div className="flex flex-col">
-                                        <span className="font-label-sm text-on-surface-variant">BOD Open</span>
-                                        <span className="font-title-md font-bold">{getIndexData('nifty50').open.toFixed(2)}</span>
+                                        <span className="font-label-sm text-on-surface-variant">Last EOD Close</span>
+                                        <span className="font-title-md font-bold">{history && history.length > 0 ? history[history.length - 1].nifty_close.toFixed(2) : getIndexData('nifty50').open.toFixed(2)}</span>
                                     </div>
                                     <div className="flex flex-col text-center">
-                                        <span className="font-label-sm text-on-surface-variant">EOD Close</span>
+                                        <span className="font-label-sm text-on-surface-variant">Today's EOD Close</span>
                                         <span className="font-title-md font-bold">{indices.nifty50.toFixed(2)}</span>
                                     </div>
                                     <div className="flex flex-col text-right">
