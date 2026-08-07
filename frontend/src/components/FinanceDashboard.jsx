@@ -165,7 +165,7 @@ const FinanceDashboard = ({ onBack }) => {
                 {/* FIN-16: Replaced 'Earth' icon concept with Indian Rupee sign for Global Expense/Finance context */}
                 <h2 className="font-display-lg text-3xl font-bold m-0 flex items-center gap-2">
                     <span className="material-symbols-outlined">currency_rupee</span>
-                    XGBoost EOD Engine (V2)
+                    Market Predictor Engine
                 </h2>
             </div>
 
@@ -179,7 +179,7 @@ const FinanceDashboard = ({ onBack }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl flex flex-col">
                     <div className="px-6 py-4 border-b border-glass-stroke">
-                        <span className="font-title-md font-bold">BSE SENSEX V2 Proxy</span>
+                        <span className="font-title-md font-bold">BSE SENSEX Proxy</span>
                     </div>
                     <div className="p-6 flex flex-col gap-4">
                         <div className="h-[250px] w-full">
@@ -204,6 +204,10 @@ const FinanceDashboard = ({ onBack }) => {
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-glass-stroke flex justify-between">
                                     <div className="flex flex-col">
+                                        <span className="font-label-sm text-on-surface-variant">BOD Open</span>
+                                        <span className="font-title-md font-bold">{getIndexData('sensex').open.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex flex-col text-center">
                                         <span className="font-label-sm text-on-surface-variant">EOD Close</span>
                                         <span className="font-title-md font-bold">{indices.sensex.toFixed(2)}</span>
                                     </div>
@@ -219,7 +223,7 @@ const FinanceDashboard = ({ onBack }) => {
 
                 <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl flex flex-col">
                     <div className="px-6 py-4 border-b border-glass-stroke">
-                        <span className="font-title-md font-bold">NSE NIFTY 50 V2 Target</span>
+                        <span className="font-title-md font-bold">NSE NIFTY 50 Target</span>
                     </div>
                     <div className="p-6 flex flex-col gap-4">
                         <div className="h-[250px] w-full">
@@ -244,6 +248,10 @@ const FinanceDashboard = ({ onBack }) => {
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-glass-stroke flex justify-between">
                                     <div className="flex flex-col">
+                                        <span className="font-label-sm text-on-surface-variant">BOD Open</span>
+                                        <span className="font-title-md font-bold">{getIndexData('nifty50').open.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex flex-col text-center">
                                         <span className="font-label-sm text-on-surface-variant">EOD Close</span>
                                         <span className="font-title-md font-bold">{indices.nifty50.toFixed(2)}</span>
                                     </div>
@@ -295,6 +303,39 @@ const FinanceDashboard = ({ onBack }) => {
                             </div>
                         </div>
                     ) : <div className="text-on-surface-variant">No predictions available.</div>}
+                </div>
+            </div>
+
+            <div className="bg-glass-fill backdrop-blur-md border border-glass-stroke rounded-2xl overflow-hidden shadow-xl mb-6">
+                <div className="px-6 py-4 border-b border-glass-stroke">
+                    <span className="font-title-md font-bold">AI Prediction Summary</span>
+                </div>
+                <div className="p-6">
+                    <p className="font-body-md text-on-surface">
+                        {prediction && factors && factors.length > 0 ? (
+                            (() => {
+                                const dateObj = new Date();
+                                const day = dateObj.getDate();
+                                const suffix = ["th", "st", "nd", "rd"][day % 10 > 3 ? 0 : (day % 100 - day % 10 !== 10) * day % 10] || "th";
+                                const month = dateObj.toLocaleString('default', { month: 'long' });
+                                const year = dateObj.getFullYear();
+                                const formattedDate = `${day < 10 ? '0' + day : day}${suffix} ${month} ${year}`;
+                                
+                                const topFactors = [...factors].sort((a, b) => b.impact_weight - a.impact_weight).slice(0, 2).map(f => formatFactorName(f.factor_name));
+                                const factorsStr = topFactors.length > 1 ? `${topFactors[0]} and ${topFactors[1]}` : (topFactors[0] || "various factors");
+                                
+                                let direction = "remain stable";
+                                if (prediction.signal.includes('CRASH') || prediction.signal.includes('DOWN') || prediction.signal.includes('SELL')) {
+                                    direction = "decline";
+                                } else if (prediction.signal.includes('BOOM') || prediction.signal.includes('UP') || prediction.signal.includes('BUY')) {
+                                    direction = "improve";
+                                }
+                                const confidence = (prediction.confidence * 100).toFixed(0);
+                                
+                                return `Prediction on ${formattedDate}: Due to ${factorsStr}, Indian sensex is supposed to ${direction} tomorrow. I am ${confidence}% confident.`;
+                            })()
+                        ) : "Loading prediction summary..."}
+                    </p>
                 </div>
             </div>
 
