@@ -482,3 +482,417 @@ export function ProbabilityHistoryTimelineWidget() {
     </div>
   );
 }
+
+// ─── WIDGET 4: Two Dice Sample Space Grid (36 Outcomes) ───
+export function TwoDiceSampleSpaceWidget() {
+  const [targetSum, setTargetSum] = useState(7);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Generate 6x6 grid
+  const diceValues = [1, 2, 3, 4, 5, 6];
+
+  let favorablePairs = [];
+  for (let d1 of diceValues) {
+    for (let d2 of diceValues) {
+      if (d1 + d2 === targetSum) {
+        favorablePairs.push([d1, d2]);
+      }
+    }
+  }
+
+  const favorableCount = favorablePairs.length;
+  const probFraction = `${favorableCount}/36`;
+  const probDecimal = (favorableCount / 36).toFixed(4);
+  const probPct = ((favorableCount / 36) * 100).toFixed(2);
+
+  return (
+    <div
+      className={`w-full flex flex-col p-5 bg-slate-900 text-slate-100 font-sans transition-all border border-slate-800 ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto'
+          : 'rounded-2xl shadow-2xl h-full'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-amber-400 font-bold uppercase text-[11px] tracking-wider block font-mono">Class 10 Theoretical Probability</span>
+          <h2 className="text-xl md:text-2xl font-bold text-white">Rolling Two Dice: 36 Sample Space Grid</h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            Select a target sum to see the matching dice combinations light up across all 36 possible outcomes
+          </p>
+        </div>
+
+        <button
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all"
+        >
+          {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+        </button>
+      </div>
+
+      {/* Target Sum Selector Buttons */}
+      <div className="flex flex-wrap gap-2 mb-6 justify-center">
+        {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((sum) => (
+          <button
+            key={sum}
+            onClick={() => setTargetSum(sum)}
+            className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-all shadow ${
+              targetSum === sum
+                ? 'bg-amber-500 text-slate-950 scale-105 shadow-amber-500/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            Sum = {sum}
+          </button>
+        ))}
+      </div>
+
+      {/* 36 Grid Matrix & Details */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 6x6 Grid */}
+        <div className="md:col-span-2 bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+          <span className="text-slate-400 text-xs font-mono block mb-3 text-center">
+            Die 1 (Rows) × Die 2 (Columns)
+          </span>
+          <div className="grid grid-cols-6 gap-2 font-mono text-xs">
+            {diceValues.map((d1) =>
+              diceValues.map((d2) => {
+                const sum = d1 + d2;
+                const isFavorable = sum === targetSum;
+                return (
+                  <div
+                    key={`${d1}-${d2}`}
+                    className={`p-2 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                      isFavorable
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 font-bold shadow-lg scale-105 z-10'
+                        : 'bg-slate-900 text-slate-400 border-slate-800'
+                    }`}
+                  >
+                    <span className="text-[10px]">({d1},{d2})</span>
+                    <span className={`text-xs font-bold ${isFavorable ? 'text-slate-950' : 'text-slate-200'}`}>
+                      Sum={sum}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Calculation Panel */}
+        <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between font-mono text-xs space-y-4">
+          <div>
+            <span className="text-slate-400 font-sans block text-xs mb-1">Target Event:</span>
+            <h3 className="text-lg font-bold text-amber-400">Sum of Die 1 + Die 2 = {targetSum}</h3>
+          </div>
+
+          <div className="space-y-3 border-t border-b border-slate-800 py-3">
+            <div className="flex justify-between">
+              <span className="text-slate-400">Sample Space N(S):</span>
+              <span className="text-white font-bold">36 outcomes</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Favorable Pairs N(E):</span>
+              <span className="text-amber-400 font-bold">{favorableCount} pairs</span>
+            </div>
+            <div className="flex justify-between text-sm pt-1 border-t border-slate-800">
+              <span className="text-slate-200 font-bold">Theoretical P(Sum={targetSum}):</span>
+              <span className="text-emerald-400 font-bold">{probFraction} ({probPct}%)</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1 font-sans text-xs text-slate-300">
+            <span className="font-mono text-amber-400 font-bold block text-[11px]">Matching Favorable Pairs:</span>
+            <p className="font-mono text-blue-300">
+              {favorablePairs.map((pair) => `(${pair[0]},${pair[1]})`).join(', ')}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── WIDGET 5: Complementary Events & Bag of Marbles Widget ───
+export function ComplementaryEventBagWidget() {
+  const [redCount, setRedCount] = useState(3);
+  const [blueCount, setBlueCount] = useState(5);
+  const [greenCount, setGreenCount] = useState(2);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const totalMarbles = redCount + blueCount + greenCount;
+
+  // Probability calculations
+  const pGreen = totalMarbles > 0 ? (greenCount / totalMarbles).toFixed(4) : 0;
+  const pGreenPct = (pGreen * 100).toFixed(2);
+
+  const pNotGreenDirect = totalMarbles > 0 ? ((redCount + blueCount) / totalMarbles).toFixed(4) : 0;
+  const pNotGreenShortcut = (1 - pGreen).toFixed(4);
+  const pNotGreenPct = (pNotGreenShortcut * 100).toFixed(2);
+
+  return (
+    <div
+      className={`w-full flex flex-col p-5 bg-slate-900 text-slate-100 font-sans transition-all border border-slate-800 ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto'
+          : 'rounded-2xl shadow-2xl h-full'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-amber-400 font-bold uppercase text-[11px] tracking-wider block font-mono">Class 10 Core Concept</span>
+          <h2 className="text-xl md:text-2xl font-bold text-white">Complementary Events: The "Bag of Marbles"</h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            Master the power of "NOT" using the shortcut: P(Not E) = 1 - P(E)
+          </p>
+        </div>
+
+        <button
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all"
+        >
+          {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+        </button>
+      </div>
+
+      {/* Control Sliders */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 font-mono text-xs">
+        <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+          <div className="flex justify-between">
+            <span className="text-rose-400 font-bold">🔴 Red Marbles:</span>
+            <span className="text-white font-bold">{redCount}</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="15"
+            value={redCount}
+            onChange={(e) => setRedCount(parseInt(e.target.value) || 1)}
+            className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-rose-500"
+          />
+        </div>
+
+        <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+          <div className="flex justify-between">
+            <span className="text-blue-400 font-bold">🔵 Blue Marbles:</span>
+            <span className="text-white font-bold">{blueCount}</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="15"
+            value={blueCount}
+            onChange={(e) => setBlueCount(parseInt(e.target.value) || 1)}
+            className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
+          />
+        </div>
+
+        <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+          <div className="flex justify-between">
+            <span className="text-emerald-400 font-bold">🟢 Green Marbles:</span>
+            <span className="text-white font-bold">{greenCount}</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="15"
+            value={greenCount}
+            onChange={(e) => setGreenCount(parseInt(e.target.value) || 1)}
+            className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          />
+        </div>
+      </div>
+
+      {/* Urn Visualization & Formula Display */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+        {/* Urn Visual Box */}
+        <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-white font-bold font-sans">The Urn (Total = {totalMarbles} Marbles)</span>
+            <span className="text-amber-400">Sample Space N(S) = {totalMarbles}</span>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 flex flex-wrap gap-2 justify-center min-h-[100px] items-center">
+            {Array.from({ length: redCount }).map((_, i) => (
+              <span key={`r-${i}`} className="w-6 h-6 rounded-full bg-rose-500 shadow-md border border-rose-300"></span>
+            ))}
+            {Array.from({ length: blueCount }).map((_, i) => (
+              <span key={`b-${i}`} className="w-6 h-6 rounded-full bg-blue-500 shadow-md border border-blue-300"></span>
+            ))}
+            {Array.from({ length: greenCount }).map((_, i) => (
+              <span key={`g-${i}`} className="w-6 h-6 rounded-full bg-emerald-500 shadow-md border border-emerald-300"></span>
+            ))}
+          </div>
+        </div>
+
+        {/* Calculation Box */}
+        <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+            <span className="text-white font-bold text-sm">Complementary Formula Derivation</span>
+            <span className="text-emerald-400 font-bold">P(E) + P(Ē) = 1</span>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between p-2 bg-slate-900 rounded-lg border border-slate-800">
+              <span className="text-slate-400">P(Green) =</span>
+              <span className="text-emerald-400 font-bold">{greenCount}/{totalMarbles} = {pGreen} ({pGreenPct}%)</span>
+            </div>
+
+            <div className="flex justify-between p-2 bg-slate-900 rounded-lg border border-slate-800">
+              <span className="text-slate-400">Direct P(NOT Green) =</span>
+              <span className="text-blue-400 font-bold">({redCount}+{blueCount})/{totalMarbles} = {pNotGreenDirect}</span>
+            </div>
+
+            <div className="p-3 bg-amber-950/60 border border-amber-800/80 rounded-xl space-y-1">
+              <span className="text-amber-400 font-bold block text-[11px]">✨ Complement Shortcut Rule:</span>
+              <p className="text-slate-200 text-[11px]">
+                P(NOT Green) = 1 - P(Green) = 1 - ({greenCount}/{totalMarbles}) = <strong className="text-amber-300">{pNotGreenShortcut} ({pNotGreenPct}%)</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── WIDGET 6: The Infamous Leap Year 53 Sundays Puzzle ───
+export function LeapYearPuzzleWidget() {
+  const [isLeapYear, setIsLeapYear] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const totalDays = isLeapYear ? 366 : 365;
+  const extraDaysCount = isLeapYear ? 2 : 1;
+
+  // 7 possible pairs for extra 2 days in leap year
+  const leapPairs = [
+    { days: 'Sunday, Monday', containsSun: true },
+    { days: 'Monday, Tuesday', containsSun: false },
+    { days: 'Tuesday, Wednesday', containsSun: false },
+    { days: 'Wednesday, Thursday', containsSun: false },
+    { days: 'Thursday, Friday', containsSun: false },
+    { days: 'Friday, Saturday', containsSun: false },
+    { days: 'Saturday, Sunday', containsSun: true }
+  ];
+
+  // 7 single days for extra 1 day in non-leap year
+  const nonLeapDays = [
+    { days: 'Sunday', containsSun: true },
+    { days: 'Monday', containsSun: false },
+    { days: 'Tuesday', containsSun: false },
+    { days: 'Wednesday', containsSun: false },
+    { days: 'Thursday', containsSun: false },
+    { days: 'Friday', containsSun: false },
+    { days: 'Saturday', containsSun: false }
+  ];
+
+  const currentSampleSpace = isLeapYear ? leapPairs : nonLeapDays;
+  const favorableCount = isLeapYear ? 2 : 1;
+  const probFraction = `${favorableCount}/7`;
+  const probPct = ((favorableCount / 7) * 100).toFixed(2);
+
+  return (
+    <div
+      className={`w-full flex flex-col p-5 bg-slate-900 text-slate-100 font-sans transition-all border border-slate-800 ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto'
+          : 'rounded-2xl shadow-2xl h-full'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-amber-400 font-bold uppercase text-[11px] tracking-wider block font-mono">Indian Board Exam Classic Puzzle</span>
+          <h2 className="text-xl md:text-2xl font-bold text-white">The Infamous Leap Year Puzzle (53 Sundays)</h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            Calculate the exact theoretical probability of having 53 Sundays in a Leap Year vs Non-Leap Year
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setIsLeapYear(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                isLeapYear ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📅 Leap Year (366 Days)
+            </button>
+            <button
+              onClick={() => setIsLeapYear(false)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                !isLeapYear ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📆 Ordinary Year (365 Days)
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all"
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {/* Breakdown Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs mb-6">
+        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+          <span className="text-slate-400 font-sans block">Total Days in Year:</span>
+          <span className="text-2xl font-bold text-white">{totalDays} Days</span>
+          <span className="text-[10px] text-amber-400 block font-sans">
+            52 Complete Weeks (364 Days) = 52 Guaranteed Sundays
+          </span>
+        </div>
+
+        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+          <span className="text-slate-400 font-sans block">Remaining Extra Days:</span>
+          <span className="text-2xl font-bold text-amber-400">{extraDaysCount} Extra Day(s)</span>
+          <span className="text-[10px] text-slate-400 block font-sans">
+            ({totalDays} - 364 = {extraDaysCount} days remaining)
+          </span>
+        </div>
+
+        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+          <span className="text-slate-400 font-sans block">P(Exactly 53 Sundays):</span>
+          <span className="text-2xl font-bold text-emerald-400">{probFraction} ({probPct}%)</span>
+          <span className="text-[10px] text-emerald-300 block font-sans">
+            {favorableCount} favorable out of 7 possible day pairs
+          </span>
+        </div>
+      </div>
+
+      {/* Sample Space Grid for Remaining Extra Days */}
+      <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4 font-mono text-xs">
+        <span className="text-white font-bold font-sans block">
+          Sample Space N(S) = 7 Possible Combinations for the Extra {extraDaysCount} Day(s):
+        </span>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          {currentSampleSpace.map((item, idx) => (
+            <div
+              key={idx}
+              className={`p-3 rounded-xl border flex flex-col justify-between transition-all ${
+                item.containsSun
+                  ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200 shadow-lg scale-105'
+                  : 'bg-slate-900 border-slate-800 text-slate-400'
+              }`}
+            >
+              <span className="text-[10px] text-slate-400">Combination #{idx + 1}</span>
+              <span className="font-bold text-xs my-1 text-white">{item.days}</span>
+              <span
+                className={`text-[10px] font-bold ${
+                  item.containsSun ? 'text-emerald-400' : 'text-slate-500'
+                }`}
+              >
+                {item.containsSun ? '✅ Contains Sunday (53rd)' : '❌ No Sunday'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

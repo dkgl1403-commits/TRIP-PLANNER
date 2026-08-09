@@ -109,7 +109,10 @@ import {
 import {
   CoinFlipLawOfLargeNumbersWidget,
   FaultyMachineCalculatorWidget,
-  ProbabilityHistoryTimelineWidget
+  ProbabilityHistoryTimelineWidget,
+  TwoDiceSampleSpaceWidget,
+  ComplementaryEventBagWidget,
+  LeapYearPuzzleWidget
 } from './ProbabilityWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1474,5 +1477,8 @@ export const WidgetRegistry = {
   'tl-reg-reporting': TradeLifecycleChapter12Widget,
   'CoinFlipLawOfLargeNumbers': CoinFlipLawOfLargeNumbersWidget,
   'FaultyMachineCalculator': FaultyMachineCalculatorWidget,
-  'GamblerDiceHistory': ProbabilityHistoryTimelineWidget
+  'GamblerDiceHistory': ProbabilityHistoryTimelineWidget,
+  'TwoDiceSampleSpace': TwoDiceSampleSpaceWidget,
+  'ComplementaryEventBag': ComplementaryEventBagWidget,
+  'LeapYearPuzzle': LeapYearPuzzleWidget
 };
