@@ -89,3 +89,52 @@ def update_progress(login_id: str, req: ProgressUpdateRequest, db: Session = Dep
     db.commit()
     return {"status": "success"}
 
+# --- SERVER-SIDE HIGH-QUALITY NEURAL TTS ENGINE ---
+import os
+import hashlib
+from fastapi.responses import FileResponse
+
+AUDIO_CACHE_DIR = os.path.join(os.path.dirname(__file__), "audio_cache")
+os.makedirs(AUDIO_CACHE_DIR, exist_ok=True)
+
+@learning_api_router.get("/tts")
+async def generate_server_tts(text: str, lang: str = "en", voice: str = "male"):
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Text required")
+
+    # Clean HTML/markdown tags for audio synthesis
+    clean_text = re.sub(r'<[^>]*>?', '', text)
+    clean_text = re.sub(r'[\*\_]', '', clean_text).strip()
+    if not clean_text:
+        clean_text = "Content empty."
+
+    # Select Microsoft Neural Voice
+    # Hindi Neural Voices: hi-IN-MadhurNeural (Male), hi-IN-SwaraNeural (Female)
+    # English Indian Neural Voices: en-IN-PrabhatNeural (Male), en-IN-NeerjaNeural (Female)
+    if lang == "hi":
+        voice_name = "hi-IN-MadhurNeural" if voice == "male" else "hi-IN-SwaraNeural"
+    else:
+        voice_name = "en-IN-PrabhatNeural" if voice == "male" else "en-IN-NeerjaNeural"
+
+    # MD5 hash filename for instant 0ms cached serving
+    text_hash = hashlib.md5(f"{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
+    file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
+
+    if not os.path.exists(file_path):
+        try:
+            import edge_tts
+            communicate = edge_tts.Communicate(clean_text, voice_name)
+            await communicate.save(file_path)
+        except Exception as e:
+            # Fallback to gTTS if edge-tts is unavailable or network fails
+            try:
+                import gtts
+                gtts_lang = 'hi' if lang == 'hi' else 'en'
+                tts = gtts.gTTS(clean_text, lang=gtts_lang)
+                tts.save(file_path)
+            except Exception as ex:
+                raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex}")
+
+    return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+
+
