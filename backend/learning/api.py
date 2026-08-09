@@ -113,81 +113,55 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
     if not clean_text:
         clean_text = "Content empty."
 
-    # 1. TRY ELEVENLABS API FIRST (If API Key is provided)
-    if ELEVENLABS_API_KEY:
-        # Default warm female teacher voice: Rachel (21m00Tcm4TlvDq8ikWAM)
-        # Alternative warm female voice: Bella (EXAVITQu4vr4xnSDxMaL)
-        target_voice_id = ELEVENLABS_VOICE_ID if ELEVENLABS_VOICE_ID else "21m00Tcm4TlvDq8ikWAM"
-        text_hash = hashlib.md5(f"elevenlabs_teacher_v2_{target_voice_id}_{clean_text}".encode('utf-8')).hexdigest()
-        file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
-
-        if os.path.exists(file_path):
-            return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
-
-        try:
-            url = f"https://api.elevenlabs.io/v1/text-to-speech/{target_voice_id}"
-            headers = {
-                "Accept": "audio/mpeg",
-                "Content-Type": "application/json",
-                "xi-api-key": ELEVENLABS_API_KEY
-            }
-            data = {
-                "text": clean_text,
-                "model_id": "eleven_multilingual_v2",
-                "voice_settings": {
-                    "stability": 0.55,
-                    "similarity_boost": 0.80,
-                    "style": 0.15,
-                    "use_speaker_boost": True
-                }
-            }
-            res = requests.post(url, json=data, headers=headers, timeout=15)
-            if res.status_code == 200:
-                with open(file_path, "wb") as f:
-                    f.write(res.content)
-                return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
-            else:
-                print(f"ElevenLabs API Error status {res.status_code}: {res.text}")
-        except Exception as e:
-            print(f"ElevenLabs synthesis exception: {e}")
-
-
-    # 2. FALLBACK TO MICROSOFT NEURAL SSML ENGINE
+    # Microsoft Neural SSML Voices (Native Indian Accent & Pronunciation)
+    # Hindi Voices: hi-IN-SwaraNeural (Warm Female Teacher), hi-IN-MadhurNeural (Calm Male Narrator)
+    # English Indian Voices: en-IN-NeerjaNeural (Expressive Female), en-IN-PrabhatNeural (Clear Male)
     if lang == "hi":
         voice_name = "hi-IN-SwaraNeural" if voice == "female" else "hi-IN-MadhurNeural"
     else:
         voice_name = "en-IN-NeerjaNeural" if voice == "female" else "en-IN-PrabhatNeural"
 
-    text_hash = hashlib.md5(f"ssml_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
+    text_hash = hashlib.md5(f"ms_neural_ssml_v3_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
     file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
 
-    if not os.path.exists(file_path):
-        try:
-            import edge_tts
-            ssml_body = clean_text.replace('. ', '. <break time="450ms"/> ')\
-                                  .replace('? ', '? <break time="550ms"/> ')\
-                                  .replace('! ', '! <break time="450ms"/> ')\
-                                  .replace(', ', ', <break time="250ms"/> ')
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
 
-            ssml_text = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{ 'hi-IN' if lang == 'hi' else 'en-IN' }">
+    try:
+        import edge_tts
+        # Insert SSML human breathing pauses after punctuation
+        ssml_body = clean_text.replace('. ', '. <break time="400ms"/> ')\
+                              .replace('? ', '? <break time="500ms"/> ')\
+                              .replace('! ', '! <break time="400ms"/> ')\
+                              .replace(', ', ', <break time="200ms"/> ')
+
+        ssml_text = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{ 'hi-IN' if lang == 'hi' else 'en-IN' }">
     <voice name="{voice_name}">
-        <prosody rate="-7%" pitch="-2%">
+        <prosody rate="-6%" pitch="-2%">
             {ssml_body}
         </prosody>
     </voice>
 </speak>"""
-            communicate = edge_tts.Communicate(ssml_text, voice_name, is_ssml=True)
+        communicate = edge_tts.Communicate(ssml_text, voice_name, is_ssml=True)
+        await communicate.save(file_path)
+        return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+    except Exception as e:
+        print(f"Edge SSML synthesis failed, trying standard edge-tts: {e}")
+        try:
+            import edge_tts
+            communicate = edge_tts.Communicate(clean_text, voice_name)
             await communicate.save(file_path)
-        except Exception as e:
+            return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+        except Exception as ex:
             try:
                 import gtts
                 gtts_lang = 'hi' if lang == 'hi' else 'en'
                 tts = gtts.gTTS(clean_text, lang=gtts_lang)
                 tts.save(file_path)
+                return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
             except Exception as ex2:
                 raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex2}")
 
-    return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
 
 
 
