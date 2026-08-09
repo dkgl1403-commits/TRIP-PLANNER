@@ -121,7 +121,7 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
     else:
         voice_name = "en-IN-NeerjaNeural" if voice == "female" else "en-IN-PrabhatNeural"
 
-    text_hash = hashlib.md5(f"ms_neural_kids_v4_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
+    text_hash = hashlib.md5(f"ms_neural_human_fillers_v5_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
     file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
 
     if os.path.exists(file_path):
@@ -129,13 +129,19 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
 
     try:
         import edge_tts
-        # Insert SSML human breathing pauses and upbeat punctuation contour
-        ssml_body = clean_text.replace('. ', '. <break time="300ms"/> ')\
-                              .replace('? ', '? <break time="400ms"/> ')\
-                              .replace('! ', '! <break time="350ms"/> ')\
-                              .replace(', ', ', <break time="150ms"/> ')
+        # Insert human conversational fillers (Hmm..., Ahaan!, Aha!) & breathing breaks
+        if lang == "hi":
+            ssml_body = clean_text.replace('? ', '? <break time="300ms"/> Hmm... ')\
+                                  .replace('! ', '! <break time="250ms"/> Ahaan! ')\
+                                  .replace('. ', '. <break time="320ms"/> ')\
+                                  .replace(', ', ', <break time="160ms"/> ')
+        else:
+            ssml_body = clean_text.replace('? ', '? <break time="300ms"/> Hmm... ')\
+                                  .replace('! ', '! <break time="250ms"/> Aha! ')\
+                                  .replace('. ', '. <break time="320ms"/> ')\
+                                  .replace(', ', ', <break time="160ms"/> ')
 
-        # Cheerful, energetic children's teacher voice tuning (pitch +9%, rate +2%)
+        # Cheerful, energetic children's teacher voice with human conversational fillers
         ssml_text = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{ 'hi-IN' if lang == 'hi' else 'en-IN' }">
     <voice name="{voice_name}">
         <prosody rate="+2%" pitch="+9%">
