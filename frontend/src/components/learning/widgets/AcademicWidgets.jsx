@@ -99,7 +99,8 @@ import {
   TradeLifecycleChapter4Widget,
   TradeLifecycleChapter5Widget,
   TradeLifecycleChapter6Widget,
-  TradeLifecycleChapter7Widget
+  TradeLifecycleChapter7Widget,
+  TradeLifecycleChapter8Widget
 } from './TradeLifecycleWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1448,5 +1449,8 @@ export const WidgetRegistry = {
   'tl-clearing-risk': TradeLifecycleChapter6Widget,
   'tl-swift-flow': TradeLifecycleChapter7Widget,
   'tl-mt54x-parser': TradeLifecycleChapter7Widget,
-  'tl-settlement-pipeline': TradeLifecycleChapter7Widget
+  'tl-settlement-pipeline': TradeLifecycleChapter7Widget,
+  'tl-dvp-models': TradeLifecycleChapter8Widget,
+  'tl-ssi-alert': TradeLifecycleChapter8Widget,
+  'tl-csd-settlement': TradeLifecycleChapter8Widget
 };

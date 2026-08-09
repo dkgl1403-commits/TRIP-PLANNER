@@ -21,7 +21,8 @@ def seed_trade_lifecycle():
             "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)",
             "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)",
             "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)",
-            "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)"
+            "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)",
+            "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -206,6 +207,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Deconstruct raw SWIFT MT541/MT543/MT548 tags and simulate the 5-step custodian-to-CSD settlement sequence below.</p>",
                             "widgetType": "tl-swift-flow",
                             "alt": "Interactive SWIFT MT54x Tag Parser & Custody Settlement Flow Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Golden Rule of Settlement (DvP)",
+                            "narrative": "<p>The fundamental pillar of financial settlement is <strong>Delivery versus Payment (DvP)</strong>: <em>Never hand over legal ownership of securities until final cash payment is received simultaneously.</em></p><p>DvP eliminates Principal Risk (Herstatt Risk) &mdash; ensuring that a seller is never left without stock AND without cash.</p>"
+                        },
+                        {
+                            "title": "1. THE 3 BIS DVP MODELS (Bank for International Settlements)",
+                            "narrative": "<p>The Bank for International Settlements (BIS) categorizes DvP mechanics into 3 structural models:</p><ul><li><strong>Model 1 (Gross-Gross):</strong> Trade-by-trade simultaneous settlement of both securities and cash throughout the operating day.</li><li><strong>Model 2 (Gross-Net):</strong> Securities transfers settle continuously on a gross basis, while cash obligations settle in an end-of-day net batch sweep.</li><li><strong>Model 3 (Net-Net):</strong> End-of-day simultaneous multilateral net batch settlement of both securities and cash obligations.</li></ul>"
+                        },
+                        {
+                            "title": "2. STANDING SETTLEMENT INSTRUCTIONS (SSIs) & DTCC ALERT",
+                            "narrative": "<p>Every institutional trade requires Standing Settlement Instructions (SSIs) &mdash; routing data containing Depository Account IDs, Custodian BICs, PSET (Place of Settlement), and cash clearing numbers.</p><p>Incorrect SSIs are the **#1 root cause of settlement fails globally**. Operations desks rely on <strong>DTCC ALERT</strong> &mdash; the world's largest online database for automated SSI maintenance &amp; enrichment.</p>"
+                        },
+                        {
+                            "title": "INTERACTIVE: 3 BIS DvP Model Simulator & DTCC ALERT SSI Engine",
+                            "narrative": "<p>Simulate the 3 BIS DvP models and validate Standing Settlement Instructions via the DTCC ALERT engine below.</p>",
+                            "widgetType": "tl-dvp-models",
+                            "alt": "Interactive 3 BIS DvP Model Simulator & DTCC ALERT SSI Engine."
                         }
                     ]
                 })

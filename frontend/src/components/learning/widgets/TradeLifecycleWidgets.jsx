@@ -2434,3 +2434,216 @@ export function TradeLifecycleChapter7Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 8: Delivery versus Payment (DvP) Models & CSD ────
+export function TradeLifecycleChapter8Widget() {
+  const [activeTab, setActiveTab] = useState('dvp'); // 'dvp' | 'ssi'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // DvP Models State
+  const [bisModel, setBisModel] = useState('model1'); // 'model1' | 'model2' | 'model3'
+
+  // SSI Routing Engine State
+  const [ssiCorrupt, setSsiCorrupt] = useState(false);
+
+  const bisModelData = {
+    model1: {
+      name: 'BIS Model 1: Gross Securities / Gross Cash',
+      desc: 'Simultaneous trade-by-trade gross settlement of both securities and cash throughout the operating day.',
+      liquidity: 'HIGH ($100M+ intraday cash required)',
+      risk: 'ZERO Principal Risk, ZERO Credit Lag',
+      settlementTime: 'Real-Time Continuous (Intraday)'
+    },
+    model2: {
+      name: 'BIS Model 2: Gross Securities / Net Cash',
+      desc: 'Securities transfers settle individually on a gross basis throughout the day, while cash settles in an end-of-day net batch sweep.',
+      liquidity: 'MEDIUM (60% cash liquidity savings)',
+      risk: 'Low Principal Risk, End-of-Day Cash Risk Window',
+      settlementTime: 'Continuous Securities / EOD Cash Batch'
+    },
+    model3: {
+      name: 'BIS Model 3: Net Securities / Net Cash',
+      desc: 'End-of-day simultaneous multilateral net batch settlement of both securities obligations and cash transfers.',
+      liquidity: 'OPTIMAL (95% cash & stock liquidity savings)',
+      risk: 'Requires CCP Novation & Margin Waterfall Shielding',
+      settlementTime: 'End-of-Day Multilateral Batch (16:00 EST)'
+    }
+  };
+
+  const currentBis = bisModelData[bisModel];
+
+  const ssiData = {
+    market: 'US Equities (DTCC / DTC)',
+    custodian: 'BNY Mellon Global Custody',
+    bic: ssiCorrupt ? 'CORRUPT_BIC_999' : 'BKTRUS33XXX',
+    pset: ssiCorrupt ? 'INVALID_PSET' : 'DTC0216',
+    acctId: '98104-ACC-NY',
+    cashAba: '021000021'
+  };
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Delivery versus Payment (DvP) & DTCC ALERT SSIs</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Simulate the 3 BIS DvP settlement models and Standing Settlement Instruction (SSI) database enrichment
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('dvp')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'dvp' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚖️ BIS 3 DvP Models
+            </button>
+            <button
+              onClick={() => setActiveTab('ssi')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'ssi' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🌐 DTCC ALERT SSI Engine
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'dvp' ? (
+        <div className="space-y-6">
+          {/* Model Selector Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">BIS Classification (Bank for International Settlements)</span>
+              <h3 className="text-sm font-bold text-white">Select Delivery versus Payment (DvP) Settlement Model</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setBisModel('model1')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  bisModel === 'model1' ? 'bg-blue-600 text-white border-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                Model 1 (Gross-Gross)
+              </button>
+              <button
+                onClick={() => setBisModel('model2')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  bisModel === 'model2' ? 'bg-purple-600 text-white border-purple-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                Model 2 (Gross-Net)
+              </button>
+              <button
+                onClick={() => setBisModel('model3')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  bisModel === 'model3' ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                Model 3 (Net-Net)
+              </button>
+            </div>
+          </div>
+
+          {/* Model Inspector Canvas */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-amber-400 font-bold text-sm">{currentBis.name}</span>
+              <span className="text-slate-400 text-[10px] font-sans">Settlement Window: <strong className="text-white">{currentBis.settlementTime}</strong></span>
+            </div>
+
+            <p className="text-slate-300 font-sans text-xs leading-relaxed bg-slate-900 p-4 rounded-xl border border-slate-800">
+              {currentBis.desc}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+                <span className="text-slate-500 block text-[10px]">LIQUIDITY DEMAND</span>
+                <span className="text-blue-400 font-bold">{currentBis.liquidity}</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+                <span className="text-slate-500 block text-[10px]">RISK PROFILE</span>
+                <span className="text-emerald-400 font-bold">{currentBis.risk}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: DTCC ALERT SSI Engine */
+        <div className="space-y-6">
+          {/* SSI Controls & Mismatch Simulator */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">DTCC ALERT Database Engine</span>
+              <h3 className="text-sm font-bold text-white">Standing Settlement Instruction (SSI) Routing & Validation</h3>
+            </div>
+
+            <button
+              onClick={() => setSsiCorrupt(!ssiCorrupt)}
+              className={`px-4 py-2 rounded-lg font-bold transition-all ${
+                ssiCorrupt ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-red-600 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+              }`}
+            >
+              {ssiCorrupt ? '⚡ Auto-Enrich via DTCC ALERT (Fix SSI)' : '⚡ Simulate SSI Corrupted BIC / PSET Break'}
+            </button>
+          </div>
+
+          {/* SSI Status Banner */}
+          <div className={`p-4 rounded-2xl border ${ssiCorrupt ? 'bg-red-950 text-red-300 border-red-800' : 'bg-emerald-950 text-emerald-300 border-emerald-800'} flex items-center justify-between font-mono text-xs shadow-xl`}>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{ssiCorrupt ? '❌' : '✅'}</span>
+              <div>
+                <span className="font-bold text-sm block">{ssiCorrupt ? 'SSI BREAK / INCORRECT PSET DETECTED' : 'VALIDATED FOR AUTOMATED DVP SETTLEMENT'}</span>
+                <span className="text-[11px] font-sans opacity-90">{ssiCorrupt ? 'DTCC ALERT validation failed: Invalid Place of Settlement (PSET) or BIC code' : 'SSIs enriched from DTCC ALERT database match CSD participant records'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* SSI Field Matrix */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3 font-mono text-xs">
+            <span className="text-white font-bold block border-b border-slate-800 pb-2">Active Standing Settlement Instructions (SSIs)</span>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                <span className="text-slate-500">Market & Depository:</span>
+                <span className="text-white font-bold">{ssiData.market}</span>
+              </div>
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                <span className="text-slate-500">Custodian Bank:</span>
+                <span className="text-white font-bold">{ssiData.custodian}</span>
+              </div>
+              <div className={`p-2.5 rounded-xl border flex justify-between ${ssiCorrupt ? 'bg-red-950/60 border-red-800 text-red-300 font-bold' : 'bg-slate-900 border-slate-800 text-white'}`}>
+                <span className="text-slate-500">Custodian BIC Code:</span>
+                <span>{ssiData.bic}</span>
+              </div>
+              <div className={`p-2.5 rounded-xl border flex justify-between ${ssiCorrupt ? 'bg-red-950/60 border-red-800 text-red-300 font-bold' : 'bg-slate-900 border-slate-800 text-white'}`}>
+                <span className="text-slate-500">Place of Settlement (PSET):</span>
+                <span>{ssiData.pset}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
