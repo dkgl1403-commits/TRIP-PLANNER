@@ -507,7 +507,8 @@ def seed_curriculum():
                         {"name": "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)", "board": "BOTH"},
                         {"name": "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)", "board": "BOTH"},
                         {"name": "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics", "board": "BOTH"},
-                        {"name": "Settlement Fails, CSDR & Mandatory Buy-In Regimes", "board": "BOTH"}
+                        {"name": "Settlement Fails, CSDR & Mandatory Buy-In Regimes", "board": "BOTH"},
+                        {"name": "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)", "board": "BOTH"}
                     ]
                 }
             ]

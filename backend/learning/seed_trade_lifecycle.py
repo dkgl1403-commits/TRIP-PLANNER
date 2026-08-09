@@ -23,7 +23,8 @@ def seed_trade_lifecycle():
             "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)",
             "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)",
             "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics",
-            "Settlement Fails, CSDR & Mandatory Buy-In Regimes"
+            "Settlement Fails, CSDR & Mandatory Buy-In Regimes",
+            "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -258,6 +259,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Calculate daily CSDR cash penalty fines and simulate the 4-day Mandatory Buy-In execution workflow below.</p>",
                             "widgetType": "tl-csdr-penalties",
                             "alt": "Interactive CSDR Cash Penalty Calculator & Mandatory Buy-In Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: Advanced Inventory Control & Future Settlement",
+                            "narrative": "<p>Modern custody operations require precise control over dematerialized securities inventory. Global custodians utilize <strong>Earmarking</strong> and <strong>Hold &amp; Release (`MT530`)</strong> mechanisms to control instruction queues and prevent inventory breaks.</p><p>Meanwhile, global capital markets are undergoing a fundamental transformation &mdash; migrating from legacy T+2 to <strong>T+1</strong>, and pioneering <strong>T+0 (Atomic Settlement)</strong> on Distributed Ledger Technology (DLT).</p>"
+                        },
+                        {
+                            "title": "1. EARMARKING & HOLD/RELEASE MECHANICS (`MT530` / `sese.030`)",
+                            "narrative": "<p>Custodians manage securities availability using two operational tools:</p><ul><li><strong>Earmarking (Securities Reservation):</strong> Locking specific share balance quantities in the CSD depository vault to reserve them exclusively for an impending DvP settlement instruction. Earmarked shares cannot be re-hypothecated, lent out, or transferred.</li><li><strong>Hold &amp; Release (`MT530`):</strong> Putting settlement instructions on <code>HOLD</code> status prevents the CSD from attempting matching or settlement. Dispatched SWIFT <code>MT530</code> <code>RELEASE</code> commands un-freeze the queue for automated execution.</li></ul>"
+                        },
+                        {
+                            "title": "2. THE T+1 COMPRESSED TIMELINE & DLT ATOMIC SETTLEMENT (T+0)",
+                            "narrative": "<p>On May 28, 2024, the US, Canada, and Mexico migrated to <strong>T+1 Settlement</strong>, cutting the settlement window from 48 hours to 24 hours:</p><ol><li><strong>Compressed Affirmation Cutoff:</strong> Same-day Electronic Trade Affirmation (CTM) deadline moved to <strong>21:00 EST on Trade Date (T)</strong>.</li><li><strong>The Future (T+0 DLT Atomic Settlement):</strong> Blockchain Smart Contracts collapse Execution, Clearing, and Settlement into a <strong>single sub-second millisecond event</strong> &mdash; eliminating counterparty credit risk and CCP margin requirements entirely.</li></ol>"
+                        },
+                        {
+                            "title": "INTERACTIVE: Earmarking & Hold/Release Control Panel & DLT Atomic Simulator",
+                            "narrative": "<p>Reserve vault share inventory via Earmarking, process MT530 Hold/Release commands, and simulate T+0 DLT Atomic Settlement below.</p>",
+                            "widgetType": "tl-earmarking-holdrelease",
+                            "alt": "Interactive Earmarking & Hold/Release Control Panel & DLT Atomic Simulator."
                         }
                     ]
                 })

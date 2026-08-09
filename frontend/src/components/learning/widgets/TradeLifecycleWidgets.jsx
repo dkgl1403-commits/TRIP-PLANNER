@@ -2861,3 +2861,242 @@ export function TradeLifecycleChapter9Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 10: T+1, T+0, Atomic Settlement & Earmarking ────
+export function TradeLifecycleChapter10Widget() {
+  const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'cycle'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Earmarking & Hold/Release State
+  const [isEarmarked, setIsEarmarked] = useState(false);
+  const [isHold, setIsHold] = useState(true);
+
+  // Settlement Cycle State
+  const [cycleMode, setCycleMode] = useState('t1'); // 't2' | 't1' | 't0'
+
+  const cycleData = {
+    t2: {
+      title: 'T+2 Legacy Settlement Cycle (Historical)',
+      window: '48-Hour Settlement Window',
+      affirmation: 'T+1 11:30 EST Affirmation Cutoff',
+      settlement: 'T+2 16:00 EST Final DvP Settlement',
+      marginReq: 'HIGH ($10B+ CCP Margin Required)',
+      atomic: false
+    },
+    t1: {
+      title: 'T+1 Current Settlement Reality (May 2024 Migration)',
+      window: '24-Hour Compressed Settlement Window',
+      affirmation: 'T 21:00 EST Same-Day Affirmation Cutoff',
+      settlement: 'T+1 05:00 EST Overnight CSD Batch',
+      marginReq: 'REDUCED (-30% CCP Margin Requirement)',
+      atomic: false
+    },
+    t0: {
+      title: 'T+0 DLT Atomic Settlement (The Future)',
+      window: 'Sub-second Millisecond Execution Window',
+      affirmation: 'Atomic Smart Contract Trigger',
+      settlement: 'Immediate Simultaneous Stock & Cash Transfer',
+      marginReq: 'ZERO Margin Required (No Credit Exposure)',
+      atomic: true
+    }
+  };
+
+  const currentCycle = cycleData[cycleMode];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">T+1, T+0, Atomic Settlement & Earmarking Control</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Manage inventory Earmarking & Hold/Release (MT530) and simulate T+1 compressed timeline & DLT Atomic Settlement (T+0)
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'inventory' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🔒 Earmarking & Hold/Release
+            </button>
+            <button
+              onClick={() => setActiveTab('cycle')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'cycle' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚡ T+1 / T+0 DLT Atomic Engine
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'inventory' ? (
+        <div className="space-y-6">
+          {/* Controls Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Advanced Custody Inventory Controls</span>
+              <h3 className="text-sm font-bold text-white">Earmarking & Hold/Release (MT530 / sese.030) Engine</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsEarmarked(!isEarmarked)}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  isEarmarked ? 'bg-emerald-600 text-white border-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
+                }`}
+              >
+                {isEarmarked ? '🔒 100k Shares Earmarked' : '🔓 Earmark 100k Shares'}
+              </button>
+              <button
+                onClick={() => setIsHold(!isHold)}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  isHold ? 'bg-amber-600 text-white border-amber-400' : 'bg-blue-600 text-white border-blue-400'
+                }`}
+              >
+                {isHold ? '⏸️ Instruction ON HOLD (MT530)' : '▶️ Dispatch MT530 RELEASE Command'}
+              </button>
+            </div>
+          </div>
+
+          {/* Status Displays */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+            {/* Earmarking Panel */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-blue-400 font-bold">CSD Depository Vault Inventory</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${isEarmarked ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-400'}`}>
+                  {isEarmarked ? 'EARMARKED & RESERVED' : 'UNALLOCATED POOL'}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                  <span className="text-slate-400">Total Account Share Balance:</span>
+                  <span className="text-white font-bold">500,000 shares AAPL</span>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                  <span className="text-slate-400">Available Free Inventory:</span>
+                  <span className="text-blue-400 font-bold">{isEarmarked ? '400,000 shares' : '500,000 shares'}</span>
+                </div>
+                <div className={`p-3 rounded-xl border flex justify-between ${isEarmarked ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300 font-bold' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                  <span>Earmarked (Reserved for DvP #8812):</span>
+                  <span>{isEarmarked ? '100,000 shares (Locked)' : '0 shares'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Hold & Release Instruction Queue Panel */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-purple-400 font-bold">CSD Instruction Processing Queue (MT530)</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${isHold ? 'bg-amber-950 text-amber-300 border border-amber-800' : 'bg-blue-950 text-blue-300 border border-blue-800'}`}>
+                  {isHold ? 'INSTRUCTION ON HOLD' : 'RELEASED & READY FOR DVP'}
+                </span>
+              </div>
+
+              <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs font-sans space-y-2">
+                <span className="font-mono font-bold text-amber-400 block text-xs">
+                  {isHold ? '⏸️ Status: PENDING / HOLD (MT530 Hold Flag Active)' : '▶️ Status: RELEASED (MT530 Release Command Processed)'}
+                </span>
+                <p className="text-slate-300">
+                  {isHold
+                    ? 'Instruction is on HOLD status. CSD matching engine will not attempt DvP settlement execution until a SWIFT MT530 Release command is received from the custodian.'
+                    : 'Instruction has been RELEASED via SWIFT MT530 command. CSD is executing simultaneous book-entry DvP settlement!'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: T+1 / T+0 DLT Atomic Simulator */
+        <div className="space-y-6">
+          {/* Controls Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Settlement Evolution Architecture</span>
+              <h3 className="text-sm font-bold text-white">Compare T+2 vs T+1 vs T+0 DLT Atomic Settlement</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCycleMode('t2')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  cycleMode === 't2' ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                T+2 Legacy
+              </button>
+              <button
+                onClick={() => setCycleMode('t1')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  cycleMode === 't1' ? 'bg-blue-600 text-white border-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                T+1 Current (US 2024)
+              </button>
+              <button
+                onClick={() => setCycleMode('t0')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  cycleMode === 't0' ? 'bg-emerald-600 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                ⚡ T+0 DLT Atomic (Future)
+              </button>
+            </div>
+          </div>
+
+          {/* Cycle Details Canvas */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-amber-400 font-bold text-sm">{currentCycle.title}</span>
+              <span className="text-emerald-400 font-bold">{currentCycle.window}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-[11px]">
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+                <span className="text-slate-500 block text-[10px]">AFFIRMATION DEADLINE</span>
+                <span className="text-blue-300 font-bold">{currentCycle.affirmation}</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+                <span className="text-slate-500 block text-[10px]">SETTLEMENT EXECUTION</span>
+                <span className="text-emerald-400 font-bold">{currentCycle.settlement}</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+                <span className="text-slate-500 block text-[10px]">CCP MARGIN REQUIREMENT</span>
+                <span className="text-amber-400 font-bold">{currentCycle.marginReq}</span>
+              </div>
+            </div>
+
+            {currentCycle.atomic && (
+              <div className="p-4 bg-emerald-950/60 border border-emerald-800 rounded-xl text-emerald-200 text-xs font-sans space-y-2">
+                <span className="font-mono font-bold text-emerald-400 text-sm block">⚡ DLT Smart Contract Atomic Settlement Active:</span>
+                <p>Execution, Clearing, and DvP Settlement are collapsed into a <strong>single millisecond event on Distributed Ledger Technology (DLT)</strong>. Zero counterparty credit exposure, zero settlement fails, and zero CCP margin required!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
