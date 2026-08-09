@@ -22,7 +22,8 @@ def seed_trade_lifecycle():
             "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)",
             "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)",
             "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)",
-            "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics"
+            "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics",
+            "Settlement Fails, CSDR & Mandatory Buy-In Regimes"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -232,6 +233,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Simulate the 3 BIS DvP models and validate Standing Settlement Instructions via the DTCC ALERT engine below.</p>",
                             "widgetType": "tl-dvp-models",
                             "alt": "Interactive 3 BIS DvP Model Simulator & DTCC ALERT SSI Engine."
+                        }
+                    ]
+                })
+
+            elif topic_name == "Settlement Fails, CSDR & Mandatory Buy-In Regimes":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: Anatomy of a Settlement Fail",
+                            "narrative": "<p>When a trade fails to settle on Settlement Date (SD), securities or cash remain un-delivered. Settlement fails freeze capital, increase operational risk, and carry heavy regulatory penalties.</p><p>The primary causes of settlement fails include <strong>lack of securities inventory</strong> (naked short sales / failed stock borrows), <strong>cash debit failures</strong>, <strong>SSI mismatches</strong>, and <strong>late CTM trade affirmations</strong>.</p>"
+                        },
+                        {
+                            "title": "1. THE CSDR CASH PENALTY REGIME (EU Regulation)",
+                            "narrative": "<p>Under the European Union Central Securities Depositories Regulation (CSDR), CSDs automatically assess daily cash penalties against failing counterparties:</p><ul><li><strong>Liquid Equities:</strong> Charged <strong>1.0 basis point (0.01%) per day</strong> of failed trade value.</li><li><strong>Corporate Bonds:</strong> Charged <strong>0.5 basis points (0.005%) per day</strong>.</li><li><strong>Sovereign Debt (Govt Bonds):</strong> Charged <strong>0.1 basis points (0.001%) per day</strong>.</li></ul><p>Penalty fines collected from failing sellers are directly credited to the non-failing buyer to compensate for delayed delivery.</p>"
+                        },
+                        {
+                            "title": "2. MANDATORY BUY-IN WORKFLOW",
+                            "narrative": "<p>If a settlement fail persists beyond the extension period (4 business days for liquid equities), the buyer triggers a <strong>Mandatory Buy-In</strong>:</p><ol><li><strong>Buy-In Notice:</strong> Formal notice dispatched via CSD warning the seller of imminent market buy-in.</li><li><strong>Buy-In Agent Execution:</strong> An independent Buy-In Agent executes a market purchase on a lit exchange to secure missing shares.</li><li><strong>Cash Compensation Settlement:</strong> If shares are bought at a higher price (e.g. $205 vs $200), the defaulting seller is legally obligated to pay the **$500,000 price difference**, plus agent execution fees and accrued CSDR cash penalties!</li></ol>"
+                        },
+                        {
+                            "title": "INTERACTIVE: CSDR Cash Penalty Calculator & Mandatory Buy-In Simulator",
+                            "narrative": "<p>Calculate daily CSDR cash penalty fines and simulate the 4-day Mandatory Buy-In execution workflow below.</p>",
+                            "widgetType": "tl-csdr-penalties",
+                            "alt": "Interactive CSDR Cash Penalty Calculator & Mandatory Buy-In Simulator."
                         }
                     ]
                 })

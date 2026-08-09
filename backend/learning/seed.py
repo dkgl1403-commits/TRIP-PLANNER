@@ -506,7 +506,8 @@ def seed_curriculum():
                         {"name": "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)", "board": "BOTH"},
                         {"name": "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)", "board": "BOTH"},
                         {"name": "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)", "board": "BOTH"},
-                        {"name": "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics", "board": "BOTH"}
+                        {"name": "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics", "board": "BOTH"},
+                        {"name": "Settlement Fails, CSDR & Mandatory Buy-In Regimes", "board": "BOTH"}
                     ]
                 }
             ]

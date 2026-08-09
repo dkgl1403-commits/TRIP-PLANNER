@@ -2647,3 +2647,217 @@ export function TradeLifecycleChapter8Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 9: Settlement Fails, CSDR & Mandatory Buy-In ───
+export function TradeLifecycleChapter9Widget() {
+  const [activeTab, setActiveTab] = useState('csdr'); // 'csdr' | 'buyin'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // CSDR Penalty Calculator State
+  const [assetClass, setAssetClass] = useState('equities'); // 'equities' | 'corpBonds' | 'govtBonds'
+  const [tradeVal, setTradeVal] = useState(10000000); // $10,000,000
+  const [daysFailed, setDaysFailed] = useState(7);
+
+  const assetClassRates = {
+    equities: { name: 'Liquid Equities', rateBps: 1.0, ratePct: 0.0001, desc: '1.0 bps / day (0.01% daily penalty fine)' },
+    corpBonds: { name: 'Corporate Bonds', rateBps: 0.5, ratePct: 0.00005, desc: '0.5 bps / day (0.005% daily penalty fine)' },
+    govtBonds: { name: 'Sovereign Debt (Govt Bonds)', rateBps: 0.1, ratePct: 0.00001, desc: '0.1 bps / day (0.001% daily penalty fine)' }
+  };
+
+  const currentAsset = assetClassRates[assetClass];
+  const dailyPenalty = tradeVal * currentAsset.ratePct;
+  const totalPenalty = dailyPenalty * daysFailed;
+
+  // Buy-In Simulator State
+  const [buyInStep, setBuyInStep] = useState(1);
+
+  const buyInTimeline = [
+    { step: 1, day: 'Day 0 (SD)', title: 'Settlement Fail Triggered', status: 'MT548 (PEND / LACK)', desc: 'Seller fails to deliver 100,000 shares of AAPL on Settlement Date. CSD registers settlement break.' },
+    { step: 2, day: 'Day 1-4', title: 'Extension Period & CSDR Penalties', status: 'CSDR Penalties Accruing', desc: 'Daily CSDR cash penalty of $1,000/day charged to defaulting seller and credited to buyer.' },
+    { step: 3, day: 'Day 5', title: 'Buy-In Notice Issued', status: 'Buy-In Notice Dispatched', desc: 'Buyer issues formal Buy-In Notice via CSD giving seller 2 business days to locate shares.' },
+    { step: 4, day: 'Day 7', title: 'Buy-In Agent Market Execution', status: 'Executed on Lit Market', desc: 'Buy-In Agent purchases 100,000 shares on lit venue @ $205.00 (original trade price was $200.00).' },
+    { step: 5, day: 'Day 8', title: 'Cash Compensation Settlement', status: 'Billed to Defaulting Seller', desc: 'Defaulting seller billed $500,000 price difference + $5,000 Buy-In Agent fee + $7,000 CSDR penalties!' }
+  ];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Settlement Fails, CSDR Penalties & Mandatory Buy-Ins</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Calculate EU CSDR daily cash penalty fines and simulate the 4-day Mandatory Buy-In execution workflow
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('csdr')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'csdr' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              💸 CSDR Cash Penalty Calculator
+            </button>
+            <button
+              onClick={() => setActiveTab('buyin')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'buyin' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🔨 Mandatory Buy-In Simulator
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'csdr' ? (
+        <div className="space-y-6">
+          {/* Controls Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">EU CSDR Regulation Framework</span>
+              <h3 className="text-sm font-bold text-white">Daily Cash Penalty Fine Accumulator</h3>
+            </div>
+
+            <div className="flex gap-2">
+              {['equities', 'corpBonds', 'govtBonds'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setAssetClass(type)}
+                  className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                    assetClass === type ? 'bg-blue-600 text-white border-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {assetClassRates[type].name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Calculator Inputs & Canvas */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6 font-mono text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <span className="text-slate-400 text-[11px] block font-sans">Trade Settlement Value ($):</span>
+                <input
+                  type="number"
+                  step="1000000"
+                  value={tradeVal}
+                  onChange={(e) => setTradeVal(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-bold text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-slate-400 text-[11px] font-sans">Days Settlement Failed:</span>
+                  <span className="text-amber-400 font-bold text-sm">{daysFailed} Days</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="30"
+                  value={daysFailed}
+                  onChange={(e) => setDaysFailed(parseInt(e.target.value) || 1)}
+                  className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Penalty Results Summary */}
+            <div className="p-5 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Applicable CSDR Penalty Rate:</span>
+                <span className="text-blue-400 font-bold">{currentAsset.desc}</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Daily Penalty Charge:</span>
+                <span className="text-amber-400 font-bold">${dailyPenalty.toLocaleString(undefined, { minimumFractionDigits: 2 })} / day</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-white font-bold">Total Accrued Penalty Fine ({daysFailed} Days):</span>
+                <span className="text-red-400 font-bold text-lg">${totalPenalty.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Mandatory Buy-In Simulator */
+        <div className="space-y-6">
+          {/* Controls Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Mandatory Buy-In Execution Workflow</span>
+              <h3 className="text-sm font-bold text-white">4-Day Extension Period & Buy-In Agent Process</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setBuyInStep(Math.max(1, buyInStep - 1))}
+                disabled={buyInStep === 1}
+                className="px-3 py-1.5 rounded-lg border bg-slate-900 border-slate-700 text-slate-300 disabled:opacity-40 font-bold"
+              >
+                ‹ Previous Day
+              </button>
+              <button
+                onClick={() => setBuyInStep(Math.min(5, buyInStep + 1))}
+                disabled={buyInStep === 5}
+                className="px-3 py-1.5 rounded-lg border bg-purple-600 border-purple-500 text-white disabled:opacity-40 font-bold shadow"
+              >
+                Next Day ›
+              </button>
+            </div>
+          </div>
+
+          {/* Stepper Timeline */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 font-mono text-xs">
+            {buyInTimeline.map((st) => (
+              <div
+                key={st.step}
+                onClick={() => setBuyInStep(st.step)}
+                className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                  buyInStep === st.step
+                    ? 'bg-purple-950 border-purple-500 shadow-lg scale-105'
+                    : buyInStep > st.step
+                    ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-500'
+                }`}
+              >
+                <span className="text-[10px] block font-bold text-amber-400">{st.day}</span>
+                <span className="font-bold text-white block mt-1">{st.title}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Active Step Canvas */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-white font-bold text-sm">{buyInTimeline[buyInStep - 1].day}: {buyInTimeline[buyInStep - 1].title}</span>
+              <span className="text-purple-400 font-bold">{buyInTimeline[buyInStep - 1].status}</span>
+            </div>
+
+            <p className="text-slate-300 font-sans text-xs leading-relaxed bg-slate-900 p-4 rounded-xl border border-slate-800">
+              {buyInTimeline[buyInStep - 1].desc}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
