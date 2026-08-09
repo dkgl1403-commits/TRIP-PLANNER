@@ -508,7 +508,9 @@ def seed_curriculum():
                         {"name": "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)", "board": "BOTH"},
                         {"name": "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics", "board": "BOTH"},
                         {"name": "Settlement Fails, CSDR & Mandatory Buy-In Regimes", "board": "BOTH"},
-                        {"name": "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)", "board": "BOTH"}
+                        {"name": "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)", "board": "BOTH"},
+                        {"name": "Securities Lending & Borrowing (SBL), Short Selling & Fail Prevention", "board": "BOTH"},
+                        {"name": "Post-Trade Reconciliation, Nostro/Vostro Ledgers & Regulatory Reporting", "board": "BOTH"}
                     ]
                 }
             ]

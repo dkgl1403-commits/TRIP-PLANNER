@@ -102,7 +102,9 @@ import {
   TradeLifecycleChapter7Widget,
   TradeLifecycleChapter8Widget,
   TradeLifecycleChapter9Widget,
-  TradeLifecycleChapter10Widget
+  TradeLifecycleChapter10Widget,
+  TradeLifecycleChapter11Widget,
+  TradeLifecycleChapter12Widget
 } from './TradeLifecycleWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1460,5 +1462,9 @@ export const WidgetRegistry = {
   'tl-buyin-regime': TradeLifecycleChapter9Widget,
   'tl-t1-atomic': TradeLifecycleChapter10Widget,
   'tl-earmarking-holdrelease': TradeLifecycleChapter10Widget,
-  'tl-future-settlement': TradeLifecycleChapter10Widget
+  'tl-future-settlement': TradeLifecycleChapter10Widget,
+  'tl-sBL-engine': TradeLifecycleChapter11Widget,
+  'tl-borrow-fail-prevention': TradeLifecycleChapter11Widget,
+  'tl-nostro-vostro-recon': TradeLifecycleChapter12Widget,
+  'tl-reg-reporting': TradeLifecycleChapter12Widget
 };

@@ -218,8 +218,8 @@ def seed_trade_lifecycle():
                     "type": "narrative",
                     "parts": [
                         {
-                            "title": "INTRODUCTION: The Golden Rule of Settlement (DvP)",
-                            "narrative": "<p>The fundamental pillar of financial settlement is <strong>Delivery versus Payment (DvP)</strong>: <em>Never hand over legal ownership of securities until final cash payment is received simultaneously.</em></p><p>DvP eliminates Principal Risk (Herstatt Risk) &mdash; ensuring that a seller is never left without stock AND without cash.</p>"
+                            "title": "INTRODUCTION: The Golden Rule of Settlement & Herstatt Risk",
+                            "narrative": "<p>The fundamental pillar of financial settlement is <strong>Delivery versus Payment (DvP)</strong>: <em>Never hand over legal ownership of securities until final cash payment is received simultaneously.</em></p><p><strong>The Story of Herstatt Risk (1974):</strong> On June 26, 1974, German regulators closed Herstatt Bank at the end of the European business day. German banks had already delivered Deutsche Marks to Herstatt, but Herstatt was shut down <em>before</em> delivering the matching US Dollars in New York (due to time zone lag). Counterparties lost $620 million — giving birth to modern DvP and CLS Bank!</p>"
                         },
                         {
                             "title": "1. THE 3 BIS DVP MODELS (Bank for International Settlements)",
@@ -227,7 +227,7 @@ def seed_trade_lifecycle():
                         },
                         {
                             "title": "2. STANDING SETTLEMENT INSTRUCTIONS (SSIs) & DTCC ALERT",
-                            "narrative": "<p>Every institutional trade requires Standing Settlement Instructions (SSIs) &mdash; routing data containing Depository Account IDs, Custodian BICs, PSET (Place of Settlement), and cash clearing numbers.</p><p>Incorrect SSIs are the **#1 root cause of settlement fails globally**. Operations desks rely on <strong>DTCC ALERT</strong> &mdash; the world's largest online database for automated SSI maintenance &amp; enrichment.</p>"
+                            "narrative": "<p>Every institutional trade requires Standing Settlement Instructions (SSIs) &mdash; routing data containing Depository Account IDs, Custodian BICs, PSET (Place of Settlement), and cash clearing numbers.</p><p>Incorrect SSIs are the <strong>#1 root cause of settlement fails globally</strong>. Operations desks rely on <strong>DTCC ALERT</strong> &mdash; the world's largest online database for automated SSI maintenance &amp; enrichment.</p>"
                         },
                         {
                             "title": "INTERACTIVE: 3 BIS DvP Model Simulator & DTCC ALERT SSI Engine",
@@ -252,7 +252,7 @@ def seed_trade_lifecycle():
                         },
                         {
                             "title": "2. MANDATORY BUY-IN WORKFLOW",
-                            "narrative": "<p>If a settlement fail persists beyond the extension period (4 business days for liquid equities), the buyer triggers a <strong>Mandatory Buy-In</strong>:</p><ol><li><strong>Buy-In Notice:</strong> Formal notice dispatched via CSD warning the seller of imminent market buy-in.</li><li><strong>Buy-In Agent Execution:</strong> An independent Buy-In Agent executes a market purchase on a lit exchange to secure missing shares.</li><li><strong>Cash Compensation Settlement:</strong> If shares are bought at a higher price (e.g. $205 vs $200), the defaulting seller is legally obligated to pay the **$500,000 price difference**, plus agent execution fees and accrued CSDR cash penalties!</li></ol>"
+                            "narrative": "<p>If a settlement fail persists beyond the extension period (4 business days for liquid equities), the buyer triggers a <strong>Mandatory Buy-In</strong>:</p><ol><li><strong>Buy-In Notice:</strong> Formal notice dispatched via CSD warning the seller of imminent market buy-in.</li><li><strong>Buy-In Agent Execution:</strong> An independent Buy-In Agent executes a market purchase on a lit exchange to secure missing shares.</li><li><strong>Cash Compensation Settlement:</strong> If shares are bought at a higher price (e.g. $205 vs $200), the defaulting seller is legally obligated to pay the <strong>$500,000 price difference</strong>, plus agent execution fees and accrued CSDR cash penalties!</li></ol>"
                         },
                         {
                             "title": "INTERACTIVE: CSDR Cash Penalty Calculator & Mandatory Buy-In Simulator",
@@ -269,11 +269,11 @@ def seed_trade_lifecycle():
                     "parts": [
                         {
                             "title": "INTRODUCTION: Advanced Inventory Control & Future Settlement",
-                            "narrative": "<p>Modern custody operations require precise control over dematerialized securities inventory. Global custodians utilize <strong>Earmarking</strong> and <strong>Hold &amp; Release (`MT530`)</strong> mechanisms to control instruction queues and prevent inventory breaks.</p><p>Meanwhile, global capital markets are undergoing a fundamental transformation &mdash; migrating from legacy T+2 to <strong>T+1</strong>, and pioneering <strong>T+0 (Atomic Settlement)</strong> on Distributed Ledger Technology (DLT).</p>"
+                            "narrative": "<p>Modern custody operations require precise control over dematerialized securities inventory. Global custodians utilize <strong>Earmarking</strong> and <strong>Hold &amp; Release (<code>MT530</code>)</strong> mechanisms to control instruction queues and prevent inventory breaks.</p><p>Meanwhile, global capital markets are undergoing a fundamental transformation &mdash; migrating from legacy T+2 to <strong>T+1</strong>, and pioneering <strong>T+0 (Atomic Settlement)</strong> on Distributed Ledger Technology (DLT).</p>"
                         },
                         {
-                            "title": "1. EARMARKING & HOLD/RELEASE MECHANICS (`MT530` / `sese.030`)",
-                            "narrative": "<p>Custodians manage securities availability using two operational tools:</p><ul><li><strong>Earmarking (Securities Reservation):</strong> Locking specific share balance quantities in the CSD depository vault to reserve them exclusively for an impending DvP settlement instruction. Earmarked shares cannot be re-hypothecated, lent out, or transferred.</li><li><strong>Hold &amp; Release (`MT530`):</strong> Putting settlement instructions on <code>HOLD</code> status prevents the CSD from attempting matching or settlement. Dispatched SWIFT <code>MT530</code> <code>RELEASE</code> commands un-freeze the queue for automated execution.</li></ul>"
+                            "title": "1. EARMARKING & HOLD/RELEASE MECHANICS (<code>MT530</code> / <code>sese.030</code>)",
+                            "narrative": "<p>Custodians manage securities availability using two operational tools:</p><ul><li><strong>Earmarking (Securities Reservation):</strong> Locking specific share balance quantities in the CSD depository vault to reserve them exclusively for an impending DvP settlement instruction. Earmarked shares cannot be re-hypothecated, lent out, or transferred.</li><li><strong>Hold &amp; Release (<code>MT530</code>):</strong> Putting settlement instructions on <code>HOLD</code> status prevents the CSD from attempting matching or settlement. Dispatched SWIFT <code>MT530</code> <code>RELEASE</code> commands un-freeze the queue for automated execution.</li></ul>"
                         },
                         {
                             "title": "2. THE T+1 COMPRESSED TIMELINE & DLT ATOMIC SETTLEMENT (T+0)",
@@ -284,6 +284,56 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Reserve vault share inventory via Earmarking, process MT530 Hold/Release commands, and simulate T+0 DLT Atomic Settlement below.</p>",
                             "widgetType": "tl-earmarking-holdrelease",
                             "alt": "Interactive Earmarking & Hold/Release Control Panel & DLT Atomic Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "Securities Lending & Borrowing (SBL), Short Selling & Fail Prevention":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: Why Lend & Borrow Securities?",
+                            "narrative": "<p>Securities Lending &amp; Borrowing (SBL) is a multi-trillion dollar global market. Beneficial owners (pension funds, sovereign wealth funds) lend idle shares to generate yield, while borrowers (hedge funds, market makers) borrow shares for short selling, arbitrage, or settlement fail prevention.</p>"
+                        },
+                        {
+                            "title": "1. THE SBL LIFECYCLE & COLLATERALIZATION",
+                            "narrative": "<p>To borrow securities, the borrower must post <strong>102% to 105% cash or high-quality liquid assets (HQLA) collateral</strong> to protect the lender against default:</p><ul><li><strong>Rebate Rate:</strong> The interest rate paid by the lender to the borrower on cash collateral.</li><li><strong>Borrow Fee (Hard-to-Borrow):</strong> For in-demand shares, borrowers pay a premium fee (e.g. 50 bps to 500+ bps p.a.).</li></ul>"
+                        },
+                        {
+                            "title": "2. AUTOMATED STOCK BORROWING FAIL PREVENTION",
+                            "narrative": "<p>Custodians and tri-party agents run automated stock borrowing programs (e.g. Euroclear ASLplus, DTCC Stock Borrow Program). If an inventory shortfall is detected on Settlement Date, auto-borrow algorithms automatically draw shares from lending pools to guarantee 100% DvP settlement success and prevent CSDR fail penalties!</p>"
+                        },
+                        {
+                            "title": "INTERACTIVE: SBL Collateral & Fee Calculator & Auto-Borrow Simulator",
+                            "narrative": "<p>Calculate SBL collateralization and borrow fees, and simulate automated stock borrowing fail prevention below.</p>",
+                            "widgetType": "tl-sBL-engine",
+                            "alt": "Interactive SBL Collateral & Fee Calculator & Auto-Borrow Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "Post-Trade Reconciliation, Nostro/Vostro Ledgers & Regulatory Reporting":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Post-Settlement Control Tower",
+                            "narrative": "<p>Settlement is not the final step. Back office operations teams must ensure accounting integrity across internal ledgers, custodian statements, and regulatory transaction repositories.</p>"
+                        },
+                        {
+                            "title": "1. NOSTRO / VOSTRO CASH & POSITION RECONCILIATION",
+                            "narrative": "<p>Reconciliation specialists compare internal accounting books against external bank statements:</p><ul><li><strong>Nostro Account ('Our money/stock at your bank'):</strong> Internal ledger of cash/securities.</li><li><strong>Vostro Account ('Your money/stock at our bank'):</strong> Custodian statement received via SWIFT <code>MT940</code>/<code>MT950</code> (Cash) or <code>MT535</code>/<code>MT536</code> (Holdings).</li><li><strong>Break Resolution:</strong> Identifying timing breaks (e.g. T+1 dividend posting) vs true cash/stock breaks requiring investigation.</li></ul>"
+                        },
+                        {
+                            "title": "2. REGULATORY TRANSACTION REPORTING (EMIR / MiFIR / Dodd-Frank)",
+                            "narrative": "<p>Under global post-2008 financial regulations (EMIR, MiFIR, Dodd-Frank, SFTR), all institutional trades must be reported by T+1 to registered Trade Repositories (DTCC GTR, Eurex Trade Repository). Reports include Legal Entity Identifiers (LEI), Unique Trade Identifiers (UTI), Execution Venues (MIC), prices, and quantities.</p>"
+                        },
+                        {
+                            "title": "INTERACTIVE: Nostro/Vostro Recon Matrix & Regulatory Reporting Dispatcher",
+                            "narrative": "<p>Perform Nostro/Vostro cash and position reconciliations and dispatch EMIR/MiFIR regulatory transaction reports below.</p>",
+                            "widgetType": "tl-nostro-vostro-recon",
+                            "alt": "Interactive Nostro/Vostro Recon Matrix & Regulatory Reporting Dispatcher."
                         }
                     ]
                 })

@@ -3100,3 +3100,329 @@ export function TradeLifecycleChapter10Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 11: Securities Lending & Borrowing (SBL) ────────
+export function TradeLifecycleChapter11Widget() {
+  const [activeTab, setActiveTab] = useState('sbl'); // 'sbl' | 'fail'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // SBL Calculator State
+  const [shareQty, setShareQty] = useState(100000);
+  const [sharePrice, setSharePrice] = useState(200);
+  const [borrowFeeBps, setBorrowFeeBps] = useState(50); // 50 bps = 0.50% p.a.
+  const [collateralPct, setCollateralPct] = useState(102); // 102%
+
+  const totalMarketVal = shareQty * sharePrice;
+  const requiredCollateral = totalMarketVal * (collateralPct / 100);
+  const annualFee = totalMarketVal * (borrowFeeBps / 10000);
+  const dailyFee = annualFee / 365;
+
+  // Auto-Borrow Simulator State
+  const [autoBorrowEnabled, setAutoBorrowEnabled] = useState(true);
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Securities Lending & Borrowing (SBL) & Fail Prevention</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Calculate SBL collateralization & borrow fees, and simulate automated stock borrowing fail prevention (ASLplus / SBP)
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('sbl')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'sbl' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              💵 SBL Collateral & Fee Calculator
+            </button>
+            <button
+              onClick={() => setActiveTab('fail')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'fail' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🛡️ Auto-Borrow Fail Prevention
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'sbl' ? (
+        <div className="space-y-6 font-mono text-xs">
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Institutional SBL Framework</span>
+              <h3 className="text-sm font-bold text-white">Collateralization & Borrow Fee Engine</h3>
+            </div>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <span className="text-slate-400 text-[11px] block font-sans">Share Quantity:</span>
+                <input
+                  type="number"
+                  step="10000"
+                  value={shareQty}
+                  onChange={(e) => setShareQty(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-bold"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-slate-400 text-[11px] block font-sans">Share Price ($):</span>
+                <input
+                  type="number"
+                  value={sharePrice}
+                  onChange={(e) => setSharePrice(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-bold"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-slate-400 text-[11px] block font-sans">Borrow Fee (bps p.a.):</span>
+                <input
+                  type="number"
+                  value={borrowFeeBps}
+                  onChange={(e) => setBorrowFeeBps(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-amber-400 font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="p-5 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Total Securities Market Value:</span>
+                <span className="text-white font-bold">${totalMarketVal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Required Cash Collateral (102%):</span>
+                <span className="text-emerald-400 font-bold">${requiredCollateral.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Annual Borrow Fee Revenue (Lender):</span>
+                <span className="text-amber-400 font-bold">${annualFee.toLocaleString(undefined, { minimumFractionDigits: 2 })} / yr</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-white font-bold">Daily Borrow Cost (Borrower):</span>
+                <span className="text-blue-400 font-bold text-lg">${dailyFee.toLocaleString(undefined, { minimumFractionDigits: 2 })} / day</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6 font-mono text-xs">
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Fail Prevention Program</span>
+              <h3 className="text-sm font-bold text-white">Automated Stock Borrowing (Euroclear ASLplus / DTCC SBP)</h3>
+            </div>
+
+            <button
+              onClick={() => setAutoBorrowEnabled(!autoBorrowEnabled)}
+              className={`px-4 py-2 rounded-xl border font-bold transition-all ${
+                autoBorrowEnabled ? 'bg-emerald-600 border-emerald-400 text-white shadow' : 'bg-red-600 border-red-400 text-white'
+              }`}
+            >
+              {autoBorrowEnabled ? '✅ Auto-Borrow Program ENABLED' : '❌ Auto-Borrow Program DISABLED'}
+            </button>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-white font-bold">Settlement Date Shortfall Scenario: 50,000 shares AAPL</span>
+              <span className={`px-2.5 py-1 rounded text-[10px] font-bold ${autoBorrowEnabled ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-red-950 text-red-300 border border-red-800'}`}>
+                {autoBorrowEnabled ? 'SETTLEMENT SUCCESS (100% DvP)' : 'SETTLEMENT FAIL (CSDR Penalty)'}
+              </span>
+            </div>
+
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 font-sans text-xs space-y-2">
+              {autoBorrowEnabled ? (
+                <p className="text-emerald-300 leading-relaxed">
+                  <strong>🛡️ Auto-Borrow Activated:</strong> Custodian auto-borrow algorithm detected 50,000 share inventory shortfall at 04:00 AM on Settlement Date. Automatically drew 50,000 shares from Euroclear ASLplus lending pool. Trade settled 100% on time via DvP. CSDR penalty avoided ($5,000 saved)!
+                </p>
+              ) : (
+                <p className="text-red-300 leading-relaxed">
+                  <strong>⚠️ Settlement Break:</strong> Seller failed to deliver 50,000 shares. CSD registered settlement fail. CSDR daily cash penalty of $1,000/day assessed and 4-day Mandatory Buy-In clock started!
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Trade Lifecycle Chapter 12: Reconciliation & Regulatory Reporting ────────
+export function TradeLifecycleChapter12Widget() {
+  const [activeTab, setActiveTab] = useState('recon'); // 'recon' | 'reporting'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [breaksResolved, setBreaksResolved] = useState(false);
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Post-Trade Reconciliation & Regulatory Reporting</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Perform Nostro/Vostro cash & position reconciliation (MT940/MT535) and dispatch EMIR/MiFIR regulatory reports
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('recon')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'recon' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚖️ Nostro/Vostro Recon Matrix
+            </button>
+            <button
+              onClick={() => setActiveTab('reporting')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'reporting' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📋 EMIR/MiFIR Regulatory Reporting
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'recon' ? (
+        <div className="space-y-6 font-mono text-xs">
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Back Office Control Tower</span>
+              <h3 className="text-sm font-bold text-white">Nostro / Vostro Cash & Position Reconciliation</h3>
+            </div>
+
+            <button
+              onClick={() => setBreaksResolved(!breaksResolved)}
+              className={`px-4 py-2 rounded-xl border font-bold transition-all ${
+                breaksResolved ? 'bg-emerald-600 border-emerald-400 text-white shadow' : 'bg-amber-600 border-amber-400 text-white'
+              }`}
+            >
+              {breaksResolved ? '✓ All Breaks Resolved' : '⚡ Execute Match & Resolution Sweep'}
+            </button>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Internal Nostro Book */}
+              <div className="space-y-3">
+                <span className="text-blue-400 font-bold text-xs block border-b border-slate-800 pb-2">Internal Nostro Ledger (Our Books)</span>
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Trade #9901 (100k AAPL @ $200):</span>
+                    <span className="font-bold text-white">$20,000,000 Dr</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Trade #9902 (50k MSFT @ $400):</span>
+                    <span className="font-bold text-white">$20,000,000 Dr</span>
+                  </div>
+                  <div className="flex justify-between text-amber-400 border-t border-slate-800 pt-1">
+                    <span>Pending Dividend Credit:</span>
+                    <span className="font-bold">$125,000 Cr</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custodian Vostro Statement */}
+              <div className="space-y-3">
+                <span className="text-purple-400 font-bold text-xs block border-b border-slate-800 pb-2">Custodian Vostro MT940 / MT535 Statement</span>
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Stmt Ref #5512 (100k AAPL):</span>
+                    <span className="font-bold text-emerald-400">MATCHED</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Stmt Ref #5513 (50k MSFT):</span>
+                    <span className="font-bold text-emerald-400">MATCHED</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-800 pt-1">
+                    <span>Dividend Posting Status:</span>
+                    <span className={`font-bold ${breaksResolved ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {breaksResolved ? 'MATCHED & POSTED' : 'TIMING BREAK (Settles T+1)'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Regulatory Trade Reporting Dispatcher */
+        <div className="space-y-6 font-mono text-xs">
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">EMIR / MiFIR / Dodd-Frank Framework</span>
+              <h3 className="text-sm font-bold text-white">Regulatory Transaction Report Dispatcher</h3>
+            </div>
+
+            <span className="px-3 py-1.5 rounded-lg bg-purple-950 text-purple-300 border border-purple-800 font-bold">
+              DISPATCHED TO DTCC GTR
+            </span>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                <span className="text-slate-400">Legal Entity Identifier (LEI):</span>
+                <span className="text-white font-bold">5493001KJTIIGC8Y1R12</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                <span className="text-slate-400">Unique Trade Identifier (UTI):</span>
+                <span className="text-amber-400 font-bold">UTI-20240809-XNYS-009812</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                <span className="text-slate-400">Trading Venue (MIC):</span>
+                <span className="text-white font-bold">XNYS (New York Stock Exchange)</span>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex justify-between">
+                <span className="text-slate-400">Report Status:</span>
+                <span className="text-emerald-400 font-bold">ACKNOWLEDGED (ACK)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
