@@ -20,7 +20,8 @@ def seed_trade_lifecycle():
             "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)",
             "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)",
             "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)",
-            "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)"
+            "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)",
+            "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -180,6 +181,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Simulate counterparty bankruptcy under CCP Novation and compress gross trades into net settlement obligations below.</p>",
                             "widgetType": "tl-ccp-novated",
                             "alt": "Interactive Legal Novation Default Visualizer & Multilateral Netting Engine."
+                        }
+                    ]
+                })
+
+            elif topic_name == "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Custody Messaging Pipeline",
+                            "narrative": "<p>Settlement is the physical exchange of securities for cash. Global custodians and Central Securities Depositories (CSDs) communicate settlement instructions via the <strong>SWIFT Financial Messaging Network</strong>.</p><p>Understanding post-trade custody requires mastering ISO 15022 FIN tag standards and their modern ISO 20022 XML equivalents.</p>"
+                        },
+                        {
+                            "title": "1. THE MT54X SETTLEMENT INSTRUCTION MESSAGES",
+                            "narrative": "<p>Custodians dispatch four primary settlement instruction types (ISO 15022 <code>MT54x</code> / ISO 20022 <code>sese.023</code>):</p><ul><li><code>MT541 (Receive Against Payment - RVP):</code> Dispatched by the Buyer's Custodian instructing the CSD to receive securities and debit cash.</li><li><code>MT543 (Deliver Against Payment - DVP):</code> Dispatched by the Seller's Custodian instructing the CSD to deliver securities and credit cash.</li><li><code>MT540 &amp; MT542 (Free of Payment - RFOP/DFOP):</code> Instructs security movement without accompanying cash transfer (e.g. portfolio transfers).</li></ul>"
+                        },
+                        {
+                            "title": "2. CSD MATCHING, STATUS ADVICE (`MT548`) & CONFIRMATIONS (`MT545`/`MT547`)",
+                            "narrative": "<p>Upon receiving settlement instructions from both custodians, the Central Securities Depository (CSD) performs continuous trade matching:</p><ol><li><strong>Status &amp; Processing Advice (<code>MT548</code> / <code>sese.024</code>):</strong> CSD issues real-time status updates: <code>MATCH</code> (Matched &amp; Alleged), <code>NMAT</code> (Unmatched / Mismatch), or <code>PEND</code> (Pending Settlement).</li><li><strong>Instruction Maintenance (<code>MT530</code>):</strong> Custodians dispatch hold/release commands to amend live settlement instructions.</li><li><strong>Settlement Confirmations (<code>MT545</code> / <code>MT547</code>):</strong> Upon final book-entry DvP settlement, CSD dispatches debit and credit confirmation messages to both custodians.</li></ol>"
+                        },
+                        {
+                            "title": "INTERACTIVE: SWIFT MT54x Tag Parser & Custody Settlement Flow Simulator",
+                            "narrative": "<p>Deconstruct raw SWIFT MT541/MT543/MT548 tags and simulate the 5-step custodian-to-CSD settlement sequence below.</p>",
+                            "widgetType": "tl-swift-flow",
+                            "alt": "Interactive SWIFT MT54x Tag Parser & Custody Settlement Flow Simulator."
                         }
                     ]
                 })

@@ -2151,3 +2151,286 @@ export function TradeLifecycleChapter6Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 7: The Settlement SWIFT Flow (ISO 15022 / 20022) ─
+export function TradeLifecycleChapter7Widget() {
+  const [activeTab, setActiveTab] = useState('parser'); // 'parser' | 'pipeline'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // SWIFT Parser State
+  const [selectedMsgType, setSelectedMsgType] = useState('MT543'); // 'MT541' | 'MT543' | 'MT540' | 'MT542' | 'MT548'
+  const [simStep, setSimStep] = useState(1);
+
+  const swiftMessages = {
+    MT543: {
+      title: 'MT543: Deliver Against Payment (DVP)',
+      iso20022: 'sese.023.001.09 (SecuritiesSettlementTransactionInstruction)',
+      direction: 'Outbound from Seller Custodian (BNY Mellon) to CSD (DTC)',
+      raw: `{1:F01BKTRUS33AXXX0000000000}{2:I543DTC0216XXXXN}{4:
+:16R:GENL
+:20C::SEME//REF-2026-88120
+:23G:NEWM
+:22F::SETR//TRAD
+:16S:GENL
+:16R:TRADDET
+:98A::TRAD//20260809
+:98A::SETT//20260810
+:90B::DEAL//ACTU/USD200,12
+:35B:ISIN US0378331005
+:16S:TRADDET
+:16R:FIAC
+:36B::SETT//UNIT/100000,
+:16S:FIAC
+:16R:SETDET
+:22F::SEVT//DVP
+:16R:SETPRTY
+:95P::PSET//DTC0216
+:16S:SETPRTY
+:16S:SETDET
+:16R:AMT
+:19A::SETT//USD200120000,00
+:16S:AMT
+-}`
+    },
+    MT541: {
+      title: 'MT541: Receive Against Payment (RVP)',
+      iso20022: 'sese.023.001.09 (SecuritiesSettlementTransactionInstruction)',
+      direction: 'Outbound from Buyer Custodian (State Street) to CSD (DTC)',
+      raw: `{1:F01SBTRUS33AXXX0000000000}{2:I541DTC0216XXXXN}{4:
+:16R:GENL
+:20C::SEME//REF-2026-99411
+:23G:NEWM
+:22F::SETR//TRAD
+:16S:GENL
+:16R:TRADDET
+:98A::TRAD//20260809
+:98A::SETT//20260810
+:90B::DEAL//ACTU/USD200,12
+:35B:ISIN US0378331005
+:16S:TRADDET
+:16R:FIAC
+:36B::SETT//UNIT/100000,
+:16S:FIAC
+:16R:SETDET
+:22F::SEVT//RVP
+:16R:SETPRTY
+:95P::PSET//DTC0216
+:16S:SETPRTY
+:16S:SETDET
+:16R:AMT
+:19A::SETT//USD200120000,00
+:16S:AMT
+-}`
+    },
+    MT548: {
+      title: 'MT548: Settlement Status & Processing Advice',
+      iso20022: 'sese.024.001.09 (SecuritiesSettlementTransactionStatusAdvice)',
+      direction: 'Outbound from CSD (DTC) to Custodians',
+      raw: `{1:F01DTC0216XXXX0000000000}{2:I548BKTRUS33AXXXN}{4:
+:16R:GENL
+:20C::SEME//DTC-STAT-7721
+:20C::RELS//REF-2026-88120
+:16S:GENL
+:16R:STAT
+:25D::MTCH//MATCH
+:16R:REAS
+:24B::MTCH//MACH
+:16S:REAS
+:16S:STAT
+-}`
+    }
+  };
+
+  const currentMsg = swiftMessages[selectedMsgType] || swiftMessages.MT543;
+
+  const pipelineSteps = [
+    { step: 1, title: 'Instruction Dispatch', desc: 'Seller Custodian sends MT543 (DVP) and Buyer Custodian sends MT541 (RVP) to CSD DTC.', status: 'MT543 / MT541 Sent' },
+    { step: 2, title: 'CSD Alleged Matching (NMAT)', desc: 'CSD checks trade fields. Mismatch found in SSI BIC -> Dispatches MT548 (Status: NMAT - Unmatched).', status: 'MT548 (NMAT)' },
+    { step: 3, title: 'Instruction Amendment (MT530)', desc: 'Custodian sends MT530 Hold/Release amendment to correct SSI BIC.', status: 'MT530 Sent' },
+    { step: 4, title: 'CSD Matched Advice (MATCH)', desc: 'CSD re-evaluates trade fields -> Match verified -> Dispatches MT548 (Status: MATCH - Matched).', status: 'MT548 (MATCH)' },
+    { step: 5, title: 'DvP Settlement & Confirmations', desc: 'Simultaneous book-entry transfer of stock & Fedwire cash sweep -> Dispatches MT545/MT547 Settlement Confirmations!', status: 'MT545 / MT547 Settled' }
+  ];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Custody SWIFT Pipeline (ISO 15022 / 20022)</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Deconstruct MT54x settlement instructions, MT548 status advice, and simulate real-time CSD custody flows
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('parser')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'parser' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📜 SWIFT MT54x Tag Parser
+            </button>
+            <button
+              onClick={() => setActiveTab('pipeline')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'pipeline' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🔄 Custody Pipeline Simulator
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'parser' ? (
+        <div className="space-y-6">
+          {/* Message Type Selector Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">SWIFT FIN / ISO 15022 Parser</span>
+              <h3 className="text-sm font-bold text-white">Select Custody Settlement Message Type</h3>
+            </div>
+
+            <div className="flex gap-2">
+              {['MT543', 'MT541', 'MT548'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedMsgType(type)}
+                  className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                    selectedMsgType === type ? 'bg-blue-600 text-white border-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Message Inspector Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-xs">
+            <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+              <div className="border-b border-slate-800 pb-3">
+                <span className="text-amber-400 font-bold text-sm block">{currentMsg.title}</span>
+                <span className="text-slate-400 text-[10px] font-sans block mt-1">{currentMsg.direction}</span>
+                <span className="text-blue-400 text-[10px] font-mono block mt-1">ISO 20022 Equivalent: {currentMsg.iso20022}</span>
+              </div>
+
+              <pre className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-emerald-400 text-xs overflow-x-auto leading-relaxed font-mono">
+                {currentMsg.raw}
+              </pre>
+            </div>
+
+            {/* Field Dictionary Reference */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3">
+              <span className="text-xs font-bold text-white uppercase tracking-wider block border-b border-slate-800 pb-2">SWIFT Field Tag Dictionary</span>
+              
+              <div className="space-y-2 text-[11px]">
+                <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-blue-400 font-bold">:20C::SEME//</span>
+                  <p className="text-slate-400 text-[10px] font-sans">Sender's Message Reference</p>
+                </div>
+                <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-blue-400 font-bold">:22F::SETR//</span>
+                  <p className="text-slate-400 text-[10px] font-sans">Type of Settlement Transaction (TRAD)</p>
+                </div>
+                <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-blue-400 font-bold">:35B:ISIN</span>
+                  <p className="text-slate-400 text-[10px] font-sans">Security Identifier (ISIN US0378331005)</p>
+                </div>
+                <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-blue-400 font-bold">:36B::SETT//</span>
+                  <p className="text-slate-400 text-[10px] font-sans">Quantity of Securities to Settle (100,000)</p>
+                </div>
+                <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-blue-400 font-bold">:19A::SETT//</span>
+                  <p className="text-slate-400 text-[10px] font-sans">Settlement Amount ($20,012,000.00)</p>
+                </div>
+                <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-blue-400 font-bold">:95P::PSET//</span>
+                  <p className="text-slate-400 text-[10px] font-sans">Place of Settlement BIC (DTC0216)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Custody Settlement Pipeline Simulator */
+        <div className="space-y-6">
+          {/* Controls Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">CSD Custody Flow Simulator</span>
+              <h3 className="text-sm font-bold text-white">5-Step Custodian-to-CSD Settlement Sequencing</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSimStep(Math.max(1, simStep - 1))}
+                disabled={simStep === 1}
+                className="px-3 py-1.5 rounded-lg border bg-slate-900 border-slate-700 text-slate-300 disabled:opacity-40 font-bold"
+              >
+                ‹ Previous Step
+              </button>
+              <button
+                onClick={() => setSimStep(Math.min(5, simStep + 1))}
+                disabled={simStep === 5}
+                className="px-3 py-1.5 rounded-lg border bg-blue-600 border-blue-500 text-white disabled:opacity-40 font-bold shadow"
+              >
+                Next Step ›
+              </button>
+            </div>
+          </div>
+
+          {/* Stepper Display */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 font-mono text-xs">
+            {pipelineSteps.map((st) => (
+              <div
+                key={st.step}
+                onClick={() => setSimStep(st.step)}
+                className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                  simStep === st.step
+                    ? 'bg-blue-950 border-blue-500 shadow-lg scale-105'
+                    : simStep > st.step
+                    ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-500'
+                }`}
+              >
+                <span className="text-[10px] block font-bold">STEP {st.step}</span>
+                <span className="font-bold text-white block mt-1">{st.title}</span>
+                <span className="text-[10px] text-amber-400 block mt-2">{st.status}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Active Step Details Canvas */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-white font-bold text-sm">Step {simStep}: {pipelineSteps[simStep - 1].title}</span>
+              <span className="text-amber-400 font-bold">{pipelineSteps[simStep - 1].status}</span>
+            </div>
+
+            <p className="text-slate-300 font-sans text-xs leading-relaxed bg-slate-900 p-4 rounded-xl border border-slate-800">
+              {pipelineSteps[simStep - 1].desc}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
