@@ -359,6 +359,7 @@ export function ProbabilityHistoryTimelineWidget() {
   const [diceRolls, setDiceRolls] = useState([]);
   const [wins, setWins] = useState(0);
   const [totalGames, setTotalGames] = useState(0);
+  const [showProof, setShowProof] = useState(true);
 
   const rollDiceGame = () => {
     // Chevalier de Méré game: Roll a die 4 times. Win if at least one '6' appears!
@@ -378,17 +379,25 @@ export function ProbabilityHistoryTimelineWidget() {
 
   return (
     <div className="w-full p-5 bg-slate-900 border border-slate-800 rounded-2xl text-slate-100 font-sans shadow-2xl space-y-5">
-      <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
         <div>
           <span className="text-amber-400 font-bold uppercase text-[10px] block font-mono">1654 History Visualizer</span>
           <h3 className="text-lg font-bold text-white">Chevalier de Méré's Dice Game (Pascal & Fermat)</h3>
         </div>
-        <button
-          onClick={rollDiceGame}
-          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
-        >
-          🎲 Roll 4 Dice (1 Game)
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowProof(!showProof)}
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl border border-slate-700 transition-all"
+          >
+            {showProof ? '📐 Hide Proof' : '📐 Show Proof (51.77%)'}
+          </button>
+          <button
+            onClick={rollDiceGame}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+          >
+            🎲 Roll 4 Dice (1 Game)
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
@@ -427,6 +436,49 @@ export function ProbabilityHistoryTimelineWidget() {
           </div>
         </div>
       </div>
+
+      {/* Step-by-Step Mathematical Derivation Box */}
+      {showProof && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs font-sans space-y-3"
+        >
+          <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+            <span className="font-mono font-bold text-amber-400 text-xs">
+              🧮 Mathematical Derivation: How is the 51.77% Theoretical Rate Calculated?
+            </span>
+            <span className="text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded">
+              Pascal & Fermat Proof (1654)
+            </span>
+          </div>
+
+          <div className="space-y-2 text-slate-300 font-mono text-[11px] leading-relaxed">
+            <p>
+              <strong className="text-white font-sans">Rule:</strong> You roll 1 fair die 4 times. You win if you get <em>at least one '6'</em>.
+            </p>
+
+            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Step 1: P(NOT getting a 6 on 1 roll) =</span>
+                <span className="text-blue-300 font-bold">5 / 6 ≈ 0.8333</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Step 2: P(NOT getting a 6 on ALL 4 rolls) =</span>
+                <span className="text-rose-400 font-bold">(5/6)⁴ = 625 / 1296 ≈ 0.48225 (48.23%)</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-800 pt-1 text-xs">
+                <span className="text-emerald-400 font-bold">Step 3: P(At least one '6') = 1 - P(No '6' on 4 rolls) =</span>
+                <span className="text-amber-400 font-bold text-sm">1 - 0.48225 = 0.51775 → 51.77%</span>
+              </div>
+            </div>
+
+            <p className="text-slate-400 font-sans text-xs italic">
+              💡 <strong>Historical Insight:</strong> Because 51.77% is slightly greater than 50.00%, Chevalier de Méré had a small 1.77% mathematical edge in the casino, making him rich over thousands of games!
+            </p>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
