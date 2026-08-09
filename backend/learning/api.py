@@ -98,7 +98,7 @@ AUDIO_CACHE_DIR = os.path.join(os.path.dirname(__file__), "audio_cache")
 os.makedirs(AUDIO_CACHE_DIR, exist_ok=True)
 
 @learning_api_router.get("/tts")
-async def generate_server_tts(text: str, lang: str = "en", voice: str = "male"):
+async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"):
     if not text or not text.strip():
         raise HTTPException(status_code=400, detail="Text required")
 
@@ -108,33 +108,54 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "male"):
     if not clean_text:
         clean_text = "Content empty."
 
-    # Select Microsoft Neural Voice
-    # Hindi Neural Voices: hi-IN-MadhurNeural (Male), hi-IN-SwaraNeural (Female)
-    # English Indian Neural Voices: en-IN-PrabhatNeural (Male), en-IN-NeerjaNeural (Female)
+    # Select Microsoft Neural Voice (Swara & Neerja have warmer, human-sounding inflections)
+    # Hindi Neural Voices: hi-IN-SwaraNeural (Female - warm), hi-IN-MadhurNeural (Male)
+    # English Indian Neural Voices: en-IN-NeerjaNeural (Female - warm), en-IN-PrabhatNeural (Male)
     if lang == "hi":
-        voice_name = "hi-IN-MadhurNeural" if voice == "male" else "hi-IN-SwaraNeural"
+        voice_name = "hi-IN-SwaraNeural" if voice == "female" else "hi-IN-MadhurNeural"
     else:
-        voice_name = "en-IN-PrabhatNeural" if voice == "male" else "en-IN-NeerjaNeural"
+        voice_name = "en-IN-NeerjaNeural" if voice == "female" else "en-IN-PrabhatNeural"
 
     # MD5 hash filename for instant 0ms cached serving
-    text_hash = hashlib.md5(f"{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
+    text_hash = hashlib.md5(f"ssml_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
     file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
 
     if not os.path.exists(file_path):
         try:
             import edge_tts
-            communicate = edge_tts.Communicate(clean_text, voice_name)
+
+            # Add SSML human breathing pauses after punctuation
+            ssml_body = clean_text.replace('. ', '. <break time="450ms"/> ')\
+                                  .replace('? ', '? <break time="550ms"/> ')\
+                                  .replace('! ', '! <break time="450ms"/> ')\
+                                  .replace(', ', ', <break time="250ms"/> ')
+
+            ssml_text = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{ 'hi-IN' if lang == 'hi' else 'en-IN' }">
+    <voice name="{voice_name}">
+        <prosody rate="-7%" pitch="-2%">
+            {ssml_body}
+        </prosody>
+    </voice>
+</speak>"""
+
+            communicate = edge_tts.Communicate(ssml_text, voice_name, is_ssml=True)
             await communicate.save(file_path)
         except Exception as e:
-            # Fallback to gTTS if edge-tts is unavailable or network fails
+            # Fallback to standard edge-tts if SSML parse fails
             try:
-                import gtts
-                gtts_lang = 'hi' if lang == 'hi' else 'en'
-                tts = gtts.gTTS(clean_text, lang=gtts_lang)
-                tts.save(file_path)
+                import edge_tts
+                communicate = edge_tts.Communicate(clean_text, voice_name)
+                await communicate.save(file_path)
             except Exception as ex:
-                raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex}")
+                try:
+                    import gtts
+                    gtts_lang = 'hi' if lang == 'hi' else 'en'
+                    tts = gtts.gTTS(clean_text, lang=gtts_lang)
+                    tts.save(file_path)
+                except Exception as ex2:
+                    raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex2}")
 
     return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+
 
 
