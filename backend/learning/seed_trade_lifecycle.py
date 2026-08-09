@@ -19,7 +19,8 @@ def seed_trade_lifecycle():
             "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)",
             "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)",
             "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)",
-            "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)"
+            "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)",
+            "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -154,6 +155,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Calculate sub-account allocations with SSI enrichment and simulate DTCC CTM Electronic Trade Confirmation (ETC) & Affirmation mechanics below.</p>",
                             "widgetType": "tl-block-allocation",
                             "alt": "Interactive Block Allocation Calculator & DTCC CTM Matching Engine."
+                        }
+                    ]
+                })
+
+            elif topic_name == "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Clearing Shield & Counterparty Default Risk",
+                            "narrative": "<p>In financial markets, trade execution (T) and final settlement (T+1) are separated in time. During this settlement gap, market prices fluctuate, and counterparties face severe **Principal and Replacement Cost Risks**.</p><p>If a buyer or seller goes bankrupt before settlement, direct bilateral trades collapse. The <strong>Central Counterparty (CCP)</strong> acts as market shield &mdash; absorbing default risks and insulating the global banking system.</p>"
+                        },
+                        {
+                            "title": "1. LEGAL CONTRACT NOVATION & MARGIN WATERFALL",
+                            "narrative": "<p>Upon trade affirmation, the CCP performs <strong>Contract Novation</strong> &mdash; legally stepping between counterparties to become <em>Buyer to every Seller, and Seller to every Buyer</em>:</p><ul><li><strong>Initial Margin (IM):</strong> Collateral collected upfront from clearing members based on potential future exposure (PFE) calculated via VaR models.</li><li><strong>Variation Margin (VM):</strong> Cash collected daily (or intraday) from losing positions and transferred to winning positions to reflect Mark-to-Market (MTM) price changes.</li><li><strong>The Default Waterfall:</strong> If a clearing broker defaults, losses are absorbed in strict order: Defaulter Initial Margin &rarr; Defaulter Default Fund Deposit &rarr; CCP Equity Capital &rarr; Mutualized Default Fund Pool.</li></ul>"
+                        },
+                        {
+                            "title": "2. MULTILATERAL NETTING ENGINE",
+                            "narrative": "<p>Executing thousands of bilateral gross trades requires trillions of dollars in intraday liquidity. The CCP's core superpower is <strong>Multilateral Netting</strong>:</p><p>Instead of settling 10,000 individual gross trades across hundreds of banks, the CCP calculates a single **Net Cash Position** and single **Net Security Position** for each clearing member &mdash; routinely reducing liquidity requirements and settlement risk by **90% to 98%**.</p>"
+                        },
+                        {
+                            "title": "INTERACTIVE: Legal Novation Default Visualizer & Multilateral Netting Engine",
+                            "narrative": "<p>Simulate counterparty bankruptcy under CCP Novation and compress gross trades into net settlement obligations below.</p>",
+                            "widgetType": "tl-ccp-novated",
+                            "alt": "Interactive Legal Novation Default Visualizer & Multilateral Netting Engine."
                         }
                     ]
                 })

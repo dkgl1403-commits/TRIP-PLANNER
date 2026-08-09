@@ -1914,3 +1914,240 @@ export function TradeLifecycleChapter5Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 6: CCPs, Novation & Multilateral Netting ───────
+export function TradeLifecycleChapter6Widget() {
+  const [activeTab, setActiveTab] = useState('novation'); // 'novation' | 'netting'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Novation Architecture State
+  const [archMode, setArchMode] = useState('novated'); // 'bilateral' | 'novated'
+  const [isDefaulted, setIsDefaulted] = useState(false);
+
+  // Multilateral Netting Engine State
+  const [isNetted, setIsNetted] = useState(false);
+
+  const grossTrades = [
+    { id: 1, buyer: 'Goldman Sachs', seller: 'Morgan Stanley', shares: 50000, price: 250, val: 12500000 },
+    { id: 2, buyer: 'Morgan Stanley', seller: 'JP Morgan', shares: 30000, price: 250, val: 7500000 },
+    { id: 3, buyer: 'JP Morgan', seller: 'Citi Bank', shares: 40000, price: 250, val: 10000000 },
+    { id: 4, buyer: 'Citi Bank', seller: 'Goldman Sachs', shares: 35000, price: 250, val: 8750000 },
+    { id: 5, buyer: 'Goldman Sachs', seller: 'Citi Bank', shares: 15000, price: 250, val: 3750000 },
+    { id: 6, buyer: 'Citi Bank', seller: 'Morgan Stanley', shares: 10000, price: 250, val: 2500000 }
+  ];
+
+  const netPositions = [
+    { broker: 'Goldman Sachs', netShares: '+30,000 (RECEIVE)', netCash: '-$7,500,000 (PAY)', status: 'Net Buyer' },
+    { broker: 'Morgan Stanley', netShares: '-10,000 (DELIVER)', netCash: '+$2,500,000 (RECEIVE)', status: 'Net Seller' },
+    { broker: 'JP Morgan', netShares: '-10,000 (DELIVER)', netCash: '+$2,500,000 (RECEIVE)', status: 'Net Seller' },
+    { broker: 'Citi Bank', netShares: '-10,000 (DELIVER)', netCash: '+$2,500,000 (RECEIVE)', status: 'Net Seller' }
+  ];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">CCPs, Contract Novation & Multilateral Netting</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Simulate Central Counterparty (CCP) risk novation, default waterfall shielding, and multilateral netting compression
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('novation')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'novation' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⚖️ Contract Novation & Default
+            </button>
+            <button
+              onClick={() => setActiveTab('netting')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'netting' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📉 Multilateral Netting Engine
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'novation' ? (
+        <div className="space-y-6">
+          {/* Controls & Architecture Switcher */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Clearing House Risk Shielding</span>
+              <h3 className="text-sm font-bold text-white">Legal Novation: Bilateral Web vs Central Counterparty (CCP)</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setArchMode(archMode === 'novated' ? 'bilateral' : 'novated')}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  archMode === 'novated' ? 'bg-blue-600 text-white border-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400'
+                }`}
+              >
+                {archMode === 'novated' ? '🛡️ CCP Novated View' : '🌐 Bilateral Web View'}
+              </button>
+              <button
+                onClick={() => setIsDefaulted(!isDefaulted)}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  isDefaulted ? 'bg-red-600 text-white border-red-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
+                }`}
+              >
+                {isDefaulted ? '💥 Reset Default Simulator' : '⚡ Simulate Broker C Bankruptcy'}
+              </button>
+            </div>
+          </div>
+
+          {/* Novation / Default Simulation Canvas */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 font-mono text-xs">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <span className="text-white font-bold">{archMode === 'novated' ? 'Central Counterparty (CCP) Novated Contract Architecture' : 'Bilateral Direct Counterparty Risk Web'}</span>
+              <span className={`text-[10px] px-2.5 py-0.5 rounded font-bold ${archMode === 'novated' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-red-950 text-red-300 border border-red-800'}`}>
+                {archMode === 'novated' ? 'RISK SHIELDED VIA NOVATION' : 'UNSHIELDED BILATERAL RISK'}
+              </span>
+            </div>
+
+            {/* Default Waterfall Alert Banner */}
+            {isDefaulted && (
+              <div className="p-4 rounded-xl bg-red-950/80 border border-red-800 text-red-200 text-xs font-sans space-y-2">
+                <div className="flex items-center gap-2 font-mono font-bold text-red-400 text-sm">
+                  <span>🚨 BROKER C DEFAULT DETECTED</span>
+                </div>
+                {archMode === 'novated' ? (
+                  <p><strong>CCP Risk Shield Active:</strong> Broker C defaulted on a $25M settlement obligation. The CCP absorbed the failure using Broker C's Initial Margin ($15M) and CCP Default Fund ($10M). <strong>Brokers A, B, and D suffered ZERO financial loss!</strong></p>
+                ) : (
+                  <p><strong>Bilateral Domino Collapse:</strong> Broker C defaulted on direct bilateral trades with Broker A and Broker B. Broker A suffers an unhedged $15M credit loss, triggering systemic contagion across Wall Street!</p>
+                )}
+              </div>
+            )}
+
+            {/* CCP Default Waterfall Layers */}
+            <div className="space-y-2">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">CCP Default Waterfall Protection Layers</span>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-center text-[11px]">
+                <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                  <span className="text-slate-500 block text-[9px]">LAYER 1</span>
+                  <span className="text-amber-400 font-bold">Defaulter Initial Margin</span>
+                  <span className="text-[10px] text-slate-400 block">$15,000,000</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                  <span className="text-slate-500 block text-[9px]">LAYER 2</span>
+                  <span className="text-amber-400 font-bold">Defaulter CCP Fund Deposit</span>
+                  <span className="text-[10px] text-slate-400 block">$5,000,000</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                  <span className="text-slate-500 block text-[9px]">LAYER 3</span>
+                  <span className="text-blue-400 font-bold">CCP Skin-in-the-Game Equity</span>
+                  <span className="text-[10px] text-slate-400 block">$10,000,000</span>
+                </div>
+                <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                  <span className="text-slate-500 block text-[9px]">LAYER 4</span>
+                  <span className="text-emerald-400 font-bold">Mutualized Clearing Pool</span>
+                  <span className="text-[10px] text-slate-400 block">$50,000,000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: Multilateral Netting Compression Engine */
+        <div className="space-y-6">
+          {/* Netting Controls Bar */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">Settlement Risk & Liquidity Reduction Engine</span>
+              <h3 className="text-sm font-bold text-white">Multilateral Netting Trade Compression Matrix</h3>
+            </div>
+
+            <button
+              onClick={() => setIsNetted(!isNetted)}
+              className={`px-4 py-2 rounded-lg font-bold transition-all shadow-md ${
+                isNetted ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
+              }`}
+            >
+              {isNetted ? '🔄 Reset to 6 Gross Trades' : '⚡ Run Multilateral Netting Compression →'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono text-xs">
+            {/* Gross Trades Panel */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-white font-bold">Gross Executed Trades (6 Bilateral Pipes)</span>
+                <span className="text-slate-400 text-[10px]">Gross Cash: $45,000,000</span>
+              </div>
+
+              <div className="space-y-2 text-[11px]">
+                {grossTrades.map(tr => (
+                  <div key={tr.id} className="p-2.5 rounded bg-slate-900 border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">{tr.buyer} &larr; {tr.seller}</span>
+                      <span className="text-white font-bold">{tr.shares.toLocaleString()} shares @ $250</span>
+                    </div>
+                    <span className="text-amber-400 font-bold">${(tr.val / 1000000).toFixed(2)}M</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Net Settlement Obligations Panel */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-emerald-400 font-bold">{isNetted ? 'Multilateral Net Obligations (Compressed)' : 'Gross Pending Obligations'}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${isNetted ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-400'}`}>
+                  {isNetted ? '93.3% LIQUIDITY COMPRESSION' : 'UNCALCULATED NET'}
+                </span>
+              </div>
+
+              {isNetted ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-emerald-950/40 border border-emerald-900/50 rounded-xl space-y-2">
+                    <span className="text-emerald-300 font-bold block text-[10px]">CCP Net Settlement Results:</span>
+                    {netPositions.map((net, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-[11px] p-2 rounded bg-slate-900 border border-slate-800">
+                        <span className="text-white font-bold">{net.broker}</span>
+                        <span className="text-amber-300">{net.netShares}</span>
+                        <span className="text-emerald-400 font-bold">{net.netCash}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-700 text-[11px] font-sans text-slate-300">
+                    <span className="text-emerald-400 font-bold block mb-1">Netting Efficiency Impact:</span>
+                    <span>Multilateral Netting compressed 6 gross settlements ($45,000,000 gross cash) down to <strong>1 single net cash sweep of $7.5M</strong> and 30k net shares. Total settlement risk reduced by <strong>93.3%!</strong></span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 text-center bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-slate-400 font-sans">
+                  <span className="text-2xl block">📉</span>
+                  <p className="text-xs">Click <strong>"Run Multilateral Netting Compression"</strong> above to see how the CCP compresses 6 gross trades down to net obligations.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

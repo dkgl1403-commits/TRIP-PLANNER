@@ -503,7 +503,8 @@ def seed_curriculum():
                         {"name": "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)", "board": "BOTH"},
                         {"name": "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)", "board": "BOTH"},
                         {"name": "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)", "board": "BOTH"},
-                        {"name": "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)", "board": "BOTH"}
+                        {"name": "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)", "board": "BOTH"},
+                        {"name": "CCPs, Novation & Multilateral Netting (Clearing & Risk Shielding)", "board": "BOTH"}
                     ]
                 }
             ]
