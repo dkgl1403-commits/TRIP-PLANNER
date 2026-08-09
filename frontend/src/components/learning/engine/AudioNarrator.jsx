@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 export function AudioNarrator({ text, language = 'en' }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState(null);
-  const [utterance, setUtterance] = useState(null);
   const [voices, setVoices] = useState([]);
 
   useEffect(() => {
@@ -12,7 +11,8 @@ export function AudioNarrator({ text, language = 'en' }) {
       setSpeechSynthesis(synth);
       
       const loadVoices = () => {
-        setVoices(synth.getVoices());
+        const availableVoices = synth.getVoices();
+        setVoices(availableVoices);
       };
       
       loadVoices();
@@ -22,78 +22,109 @@ export function AudioNarrator({ text, language = 'en' }) {
     }
   }, []);
 
+  // Stop playback when unmounting or changing text
   useEffect(() => {
-    if (!speechSynthesis || !text) return;
-
-    // Stop any ongoing speech when text changes
-    speechSynthesis.cancel();
-    setIsPlaying(false);
-
-    const newUtterance = new SpeechSynthesisUtterance(text);
-    newUtterance.rate = 0.9; 
-    
-    // Select appropriate voice based on language
-    if (voices.length > 0) {
-      if (language === 'hi') {
-        // Specifically look for Indian male voices first (Hemant, Madhur)
-        const hindiVoice = voices.find(v => v.lang.includes('hi') && (v.name.toLowerCase().includes('hemant') || v.name.toLowerCase().includes('madhur')))
-                        || voices.find(v => v.lang === 'hi-IN' || v.lang === 'hi')
-                        || voices.find(v => v.name.toLowerCase().includes('hindi'))
-                        || voices.find(v => v.lang.includes('IN')); 
-        if (hindiVoice) newUtterance.voice = hindiVoice;
-        
-        // Trick for Hinglish written in Latin: Set the lang attribute explicitly
-        newUtterance.lang = 'hi-IN';
-      } else {
-        newUtterance.pitch = 0.8; // Lower pitch for intensity (English voices handle this better)
-        newUtterance.rate = 0.85;
-
-        const englishVoice = voices.find(v => (v.lang.includes('en-GB') || v.lang.includes('en-US')) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('guy')))
-                          || voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en-US'));
-        if (englishVoice) newUtterance.voice = englishVoice;
-      }
-    }
-    
-    newUtterance.onend = () => setIsPlaying(false);
-    newUtterance.onerror = () => setIsPlaying(false);
-
-    setUtterance(newUtterance);
-
     return () => {
-      speechSynthesis.cancel();
-    };
-  }, [text, speechSynthesis, voices, language]);
-
-  const togglePlay = () => {
-    if (!speechSynthesis || !utterance) return;
-
-    if (isPlaying) {
-      speechSynthesis.pause();
-      setIsPlaying(false);
-    } else {
-      if (speechSynthesis.paused) {
-        speechSynthesis.resume();
-      } else {
-        speechSynthesis.speak(utterance);
+      if (speechSynthesis) {
+        speechSynthesis.cancel();
       }
-      setIsPlaying(true);
+    };
+  }, [speechSynthesis, text]);
+
+  // Helper to select the best voice for Indian Accent / Hinglish / English
+  const getBestVoice = (isHindiMode) => {
+    if (!voices || voices.length === 0) return { voice: null, lang: isHindiMode ? 'hi-IN' : 'en-US' };
+
+    if (isHindiMode) {
+      // 1. Check for native Hindi voices (Devanagari / Hindi)
+      const nativeHindi = voices.find(v => v.lang === 'hi-IN' || v.lang === 'hi' || v.name.toLowerCase().includes('hindi'));
+      if (nativeHindi) {
+        return { voice: nativeHindi, lang: 'hi-IN' };
+      }
+
+      // 2. Check for Indian English voices (en-IN) which pronounce Romanized Hinglish naturally
+      const indianEnglish = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en_IN') || v.name.toLowerCase().includes('india'));
+      if (indianEnglish) {
+        return { voice: indianEnglish, lang: 'en-IN' };
+      }
+
+      // 3. Fallback to any Indian locale voice
+      const genericIndian = voices.find(v => v.lang.includes('IN'));
+      if (genericIndian) {
+        return { voice: genericIndian, lang: genericIndian.lang };
+      }
+
+      // 4. Default fallback to clear English voice
+      const fallbackEng = voices.find(v => v.lang.includes('en-GB') || v.lang.includes('en-US')) || voices[0];
+      return { voice: fallbackEng, lang: 'en-US' };
+    } else {
+      // English Mode Voice Selection
+      const englishVoice = voices.find(v => (v.lang.includes('en-IN') || v.lang.includes('en-GB') || v.lang.includes('en-US')) && 
+                                           (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('guy') || v.name.toLowerCase().includes('raju') || v.name.toLowerCase().includes('prabhat')))
+                        || voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-GB') || v.lang.includes('en-US'))
+                        || voices[0];
+      return { voice: englishVoice, lang: englishVoice ? englishVoice.lang : 'en-US' };
     }
   };
 
-  if (!speechSynthesis) return null; // Browser doesn't support TTS
+  const togglePlay = () => {
+    if (!speechSynthesis || !text) return;
+
+    if (isPlaying) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
+
+    // Cancel any previous audio immediately
+    speechSynthesis.cancel();
+
+    // Clean text (remove HTML tags or markdown if present)
+    const cleanText = text.replace(/<[^>]*>?/gm, '').replace(/[\*\_]/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const isHindiMode = language === 'hi';
+    const { voice, lang } = getBestVoice(isHindiMode);
+
+    if (voice) {
+      utterance.voice = voice;
+    }
+    utterance.lang = lang;
+
+    // Rate & Pitch Tuning for maximum clarity
+    utterance.rate = 0.85; // Slightly slower for crisp articulation
+    utterance.pitch = 1.0; // Natural conversational pitch
+
+    utterance.onend = () => setIsPlaying(false);
+    utterance.onerror = (e) => {
+      console.warn("Speech synthesis error:", e);
+      setIsPlaying(false);
+    };
+
+    // Speak inside direct touch gesture event loop for iOS/Android compatibility
+    speechSynthesis.speak(utterance);
+    setIsPlaying(true);
+  };
+
+  if (!speechSynthesis) return null;
 
   return (
     <button 
       onClick={togglePlay}
       className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all border ${
-        isPlaying ? 'bg-neon-coral/20 border-neon-coral text-neon-coral shadow-[0_0_10px_rgba(255,107,107,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+        isPlaying 
+          ? 'bg-neon-coral/20 border-neon-coral text-neon-coral shadow-[0_0_10px_rgba(255,107,107,0.3)] animate-pulse' 
+          : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
       }`}
-      title={isPlaying ? "Pause Narration" : "Listen to Narration"}
+      title={isPlaying ? "Stop Narration" : "Listen to Narration"}
     >
       <span className="material-symbols-outlined text-xl">
         {isPlaying ? 'volume_up' : 'volume_off'}
       </span>
-      <span className="font-medium">{isPlaying ? 'Playing...' : 'Audio'}</span>
+      <span className="font-medium text-xs md:text-sm">
+        {isPlaying ? 'Playing...' : 'Audio'}
+      </span>
     </button>
   );
 }
+
