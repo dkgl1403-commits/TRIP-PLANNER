@@ -477,6 +477,12 @@ export function ProbabilityHistoryTimelineWidget() {
               💡 <strong>Historical Insight:</strong> Because 51.77% is slightly greater than 50.00%, Chevalier de Méré had a small 1.77% mathematical edge in the casino, making him rich over thousands of games!
             </p>
           </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
 // ─── WIDGET 7: 10-Question Interactive MCQ Practice Exam Engine ───
 export function ProbabilityMCQPracticeWidget() {
   const [currentIdx, setCurrentIdx] = useState(0);
