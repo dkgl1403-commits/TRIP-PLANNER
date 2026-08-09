@@ -39,7 +39,7 @@ def seed_class9_probability():
 <p>We are going to measure this order. We are going to calculate <strong>Empirical Probability</strong> (also called Experimental Probability). <em>"Empirical"</em> simply means based on observation or experience rather than theory or pure logic.</p>
 
 <p>Here is the only formula you need for this entire lesson:</p>
-<div className="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-amber-400 text-lg">
+<div class="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-amber-400 text-lg">
   P(E) = (Number of trials where event E happened) / (Total number of trials)
 </div>
 
@@ -63,7 +63,7 @@ def seed_class9_probability():
                     "widgetData": {}
                 },
                 {
-                    "title": "Practice Problem: The Faulty Machine (Malegaon Factory)",
+                    "title": "Lesson 2: Practice Problem — The Faulty Machine (Malegaon Factory)",
                     "readingTime": "~4 min read",
                     "narrative": """
 <p>Let's test this concept in a real-world scenario.</p>
@@ -92,7 +92,7 @@ def seed_class9_probability():
                     "widgetData": {}
                 },
                 {
-                    "title": "The Origins: A Gambler's Problem (1654)",
+                    "title": "Lesson 3: The Origins — A Gambler's Problem (1654)",
                     "readingTime": "~3 min read",
                     "narrative": """
 <p>You might think probability was invented by astronomers or engineers. It wasn't! It was invented by people trying to win dice bets in the taverns of 17th-century France.</p>
@@ -105,7 +105,7 @@ def seed_class9_probability():
                     "widgetData": {}
                 },
                 {
-                    "title": "Where Do We Use Empirical Probability Today?",
+                    "title": "Lesson 4: Where Do We Use Empirical Probability Today?",
                     "readingTime": "~3 min read",
                     "narrative": """
 <p>The gamblers started it, but today empirical probability runs the modern world!</p>
@@ -115,13 +115,218 @@ def seed_class9_probability():
                     "keyInsight": "From weather apps to medical trials and car insurance, empirical data drives modern risk prediction.",
                     "widgetType": "CoinFlipLawOfLargeNumbers",
                     "widgetData": {}
+                },
+                {
+                    "title": "Lesson 5: 20 Solved Board Exam Sample Questions (Step-by-Step)",
+                    "readingTime": "~10 min read",
+                    "narrative": """
+<p>Master these <strong>20 high-yield solved exemplar questions</strong> covering all empirical probability patterns asked in Class 9 exams!</p>
+
+<div class="space-y-6 text-xs font-sans">
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q1: Coin Toss Experiment (1,000 Flips)</h4>
+    <p class="text-slate-300">A coin is tossed 1,000 times with frequencies: Heads: 455, Tails: 545. Compute P(Heads) and P(Tails).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total trials = 1,000.</p>
+      <p>• P(Heads) = 455 / 1,000 = 0.455 (45.5%).</p>
+      <p>• P(Tails) = 545 / 1,000 = 0.545 (54.5%). Note P(H) + P(T) = 0.455 + 0.545 = 1.</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q2: Two Coins Tossed 500 Times</h4>
+    <p class="text-slate-300">Two coins are tossed 500 times: 2 Heads: 105 times, 1 Head: 275 times, 0 Heads: 120 times. Compute probability of each event.</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• P(2 Heads) = 105 / 500 = 0.21.</p>
+      <p>• P(1 Head) = 275 / 500 = 0.55.</p>
+      <p>• P(0 Heads) = 120 / 500 = 0.24. Sum = 0.21 + 0.55 + 0.24 = 1.00.</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q3: Die Thrown 1,000 Times</h4>
+    <p class="text-slate-300">A die is thrown 1,000 times: 1: 179, 2: 150, 3: 157, 4: 149, 5: 175, 6: 190. Find P(getting outcome 3).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total trials = 1,000. Frequency of 3 = 157.</p>
+      <p>• P(3) = 157 / 1,000 = 0.157 (15.7%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q4: Three Coins Tossed 200 Times</h4>
+    <p class="text-slate-300">3 coins tossed 200 times: 3 Heads: 23, 2 Heads: 72, 1 Head: 77, No Head: 28. Find P(2 Heads).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total trials = 200. Favorable = 72.</p>
+      <p>• P(2 Heads) = 72 / 200 = 36 / 100 = 0.36 (36%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q5: Weather Station 250 Forecast Days</h4>
+    <p class="text-slate-300">Weather forecasts were correct on 175 out of 250 days. (i) P(forecast correct), (ii) P(forecast wrong).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total days = 250.</p>
+      <p>• (i) P(Correct) = 175 / 250 = 0.70 (70%).</p>
+      <p>• (ii) P(Wrong) = 1 - 0.70 = 0.30 (30%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q6: Tyre Manufacturing Company Mileage Survey</h4>
+    <p class="text-slate-300">1,000 tyres surveyed: Distance before replacement &lt;4,000km: 20, 4,000-9,000km: 210, 9,001-14,000km: 325, &gt;14,000km: 445. Find P(replaced after 9,000km).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Replaced after 9,000km = 325 + 445 = 770 tyres.</p>
+      <p>• P(>9,000km) = 770 / 1,000 = 0.77 (77%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q7: Mathematics Marks Distribution (200 Students)</h4>
+    <p class="text-slate-300">200 students marks out of 100: 0-20: 7, 20-30: 10, 30-40: 10, 40-50: 20, 50-60: 20, 60-70: 60, 70-100: 73. Find P(student gets &lt;20 marks).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total = 200. Marks &lt; 20 = 7 students.</p>
+      <p>• P(&lt;20) = 7 / 200 = 0.035 (3.5%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q8: Student Opinion Survey on Statistics (200 Students)</h4>
+    <p class="text-slate-300">Survey of 200 students: Like Statistics: 135, Dislike: 65. Find P(student likes Statistics).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• P(Like) = 135 / 200 = 27 / 40 = 0.675 (67.5%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q9: Wheat Flour Bags Weight Inspection (11 Bags)</h4>
+    <p class="text-slate-300">11 bags labeled 5kg contain actual weights: 4.97, 5.05, 5.08, 5.03, 5.00, 5.06, 5.08, 4.98, 5.04, 5.07, 5.00. Find P(bag contains &gt;5kg).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total bags = 11. Bags with &gt;5.00kg: {5.05, 5.08, 5.03, 5.06, 5.08, 5.04, 5.07} = 7 bags.</p>
+      <p>• P(&gt;5kg) = 7 / 11.</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q10: Sulphur Dioxide Concentration Study (30 Days)</h4>
+    <p class="text-slate-300">SO₂ concentration data for 30 days: Frequency in interval 0.12-0.16 ppm is 2. Find P(SO₂ in 0.12-0.16 ppm).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total days = 30. Favorable = 2 days.</p>
+      <p>• P = 2 / 30 = 1 / 15.</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q11: Blood Group Survey of 30 Students</h4>
+    <p class="text-slate-300">30 students blood groups: A: 9, B: 6, AB: 3, O: 12. Find P(student has AB blood group).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total = 30. AB students = 3.</p>
+      <p>• P(AB) = 3 / 30 = 1 / 10 = 0.10 (10%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q12: Household Vehicles Survey (2,400 Families)</h4>
+    <p class="text-slate-300">2,400 families surveyed: Income ₹10k-13k with exactly 2 vehicles: 29 families. Find P(earning ₹10k-13k and owning 2 vehicles).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total families = 2,400. Favorable = 29.</p>
+      <p>• P = 29 / 2,400.</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q13: Seed Germination Experiment (5 Bags)</h4>
+    <p class="text-slate-300">5 bags of 50 seeds each. Seeds germinated per bag: Bag 1: 40, Bag 2: 48, Bag 3: 42, Bag 4: 39, Bag 5: 41. Find P(bag with &gt;40 germinated seeds).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Bags with &gt;40 seeds: Bags 2, 3, 5 = 3 bags.</p>
+      <p>• P(&gt;40 seeds) = 3 / 5 = 0.60 (60%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q14: Single Coin Tossed 100 Times</h4>
+    <p class="text-slate-300">Coin tossed 100 times: Head: 60, Tail: 40. Find P(Head) + P(Tail).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• P(Head) = 60/100 = 0.60. P(Tail) = 40/100 = 0.40.</p>
+      <p>• P(Head) + P(Tail) = 0.60 + 0.40 = 1.00.</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q15: Die Thrown 500 Times — Prime Outcomes</h4>
+    <p class="text-slate-300">Die thrown 500 times. Primes (2, 3, 5) occurred 240 times. Find P(getting a prime number).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Total trials = 500. Favorable = 240.</p>
+      <p>• P(Prime) = 240 / 500 = 24 / 50 = 0.48 (48%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q16: Light Bulb Factory Quality Control (1,000 Bulbs)</h4>
+    <p class="text-slate-300">Out of 1,000 inspected bulbs, 30 were defective. Find P(non-defective bulb).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Non-defective = 1,000 - 30 = 970.</p>
+      <p>• P(Non-defective) = 970 / 1,000 = 0.97 (97%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q17: Cricket Match Batswoman Boundary Hits (30 Balls)</h4>
+    <p class="text-slate-300">A batswoman hits a boundary 6 times out of 30 balls. Find P(she did NOT hit a boundary).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Balls without boundary = 30 - 6 = 24.</p>
+      <p>• P(No boundary) = 24 / 30 = 4 / 5 = 0.80 (80%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q18: Hospital Birth Records (1,000 Newborns)</h4>
+    <p class="text-slate-300">Out of 1,000 newborns, 515 were female. Find P(newborn is female).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• P(Female) = 515 / 1,000 = 0.515 (51.5%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q19: School Attendance Survey (500 Days)</h4>
+    <p class="text-slate-300">100% student attendance recorded on 40 days out of 500 school days. Find P(100% attendance).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• P(100% attendance) = 40 / 500 = 8 / 100 = 0.08 (8%).</p>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+    <h4 class="font-bold text-amber-400 text-sm">Q20: Machine Component Failure Test (800 Hours)</h4>
+    <p class="text-slate-300">A component failed 16 times during 800 hours of stress testing. Find P(component runs without failure for 1 hour).</p>
+    <div class="p-3 bg-slate-950 rounded-lg font-mono text-slate-300 text-[11px] space-y-1">
+      <p>• Failure hours = 16. Operational hours = 800 - 16 = 784.</p>
+      <p>• P(Operational) = 784 / 800 = 0.98 (98%).</p>
+    </div>
+  </div>
+
+</div>
+""",
+                    "keyInsight": "Review all 20 solved empirical probability questions to master Class 9 exam patterns.",
+                    "widgetType": "CoinFlipLawOfLargeNumbers",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 6: Interactive 10-Question MCQ Practice Exam",
+                    "readingTime": "~5 min practice",
+                    "narrative": """
+<p>Test your empirical probability knowledge with <strong>10 high-yield board exam practice questions</strong> below!</p>
+<p>Select your answer for instant step-by-step verification, score tracking, and detailed explanations.</p>
+""",
+                    "keyInsight": "Complete the 10-question MCQ practice exam to achieve 100% mastery in Class 9 Probability.",
+                    "widgetType": "ProbabilityMCQPractice",
+                    "widgetData": {}
                 }
             ]
         }
 
         prob_topic.lesson_config_json = json.dumps(config)
         db.commit()
-        print("Successfully seeded Class 9 Probability curriculum with interactive widgets!")
+        print("Successfully seeded Class 9 Probability curriculum with 20 solved questions & 10 MCQs!")
     finally:
         db.close()
 

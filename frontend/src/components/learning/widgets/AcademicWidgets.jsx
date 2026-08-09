@@ -112,7 +112,8 @@ import {
   ProbabilityHistoryTimelineWidget,
   TwoDiceSampleSpaceWidget,
   ComplementaryEventBagWidget,
-  LeapYearPuzzleWidget
+  LeapYearPuzzleWidget,
+  ProbabilityMCQPracticeWidget
 } from './ProbabilityWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
@@ -1480,5 +1481,6 @@ export const WidgetRegistry = {
   'GamblerDiceHistory': ProbabilityHistoryTimelineWidget,
   'TwoDiceSampleSpace': TwoDiceSampleSpaceWidget,
   'ComplementaryEventBag': ComplementaryEventBagWidget,
-  'LeapYearPuzzle': LeapYearPuzzleWidget
+  'LeapYearPuzzle': LeapYearPuzzleWidget,
+  'ProbabilityMCQPractice': ProbabilityMCQPracticeWidget
 };

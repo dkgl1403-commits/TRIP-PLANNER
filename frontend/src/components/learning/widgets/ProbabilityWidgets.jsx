@@ -477,8 +477,221 @@ export function ProbabilityHistoryTimelineWidget() {
               💡 <strong>Historical Insight:</strong> Because 51.77% is slightly greater than 50.00%, Chevalier de Méré had a small 1.77% mathematical edge in the casino, making him rich over thousands of games!
             </p>
           </div>
-        </motion.div>
-      )}
+// ─── WIDGET 7: 10-Question Interactive MCQ Practice Exam Engine ───
+export function ProbabilityMCQPracticeWidget() {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selectedOpt, setSelectedOpt] = useState(null);
+  const [score, setScore] = useState(0);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const questions = [
+    {
+      id: 1,
+      text: "If P(E) = 0.07, what is the probability of P(NOT E), i.e., P(Ē)?",
+      options: ["A) 0.07", "B) 0.93", "C) 0.70", "D) 0.03"],
+      correctIdx: 1,
+      explanation: "Using the complementary formula: P(Ē) = 1 - P(E) = 1 - 0.07 = 0.93."
+    },
+    {
+      id: 2,
+      text: "Which of the following CANNOT be the probability of an event?",
+      options: ["A) 2/3", "B) -1.5", "C) 15%", "D) 0.7"],
+      correctIdx: 1,
+      explanation: "Every probability must satisfy 0 ≤ P(E) ≤ 1. A negative number like -1.5 is impossible."
+    },
+    {
+      id: 3,
+      text: "An event is extremely unlikely to happen. Its probability is closest to:",
+      options: ["A) 0.0001", "B) 0.1000", "C) 0.0100", "D) 0.9999"],
+      correctIdx: 0,
+      explanation: "The closer a probability is to 0, the more unlikely the event is. 0.0001 is closest to 0."
+    },
+    {
+      id: 4,
+      text: "What is the probability of rolling a sum of 13 when two standard 6-sided dice are tossed?",
+      options: ["A) 1/36", "B) 1/6", "C) 0", "D) 1"],
+      correctIdx: 2,
+      explanation: "The maximum possible sum on two 6-sided dice is 6 + 6 = 12. Sum 13 is an impossible event (P = 0)."
+    },
+    {
+      id: 5,
+      text: "The probability that a randomly chosen LEAP YEAR contains 53 Sundays is:",
+      options: ["A) 1/7", "B) 2/7", "C) 3/7", "D) 53/366"],
+      correctIdx: 1,
+      explanation: "A leap year has 366 days = 52 weeks + 2 extra days. Out of 7 day-pair combinations, 2 contain Sunday (Sun-Mon, Sat-Sun). P = 2/7."
+    },
+    {
+      id: 6,
+      text: "A card is drawn from a well-shuffled deck of 52 cards. What is the probability of getting a RED FACE card?",
+      options: ["A) 3/13", "B) 3/26", "C) 1/26", "D) 1/13"],
+      correctIdx: 1,
+      explanation: "There are 6 red face cards (J, Q, K of Hearts and Diamonds). P = 6/52 = 3/26."
+    },
+    {
+      id: 7,
+      text: "A bag contains 3 red balls and 5 black balls. A ball is drawn at random. The probability of getting a BLACK ball is:",
+      options: ["A) 3/8", "B) 5/8", "C) 3/5", "D) 1/8"],
+      correctIdx: 1,
+      explanation: "Total balls = 3 + 5 = 8. Black balls = 5. P(Black) = 5/8."
+    },
+    {
+      id: 8,
+      text: "The probability that an ORDINARY (non-leap) year contains 53 Sundays is:",
+      options: ["A) 1/7", "B) 2/7", "C) 53/365", "D) 52/365"],
+      correctIdx: 0,
+      explanation: "An ordinary year has 365 days = 52 weeks + 1 extra day. Out of 7 days of the week, 1 is Sunday. P = 1/7."
+    },
+    {
+      id: 9,
+      text: "Two fair coins are tossed simultaneously. What is the probability of getting AT LEAST ONE Head?",
+      options: ["A) 1/4", "B) 1/2", "C) 3/4", "D) 1"],
+      correctIdx: 2,
+      explanation: "Sample Space = {(H,H), (H,T), (T,H), (T,T)}. 3 outcomes contain at least 1 Head. P = 3/4."
+    },
+    {
+      id: 10,
+      text: "A number x is chosen at random from numbers -3, -2, -1, 0, 1, 2, 3. What is the probability that |x| < 2?",
+      options: ["A) 3/7", "B) 2/7", "C) 5/7", "D) 1/7"],
+      correctIdx: 0,
+      explanation: "|x| < 2 means x can be -1, 0, or 1. There are 3 favorable numbers out of 7 total numbers. P = 3/7."
+    }
+  ];
+
+  const handleSelect = (idx) => {
+    if (isAnswered) return;
+    setSelectedOpt(idx);
+    setIsAnswered(true);
+    if (idx === questions[currentIdx].correctIdx) {
+      setScore(prev => prev + 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx(prev => prev + 1);
+      setSelectedOpt(null);
+      setIsAnswered(false);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentIdx(0);
+    setSelectedOpt(null);
+    setScore(0);
+    setIsAnswered(false);
+  };
+
+  const currentQ = questions[currentIdx];
+
+  return (
+    <div
+      className={`w-full flex flex-col p-5 bg-slate-900 text-slate-100 font-sans transition-all border border-slate-800 ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto'
+          : 'rounded-2xl shadow-2xl h-full'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-amber-400 font-bold uppercase text-[11px] tracking-wider block font-mono">Board Exam Practice Exam</span>
+          <h2 className="text-xl md:text-2xl font-bold text-white">10 High-Yield Probability MCQs</h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            Test your knowledge with immediate step-by-step feedback and score tracking
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-amber-950 text-amber-300 border border-amber-800 font-mono font-bold text-xs rounded-xl">
+            Score: {score} / {questions.length}
+          </span>
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all"
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full bg-slate-950 rounded-full h-2 mb-6 overflow-hidden border border-slate-800">
+        <div
+          className="bg-gradient-to-r from-amber-500 to-emerald-500 h-full transition-all duration-300"
+          style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Question Card */}
+      <div className="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-6 font-mono text-xs shadow-2xl">
+        <div className="flex justify-between items-center border-b border-slate-800 pb-3 font-sans">
+          <span className="text-amber-400 font-bold text-xs">Question {currentIdx + 1} of {questions.length}</span>
+          <span className="text-slate-400 text-xs">Topic: Class 10 Board Exam Practice</span>
+        </div>
+
+        <h3 className="text-base font-bold text-white font-sans leading-relaxed">{currentQ.text}</h3>
+
+        {/* Options */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {currentQ.options.map((opt, idx) => {
+            let btnStyle = 'bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800';
+            if (isAnswered) {
+              if (idx === currentQ.correctIdx) {
+                btnStyle = 'bg-emerald-950 border-emerald-500 text-emerald-200 font-bold shadow-lg';
+              } else if (idx === selectedOpt) {
+                btnStyle = 'bg-rose-950 border-rose-500 text-rose-200 font-bold';
+              } else {
+                btnStyle = 'bg-slate-900 border-slate-800 text-slate-500 opacity-60';
+              }
+            }
+
+            return (
+              <button
+                key={idx}
+                onClick={() => handleSelect(idx)}
+                disabled={isAnswered}
+                className={`p-3.5 rounded-xl border text-left font-sans text-xs transition-all ${btnStyle}`}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Explanation & Next Button */}
+        {isAnswered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-3 font-sans"
+          >
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-bold ${selectedOpt === currentQ.correctIdx ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {selectedOpt === currentQ.correctIdx ? '✅ Correct!' : '❌ Incorrect'}
+              </span>
+            </div>
+            <p className="text-slate-300 text-xs leading-relaxed">{currentQ.explanation}</p>
+
+            <div className="flex justify-end pt-2">
+              {currentIdx < questions.length - 1 ? (
+                <button
+                  onClick={handleNextQuestion}
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all"
+                >
+                  Next Question ➔
+                </button>
+              ) : (
+                <button
+                  onClick={handleRestart}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+                >
+                  🎉 Exam Complete! Retake Exam
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
