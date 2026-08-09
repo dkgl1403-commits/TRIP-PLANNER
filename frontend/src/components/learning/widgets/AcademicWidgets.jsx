@@ -106,6 +106,11 @@ import {
   TradeLifecycleChapter11Widget,
   TradeLifecycleChapter12Widget
 } from './TradeLifecycleWidgets';
+import {
+  CoinFlipLawOfLargeNumbersWidget,
+  FaultyMachineCalculatorWidget,
+  ProbabilityHistoryTimelineWidget
+} from './ProbabilityWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 export function StarObserverDiagram() {
   const [starBPos, setStarBPos] = useState({ x: 80, y: 20 });
@@ -1466,5 +1471,8 @@ export const WidgetRegistry = {
   'tl-sBL-engine': TradeLifecycleChapter11Widget,
   'tl-borrow-fail-prevention': TradeLifecycleChapter11Widget,
   'tl-nostro-vostro-recon': TradeLifecycleChapter12Widget,
-  'tl-reg-reporting': TradeLifecycleChapter12Widget
+  'tl-reg-reporting': TradeLifecycleChapter12Widget,
+  'CoinFlipLawOfLargeNumbers': CoinFlipLawOfLargeNumbersWidget,
+  'FaultyMachineCalculator': FaultyMachineCalculatorWidget,
+  'GamblerDiceHistory': ProbabilityHistoryTimelineWidget
 };

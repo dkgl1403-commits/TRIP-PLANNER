@@ -26,6 +26,7 @@ from seed_ai_masterclass_remaining import seed_ai_remaining
 from seed_agile_framework import seed_agile_framework
 from seed_corporate_actions import seed_corporate_actions
 from seed_trade_lifecycle import seed_trade_lifecycle
+from seed_class9_probability import seed_class9_probability
 
 def seed_trigonometry():
     init_db()
@@ -813,3 +814,4 @@ if __name__ == "__main__":
     seed_agile_framework()
     seed_corporate_actions()
     seed_trade_lifecycle()
+    seed_class9_probability()
