@@ -24,7 +24,9 @@ def seed_trade_lifecycle():
             "The Settlement SWIFT Flow (ISO 15022 / ISO 20022)",
             "Delivery versus Payment (DvP) Models & CSD Settlement Mechanics",
             "Settlement Fails, CSDR & Mandatory Buy-In Regimes",
-            "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)"
+            "T+1, T+0, Atomic Settlement & Advanced Inventory Management (Earmarking, Hold & Release)",
+            "Securities Lending & Borrowing (SBL), Short Selling & Fail Prevention",
+            "Post-Trade Reconciliation, Nostro/Vostro Ledgers & Regulatory Reporting"
         ]
 
         for idx, topic_name in enumerate(topics):
