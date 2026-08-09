@@ -89,13 +89,18 @@ def update_progress(login_id: str, req: ProgressUpdateRequest, db: Session = Dep
     db.commit()
     return {"status": "success"}
 
-# --- SERVER-SIDE HIGH-QUALITY NEURAL TTS ENGINE ---
+# --- SERVER-SIDE HIGH-QUALITY NEURAL & ELEVENLABS TTS ENGINE ---
 import os
 import hashlib
+import requests
 from fastapi.responses import FileResponse
 
 AUDIO_CACHE_DIR = os.path.join(os.path.dirname(__file__), "audio_cache")
 os.makedirs(AUDIO_CACHE_DIR, exist_ok=True)
+
+# ElevenLabs Settings
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "sk_5019b018d3570f369def51408a0220a9e6c36ccfcb7075e6")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "")  # Paste your cloned Voice ID here
 
 @learning_api_router.get("/tts")
 async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"):
@@ -108,23 +113,53 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
     if not clean_text:
         clean_text = "Content empty."
 
-    # Select Microsoft Neural Voice (Swara & Neerja have warmer, human-sounding inflections)
-    # Hindi Neural Voices: hi-IN-SwaraNeural (Female - warm), hi-IN-MadhurNeural (Male)
-    # English Indian Neural Voices: en-IN-NeerjaNeural (Female - warm), en-IN-PrabhatNeural (Male)
+    # 1. TRY ELEVENLABS API FIRST (If API Key is provided)
+    if ELEVENLABS_API_KEY:
+        # Default voice ID or cloned Voice ID
+        target_voice_id = ELEVENLABS_VOICE_ID if ELEVENLABS_VOICE_ID else "21m00Tcm4TlvDq8ikWAM" # Rachel default
+        text_hash = hashlib.md5(f"elevenlabs_{target_voice_id}_{clean_text}".encode('utf-8')).hexdigest()
+        file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
+
+        if os.path.exists(file_path):
+            return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+
+        try:
+            url = f"https://api.elevenlabs.io/v1/text-to-speech/{target_voice_id}"
+            headers = {
+                "Accept": "audio/mpeg",
+                "Content-Type": "application/json",
+                "xi-api-key": ELEVENLABS_API_KEY
+            }
+            data = {
+                "text": clean_text,
+                "model_id": "eleven_multilingual_v2",
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.75
+                }
+            }
+            res = requests.post(url, json=data, headers=headers, timeout=15)
+            if res.status_code == 200:
+                with open(file_path, "wb") as f:
+                    f.write(res.content)
+                return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+            else:
+                print(f"ElevenLabs API Error status {res.status_code}: {res.text}")
+        except Exception as e:
+            print(f"ElevenLabs synthesis exception: {e}")
+
+    # 2. FALLBACK TO MICROSOFT NEURAL SSML ENGINE
     if lang == "hi":
         voice_name = "hi-IN-SwaraNeural" if voice == "female" else "hi-IN-MadhurNeural"
     else:
         voice_name = "en-IN-NeerjaNeural" if voice == "female" else "en-IN-PrabhatNeural"
 
-    # MD5 hash filename for instant 0ms cached serving
     text_hash = hashlib.md5(f"ssml_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
     file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
 
     if not os.path.exists(file_path):
         try:
             import edge_tts
-
-            # Add SSML human breathing pauses after punctuation
             ssml_body = clean_text.replace('. ', '. <break time="450ms"/> ')\
                                   .replace('? ', '? <break time="550ms"/> ')\
                                   .replace('! ', '! <break time="450ms"/> ')\
@@ -137,25 +172,19 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
         </prosody>
     </voice>
 </speak>"""
-
             communicate = edge_tts.Communicate(ssml_text, voice_name, is_ssml=True)
             await communicate.save(file_path)
         except Exception as e:
-            # Fallback to standard edge-tts if SSML parse fails
             try:
-                import edge_tts
-                communicate = edge_tts.Communicate(clean_text, voice_name)
-                await communicate.save(file_path)
-            except Exception as ex:
-                try:
-                    import gtts
-                    gtts_lang = 'hi' if lang == 'hi' else 'en'
-                    tts = gtts.gTTS(clean_text, lang=gtts_lang)
-                    tts.save(file_path)
-                except Exception as ex2:
-                    raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex2}")
+                import gtts
+                gtts_lang = 'hi' if lang == 'hi' else 'en'
+                tts = gtts.gTTS(clean_text, lang=gtts_lang)
+                tts.save(file_path)
+            except Exception as ex2:
+                raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex2}")
 
     return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+
 
 
 
