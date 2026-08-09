@@ -1,5 +1,37 @@
 import React, { useState, useEffect } from 'react';
 
+// Lightweight Roman-Hinglish to Devanagari transliterator for iOS Siri voice compatibility
+function hinglishToDevanagari(text) {
+  if (!text) return '';
+  // If text already contains native Devanagari script, return directly
+  if (/[\u0900-\u097F]/.test(text)) return text;
+
+  let converted = text;
+  const wordMap = {
+    "aap": "आप", "aapk": "आपक", "aapka": "आपका", "aapke": "आपके", "aapki": "आपकी",
+    "hai": "है", "hain": "हैं", "ho": "हो", "hu": "हूं", "hun": "हूं",
+    "me": "में", "mein": "में", "mai": "में",
+    "se": "से", "ko": "को", "ka": "का", "ke": "के", "ki": "की", "par": "पर", "pe": "पे",
+    "nahi": "नहीं", "nahin": "नहीं", "na": "न",
+    "ya": "या", "aur": "और", "to": "तो", "bhi": "भी", "hi": "ही",
+    "ye": "ये", "yeh": "यह", "voh": "वह", "woh": "वह", "is": "इस", "us": "उस",
+    "kya": "क्या", "kyun": "क्यों", "kisi": "किसी", "kaise": "कैसे", "kaha": "कहा",
+    "kar": "कर", "karo": "करो", "karna": "करना", "karne": "करने", "karni": "करनी", "karein": "करें", "karte": "करते", "karta": "करता",
+    "baat": "बात", "samajh": "समझ", "dekh": "देख", "dekho": "देखो", "hoga": "होगा", "hogi": "होगी", "hoge": "होगे",
+    "sirf": "सिर्फ", "bas": "बस", "ek": "एक", "do": "दो", "teen": "तीन", "chaar": "चार", "paanch": "पांच",
+    "coin": "कॉइन", "dice": "डाइस", "probability": "प्रोबेबिलिटी", "formula": "फॉर्मूला", "rule": "रूल",
+    "lesson": "लेसन", "chapter": "चैप्टर", "class": "क्लास", "math": "मैथ", "maths": "मैथ्स",
+    "samajhne": "समझने", "sikhne": "सीखने", "dhyan": "ध्यान", "pyaar": "प्यार", "dost": "दोस्त"
+  };
+
+  for (const [eng, dev] of Object.entries(wordMap)) {
+    const regex = new RegExp(`\\b${eng}\\b`, 'gi');
+    converted = converted.replace(regex, dev);
+  }
+
+  return converted;
+}
+
 export function AudioNarrator({ text, language = 'en' }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState(null);
@@ -12,7 +44,6 @@ export function AudioNarrator({ text, language = 'en' }) {
       const synth = window.speechSynthesis;
       setSpeechSynthesis(synth);
 
-      // Force-load iOS voices
       if (synth.getVoices().length === 0 && synth.onvoiceschanged !== undefined) {
         synth.onvoiceschanged = () => {
           synth.getVoices();
@@ -21,7 +52,6 @@ export function AudioNarrator({ text, language = 'en' }) {
     }
   }, []);
 
-  // Stop playback when unmounting or changing text
   useEffect(() => {
     return () => {
       if (speechSynthesis) {
@@ -43,28 +73,27 @@ export function AudioNarrator({ text, language = 'en' }) {
       return;
     }
 
-    // Stop any existing audio immediately
     speechSynthesis.cancel();
-
-    // Fetch fresh voices at click time (crucial for iOS Safari)
     const currentVoices = speechSynthesis.getVoices() || [];
 
     // Clean HTML/markdown tags
-    const cleanText = text.replace(/<[^>]*>?/gm, '').replace(/[\*\_]/g, '');
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    
-    // CRITICAL iOS FIX: Prevent WebKit Garbage Collection from killing audio mid-sentence
-    window._activeUtterance = utterance;
+    let cleanText = text.replace(/<[^>]*>?/gm, '').replace(/[\*\_]/g, '');
 
     const isHindiMode = language === 'hi';
 
+    // On iOS Siri, convert common Roman-Hinglish words to Devanagari so Apple Siri reads with perfect native Hindi accent
     if (isHindiMode) {
-      // 1. Try Native Hindi voice (Devanagari/Hindi)
-      const nativeHindi = currentVoices.find(v => v.lang === 'hi-IN' || v.lang === 'hi' || v.name.toLowerCase().includes('hindi'));
-      // 2. Try Indian English voice (en-IN)
-      const indianEnglish = currentVoices.find(v => v.lang.includes('en-IN') || v.lang.includes('en_IN') || v.name.toLowerCase().includes('india'));
-      
+      cleanText = hinglishToDevanagari(cleanText);
+    }
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    window._activeUtterance = utterance;
+
+    if (isHindiMode) {
+      // Prioritize native Hindi Siri voice on iOS (Rishi / Lekha / hi-IN)
+      const nativeHindi = currentVoices.find(v => v.lang === 'hi-IN' || v.lang === 'hi' || v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('rishi') || v.name.toLowerCase().includes('lekha'));
+      const indianEnglish = currentVoices.find(v => v.lang.includes('en-IN') || v.lang.includes('en_IN') || v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('sangeeta') || v.name.toLowerCase().includes('veena'));
+
       if (nativeHindi) {
         utterance.voice = nativeHindi;
         utterance.lang = 'hi-IN';
@@ -72,7 +101,7 @@ export function AudioNarrator({ text, language = 'en' }) {
         utterance.voice = indianEnglish;
         utterance.lang = 'en-IN';
       } else {
-        utterance.lang = 'hi-IN'; // Fallback to iOS system default for hi-IN
+        utterance.lang = 'hi-IN';
       }
     } else {
       const englishVoice = currentVoices.find(v => (v.lang.includes('en-IN') || v.lang.includes('en-GB') || v.lang.includes('en-US')) && 
@@ -84,8 +113,8 @@ export function AudioNarrator({ text, language = 'en' }) {
       utterance.lang = englishVoice ? englishVoice.lang : 'en-US';
     }
 
-    // Rate & Pitch Tuning
-    utterance.rate = isIos ? 0.9 : 0.85; // iOS Safari plays slightly slower naturally
+    // Tuning rate for clear articulation on mobile
+    utterance.rate = isIos ? 0.88 : 0.85;
     utterance.pitch = 1.0;
 
     utterance.onend = () => {
@@ -99,13 +128,11 @@ export function AudioNarrator({ text, language = 'en' }) {
       setIsPlaying(false);
     };
 
-    // Show iOS Silent Switch reminder on iPhone if playing for first time
     if (isIos) {
       setShowIosTip(true);
-      setTimeout(() => setShowIosTip(false), 5000);
+      setTimeout(() => setShowIosTip(false), 4000);
     }
 
-    // Direct user-gesture invocation required for iOS WebKit
     speechSynthesis.speak(utterance);
     setIsPlaying(true);
   };
@@ -140,5 +167,6 @@ export function AudioNarrator({ text, language = 'en' }) {
     </div>
   );
 }
+
 
 
