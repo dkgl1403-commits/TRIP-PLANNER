@@ -1634,3 +1634,283 @@ export function TradeLifecycleChapter4Widget() {
     </div>
   );
 }
+
+// ─── Trade Lifecycle Chapter 5: The Handshake & The Breakdown ────────────────
+export function TradeLifecycleChapter5Widget() {
+  const [activeTab, setActiveTab] = useState('allocation'); // 'allocation' | 'ctm'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Block Allocation Breakdown State
+  const [allocPercentages, setAllocPercentages] = useState([40, 30, 20, 10]);
+  const totalShares = 1000000;
+  const avgPrice = 200.12;
+
+  const subAccounts = [
+    { name: 'Global Equity Growth Fund', custodian: 'BNY Mellon', bic: 'BKTRUS33XXX', acct: '98104-A', color: 'text-blue-400' },
+    { name: 'Pension Balanced Fund', custodian: 'State Street', bic: 'SBTRUS33XXX', acct: '45210-B', color: 'text-emerald-400' },
+    { name: 'High Income Opportunity Fund', custodian: 'JP Morgan', bic: 'CHASUS33XXX', acct: '12894-C', color: 'text-purple-400' },
+    { name: 'ESG Sustainability Fund', custodian: 'Citi Bank', bic: 'CITIUS33XXX', acct: '77301-D', color: 'text-amber-400' }
+  ];
+
+  // DTCC CTM Matching Engine State
+  const [priceMismatch, setPriceMismatch] = useState(false);
+  const [ssiMismatch, setSsiMismatch] = useState(false);
+
+  const ctmBuySideData = {
+    ref: 'CTM_IM_99812',
+    isin: 'US0378331005',
+    symbol: 'AAPL',
+    side: 'BUY',
+    qty: 1000000,
+    price: priceMismatch ? 200.18 : 200.12,
+    tradeDate: '2026-08-09',
+    settleDate: '2026-08-10 (T+1)',
+    curr: 'USD',
+    custodianBic: ssiMismatch ? 'UNKNOWN_BIC' : 'BKTRUS33XXX'
+  };
+
+  const ctmSellSideData = {
+    ref: 'CTM_BRK_44120',
+    isin: 'US0378331005',
+    symbol: 'AAPL',
+    side: 'SELL',
+    qty: 1000000,
+    price: 200.12,
+    tradeDate: '2026-08-09',
+    settleDate: '2026-08-10 (T+1)',
+    curr: 'USD',
+    custodianBic: 'BKTRUS33XXX'
+  };
+
+  const getCtmStatus = () => {
+    if (priceMismatch) return { label: 'UNMATCHED / PRICE EXCEPTION', class: 'bg-red-950 text-red-300 border-red-800', icon: '❌', desc: 'Trade Economics Mismatch: Buy-Side price ($200.18) != Broker price ($200.12)' };
+    if (ssiMismatch) return { label: 'UNMATCHED / SSI MISMATCH', class: 'bg-amber-950 text-amber-300 border-amber-800', icon: '⚠️', desc: 'Standing Settlement Instruction Mismatch: Custodian BIC invalid' };
+    return { label: 'MATCHED / AFFIRMED', class: 'bg-emerald-950 text-emerald-300 border-emerald-800', icon: '✅', desc: 'DTCC CTM Affirmation Complete: Dispatched for Automated CCP Novation' };
+  };
+
+  const ctmStatus = getCtmStatus();
+
+  return (
+    <div
+      className={`w-full flex flex-col p-4 md:p-6 bg-slate-900 text-slate-200 font-sans transition-all overflow-y-auto ${
+        isFullscreen
+          ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24'
+          : 'rounded-xl h-full'
+      }`}
+    >
+      {/* Top Header Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center sm:text-left">Middle Office: Block Allocation & DTCC CTM Affirmation</h2>
+          <p className="text-slate-400 text-xs md:text-sm text-center sm:text-left">
+            Break block trades into sub-account allocations and simulate DTCC Central Trade Matching (CTM) affirmation mechanics
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveTab('allocation')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'allocation' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📊 Block Allocation Calculator
+            </button>
+            <button
+              onClick={() => setActiveTab('ctm')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'ctm' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🤝 DTCC CTM Matching Engine
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all shadow"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'allocation' ? (
+        <div className="space-y-6">
+          {/* Block Trade Overview Header */}
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-4 font-mono text-xs">
+            <div>
+              <span className="text-amber-400 font-bold block text-[10px] uppercase">Executed Block Trade Header</span>
+              <h3 className="text-lg font-bold text-white">1,000,000 Shares AAPL @ Avg Price ${avgPrice.toFixed(2)}</h3>
+              <span className="text-slate-400 text-[11px] font-sans">Total Gross Settlement Value: <strong className="text-emerald-400">${(totalShares * avgPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></span>
+            </div>
+            <div className="bg-slate-900 px-4 py-2 rounded-xl border border-slate-700 text-right">
+              <span className="text-slate-500 text-[10px] block font-sans">ALLOCATED PERCENTAGE</span>
+              <span className="text-blue-400 font-bold text-sm">100.0% (0 Residual Shares)</span>
+            </div>
+          </div>
+
+          {/* Sub-Accounts Allocation Breakdown Table */}
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-2xl space-y-4">
+            <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider block">Sub-Account Allocation Breakdown & SSI Matrix</span>
+
+            <div className="grid grid-cols-1 gap-3 font-mono text-xs">
+              {subAccounts.map((acc, idx) => {
+                const pct = allocPercentages[idx];
+                const shares = (totalShares * pct) / 100;
+                const grossVal = shares * avgPrice;
+
+                return (
+                  <div key={idx} className="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-2">
+                      <div>
+                        <span className={`font-bold ${acc.color}`}>{acc.name}</span>
+                        <span className="text-slate-500 text-[10px] block font-sans">Custodian: {acc.custodian} | Account: {acc.acct} | BIC: {acc.bic}</span>
+                      </div>
+                      <span className="text-emerald-400 font-bold text-sm">${grossVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <span className="text-slate-400 text-[11px] w-24 shrink-0 font-sans">Allocation %:</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={pct}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          const newPcts = [...allocPercentages];
+                          newPcts[idx] = val;
+                          setAllocPercentages(newPcts);
+                        }}
+                        className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      />
+                      <span className="font-bold text-white w-16 text-right font-mono">{pct}%</span>
+                      <span className="text-blue-300 font-bold w-32 text-right font-mono">{shares.toLocaleString()} sh</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Mode 2: DTCC CTM Matching Engine */
+        <div className="space-y-6">
+          {/* Controls & Exception Simulator */}
+          <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span className="text-amber-400 font-bold uppercase text-[10px] block">DTCC CTM Trade Confirmation Engine</span>
+              <h3 className="text-sm font-bold text-white">Electronic Trade Confirmation (ETC) & Affirmation Matrix</h3>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPriceMismatch(!priceMismatch)}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  priceMismatch ? 'bg-red-600 text-white border-red-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
+                }`}
+              >
+                {priceMismatch ? '⚠️ Fix Price ($200.12)' : '⚡ Force Price Mismatch ($200.18)'}
+              </button>
+              <button
+                onClick={() => setSsiMismatch(!ssiMismatch)}
+                className={`px-3 py-1.5 rounded-lg border font-bold transition-all ${
+                  ssiMismatch ? 'bg-amber-600 text-white border-amber-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
+                }`}
+              >
+                {ssiMismatch ? '⚠️ Fix SSI BIC' : '⚡ Force SSI BIC Mismatch'}
+              </button>
+            </div>
+          </div>
+
+          {/* CTM Affirmation Status Banner */}
+          <div className={`p-4 rounded-2xl border ${ctmStatus.class} flex items-center justify-between font-mono text-xs shadow-xl`}>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{ctmStatus.icon}</span>
+              <div>
+                <span className="font-bold text-sm block">{ctmStatus.label}</span>
+                <span className="text-[11px] font-sans opacity-90">{ctmStatus.desc}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Side-by-Side Matching Matrix */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono text-xs">
+            {/* Investment Manager Side */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-blue-400 font-bold">Buy-Side: Investment Manager Ticket</span>
+                <span className="text-slate-500 text-[10px]">{ctmBuySideData.ref}</span>
+              </div>
+
+              <div className="space-y-2 text-[11px]">
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Security ISIN:</span>
+                  <span className="text-white font-bold">{ctmBuySideData.isin} ({ctmBuySideData.symbol})</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Order Side:</span>
+                  <span className="text-emerald-400 font-bold">{ctmBuySideData.side}</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Gross Shares Quantity:</span>
+                  <span className="text-white font-bold">{ctmBuySideData.qty.toLocaleString()} shares</span>
+                </div>
+                <div className={`flex justify-between p-2 rounded border ${priceMismatch ? 'bg-red-950/60 border-red-800 text-red-300 font-bold' : 'bg-slate-900 border-slate-800 text-white'}`}>
+                  <span className="text-slate-500">Execution Price:</span>
+                  <span>${ctmBuySideData.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Settlement Date:</span>
+                  <span className="text-white font-bold">{ctmBuySideData.settleDate}</span>
+                </div>
+                <div className={`flex justify-between p-2 rounded border ${ssiMismatch ? 'bg-amber-950/60 border-amber-800 text-amber-300 font-bold' : 'bg-slate-900 border-slate-800 text-white'}`}>
+                  <span className="text-slate-500">Custodian SSI BIC:</span>
+                  <span>{ctmBuySideData.custodianBic}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Executing Broker Side */}
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className="text-amber-400 font-bold">Sell-Side: Executing Broker Confirmation</span>
+                <span className="text-slate-500 text-[10px]">{ctmSellSideData.ref}</span>
+              </div>
+
+              <div className="space-y-2 text-[11px]">
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Security ISIN:</span>
+                  <span className="text-white font-bold">{ctmSellSideData.isin} ({ctmSellSideData.symbol})</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Order Side:</span>
+                  <span className="text-red-400 font-bold">{ctmSellSideData.side}</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Gross Shares Quantity:</span>
+                  <span className="text-white font-bold">{ctmSellSideData.qty.toLocaleString()} shares</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800 text-white">
+                  <span className="text-slate-500">Execution Price:</span>
+                  <span className="font-bold">${ctmSellSideData.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-slate-500">Settlement Date:</span>
+                  <span className="text-white font-bold">{ctmSellSideData.settleDate}</span>
+                </div>
+                <div className="flex justify-between p-2 rounded bg-slate-900 border border-slate-800 text-white">
+                  <span className="text-slate-500">Custodian SSI BIC:</span>
+                  <span className="font-bold">{ctmSellSideData.custodianBic}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

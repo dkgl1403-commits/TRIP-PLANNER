@@ -18,7 +18,8 @@ def seed_trade_lifecycle():
             "The Interactive Roadmaps (Macro Trade Flow & Dual-Sided Engine)",
             "The Evolution of the Exchange & CLOB (Matching Engines & Order Books)",
             "The Cast of Characters (Buy-Side, Sell-Side, Venues & Infrastructure)",
-            "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)"
+            "The Front Office (OMS/EMS, FIX Protocol & Algorithmic Execution)",
+            "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)"
         ]
 
         for idx, topic_name in enumerate(topics):
@@ -128,6 +129,31 @@ def seed_trade_lifecycle():
                             "narrative": "<p>Deconstruct raw FIX protocol messages tag-by-tag and simulate institutional TWAP, VWAP, and IS algorithmic order slicing below.</p>",
                             "widgetType": "tl-fix-parser",
                             "alt": "Interactive FIX Protocol Parser & Algorithmic Slicing Simulator."
+                        }
+                    ]
+                })
+
+            elif topic_name == "The Handshake & The Breakdown (Block Allocation & CTM Affirmation)":
+                topic.lesson_config_json = json.dumps({
+                    "type": "narrative",
+                    "parts": [
+                        {
+                            "title": "INTRODUCTION: The Role of the Middle Office",
+                            "narrative": "<p>Once an institutional block order (e.g., 1,000,000 shares of AAPL) is executed by the Front Office, the trade drops into the <strong>Middle Office</strong> for enrichment, allocation, and counterparty confirmation.</p><p>The Middle Office acts as the central control tower &mdash; ensuring that trade economics match counterparty records, Standing Settlement Instructions (SSIs) are attached, and block executions are legally broken down across underlying sub-fund accounts.</p>"
+                        },
+                        {
+                            "title": "1. BLOCK TRADE ALLOCATION & AVERAGE PRICING",
+                            "narrative": "<p>Institutional asset managers execute trades in aggregate blocks to achieve better market pricing. The Middle Office must mathematically slice the 1,000,000 share block across client sub-accounts:</p><ul><li><strong>Average Pricing:</strong> If a block was executed across multiple price fills (e.g. 500k @ $200.10, 500k @ $200.14), the Middle Office calculates the net <strong>Volume-Weighted Average Price (VWAP)</strong> ($200.12) applied uniformly to all allocations.</li><li><strong>SSI Attachment:</strong> Every sub-account allocation requires Standing Settlement Instructions &mdash; specifying Custodian BIC (e.g., <code>BKTRUS33XXX</code>), Depository Account ID, and Place of Settlement (PSET).</li></ul>"
+                        },
+                        {
+                            "title": "2. ELECTRONIC TRADE CONFIRMATION (ETC) & CTM AFFIRMATION",
+                            "narrative": "<p>To eliminate post-trade settlement fails, investment managers and executing brokers utilize <strong>DTCC Central Trade Matching (CTM)</strong> for Electronic Trade Confirmation (ETC):</p><ol><li><strong>Trade Matching:</strong> CTM automatically compares 11 core trade fields (ISIN, Side, Quantity, Price, Trade Date, Settlement Date, Currency, SSIs).</li><li><strong>Affirmation Status Transition:</strong> Status begins as <code>UNMATCHED</code>. If a field mismatches (e.g. price $200.12 vs $200.18), CTM triggers an <strong>Exception Break</strong>. Once resolved, CTM updates status to <code>MATCHED / AFFIRMED</code>.</li><li><strong>Automated Clearing Dispatch:</strong> An <strong>AFFIRMED</strong> trade is automatically routed to the Central Counterparty (CCP) for clearing novation and custodian instruction dispatch.</li></ol>"
+                        },
+                        {
+                            "title": "INTERACTIVE: Block Allocation Calculator & DTCC CTM Matching Engine",
+                            "narrative": "<p>Calculate sub-account allocations with SSI enrichment and simulate DTCC CTM Electronic Trade Confirmation (ETC) & Affirmation mechanics below.</p>",
+                            "widgetType": "tl-block-allocation",
+                            "alt": "Interactive Block Allocation Calculator & DTCC CTM Matching Engine."
                         }
                     ]
                 })
