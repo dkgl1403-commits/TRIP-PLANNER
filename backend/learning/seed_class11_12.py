@@ -522,8 +522,235 @@ Examiners love events that are Mutually Exclusive AND Exhaustive (MEE). If event
         }
         topic_prob_11.lesson_config_json = json.dumps(prob_11_config)
 
+        # -------------------------------
+        # CLASS 12 MATHEMATICS: PROBABILITY
+        # -------------------------------
+        topic_prob_12 = db.query(LearningTopic).filter_by(name="Probability", subject_id=math_12.id).first()
+        if not topic_prob_12:
+            topic_prob_12 = LearningTopic(
+                subject_id=math_12.id,
+                name="Probability",
+                order_idx=1
+            )
+            db.add(topic_prob_12)
+            db.flush()
+
+        prob_12_config = {
+            "type": "narrative",
+            "parts": [
+                {
+                    "title": "Lesson 1: Conditional Probability & The Detective's Flashlight",
+                    "readingTime": "~6 min read",
+                    "narrative": """
+<p>Welcome to the apex. You are about to learn the most powerful mathematical tool in the high school syllabus.</p>
+
+<p>Up until now, probability has been static. In Class 10 and 11, we set up a universe, counted the outcomes, and calculated a fixed fraction. But in the real world, information changes dynamically.</p>
+
+<p>In Class 12, we transition to <strong>Dynamic Probability</strong>. We learn how to mathematically update our beliefs when new evidence is introduced.</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h2>The Detective Metaphor: Standing in Mumbai</h2>
+
+<p>Imagine you are a detective standing in the middle of Mumbai. The city has 20 million people. The Universal Set S (the Sample Space) is massive.</p>
+
+<p>If I ask you the probability of finding a fleeing diamond thief at random, it is virtually zero. You are standing in the dark.</p>
+
+<p>Suddenly, a constable runs up to you with a new piece of evidence (a <strong>Condition</strong>):</p>
+<blockquote class="my-3 p-3 bg-slate-900 border-l-4 border-amber-500 italic text-amber-300">
+  "Inspector! A witness just saw him heading toward the railway stations."
+</blockquote>
+
+<p>What just happened mathematically? <strong>Your universe shrank.</strong></p>
+
+<p>You don't care about the 20 million people in Mumbai anymore. You don't care about the airports or highways. Your entire denominator is now <em>only</em> the railway stations.</p>
+
+<p>This is <strong>Conditional Probability</strong>, written as <strong>P(A|B)</strong>. The vertical line <code>|</code> is the beam of your flashlight. You are looking for the probability of finding the thief (Event A), <em>given the condition</em> (Event B) that he is at a railway station.</p>
+
+<div class="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-amber-400 text-xl font-bold">
+  P(A|B) = P(A ∩ B) / P(B)
+</div>
+
+<p><em>Translation:</em> Take the probability of both things happening (A ∩ B), and divide it by the probability of the new condition (B).</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3>The Die Example: Shrinking Universe</h3>
+<p>Let's look at a die toss. What is P(rolling a 6)? Sample space S = {1, 2, 3, 4, 5, 6}. P(6) = 1/6.</p>
+<p>Now, I roll the die, cover it with my hand, peek at it, and tell you: <em>"The number is even."</em></p>
+<p>Has the probability of it being a 6 changed? <strong>Yes!</strong> Your sample space shrank from 6 possibilities to only {2, 4, 6}.</p>
+<div class="my-3 p-3 bg-slate-900 rounded-lg text-center font-mono text-emerald-400 font-bold">
+  P(6 | Even) = 1/3
+</div>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3>The Independence Trap</h3>
+<p>Examiners will immediately try to trap students here with <strong>Independent Events</strong>. If Event A happening doesn't care at all about Event B happening (like rolling a die and flipping a coin at the same time), knowing B occurred changes nothing:</p>
+<div class="my-3 p-3 bg-slate-900 rounded-lg text-center font-mono text-purple-400">
+  P(A|B) = P(A)  ==&gt;  P(A ∩ B) = P(A) · P(B)
+</div>
+""",
+                    "audioText": "Welcome to Class 12 Probability. Up until now probability has been static. In Class 12 we transition to Dynamic Probability where we update our beliefs as new evidence arrives. Conditional Probability P of A given B asks what is the probability of Event A given that Event B has already occurred. The vertical bar acts like a detective flashlight shrinking the sample space denominator.",
+                    "audioTextHinglish": "Class 12 Probability me aapka swagat hai. Class 12 me hum Dynamic Probability seekhte hain jaha naye evidence ke saath probability update hoti hai. Conditional Probability P of A given B me vertical bar ek detective flashlight ki tarah kaam karta hai jo universe ko shrink kar deta hai.",
+                    "keyInsight": "Conditional Probability P(A|B) = P(A ∩ B) / P(B) shrinks your denominator to only the given condition B.",
+                    "widgetType": "DetectiveBayesSimulatorWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 2: Law of Total Probability & The 3 Escape Vehicles",
+                    "readingTime": "~6 min read",
+                    "narrative": """
+<p>Before we can reach Bayes' Theorem, we must learn how to break a massive real-world problem into smaller branching paths. This is called the <strong>Law of Total Probability</strong>.</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h2>The Detective Metaphor: The Three Getaways</h2>
+
+<p>We rush to the Mumbai railway sector. The diamond thief is panicking. He has three ways to escape the city, but they aren't equally likely because he is in a hurry:</p>
+
+<ul>
+  <li>He has a <strong>40% chance P(Taxi) = 0.40</strong> of jumping into a Taxi.</li>
+  <li>He has a <strong>50% chance P(Train) = 0.50</strong> of sneaking onto a Local Train.</li>
+  <li>He has a <strong>10% chance P(Bike) = 0.10</strong> of stealing a Bicycle.</li>
+</ul>
+
+<p>Now, as the lead detective, you know the security grid of Mumbai:</p>
+<ul>
+  <li>If he takes a Taxi, there is a <strong>30% chance P(Caught|Taxi) = 0.30</strong> he gets caught in traffic at a police checkpoint.</li>
+  <li>If he takes the Train, there is a <strong>20% chance P(Caught|Train) = 0.20</strong> a ticket checker catches him.</li>
+  <li>If he takes a Bicycle, there is an <strong>80% chance P(Caught|Bike) = 0.80</strong> a beat cop sees him pedaling frantically.</li>
+</ul>
+
+<p><strong>The Question:</strong> What is the <em>total</em> probability P(Caught) that the thief gets caught today?</p>
+
+<p>You cannot just add the police catch rates together! You must multiply each vehicle's catch rate by how likely he was to choose that vehicle, and add the paths together:</p>
+
+<div class="space-y-2 font-mono text-xs my-4 p-4 bg-slate-900 rounded-xl border border-slate-800">
+  <div class="text-sky-400">• Path 1 (Taxi & Caught): 0.40 × 0.30 = 0.12 (12%)</div>
+  <div class="text-indigo-400">• Path 2 (Train & Caught): 0.50 × 0.20 = 0.10 (10%)</div>
+  <div class="text-pink-400">• Path 3 (Bike & Caught): 0.10 × 0.80 = 0.08 (8%)</div>
+  <div class="text-emerald-400 font-bold border-t border-slate-800 pt-2 text-sm">
+    Total Probability P(Caught) = 0.12 + 0.10 + 0.08 = 0.30 (30%)
+  </div>
+</div>
+
+<hr class="my-6 border-slate-800"/>
+
+<h2>The General Mathematical Formula</h2>
+<p>If events B₁, B₂, ..., Bₙ partition the sample space, then for any event E:</p>
+
+<div class="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-amber-400 text-lg font-bold">
+  P(E) = ∑ [ P(E | Bᵢ) · P(Bᵢ) ]
+</div>
+
+<p><em>Think of it as a weighted average across all possible branches of reality.</em></p>
+""",
+                    "audioText": "In Lesson 2 we explore the Law of Total Probability using the three getaway vehicles metaphor. To find the total probability of catching the suspect, we trace each branch of reality by multiplying the vehicle choice probability by the catch rate and adding all three paths together to get 30 percent.",
+                    "audioTextHinglish": "Lesson 2 me hum Law of Total Probability seekhte hain teen escape vehicles ke through. Har vehicle ke choice probability ko catch rate se multiply karke teeno paths add karte hain jisse total probability 30 percent milti hai.",
+                    "keyInsight": "The Law of Total Probability sums up all weighted branches leading to an outcome: P(E) = ∑ P(E|Bᵢ)P(Bᵢ).",
+                    "widgetType": "DetectiveBayesSimulatorWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 3: Bayes' Theorem & The Medical False Positive Paradox",
+                    "readingTime": "~7 min read",
+                    "narrative": """
+<p>This is it. Named after Reverend Thomas Bayes, <strong>Bayes' Theorem</strong> is the crown jewel of probability. It allows us to <strong>reverse time and conditions</strong>.</p>
+
+<p>If we know P(Effect | Cause), Bayes allows us to calculate <strong>P(Cause | Effect)</strong>.</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h2>The Detective Metaphor: The Phone Call</h2>
+
+<p>You are sitting in the Mumbai police station drinking chai. The phone rings. It's the dispatch officer:</p>
+<blockquote class="my-3 p-3 bg-slate-900 border-l-4 border-emerald-500 italic text-emerald-300 font-bold">
+  "Inspector... we caught him."
+</blockquote>
+
+<p>The event has happened. P(Caught) is now 100%. But as a detective, you want to know <em>how</em> it happened.</p>
+
+<p><strong>The Bayes Question:</strong> GIVEN that he was caught, what is the probability that he tried to escape in a <strong>Taxi</strong>?</p>
+<p>We are looking for <strong>P(Taxi | Caught)</strong>.</p>
+
+<div class="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-amber-400 text-lg">
+  P(Specific Cause | Effect) = (The specific path we want) / (Sum of ALL paths that lead to effect)
+</div>
+
+<ol class="space-y-2 text-sm my-4">
+  <li><strong>Specific path we want (Taxi & Caught):</strong> 0.40 × 0.30 = <strong>0.12</strong></li>
+  <li><strong>ALL paths leading to effect P(Caught):</strong> 0.12 + 0.10 + 0.08 = <strong>0.30</strong></li>
+  <li><strong>Apply Bayes:</strong> P(Taxi | Caught) = 0.12 / 0.30 = <strong>0.40 (40%)</strong></li>
+</ol>
+
+<p>There is exactly a 40% chance that the arrested suspect is sitting in the back of a taxi!</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h2>The Master Example: The Medical False Positive Paradox</h2>
+
+<p>To understand the sheer real-world power of Bayes, consider this medical paradox:</p>
+
+<ul>
+  <li>A rare disease affects <strong>1%</strong> of the population.</li>
+  <li>A medical test is <strong>99% accurate</strong> (catches 99% of sick people, correctly clears 99% of healthy people).</li>
+</ul>
+
+<p>You test <strong>POSITIVE</strong>. What is the chance you actually have the disease?</p>
+
+<p>Most people guess 99%. <strong>The actual answer is only 50%!</strong></p>
+
+<div class="my-4 p-4 bg-slate-950 border border-rose-500/30 rounded-xl font-mono text-xs space-y-2">
+  <div class="text-rose-400 font-bold">Why? Let's apply Bayes:</div>
+  <div>• Path 1 (Sick & Positive): 0.01 × 0.99 = 0.0099</div>
+  <div>• Path 2 (Healthy & False Positive): 0.99 × 0.01 = 0.0099</div>
+  <div>• Total Positive Tests = 0.0099 + 0.0099 = 0.0198</div>
+  <div class="text-amber-300 font-bold text-sm pt-1">
+    P(Disease | Positive) = 0.0099 / 0.0198 = 0.50 (50%)
+  </div>
+</div>
+
+<p>Because the disease is so rare, the massive volume of healthy people creates false positives that drown out true sick cases!</p>
+""",
+                    "audioText": "Lesson 3 introduces Bayes Theorem. While the Law of Total Probability looks forward into the future, Bayes Theorem looks backward into the past. Given an effect, Bayes Theorem calculates the probability of a specific cause by taking the specific path divided by the sum of all paths.",
+                    "audioTextHinglish": "Lesson 3 me hum Bayes Theorem seekhte hain. Total probability aage ka rasta dekhta hai jabki Bayes Theorem piche mood kar past ke cause ko calculate karta hai. Effect milne par specific path ko total paths se divide karte hain.",
+                    "keyInsight": "Bayes' Theorem P(Bᵢ|A) = [P(A|Bᵢ)P(Bᵢ)] / [∑ P(A|Bⱼ)P(Bⱼ)] reverses conditional probability from effect back to cause.",
+                    "widgetType": "MedicalFalsePositiveCalculatorWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 4: Class 12 Master Apex Qualification Exam (80% Pass Mark)",
+                    "readingTime": "~10 min exam",
+                    "narrative": """
+<p>Congratulations on mastering the apex of high school mathematics — Class 12 Probability!</p>
+
+<p>To officially earn your Class 12 completion badge, you must pass the <strong>Class 12 Qualification Exam</strong> below.</p>
+
+<div class="my-4 p-4 bg-slate-900 border-2 border-amber-500/40 rounded-2xl space-y-3">
+  <div class="flex items-center gap-2 text-amber-400 font-bold text-base">
+    <span class="material-symbols-outlined">workspace_premium</span>
+    <span>Class 12 Apex Completion Requirement</span>
+  </div>
+  <ul class="text-xs md:text-sm text-slate-300 space-y-1 list-disc list-inside">
+    <li><strong>10 High-Yield Board Exam MCQs</strong> covering Conditional Probability, Independent Events, Law of Total Probability, and Bayes' Theorem.</li>
+    <li><strong>Passing Score: 80% or higher</strong> (at least 8 out of 10 correct).</li>
+    <li>Step-by-step solutions are provided after every single answer!</li>
+  </ul>
+</div>
+""",
+                    "audioText": "Lesson 4 is your official Class 12 Probability Apex Qualification Test. Answer 10 board exam MCQs. You must score 80% or higher to earn your Class 12 completion badge.",
+                    "audioTextHinglish": "Lesson 4 aapka Class 12 Qualification Test hai. 10 MCQs me se 80% score karein aur Class 12 completion badge unlock karein.",
+                    "keyInsight": "Score 80%+ to complete the Class 12 Mathematics curriculum!",
+                    "widgetType": "Class12ProbabilityMCQExamWidget",
+                    "widgetData": {}
+                }
+            ]
+        }
+        topic_prob_12.lesson_config_json = json.dumps(prob_12_config)
+
         db.commit()
-        print("Successfully seeded Class 11 and 12 structure with Set Theory and Class 11 Probability lessons!")
+        print("Successfully seeded Class 11 and 12 structure with Set Theory, Class 11 & Class 12 Probability lessons!")
     except Exception as e:
         db.rollback()
         print(f"Error seeding Class 11/12 structure: {e}")
@@ -532,3 +759,4 @@ Examiners love events that are Mutually Exclusive AND Exhaustive (MEE). If event
 
 if __name__ == "__main__":
     seed_class11_12_structure()
+

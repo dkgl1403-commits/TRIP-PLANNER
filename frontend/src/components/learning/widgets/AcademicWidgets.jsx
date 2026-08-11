@@ -68,6 +68,12 @@ import {
 } from './Class11Widgets';
 
 import {
+  DetectiveBayesSimulatorWidget,
+  MedicalFalsePositiveCalculatorWidget,
+  Class12ProbabilityMCQExamWidget
+} from './Class12Widgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1495,5 +1501,8 @@ export const WidgetRegistry = {
   'Class11AdditionTheoremWidget': Class11AdditionTheoremWidget,
   'Class11EdgeCasesWidget': Class11EdgeCasesWidget,
   'Class11ProbabilityMCQExamWidget': Class11ProbabilityMCQExamWidget,
-  'Class11SetTheoryMCQExamWidget': Class11SetTheoryMCQExamWidget
+  'Class11SetTheoryMCQExamWidget': Class11SetTheoryMCQExamWidget,
+  'DetectiveBayesSimulatorWidget': DetectiveBayesSimulatorWidget,
+  'MedicalFalsePositiveCalculatorWidget': MedicalFalsePositiveCalculatorWidget,
+  'Class12ProbabilityMCQExamWidget': Class12ProbabilityMCQExamWidget
 };
