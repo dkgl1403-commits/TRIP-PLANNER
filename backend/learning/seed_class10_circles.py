@@ -30,7 +30,7 @@ def seed_class10_circles():
             "type": "narrative",
             "parts": [
                 {
-                    "title": "Lesson 1: The Secant, The Tangent & Theorem 1 (The Right Angle Rule)",
+                    "title": "Lesson 1: The Secant, Tangent & Theorem 1 (Right Angle Rule)",
                     "readingTime": "~5 min read",
                     "narrative": """
 <p>Welcome to Class 10 Circles. In lower grades, circles were purely about measuring circumferences and areas. In Class 10, geometry shifts to understanding <strong>relationships</strong> — specifically, how straight lines interact with curved edges.</p>
@@ -65,21 +65,17 @@ def seed_class10_circles():
 
 <p><em>Key Reflex: Any time a board exam question mentions a tangent and a center point, your very first step is to draw the radius and write "90°". That single step earns you your first mark!</em></p>
 """,
-                    "audioText": "Welcome to Class 10 Circles. In Class 10 geometry shifts to understanding relationships between straight lines and curved edges. Imagine riding a bicycle. If your tire sinks in soft mud cutting at two points, it is a Secant. On a hard road touching at one point, it is a Tangent. Theorem 1 states that the tangent at any point is perpendicular to the radius through the point of contact, forming a 90 degree angle.",
-                    "audioTextHinglish": "Class 10 Circles me aapka swagat hai. Bicycle tire soft mud me 2 points par cut kare toh Secant hai, paved road par 1 point par touch kare toh Tangent hai. Theorem 1 kehta hai ki radius point of contact par tangent ke 90 degree perpendicular hoti hai.",
+                    "audioText": "Welcome to Class 10 Circles. Theorem 1 states that the tangent at any point is perpendicular to the radius through the point of contact, forming a 90 degree angle.",
+                    "audioTextHinglish": "Class 10 Circles me aapka swagat hai. Theorem 1 kehta hai ki radius point of contact par tangent ke 90 degree perpendicular hoti hai.",
                     "keyInsight": "The radius drawn to the point of contact of a tangent always forms a 90° right angle (OA ⊥ Tangent).",
                     "widgetType": "Class10CirclesTangentRadiusWidget",
                     "widgetData": {}
                 },
                 {
-                    "title": "Lesson 2: Theorems 2, 3 & 4 (Equal Tangents, Secant Power & Alternate Segment)",
-                    "readingTime": "~7 min read",
+                    "title": "Lesson 2: Theorem 2 (External Point Twin Tangents PA = PB)",
+                    "readingTime": "~5 min read",
                     "narrative": """
-<p>Now that you know how a tangent interacts with a radius, let's master the remaining 3 core theorems of Class 10 Circles across NCERT, ICSE, and State Boards.</p>
-
-<hr class="my-6 border-slate-800"/>
-
-<h2>1. Theorem 2: The External Point Rule (Twin Tangents PA = PB)</h2>
+<h2>Theorem 2: The External Point Rule (Twin Tangents PA = PB)</h2>
 
 <p>From any point <em>outside</em> a circle, you can draw exactly <strong>two tangents</strong>.</p>
 
@@ -93,34 +89,55 @@ def seed_class10_circles():
   <div>• <strong>Conclusion:</strong> By RHS Congruence, ΔOAP ≅ ΔOBP. Therefore, <strong>PA = PB</strong>.</div>
   <div class="text-emerald-400 pt-1">• <strong>Bonus:</strong> Line OP bisects the angle ∠APB (∠APO = ∠BPO).</div>
 </div>
-
-<hr class="my-6 border-slate-800"/>
-
-<h2>2. Theorem 3: Tangent-Secant Power Theorem (PT² = PA · PB)</h2>
+""",
+                    "audioText": "Theorem 2 states that tangent lengths drawn from an external point are equal, PA equals PB, proved via RHS congruence of triangles OAP and OBP.",
+                    "audioTextHinglish": "Theorem 2 me external point se bane twin tangents PA aur PB equal hote hain.",
+                    "keyInsight": "Tangents drawn from an external point to a circle are strictly equal in length: PA = PB.",
+                    "widgetType": "Class10CirclesExternalPointWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 3: Theorem 3 (Tangent-Secant Power Theorem PT² = PA · PB)",
+                    "readingTime": "~5 min read",
+                    "narrative": """
+<h2>Theorem 3: Tangent-Secant Power Theorem (PT² = PA · PB)</h2>
 
 <p>If a tangent PT and a secant line PAB are drawn from an external point P:</p>
 <div class="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-amber-400 text-lg font-bold">
   PT² = PA · PB
 </div>
-<p>The square of the tangent length equals the product of the external and total secant segments.</p>
+<p>The square of the tangent length equals the product of the external secant segment (PA) and the total secant segment (PB).</p>
 
-<hr class="my-6 border-slate-800"/>
-
-<h2>3. Theorem 4: The Alternate Segment Theorem</h2>
-
-<p><em>"The angle between a tangent and a chord drawn through the point of contact is equal to the angle subtended by the chord in the alternate segment."</em></p>
-<div class="my-3 p-3 bg-slate-900 rounded-lg text-center font-mono text-purple-400 font-bold">
-  ∠BAT = ∠BCA
-</div>
+<p>This power-of-a-point theorem is a high-yield formula for calculating missing chord extensions in board exam diagrams.</p>
 """,
-                    "audioText": "In Lesson 2 we master Theorems 2, 3, and 4. Theorem 2 states that tangent lengths drawn from an external point are equal, PA equals PB, proved via RHS congruence of triangles OAP and OBP. Theorem 3 states that PT squared equals PA times PB for a tangent and secant. Theorem 4 states that the angle between a tangent and chord equals the angle in the alternate segment.",
-                    "audioTextHinglish": "Lesson 2 me hum Theorems 2, 3, aur 4 seekhte hain. Theorem 2 me external point se bane twin tangents PA aur PB equal hote hain. Theorem 3 me PT squared equals PA into PB hota hai. Theorem 4 Alternate Segment Theorem kehta hai ki tangent-chord angle alternate segment angle ke barabar hota hai.",
-                    "keyInsight": "PA = PB (Theorem 2), PT² = PA · PB (Theorem 3), and ∠BAT = ∠BCA (Theorem 4) form the complete Class 10 toolkit.",
-                    "widgetType": "Class10CirclesExternalPointWidget",
+                    "audioText": "Theorem 3 states that PT squared equals PA times PB for a tangent PT and secant PAB drawn from an external point P.",
+                    "audioTextHinglish": "Theorem 3 me PT squared equals PA into PB hota hai.",
+                    "keyInsight": "For any tangent PT and secant PAB from external point P: PT² = PA · PB.",
+                    "widgetType": "Class10CirclesTangentSecantWidget",
                     "widgetData": {}
                 },
                 {
-                    "title": "Lesson 3: 10 High-Yield Solved Board Exam Questions",
+                    "title": "Lesson 4: Theorem 4 (The Alternate Segment Theorem)",
+                    "readingTime": "~5 min read",
+                    "narrative": """
+<h2>Theorem 4: The Alternate Segment Theorem</h2>
+
+<p><em>"The angle between a tangent and a chord drawn through the point of contact is equal to the angle subtended by the chord in the alternate segment."</em></p>
+
+<div class="my-4 p-4 bg-slate-900 rounded-xl border border-slate-800 font-mono text-center text-purple-400 text-xl font-bold">
+  ∠BAT = ∠BCA
+</div>
+
+<p>This is the ultimate ICSE and State Board shortcut for finding missing angles in complex circle diagrams without having to draw lines to the center!</p>
+""",
+                    "audioText": "Theorem 4 states that the angle between a tangent and chord equals the angle subtended by the chord in the alternate segment.",
+                    "audioTextHinglish": "Theorem 4 Alternate Segment Theorem kehta hai ki tangent-chord angle alternate segment angle ke barabar hota hai.",
+                    "keyInsight": "The angle between a tangent and chord at contact point A strictly equals the angle subtended in the alternate segment: ∠BAT = ∠BCA.",
+                    "widgetType": "Class10CirclesAlternateSegmentWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 5: 10 High-Yield Solved Board Exam Questions",
                     "readingTime": "~10 min read",
                     "narrative": """
 <p>Here are <strong>10 Classic Board Exam Questions</strong> with complete step-by-step solutions covering all 4 theorems.</p>
@@ -248,14 +265,14 @@ def seed_class10_circles():
   <div class="text-emerald-400 font-bold">• ∠BCA = 55°.</div>
 </div>
 """,
-                    "audioText": "In Lesson 3 we work through 10 high yield solved board exam questions covering Pythagorean tangent calculations, circumscribed quadrilaterals, concentric circle chords, and alternate segment angles.",
-                    "audioTextHinglish": "Lesson 3 me hum 10 high yield solved board exam questions step by step solve karte hain.",
+                    "audioText": "In Lesson 5 we work through 10 high yield solved board exam questions covering all 4 theorems.",
+                    "audioTextHinglish": "Lesson 5 me hum 10 high yield solved board exam questions step by step solve karte hain.",
                     "keyInsight": "Review all 10 solved board exam questions before taking the qualification exam.",
                     "widgetType": "Class10CirclesTangentRadiusWidget",
                     "widgetData": {}
                 },
                 {
-                    "title": "Lesson 4: Class 10 Circles Master Qualification Exam (80% Pass Mark)",
+                    "title": "Lesson 6: Class 10 Circles Master Qualification Exam (80% Pass Mark)",
                     "readingTime": "~10 min exam",
                     "narrative": """
 <p>Congratulations on mastering Class 10 Circles!</p>
@@ -274,8 +291,8 @@ def seed_class10_circles():
   </ul>
 </div>
 """,
-                    "audioText": "Lesson 4 is your official Class 10 Circles Qualification Test. Answer 10 board exam MCQs and score 80 percent or higher to earn your chapter badge.",
-                    "audioTextHinglish": "Lesson 4 aapka Class 10 Qualification Test hai. 10 MCQs me se 80% score karein aur chapter completion badge unlock karein.",
+                    "audioText": "Lesson 6 is your official Class 10 Circles Qualification Test. Answer 10 board exam MCQs and score 80 percent or higher to earn your chapter badge.",
+                    "audioTextHinglish": "Lesson 6 aapka Class 10 Qualification Test hai. 10 MCQs me se 80% score karein aur chapter completion badge unlock karein.",
                     "keyInsight": "Score 80%+ to complete Class 10 Circles!",
                     "widgetType": "Class10CirclesMCQExamWidget",
                     "widgetData": {}
