@@ -17,7 +17,7 @@ def get_db():
 
 @learning_api_router.get("/classes")
 def get_classes(db: Session = Depends(get_db)):
-    classes = db.query(LearningClass).order_by(LearningClass.level.desc()).all()
+    classes = db.query(LearningClass).order_by(LearningClass.level.asc()).all()
     return {"status": "success", "classes": [{"id": c.id, "name": c.name, "level": c.level} for c in classes]}
 
 @learning_api_router.get("/subjects")

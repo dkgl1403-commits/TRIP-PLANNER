@@ -4,7 +4,7 @@ from db import SessionLocal, LearningClass, LearningSubject, LearningTopic
 def seed_trade_lifecycle():
     db = SessionLocal()
     try:
-        class_master = db.query(LearningClass).filter_by(level=11, name="Masterclass").first()
+        class_master = db.query(LearningClass).filter_by(level=99, name="Masterclass").first()
         if not class_master:
             print("Masterclass not found.")
             return

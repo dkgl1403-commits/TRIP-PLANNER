@@ -4,7 +4,7 @@ from db import SessionLocal, LearningClass, LearningSubject, LearningTopic
 def seed_ai_masterclass_part9():
     db = SessionLocal()
     try:
-        class_11 = db.query(LearningClass).filter_by(level=11, name="Masterclass").first()
+        class_11 = db.query(LearningClass).filter_by(level=99, name="Masterclass").first()
         if not class_11:
             return
 

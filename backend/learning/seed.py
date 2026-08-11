@@ -430,7 +430,7 @@ def seed_curriculum():
     
     curriculum = [
         {
-            "class_level": 11,
+            "class_level": 99,
             "class_name": "Masterclass",
             "subjects": [
                 {

@@ -4,7 +4,7 @@ from db import SessionLocal, LearningClass, LearningSubject, LearningTopic
 def seed_ai_taxonomy():
     db = SessionLocal()
     try:
-        class_11 = db.query(LearningClass).filter_by(level=11, name="Masterclass").first()
+        class_11 = db.query(LearningClass).filter_by(level=99, name="Masterclass").first()
         if not class_11:
             return
 
@@ -38,6 +38,16 @@ def seed_ai_taxonomy():
                     "audioText": "Machine Learning is a sub-field of AI where we stop giving the computer hard-coded rules and instead give it data. It mathematically figures out the patterns itself, like how Netflix recommends movies.",
                     "audioTextHinglish": "Machine Learning AI ka sub-field hai jahan hum computer ko rules nahi, data dete hain. Wo khud patterns samajhta hai, jaise Netflix aapko movies recommend karta hai.",
                     "keyInsight": "Machine Learning is when computers figure out the rules themselves by looking at data.",
+                    "widgetType": None,
+                    "widgetData": {}
+                },
+                {
+                    "title": "XGBoost: The Competition Winner",
+                    "readingTime": "~3 min read",
+                    "narrative": "<p>While neural networks often steal the spotlight, one traditional Machine Learning algorithm completely dominates structured data (like spreadsheets and databases): <strong>XGBoost (eXtreme Gradient Boosting)</strong>.</p><p>It is based on <em>Decision Trees</em>. But instead of one tree, it builds hundreds of them sequentially. Each new tree specifically tries to correct the errors made by all the previous trees combined. This chain of correction is called <em>Gradient Boosting</em>.</p><p>XGBoost became legendary around 2014 by winning nearly every major data science competition on Kaggle. It features built-in handling for missing data, parallel processing for speed, and strict regularization (L1/L2) to prevent overfitting. Today, if a bank is calculating your credit risk, a logistics company is pricing a shipment, or a security firm is detecting credit card fraud, they are almost certainly using XGBoost, not a deep neural network.</p>",
+                    "audioText": "While neural networks get the hype, a traditional Machine Learning algorithm called XGBoost dominates structured data like spreadsheets. Instead of one decision tree, it builds hundreds sequentially, with each new tree correcting the errors of the previous ones. It is legendary for winning data science competitions and is used by banks for credit risk and companies for fraud detection.",
+                    "audioTextHinglish": "Jabki neural networks kaafi popular hain, ek traditional Machine Learning algorithm jiska naam XGBoost hai, structured data par raaj karta hai. Ye decision trees ka use karta hai, jahan har naya tree purane trees ki galtiyon ko theek karta hai. Banks aur companies credit risk aur fraud detection ke liye isi ka use karte hain.",
+                    "keyInsight": "For unstructured data (text/images), use Deep Learning. For structured data (spreadsheets), XGBoost is usually the undefeated champion.",
                     "widgetType": None,
                     "widgetData": {}
                 },
@@ -100,6 +110,11 @@ def seed_ai_taxonomy():
                                 "q": "Where does Deep Learning fit in the taxonomy?",
                                 "options": ["It is a sub-field of Machine Learning that uses neural networks", "It is older than AI", "It is only used for text generation", "It is the umbrella term for all smart programs"],
                                 "correct": 0
+                            },
+                            {
+                                "q": "Which algorithm is generally considered the 'undefeated champion' for predicting outcomes from structured data (like spreadsheets or SQL databases)?",
+                                "options": ["Large Language Models", "XGBoost", "Symbolic AI", "Computer Vision"],
+                                "correct": 1
                             }
                         ]
                     }
