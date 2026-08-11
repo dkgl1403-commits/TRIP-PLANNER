@@ -6,6 +6,7 @@ function LearningDashboard({ user, onBack }) {
   const [subjects, setSubjects] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  const [classSearch, setClassSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,6 +21,10 @@ function LearningDashboard({ user, onBack }) {
         setLoading(false);
       });
   }, []);
+
+  const filteredClasses = classes.filter(c => 
+    c.name.toLowerCase().includes(classSearch.toLowerCase())
+  );
 
   const handleClassSelect = (classId) => {
     setSelectedClassId(classId);
@@ -66,9 +71,38 @@ function LearningDashboard({ user, onBack }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Class Selection */}
           <div className="bg-surface-container-high rounded-2xl p-6 border border-glass-stroke shadow-xl">
-            <h2 className="text-2xl font-bold mb-4">1. Select Class</h2>
-            <div className="flex flex-col gap-3">
-              {classes.map(c => (
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">1. Select Class</h2>
+              <span className="text-xs text-on-surface-variant">{filteredClasses.length} available</span>
+            </div>
+
+            {/* Search Filter */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="🔍 Search Class (e.g. Class 11, Masterclass)..."
+                value={classSearch}
+                onChange={(e) => setClassSearch(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-surface-variant text-on-surface border border-glass-stroke focus:outline-none focus:border-neon-coral text-sm transition-all"
+              />
+            </div>
+
+            {/* Dropdown Select for Mobile/Admin + Button List */}
+            <div className="mb-4 md:hidden">
+              <select
+                value={selectedClassId || ''}
+                onChange={(e) => handleClassSelect(e.target.value)}
+                className="w-full p-3 rounded-xl bg-surface-variant text-on-surface border border-glass-stroke font-title-md"
+              >
+                <option value="" disabled>-- Select a Class --</option>
+                {filteredClasses.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-1">
+              {filteredClasses.map(c => (
                 <button
                   key={c.id}
                   onClick={() => handleClassSelect(c.id)}
@@ -81,7 +115,7 @@ function LearningDashboard({ user, onBack }) {
                   {c.name}
                 </button>
               ))}
-              {classes.length === 0 && <p className="text-on-surface-variant">No classes available.</p>}
+              {filteredClasses.length === 0 && <p className="text-on-surface-variant text-sm italic">No classes matching "{classSearch}"</p>}
             </div>
           </div>
 
