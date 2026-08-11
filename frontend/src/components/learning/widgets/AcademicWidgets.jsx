@@ -74,6 +74,14 @@ import {
 } from './Class12Widgets';
 
 import {
+  Class10CirclesTangentRadiusWidget,
+  Class10CirclesExternalPointWidget,
+  Class10CirclesTangentSecantWidget,
+  Class10CirclesAlternateSegmentWidget,
+  Class10CirclesMCQExamWidget
+} from './Class10CirclesWidgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1504,5 +1512,10 @@ export const WidgetRegistry = {
   'Class11SetTheoryMCQExamWidget': Class11SetTheoryMCQExamWidget,
   'DetectiveBayesSimulatorWidget': DetectiveBayesSimulatorWidget,
   'MedicalFalsePositiveCalculatorWidget': MedicalFalsePositiveCalculatorWidget,
-  'Class12ProbabilityMCQExamWidget': Class12ProbabilityMCQExamWidget
+  'Class12ProbabilityMCQExamWidget': Class12ProbabilityMCQExamWidget,
+  'Class10CirclesTangentRadiusWidget': Class10CirclesTangentRadiusWidget,
+  'Class10CirclesExternalPointWidget': Class10CirclesExternalPointWidget,
+  'Class10CirclesTangentSecantWidget': Class10CirclesTangentSecantWidget,
+  'Class10CirclesAlternateSegmentWidget': Class10CirclesAlternateSegmentWidget,
+  'Class10CirclesMCQExamWidget': Class10CirclesMCQExamWidget
 };
