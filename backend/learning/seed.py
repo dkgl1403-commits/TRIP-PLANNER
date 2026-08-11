@@ -28,6 +28,7 @@ from seed_corporate_actions import seed_corporate_actions
 from seed_trade_lifecycle import seed_trade_lifecycle
 from seed_class9_probability import seed_class9_probability
 from seed_class10_probability import seed_class10_probability
+from seed_class11_12 import seed_class11_12_structure
 
 def seed_trigonometry():
     init_db()
@@ -811,9 +812,32 @@ if __name__ == "__main__":
     seed_ai_masterclass_part13()
     seed_ai_remaining()
     seed_ai_masterclass_part14()
+if __name__ == "__main__":
+    seed_curriculum()
+    seed_trigonometry()
+    seed_real_numbers()
+    seed_number_system_class9()
+    seed_number_system_class8_part1()
+    seed_ai_masterclass_part1()
+    seed_ai_masterclass_part2()
+    seed_ai_taxonomy()
+    seed_ai_masterclass_part3()
+    seed_ai_masterclass_part4()
+    seed_ai_masterclass_part5()
+    seed_ai_masterclass_part6()
+    seed_ai_masterclass_part7()
+    seed_ai_masterclass_part8()
+    seed_ai_masterclass_part9()
+    seed_ai_masterclass_part10()
+    seed_ai_masterclass_part11()
+    seed_ai_masterclass_part12()
+    seed_ai_masterclass_part13()
+    seed_ai_remaining()
+    seed_ai_masterclass_part14()
     seed_ai_masterclass_part15()
     seed_agile_framework()
     seed_corporate_actions()
     seed_trade_lifecycle()
     seed_class9_probability()
     seed_class10_probability()
+    seed_class11_12_structure()

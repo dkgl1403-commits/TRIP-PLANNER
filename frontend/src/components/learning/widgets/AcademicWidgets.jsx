@@ -60,6 +60,12 @@ import {
 } from './AIWidgets';
 
 import {
+  SetTheoryVennDiagramExplorerWidget,
+  Class11AdditionTheoremWidget,
+  Class11EdgeCasesWidget
+} from './Class11Widgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1482,5 +1488,8 @@ export const WidgetRegistry = {
   'TwoDiceSampleSpace': TwoDiceSampleSpaceWidget,
   'ComplementaryEventBag': ComplementaryEventBagWidget,
   'LeapYearPuzzle': LeapYearPuzzleWidget,
-  'ProbabilityMCQPractice': ProbabilityMCQPracticeWidget
+  'ProbabilityMCQPractice': ProbabilityMCQPracticeWidget,
+  'SetTheoryVennDiagramExplorerWidget': SetTheoryVennDiagramExplorerWidget,
+  'Class11AdditionTheoremWidget': Class11AdditionTheoremWidget,
+  'Class11EdgeCasesWidget': Class11EdgeCasesWidget
 };
