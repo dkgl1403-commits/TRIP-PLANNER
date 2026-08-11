@@ -90,6 +90,14 @@ import {
 } from './Class9CirclesWidgets';
 
 import {
+  Class7RectSquareAreaWidget,
+  Class7ParallelogramTriangleWidget,
+  Class7CircleCircumferenceAreaWidget,
+  Class7PathwayBorderWidget,
+  Class7PerimeterAreaMCQExamWidget
+} from './Class7PerimeterAreaWidgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1530,5 +1538,10 @@ export const WidgetRegistry = {
   'Class9CirclesEqualChordsWidget': Class9CirclesEqualChordsWidget,
   'Class9CirclesStarTrekAngleWidget': Class9CirclesStarTrekAngleWidget,
   'Class9CirclesCyclicQuadWidget': Class9CirclesCyclicQuadWidget,
-  'Class9CirclesMCQExamWidget': Class9CirclesMCQExamWidget
+  'Class9CirclesMCQExamWidget': Class9CirclesMCQExamWidget,
+  'Class7RectSquareAreaWidget': Class7RectSquareAreaWidget,
+  'Class7ParallelogramTriangleWidget': Class7ParallelogramTriangleWidget,
+  'Class7CircleCircumferenceAreaWidget': Class7CircleCircumferenceAreaWidget,
+  'Class7PathwayBorderWidget': Class7PathwayBorderWidget,
+  'Class7PerimeterAreaMCQExamWidget': Class7PerimeterAreaMCQExamWidget
 };
