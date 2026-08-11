@@ -319,3 +319,231 @@ export function Class11EdgeCasesWidget() {
     </div>
   );
 }
+
+// ─── WIDGET 4: Class 11 Master MCQ Practice Exam with 80% Passing Criteria ───
+export function Class11ProbabilityMCQExamWidget() {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selectedOpt, setSelectedOpt] = useState(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const questions = [
+    {
+      id: 1,
+      text: "If P(A) = 0.60, P(B) = 0.50, and P(A ∩ B) = 0.30, what is P(A ∪ B)?",
+      options: ["A) 0.80", "B) 1.10", "C) 0.50", "D) 0.70"],
+      correctIdx: 0,
+      explanation: "Using the Addition Theorem: P(A ∪ B) = P(A) + P(B) - P(A ∩ B) = 0.60 + 0.50 - 0.30 = 0.80."
+    },
+    {
+      id: 2,
+      text: "What is the probability of 'A but NOT B', written as P(A ∩ B')?",
+      options: ["A) P(A) - P(B)", "B) P(A) - P(A ∩ B)", "C) P(A ∪ B) - P(B)", "D) 1 - P(A ∩ B)"],
+      correctIdx: 1,
+      explanation: "The 'Crescent Moon' formula: P(A ∩ B') = P(A) - P(A ∩ B)."
+    },
+    {
+      id: 3,
+      text: "If two events A and B are Mutually Exclusive, what is P(A ∩ B)?",
+      options: ["A) 1", "B) 0.5", "C) 0", "D) P(A) · P(B)"],
+      correctIdx: 2,
+      explanation: "Mutually Exclusive events cannot happen simultaneously, so their intersection P(A ∩ B) = 0."
+    },
+    {
+      id: 4,
+      text: "Events A, B, and C are Mutually Exclusive and Exhaustive. If P(A) = 0.35 and P(B) = 0.40, what is P(C)?",
+      options: ["A) 0.25", "B) 0.75", "C) 0.15", "D) 0.35"],
+      correctIdx: 0,
+      explanation: "For MEE events, P(A) + P(B) + P(C) = 1.0. Thus, P(C) = 1.0 - 0.35 - 0.40 = 0.25."
+    },
+    {
+      id: 5,
+      text: "Which of Kolmogorov's Axioms states that P(S) = 1 for the Sample Space S?",
+      options: ["A) Axiom of Positivity", "B) Axiom of Certainty", "C) Axiom of Additivity", "D) Axiom of Independence"],
+      correctIdx: 1,
+      explanation: "The Axiom of Certainty establishes that the probability of the entire sample space happening is 100% (1.0)."
+    },
+    {
+      id: 6,
+      text: "In Set Theory notation, if Event A represents drawing a Red Card and Event B represents drawing a King, what does A ∩ B represent?",
+      options: ["A) Any Red Card or any King", "B) Red Kings (King of Hearts & King of Diamonds)", "C) Black Kings only", "D) Cards that are neither Red nor Kings"],
+      correctIdx: 1,
+      explanation: "Intersection ∩ represents elements that satisfy BOTH criteria: Red AND King."
+    },
+    {
+      id: 7,
+      text: "If P(A) = 0.7, what is the probability of the complement event P(A')?",
+      options: ["A) 0.7", "B) -0.7", "C) 0.3", "D) 0"],
+      correctIdx: 2,
+      explanation: "P(A') = 1 - P(A) = 1 - 0.7 = 0.3."
+    },
+    {
+      id: 8,
+      text: "In a class of 100 students, 60 study Math, 50 study Physics, and 30 study both. How many study NEITHER Math nor Physics?",
+      options: ["A) 20", "B) 10", "C) 30", "D) 40"],
+      correctIdx: 0,
+      explanation: "P(Math ∪ Physics) = 60 + 50 - 30 = 80 students. Neither = Total - 80 = 100 - 80 = 20 students."
+    },
+    {
+      id: 9,
+      text: "Why is P(A ∪ B) NOT equal to P(A) + P(B) when events overlap?",
+      options: ["A) Because probabilities cannot exceed 1", "B) Because the overlapping section P(A ∩ B) gets double-counted", "C) Because Set Theory requires subtraction", "D) Because sample space changes"],
+      correctIdx: 1,
+      explanation: "Simply adding P(A) and P(B) counts the middle intersection twice. We subtract P(A ∩ B) to correct this double-counting."
+    },
+    {
+      id: 10,
+      text: "If event E is impossible, what is its probability under Kolmogorov's Axioms?",
+      options: ["A) 0", "B) 1", "C) -1", "D) Undefined"],
+      correctIdx: 0,
+      explanation: "An impossible event has a probability of 0, satisfying P(E) ≥ 0."
+    }
+  ];
+
+  const passingThreshold = 80; // 80% needed to pass
+  const passScore = Math.ceil((questions.length * passingThreshold) / 100);
+
+  const handleSelect = (idx) => {
+    if (isAnswered) return;
+    setSelectedOpt(idx);
+    setIsAnswered(true);
+    if (idx === questions[currentIdx].correctIdx) {
+      setScore(prev => prev + 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx(prev => prev + 1);
+      setSelectedOpt(null);
+      setIsAnswered(false);
+    } else {
+      setIsSubmitted(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentIdx(0);
+    setSelectedOpt(null);
+    setScore(0);
+    setIsAnswered(false);
+    setIsSubmitted(false);
+  };
+
+  const currentQ = questions[currentIdx];
+  const percentage = Math.round((score / questions.length) * 100);
+  const isPassed = percentage >= passingThreshold;
+
+  return (
+    <div className={`w-full flex flex-col p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${isFullscreen ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl h-full'}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-amber-400 font-bold uppercase text-[11px] tracking-wider block font-mono">Chapter 2 Mastery Exam</span>
+          <h2 className="text-xl md:text-2xl font-bold text-white">Class 11 Board Exam Qualification (80% Pass Mark)</h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            Score at least {passingThreshold}% ({passScore}/{questions.length}) to complete this chapter!
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-amber-950 text-amber-300 border border-amber-800 font-mono font-bold text-xs rounded-xl">
+            Score: {score} / {questions.length}
+          </span>
+          <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all">
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {!isSubmitted ? (
+        <>
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-950 rounded-full h-2 mb-6 overflow-hidden border border-slate-800">
+            <div className="bg-gradient-to-r from-amber-500 to-emerald-500 h-full transition-all duration-300" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
+          </div>
+
+          {/* Question Card */}
+          <div className="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-6 font-mono text-xs shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3 font-sans">
+              <span className="text-amber-400 font-bold text-xs">Question {currentIdx + 1} of {questions.length}</span>
+              <span className="text-slate-400 text-xs">Required: 80%+</span>
+            </div>
+
+            <h3 className="text-base font-bold text-white font-sans leading-relaxed">{currentQ.text}</h3>
+
+            {/* Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQ.options.map((opt, idx) => {
+                let btnStyle = 'bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800';
+                if (isAnswered) {
+                  if (idx === currentQ.correctIdx) {
+                    btnStyle = 'bg-emerald-950 border-emerald-500 text-emerald-200 font-bold shadow-lg';
+                  } else if (idx === selectedOpt) {
+                    btnStyle = 'bg-rose-950 border-rose-500 text-rose-200 font-bold';
+                  } else {
+                    btnStyle = 'bg-slate-900 border-slate-800 text-slate-500 opacity-60';
+                  }
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelect(idx)}
+                    disabled={isAnswered}
+                    className={`p-3.5 rounded-xl border text-left font-sans text-xs transition-all ${btnStyle}`}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Explanation Box */}
+            {isAnswered && (
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2 font-sans">
+                <div className="text-emerald-400 font-bold text-xs flex items-center gap-1">
+                  <span>💡 Step-by-Step Solution:</span>
+                </div>
+                <p className="text-slate-300 text-xs leading-relaxed">{currentQ.explanation}</p>
+                <div className="pt-2 flex justify-end">
+                  <button onClick={handleNextQuestion} className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg">
+                    {currentIdx < questions.length - 1 ? 'Next Question →' : 'Submit & Check Result'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        /* Results Screen */
+        <div className="bg-slate-950 border border-slate-800 p-8 rounded-2xl text-center space-y-6">
+          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center border-2 ${isPassed ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-rose-500/20 border-rose-500 text-rose-400'}`}>
+            <span className="text-4xl">{isPassed ? '🎓' : '⚠️'}</span>
+          </div>
+
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-2">{isPassed ? 'Congratulations! Chapter Mastered!' : 'Passing Requirement Not Met'}</h3>
+            <p className="text-slate-300 text-sm">
+              Your Score: <strong className="text-amber-400">{score} / {questions.length}</strong> ({percentage}%)
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Passing criteria requires at least 80% ({passScore} correct answers).</p>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs text-slate-300 max-w-md mx-auto">
+            {isPassed ? (
+              <span className="text-emerald-400 font-semibold">🎉 You have successfully qualified and completed Chapter 2: Class 11 Probability!</span>
+            ) : (
+              <span className="text-rose-400 font-semibold">Keep practicing! Review the lessons and try the exam again to achieve your 80% completion badge.</span>
+            )}
+          </div>
+
+          <button onClick={handleRestart} className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-xl">
+            Retake Practice Exam 🔄
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

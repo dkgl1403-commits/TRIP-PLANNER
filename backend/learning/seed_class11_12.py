@@ -312,6 +312,94 @@ Examiners love events that are Mutually Exclusive AND Exhaustive (MEE). If event
                     "keyInsight": "Mastering Crescent Moon (A - B), MEE events, and Kolmogorov's Axioms equips you for Section C board exam questions.",
                     "widgetType": "Class11EdgeCasesWidget",
                     "widgetData": {}
+                },
+                {
+                    "title": "Lesson 3: High-Yield Solved Board Exam Examples",
+                    "readingTime": "~6 min read",
+                    "narrative": """
+<p>Theory is only half the battle. Let's walk step-by-step through <strong>3 Classic Class 11 Board Exam Questions</strong> with complete detailed solutions.</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3 class="text-amber-400 font-bold">Solved Example 1: The Dual-Subject Student Problem</h3>
+<div class="my-3 p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+  <p className="text-slate-200"><strong>Problem:</strong> In a class of 60 students, 30 opted for NCC, 32 opted for NSS, and 24 opted for both NCC and NSS. If one student is selected at random, find the probability that:</p>
+  <ol class="list-decimal list-inside text-slate-300 text-sm space-y-1">
+    <li>The student opted for NCC or NSS.</li>
+    <li>The student opted for Neither NCC nor NSS.</li>
+    <li>The student opted for NSS ONLY.</li>
+  </ol>
+</div>
+
+<div class="my-4 p-4 bg-slate-950 border border-emerald-500/30 rounded-xl space-y-3 font-mono text-xs">
+  <div class="text-emerald-400 font-bold text-sm">Detailed Solution:</div>
+  <p>Let N = Set of students opting for NCC, and S = Set of students opting for NSS.</p>
+  <p>Total sample space n(S_total) = 60.</p>
+  <p>P(N) = 30/60 = 0.50, P(S) = 32/60 = 0.5333, P(N ∩ S) = 24/60 = 0.40.</p>
+  
+  <hr class="border-slate-800 my-2"/>
+
+  <p><strong>Part (i): P(NCC or NSS) = P(N ∪ S)</strong></p>
+  <p class="text-amber-300 font-bold">P(N ∪ S) = P(N) + P(S) - P(N ∩ S) = 30/60 + 32/60 - 24/60 = 38/60 = 19/30 ≈ 0.633</p>
+
+  <p><strong>Part (ii): P(Neither NCC nor NSS) = P((N ∪ S)')</strong></p>
+  <p class="text-amber-300 font-bold">P(Neither) = 1 - P(N ∪ S) = 1 - 38/60 = 22/60 = 11/30 ≈ 0.367</p>
+
+  <p><strong>Part (iii): P(NSS Only) = P(S ∩ N')</strong></p>
+  <p class="text-amber-300 font-bold">P(S ∩ N') = P(S) - P(N ∩ S) = 32/60 - 24/60 = 8/60 = 2/15 ≈ 0.133</p>
+</div>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3 class="text-sky-400 font-bold">Solved Example 2: The Three Mutually Exclusive Events</h3>
+<div class="my-3 p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+  <p className="text-slate-200"><strong>Problem:</strong> Three events A, B, and C are mutually exclusive and exhaustive. Find P(A) if P(B) = 1.5 · P(A) and P(C) = 0.5 · P(B).</p>
+</div>
+
+<div class="my-4 p-4 bg-slate-950 border border-emerald-500/30 rounded-xl space-y-3 font-mono text-xs">
+  <div class="text-emerald-400 font-bold text-sm">Detailed Solution:</div>
+  <p>Since A, B, and C are Mutually Exclusive and Exhaustive (MEE), their sum is 1:</p>
+  <div class="p-2 bg-slate-900 text-center font-bold text-amber-400 text-sm">P(A) + P(B) + P(C) = 1</div>
+  <p>Express P(B) and P(C) in terms of P(A):</p>
+  <p>P(B) = 1.5 · P(A)</p>
+  <p>P(C) = 0.5 · P(B) = 0.5 · (1.5 · P(A)) = 0.75 · P(A)</p>
+  <p>Substitute into the MEE equation:</p>
+  <p>P(A) + 1.5 P(A) + 0.75 P(A) = 1</p>
+  <p>3.25 P(A) = 1  ==&gt;  (13/4) P(A) = 1</p>
+  <p class="text-amber-300 font-bold text-sm">P(A) = 4/13 ≈ 0.3077</p>
+</div>
+""",
+                    "audioText": "In Lesson 3, we work through high yield board exam examples. In Example 1, we calculate P of NCC or NSS by applying the Addition Theorem, finding 19 over 30. In Example 2, we use the rule that Mutually Exclusive and Exhaustive events sum to 1 to solve for P of A.",
+                    "audioTextHinglish": "Lesson 3 me hum high-yield board exam examples solve karte hain. Example 1 me hum Addition Theorem ka use karke 19 by 30 nikalte hain. Example 2 me Mutually Exclusive and Exhaustive events ka sum 1.0 karke P of A calculate karte hain.",
+                    "keyInsight": "Always set up P(A ∪ B) = P(A) + P(B) - P(A ∩ B) and identify MEE rules before starting calculations.",
+                    "widgetType": "Class11AdditionTheoremWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 4: Master Practice Exam (80% Passing Mark)",
+                    "readingTime": "~10 min exam",
+                    "narrative": """
+<p>Congratulations on completing the core concepts of Class 11 Probability!</p>
+
+<p>To officially earn your chapter completion badge, you must pass the <strong>Class 11 Board Exam Qualification Test</strong> below.</p>
+
+<div class="my-4 p-4 bg-slate-900 border-2 border-amber-500/40 rounded-2xl space-y-3">
+  <div class="flex items-center gap-2 text-amber-400 font-bold text-base">
+    <span class="material-symbols-outlined">workspace_premium</span>
+    <span>Chapter Completion Requirement</span>
+  </div>
+  <ul class="text-xs md:text-sm text-slate-300 space-y-1 list-disc list-inside">
+    <li><strong>10 High-Yield MCQs</strong> covering Set Theory translations, Addition Theorem, Crescent Moon, and Kolmogorov's Axioms.</li>
+    <li><strong>Passing Score: 80% or higher</strong> (at least 8 out of 10 correct).</li>
+    <li>Step-by-step solutions are provided after every single answer!</li>
+  </ul>
+</div>
+""",
+                    "audioText": "Lesson 4 is your official Class 11 Board Exam Qualification Test. Answer 10 high yield multiple choice questions. You must score 80% or higher, which means 8 out of 10, to pass and earn your chapter completion badge.",
+                    "audioTextHinglish": "Lesson 4 aapka official Class 11 Qualification Test hai. 10 high-yield multiple choice questions ka answer dein. Chapter completion badge paane ke liye aapko kam se kam 80% yani 8 out of 10 score karna hoga.",
+                    "keyInsight": "Score 80%+ to achieve full chapter completion!",
+                    "widgetType": "Class11ProbabilityMCQExamWidget",
+                    "widgetData": {}
                 }
             ]
         }
