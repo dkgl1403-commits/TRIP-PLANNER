@@ -82,6 +82,14 @@ import {
 } from './Class10CirclesWidgets';
 
 import {
+  Class9CirclesPerpendicularBisectorWidget,
+  Class9CirclesEqualChordsWidget,
+  Class9CirclesStarTrekAngleWidget,
+  Class9CirclesCyclicQuadWidget,
+  Class9CirclesMCQExamWidget
+} from './Class9CirclesWidgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1517,5 +1525,10 @@ export const WidgetRegistry = {
   'Class10CirclesExternalPointWidget': Class10CirclesExternalPointWidget,
   'Class10CirclesTangentSecantWidget': Class10CirclesTangentSecantWidget,
   'Class10CirclesAlternateSegmentWidget': Class10CirclesAlternateSegmentWidget,
-  'Class10CirclesMCQExamWidget': Class10CirclesMCQExamWidget
+  'Class10CirclesMCQExamWidget': Class10CirclesMCQExamWidget,
+  'Class9CirclesPerpendicularBisectorWidget': Class9CirclesPerpendicularBisectorWidget,
+  'Class9CirclesEqualChordsWidget': Class9CirclesEqualChordsWidget,
+  'Class9CirclesStarTrekAngleWidget': Class9CirclesStarTrekAngleWidget,
+  'Class9CirclesCyclicQuadWidget': Class9CirclesCyclicQuadWidget,
+  'Class9CirclesMCQExamWidget': Class9CirclesMCQExamWidget
 };

@@ -28,6 +28,7 @@ from seed_corporate_actions import seed_corporate_actions
 from seed_trade_lifecycle import seed_trade_lifecycle
 from seed_class9_probability import seed_class9_probability
 from seed_class10_probability import seed_class10_probability
+from seed_class9_circles import seed_class9_circles
 from seed_class10_circles import seed_class10_circles
 from seed_class11_12 import seed_class11_12_structure
 
@@ -841,5 +842,6 @@ if __name__ == "__main__":
     seed_trade_lifecycle()
     seed_class9_probability()
     seed_class10_probability()
+    seed_class9_circles()
     seed_class10_circles()
     seed_class11_12_structure()
