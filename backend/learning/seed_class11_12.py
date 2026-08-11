@@ -74,11 +74,11 @@ def seed_class11_12_structure():
             "type": "narrative",
             "parts": [
                 {
-                    "title": "Lesson 1: The Master Key of Class 11 Mathematics",
+                    "title": "Lesson 1: What is a Set & The Master Key of Class 11",
                     "readingTime": "~4 min read",
                     "narrative": """
 <p>Welcome to Class 11. Up until now in school, you have spent years working with single numbers, simple equations, and basic geometric shapes.</p>
-<p>In Class 11, mathematics transforms. We stop looking at individual numbers and start working with <strong>collections of data</strong> called <strong>Sets</strong>. Set Theory is literally Chapter 1 of your Class 11 curriculum for a reason—it is the master key that unlocks Relations, Functions, Calculus, and Probability.</p>
+<p>In Class 11, mathematics transforms. We stop looking at individual numbers and start working with <strong>collections of data</strong> called <strong>Sets</strong>. Set Theory is Chapter 1 of your Class 11 curriculum for a reason—it is the master key that unlocks Relations, Functions, Calculus, and Probability.</p>
 
 <h3>What is a Set?</h3>
 <p>A <strong>Set</strong> is a well-defined collection of distinct objects. "Well-defined" means there must be no ambiguity about whether an element belongs to the collection or not.</p>
@@ -124,13 +124,130 @@ def seed_class11_12_structure():
     </tr>
   </tbody>
 </table>
-
-<p>The genius of the Class 11 curriculum is that by mastering Sets first, you transition from simple arithmetic to <strong>logical data grouping</strong>.</p>
 """,
-                    "audioText": "Welcome to Class 11. Up until now in school, you have spent years working with single numbers and simple equations. In Class 11, mathematics transforms. We stop looking at individual numbers and start working with collections of data called Sets. Set Theory is Chapter 1 of your Class 11 curriculum because it is the master key that unlocks Relations, Functions, Calculus, and Probability. A Set is a well-defined collection of distinct objects.",
-                    "audioTextHinglish": "Class 11 me aapka swagat hai. Ab tak school me aap single numbers aur simple equations par kaam karte aaye hain. Class 11 me maths transform hota hai. Hum individual numbers ko dekhna chhod kar collections of data yani Sets par kaam karte hain. Set Theory Class 11 curriculum ka Chapter 1 hai kyunki yeh master key hai jo Relations, Functions, Calculus, aur Probability ko unlock karti hai.",
+                    "audioText": "Welcome to Class 11. Up until now in school, you have spent years working with single numbers and simple equations. In Class 11, mathematics transforms. We stop looking at individual numbers and start working with collections of data called Sets. Set Theory is Chapter 1 of your Class 11 curriculum because it is the master key that unlocks Relations, Functions, Calculus, and Probability.",
+                    "audioTextHinglish": "Class 11 me aapka swagat hai. Ab tak school me aap single numbers aur simple equations par kaam karte aaye hain. Class 11 me maths transform hota hai. Hum individual numbers ko dekhna chhod kar collections of data yani Sets par kaam karte hain.",
                     "keyInsight": "Set theory is not just another chapter — it is the universal language of higher mathematics.",
                     "widgetType": "SetTheoryVennDiagramExplorerWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 2: Types of Sets, Subsets & De Morgan's Laws",
+                    "readingTime": "~5 min read",
+                    "narrative": """
+<p>Now that you know what a Set is, let's explore how sets are classified and the algebraic laws governing them.</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3>1. Essential Types of Sets</h3>
+<ul>
+  <li><strong>Empty / Null Set (Ø or {}):</strong> A set containing zero elements. Example: {x | x is a natural number < 1}.</li>
+  <li><strong>Singleton Set:</strong> A set containing exactly 1 element. Example: {0}.</li>
+  <li><strong>Universal Set (S or U):</strong> The master set containing all possible elements under discussion.</li>
+  <li><strong>Power Set P(A):</strong> The set of all possible subsets of set A. If n(A) = m, then n(P(A)) = 2ᵐ.</li>
+</ul>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3>2. De Morgan's Laws (Board Exam Core)</h3>
+<p>De Morgan's Laws govern how complement operations interact with Union and Intersection:</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+  <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+    <div class="text-amber-400 font-bold font-mono text-base mb-1">Law 1: (A ∪ B)' = A' ∩ B'</div>
+    <p class="text-xs text-slate-300">The complement of a union is the intersection of the individual complements.</p>
+  </div>
+  <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
+    <div class="text-sky-400 font-bold font-mono text-base mb-1">Law 2: (A ∩ B)' = A' ∪ B'</div>
+    <p class="text-xs text-slate-300">The complement of an intersection is the union of the individual complements.</p>
+  </div>
+</div>
+""",
+                    "audioText": "In Lesson 2, we cover types of sets such as empty set, singleton set, and power set. We also learn De Morgan's Laws, which state that the complement of a union equals the intersection of complements.",
+                    "audioTextHinglish": "Lesson 2 me hum empty set, singleton set, aur power set ke baare me padhte hain. Saath hi De Morgan's Laws seekhte hain jo kehne me union ka complement individual complements ke intersection ke barabar hota hai.",
+                    "keyInsight": "If a set has n elements, it has 2ⁿ total subsets, and 2ⁿ - 1 proper subsets.",
+                    "widgetType": "SetTheoryVennDiagramExplorerWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 3: Solved Board Exam Questions on Set Theory",
+                    "readingTime": "~6 min read",
+                    "narrative": """
+<p>Let's solve <strong>2 Classic Class 11 Board Exam Questions</strong> step by step.</p>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3 class="text-amber-400 font-bold">Solved Problem 1: Survey of 400 Students</h3>
+<div class="my-3 p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+  <p className="text-slate-200"><strong>Problem:</strong> In a survey of 400 students in a school, 100 were listed as taking Apple juice, 150 as taking Orange juice, and 75 were listed as taking both Apple and Orange juice. How many students were taking NEITHER Apple nor Orange juice?</p>
+</div>
+
+<div class="my-4 p-4 bg-slate-950 border border-emerald-500/30 rounded-xl space-y-3 font-mono text-xs">
+  <div class="text-emerald-400 font-bold text-sm">Detailed Solution:</div>
+  <p>Let U = Universal set of students surveyed = 400.</p>
+  <p>Let A = set of students taking Apple juice, n(A) = 100.</p>
+  <p>Let B = set of students taking Orange juice, n(B) = 150.</p>
+  <p>n(A ∩ B) = 75 (taking both).</p>
+  
+  <hr class="border-slate-800 my-2"/>
+
+  <p><strong>Step 1: Find students taking AT LEAST ONE juice n(A ∪ B)</strong></p>
+  <p>n(A ∪ B) = n(A) + n(B) - n(A ∩ B)</p>
+  <p>n(A ∪ B) = 100 + 150 - 75 = 175 students.</p>
+
+  <p><strong>Step 2: Find students taking NEITHER juice n((A ∪ B)')</strong></p>
+  <p className="text-amber-300 font-bold">n(Neither) = n(U) - n(A ∪ B) = 400 - 175 = 225 students.</p>
+</div>
+
+<hr class="my-6 border-slate-800"/>
+
+<h3 class="text-sky-400 font-bold">Solved Problem 2: Finding Power Set Size</h3>
+<div class="my-3 p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+  <p className="text-slate-200"><strong>Problem:</strong> Two finite sets have m and n elements. The total number of subsets of the first set is 56 more than the total number of subsets of the second set. Find the values of m and n.</p>
+</div>
+
+<div class="my-4 p-4 bg-slate-950 border border-emerald-500/30 rounded-xl space-y-3 font-mono text-xs">
+  <div class="text-emerald-400 font-bold text-sm">Detailed Solution:</div>
+  <p>Subsets of 1st set = 2ᵐ. Subsets of 2nd set = 2ⁿ.</p>
+  <p>Given equation: 2ᵐ - 2ⁿ = 56</p>
+  <p>Factor out 2ⁿ: 2ⁿ (2ᵐ⁻ⁿ - 1) = 56</p>
+  <p>Write 56 as product of power of 2 and odd number: 56 = 8 × 7 = 2³ × (2³ - 1)</p>
+  <p>Equating components:</p>
+  <p>2ⁿ = 2³  ==&gt;  <strong>n = 3</strong></p>
+  <p>2ᵐ⁻ⁿ - 1 = 7  ==&gt;  2ᵐ⁻³ = 8 = 2³  ==&gt;  m - 3 = 3  ==&gt;  <strong>m = 6</strong></p>
+  <p class="text-amber-300 font-bold text-sm">Final Answer: m = 6, n = 3.</p>
+</div>
+""",
+                    "audioText": "In Lesson 3, we solve step by step board exam problems. Problem 1 shows how to find students drinking neither apple nor orange juice, resulting in 225. Problem 2 solves an algebraic equation for power set sizes giving m equals 6 and n equals 3.",
+                    "audioTextHinglish": "Lesson 3 me hum board exam problems solve karte hain. Problem 1 me neither juice lene wale 225 students nikalte hain. Problem 2 me power set sizes m=6 aur n=3 solve karte hain.",
+                    "keyInsight": "Always express n(A ∪ B) = n(A) + n(B) - n(A ∩ B) before calculating set complement values.",
+                    "widgetType": "SetTheoryVennDiagramExplorerWidget",
+                    "widgetData": {}
+                },
+                {
+                    "title": "Lesson 4: Set Theory Master Qualification Exam (80% Pass Mark)",
+                    "readingTime": "~10 min exam",
+                    "narrative": """
+<p>Congratulations on completing the theory and solved examples of Chapter 1 Set Theory!</p>
+
+<p>To officially earn your chapter completion badge, you must pass the <strong>Class 11 Set Theory Qualification Test</strong> below.</p>
+
+<div class="my-4 p-4 bg-slate-900 border-2 border-amber-500/40 rounded-2xl space-y-3">
+  <div class="flex items-center gap-2 text-amber-400 font-bold text-base">
+    <span class="material-symbols-outlined">workspace_premium</span>
+    <span>Chapter Completion Requirement</span>
+  </div>
+  <ul class="text-xs md:text-sm text-slate-300 space-y-1 list-disc list-inside">
+    <li><strong>10 High-Yield MCQs</strong> covering set representations, subsets, De Morgan's laws, and Venn diagram word problems.</li>
+    <li><strong>Passing Score: 80% or higher</strong> (at least 8 out of 10 correct).</li>
+    <li>Step-by-step solutions are provided after every single answer!</li>
+  </ul>
+</div>
+""",
+                    "audioText": "Lesson 4 is your official Class 11 Set Theory Qualification Test. Answer 10 high yield questions and score 80% or higher to earn your Chapter 1 completion badge.",
+                    "audioTextHinglish": "Lesson 4 aapka Set Theory Qualification Test hai. 10 questions me se kam se kam 80% score karein aur Chapter 1 badge unlock karein.",
+                    "keyInsight": "Score 80%+ to achieve full Chapter 1 completion!",
+                    "widgetType": "Class11SetTheoryMCQExamWidget",
                     "widgetData": {}
                 }
             ]

@@ -147,6 +147,234 @@ export function SetTheoryVennDiagramExplorerWidget() {
   );
 }
 
+// ─── WIDGET 1B: Class 11 Set Theory MCQ Practice Exam (80% Pass Mark) ───
+export function Class11SetTheoryMCQExamWidget() {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selectedOpt, setSelectedOpt] = useState(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const questions = [
+    {
+      id: 1,
+      text: "Which of the following represents a well-defined set in mathematics?",
+      options: ["A) Collection of all good prime numbers", "B) Collection of all vowels in the English alphabet", "C) Collection of all intelligent students in Class 11", "D) Collection of all difficult math topics"],
+      correctIdx: 1,
+      explanation: "A set must be unambiguous. Vowels {a, e, i, o, u} are objectively defined without opinion."
+    },
+    {
+      id: 2,
+      text: "If Set A = {1, 2, 3, 4} and Set B = {3, 4, 5, 6}, what is A ∩ B?",
+      options: ["A) {1, 2, 3, 4, 5, 6}", "B) {3, 4}", "C) {1, 2, 5, 6}", "D) { } (Empty set)"],
+      correctIdx: 1,
+      explanation: "Intersection ∩ contains only the elements present in BOTH sets: 3 and 4."
+    },
+    {
+      id: 3,
+      text: "If Set A = {a, b, c} and Set B = {x, y}, what is the total number of elements in the Cartesian Product A × B?",
+      options: ["A) 5", "B) 6", "C) 8", "D) 9"],
+      correctIdx: 1,
+      explanation: "Number of elements n(A × B) = n(A) × n(B) = 3 × 2 = 6 ordered pairs."
+    },
+    {
+      id: 4,
+      text: "If A = {1, 2, 3} and B = {2, 3, 4}, what is the set difference A - B?",
+      options: ["A) {4}", "B) {1}", "C) {1, 4}", "D) {2, 3}"],
+      correctIdx: 1,
+      explanation: "A - B consists of elements belonging strictly to A and not B. Removing {2,3} from A leaves {1}."
+    },
+    {
+      id: 5,
+      text: "According to De Morgan's Law, what is (A ∪ B)' equal to?",
+      options: ["A) A' ∪ B'", "B) A' ∩ B'", "C) A ∩ B", "D) A' - B'"],
+      correctIdx: 1,
+      explanation: "De Morgan's First Law states: (A ∪ B)' = A' ∩ B' (The complement of union is the intersection of complements)."
+    },
+    {
+      id: 6,
+      text: "How many total subsets can be formed from a set containing n = 4 elements?",
+      options: ["A) 8", "B) 12", "C) 16", "D) 32"],
+      correctIdx: 2,
+      explanation: "The total number of subsets of a set with n elements is 2ⁿ = 2⁴ = 16."
+    },
+    {
+      id: 7,
+      text: "If A ⊆ B (A is a subset of B), what is A ∩ B?",
+      options: ["A) A", "B) B", "C) Universal Set S", "D) Empty Set Ø"],
+      correctIdx: 0,
+      explanation: "If A is entirely contained inside B, the overlapping region is the entire set A itself."
+    },
+    {
+      id: 8,
+      text: "If Set A has 10 elements and Set B has 15 elements, what is the MAXIMUM possible number of elements in A ∩ B?",
+      options: ["A) 5", "B) 10", "C) 15", "D) 25"],
+      correctIdx: 1,
+      explanation: "The intersection cannot exceed the size of the smaller set, so max n(A ∩ B) = 10."
+    },
+    {
+      id: 9,
+      text: "What is the symmetric difference of two sets A and B, denoted as A Δ B?",
+      options: ["A) (A ∪ B) - (A ∩ B)", "B) (A ∩ B) - (A ∪ B)", "C) A' ∩ B'", "D) A ∪ B ∪ S"],
+      correctIdx: 0,
+      explanation: "Symmetric difference A Δ B = (A - B) ∪ (B - A) = (A ∪ B) - (A ∩ B) (Elements in A or B, but NOT both)."
+    },
+    {
+      id: 10,
+      text: "In a class of 50 students, 30 like Tea, 25 like Coffee, and 10 like both. How many students like AT LEAST ONE beverage?",
+      options: ["A) 55", "B) 45", "C) 35", "D) 40"],
+      correctIdx: 1,
+      explanation: "n(Tea ∪ Coffee) = n(Tea) + n(Coffee) - n(Both) = 30 + 25 - 10 = 45 students."
+    }
+  ];
+
+  const passingThreshold = 80;
+  const passScore = Math.ceil((questions.length * passingThreshold) / 100);
+
+  const handleSelect = (idx) => {
+    if (isAnswered) return;
+    setSelectedOpt(idx);
+    setIsAnswered(true);
+    if (idx === questions[currentIdx].correctIdx) {
+      setScore(prev => prev + 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx(prev => prev + 1);
+      setSelectedOpt(null);
+      setIsAnswered(false);
+    } else {
+      setIsSubmitted(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentIdx(0);
+    setSelectedOpt(null);
+    setScore(0);
+    setIsAnswered(false);
+    setIsSubmitted(false);
+  };
+
+  const currentQ = questions[currentIdx];
+  const percentage = Math.round((score / questions.length) * 100);
+  const isPassed = percentage >= passingThreshold;
+
+  return (
+    <div className={`w-full flex flex-col p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${isFullscreen ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl h-full'}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-amber-400 font-bold uppercase text-[11px] tracking-wider block font-mono">Chapter 1 Mastery Exam</span>
+          <h2 className="text-xl md:text-2xl font-bold text-white">Class 11 Set Theory Qualification (80% Pass Mark)</h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            Score at least {passingThreshold}% ({passScore}/{questions.length}) to complete Chapter 1!
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-amber-950 text-amber-300 border border-amber-800 font-mono font-bold text-xs rounded-xl">
+            Score: {score} / {questions.length}
+          </span>
+          <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono text-xs transition-all">
+            {isFullscreen ? '🗗 Exit' : '⛶ Fullscreen'}
+          </button>
+        </div>
+      </div>
+
+      {!isSubmitted ? (
+        <>
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-950 rounded-full h-2 mb-6 overflow-hidden border border-slate-800">
+            <div className="bg-gradient-to-r from-sky-500 to-indigo-500 h-full transition-all duration-300" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
+          </div>
+
+          {/* Question Card */}
+          <div className="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-6 font-mono text-xs shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3 font-sans">
+              <span className="text-amber-400 font-bold text-xs">Question {currentIdx + 1} of {questions.length}</span>
+              <span className="text-slate-400 text-xs">Required: 80%+</span>
+            </div>
+
+            <h3 className="text-base font-bold text-white font-sans leading-relaxed">{currentQ.text}</h3>
+
+            {/* Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQ.options.map((opt, idx) => {
+                let btnStyle = 'bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800';
+                if (isAnswered) {
+                  if (idx === currentQ.correctIdx) {
+                    btnStyle = 'bg-emerald-950 border-emerald-500 text-emerald-200 font-bold shadow-lg';
+                  } else if (idx === selectedOpt) {
+                    btnStyle = 'bg-rose-950 border-rose-500 text-rose-200 font-bold';
+                  } else {
+                    btnStyle = 'bg-slate-900 border-slate-800 text-slate-500 opacity-60';
+                  }
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelect(idx)}
+                    disabled={isAnswered}
+                    className={`p-3.5 rounded-xl border text-left font-sans text-xs transition-all ${btnStyle}`}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Explanation Box */}
+            {isAnswered && (
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2 font-sans">
+                <div className="text-emerald-400 font-bold text-xs flex items-center gap-1">
+                  <span>💡 Step-by-Step Solution:</span>
+                </div>
+                <p className="text-slate-300 text-xs leading-relaxed">{currentQ.explanation}</p>
+                <div className="pt-2 flex justify-end">
+                  <button onClick={handleNextQuestion} className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg">
+                    {currentIdx < questions.length - 1 ? 'Next Question →' : 'Submit & Check Result'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        /* Results Screen */
+        <div className="bg-slate-950 border border-slate-800 p-8 rounded-2xl text-center space-y-6">
+          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center border-2 ${isPassed ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-rose-500/20 border-rose-500 text-rose-400'}`}>
+            <span className="text-4xl">{isPassed ? '🎓' : '⚠️'}</span>
+          </div>
+
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-2">{isPassed ? 'Congratulations! Set Theory Mastered!' : 'Passing Requirement Not Met'}</h3>
+            <p className="text-slate-300 text-sm">
+              Your Score: <strong className="text-amber-400">{score} / {questions.length}</strong> ({percentage}%)
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Passing criteria requires at least 80% ({passScore} correct answers).</p>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs text-slate-300 max-w-md mx-auto">
+            {isPassed ? (
+              <span className="text-emerald-400 font-semibold">🎉 You have successfully qualified and completed Chapter 1: Class 11 Set Theory!</span>
+            ) : (
+              <span className="text-rose-400 font-semibold">Keep practicing! Review the lessons and retake the exam to earn your 80% completion badge.</span>
+            )}
+          </div>
+
+          <button onClick={handleRestart} className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-xl">
+            Retake Practice Exam 🔄
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── WIDGET 2: Class 11 Addition Theorem Interactive Simulator ───
 export function Class11AdditionTheoremWidget() {
   const [probA, setProbA] = useState(0.4);

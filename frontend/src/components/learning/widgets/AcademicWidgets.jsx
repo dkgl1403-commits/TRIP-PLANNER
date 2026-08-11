@@ -63,7 +63,8 @@ import {
   SetTheoryVennDiagramExplorerWidget,
   Class11AdditionTheoremWidget,
   Class11EdgeCasesWidget,
-  Class11ProbabilityMCQExamWidget
+  Class11ProbabilityMCQExamWidget,
+  Class11SetTheoryMCQExamWidget
 } from './Class11Widgets';
 
 import {
@@ -1493,5 +1494,6 @@ export const WidgetRegistry = {
   'SetTheoryVennDiagramExplorerWidget': SetTheoryVennDiagramExplorerWidget,
   'Class11AdditionTheoremWidget': Class11AdditionTheoremWidget,
   'Class11EdgeCasesWidget': Class11EdgeCasesWidget,
-  'Class11ProbabilityMCQExamWidget': Class11ProbabilityMCQExamWidget
+  'Class11ProbabilityMCQExamWidget': Class11ProbabilityMCQExamWidget,
+  'Class11SetTheoryMCQExamWidget': Class11SetTheoryMCQExamWidget
 };
