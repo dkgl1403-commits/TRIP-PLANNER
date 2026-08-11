@@ -304,7 +304,7 @@ export function Class10CirclesTangentSecantWidget() {
               <span className="text-purple-400">{secantAngle}°</span>
             </div>
             <input 
-              type="range" min="5" max="23" step="1" value={secantAngle} 
+              type="range" min="2" max="24" step="1" value={secantAngle} 
               onChange={(e) => setSecantAngle(parseInt(e.target.value))} 
               className="w-full accent-purple-400 cursor-pointer" 
             />
