@@ -232,25 +232,46 @@ function LearningDashboard({ user, onBack }) {
                     <button
                       key={subject.id}
                       onClick={() => setSelectedSubjectId(subject.id)}
-                      className={`group p-6 rounded-3xl bg-surface-container-high/60 backdrop-blur-xl border-2 transition-all duration-300 hover:scale-[1.02] shadow-xl text-left flex items-start justify-between ${styleClass}`}
+                      className={`group p-6 rounded-3xl bg-surface-container-high/60 backdrop-blur-xl border-2 transition-all duration-300 hover:scale-[1.02] shadow-xl text-left flex flex-col justify-between ${styleClass}`}
                     >
-                      <div className="space-y-3">
-                        <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
-                          <span className="material-symbols-outlined text-2xl">{icon}</span>
+                      <div className="space-y-4 w-full">
+                        <div className="flex justify-between items-center w-full">
+                          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                            <span className="material-symbols-outlined text-2xl">{icon}</span>
+                          </div>
+                          {subject.topic_count !== undefined && (
+                            <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-on-surface-variant font-mono border border-white/10">
+                              {subject.topic_count} {subject.topic_count === 1 ? 'Topic' : 'Topics'}
+                            </span>
+                          )}
                         </div>
+
                         <div>
-                          <h3 className="text-2xl font-bold text-on-surface group-hover:text-white transition-colors">
+                          <h3 className="text-2xl font-bold text-on-surface group-hover:text-white transition-colors mb-2">
                             {subject.name}
                           </h3>
-                          <p className="text-xs text-on-surface-variant mt-1">
-                            Click to explore topics, visualizers, and interactive lessons &rarr;
-                          </p>
+
+                          {subject.topics_summary ? (
+                            <div className="bg-black/20 p-3 rounded-xl border border-white/5 space-y-1">
+                              <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 block">Topics Covered:</span>
+                              <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-sans">
+                                {subject.topics_summary}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-on-surface-variant">
+                              Click to explore topics, visualizers, and interactive lessons &rarr;
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      <span className="material-symbols-outlined text-2xl opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1">
-                        arrow_forward
-                      </span>
+                      <div className="mt-4 flex items-center justify-between w-full pt-3 border-t border-white/5 text-xs font-semibold">
+                        <span>Explore Chapters</span>
+                        <span className="material-symbols-outlined text-xl opacity-70 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1">
+                          arrow_forward
+                        </span>
+                      </div>
                     </button>
                   );
                 })}

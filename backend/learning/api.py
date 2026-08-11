@@ -23,7 +23,17 @@ def get_classes(db: Session = Depends(get_db)):
 @learning_api_router.get("/subjects")
 def get_subjects(class_id: str, db: Session = Depends(get_db)):
     subjects = db.query(LearningSubject).filter_by(class_id=class_id).all()
-    return {"status": "success", "subjects": [{"id": s.id, "name": s.name} for s in subjects]}
+    result = []
+    for s in subjects:
+        topics = db.query(LearningTopic).filter_by(subject_id=s.id).order_by(LearningTopic.order_idx).all()
+        topic_names = [t.name for t in topics]
+        result.append({
+            "id": s.id,
+            "name": s.name,
+            "topic_count": len(topics),
+            "topics_summary": ", ".join(topic_names[:4]) + ("..." if len(topic_names) > 4 else "")
+        })
+    return {"status": "success", "subjects": result}
 
 @learning_api_router.get("/topics/{subject_id}")
 def get_topics(subject_id: str, db: Session = Depends(get_db)):
