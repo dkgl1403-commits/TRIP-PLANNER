@@ -106,6 +106,14 @@ import {
 } from './Class6PlayingWithNumbersWidgets';
 
 import {
+  Class10TrigHeightsElevationWidget,
+  Class10TrigHeightsDepressionWidget,
+  Class10TrigHeightsTwoTriangleWidget,
+  Class10TrigHeightsObserverHeightWidget,
+  Class10TrigHeightsMCQExamWidget
+} from './Class10TrigHeightsWidgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1558,5 +1566,10 @@ export const WidgetRegistry = {
   'Class6SynchronizedBellsWidget': Class6SynchronizedBellsWidget,
   'Class6PlayingWithNumbersMCQExamWidget': Class6PlayingWithNumbersMCQExamWidget,
   'factors-multiples-visualizer': Class6FactorsMultiplesVisualizerWidget,
-  'factor-brick-simulator': Class6FactorBrickHCFWidget
+  'factor-brick-simulator': Class6FactorBrickHCFWidget,
+  'Class10TrigHeightsElevationWidget': Class10TrigHeightsElevationWidget,
+  'Class10TrigHeightsDepressionWidget': Class10TrigHeightsDepressionWidget,
+  'Class10TrigHeightsTwoTriangleWidget': Class10TrigHeightsTwoTriangleWidget,
+  'Class10TrigHeightsObserverHeightWidget': Class10TrigHeightsObserverHeightWidget,
+  'Class10TrigHeightsMCQExamWidget': Class10TrigHeightsMCQExamWidget
 };

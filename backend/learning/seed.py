@@ -32,6 +32,7 @@ from seed_class6_playing_with_numbers import seed_class6_playing_with_numbers
 from seed_class7_perimeter_area import seed_class7_perimeter_area
 from seed_class9_circles import seed_class9_circles
 from seed_class10_circles import seed_class10_circles
+from seed_class10_trig_heights import seed_class10_trig_heights
 from seed_class11_12 import seed_class11_12_structure
 
 def seed_trigonometry():
@@ -848,4 +849,5 @@ if __name__ == "__main__":
     seed_class7_perimeter_area()
     seed_class9_circles()
     seed_class10_circles()
+    seed_class10_trig_heights()
     seed_class11_12_structure()
