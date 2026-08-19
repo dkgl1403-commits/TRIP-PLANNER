@@ -114,6 +114,14 @@ import {
 } from './Class10TrigHeightsWidgets';
 
 import {
+  Class10PolynomialsParabolaVisualizerWidget,
+  Class10PolynomialsRemainderFactorWidget,
+  Class10PolynomialsZeroesCoefficientsWidget,
+  Class10PolynomialsAlgebraicIdentitiesWidget,
+  Class10PolynomialsMCQExamWidget
+} from './Class10PolynomialsWidgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1571,5 +1579,10 @@ export const WidgetRegistry = {
   'Class10TrigHeightsDepressionWidget': Class10TrigHeightsDepressionWidget,
   'Class10TrigHeightsTwoTriangleWidget': Class10TrigHeightsTwoTriangleWidget,
   'Class10TrigHeightsObserverHeightWidget': Class10TrigHeightsObserverHeightWidget,
-  'Class10TrigHeightsMCQExamWidget': Class10TrigHeightsMCQExamWidget
+  'Class10TrigHeightsMCQExamWidget': Class10TrigHeightsMCQExamWidget,
+  'Class10PolynomialsParabolaVisualizerWidget': Class10PolynomialsParabolaVisualizerWidget,
+  'Class10PolynomialsRemainderFactorWidget': Class10PolynomialsRemainderFactorWidget,
+  'Class10PolynomialsZeroesCoefficientsWidget': Class10PolynomialsZeroesCoefficientsWidget,
+  'Class10PolynomialsAlgebraicIdentitiesWidget': Class10PolynomialsAlgebraicIdentitiesWidget,
+  'Class10PolynomialsMCQExamWidget': Class10PolynomialsMCQExamWidget
 };
