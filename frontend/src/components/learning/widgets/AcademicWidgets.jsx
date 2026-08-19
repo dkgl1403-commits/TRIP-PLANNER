@@ -98,6 +98,14 @@ import {
 } from './Class7PerimeterAreaWidgets';
 
 import {
+  Class6FactorsMultiplesVisualizerWidget,
+  Class6FactorBrickHCFWidget,
+  Class6FactorBrickLCMWidget,
+  Class6SynchronizedBellsWidget,
+  Class6PlayingWithNumbersMCQExamWidget
+} from './Class6PlayingWithNumbersWidgets';
+
+import {
   WaterfallVsAgileWidget,
   KanbanFlowWidget,
   SAFeAlignmentWidget,
@@ -1543,5 +1551,12 @@ export const WidgetRegistry = {
   'Class7ParallelogramTriangleWidget': Class7ParallelogramTriangleWidget,
   'Class7CircleCircumferenceAreaWidget': Class7CircleCircumferenceAreaWidget,
   'Class7PathwayBorderWidget': Class7PathwayBorderWidget,
-  'Class7PerimeterAreaMCQExamWidget': Class7PerimeterAreaMCQExamWidget
+  'Class7PerimeterAreaMCQExamWidget': Class7PerimeterAreaMCQExamWidget,
+  'Class6FactorsMultiplesVisualizerWidget': Class6FactorsMultiplesVisualizerWidget,
+  'Class6FactorBrickHCFWidget': Class6FactorBrickHCFWidget,
+  'Class6FactorBrickLCMWidget': Class6FactorBrickLCMWidget,
+  'Class6SynchronizedBellsWidget': Class6SynchronizedBellsWidget,
+  'Class6PlayingWithNumbersMCQExamWidget': Class6PlayingWithNumbersMCQExamWidget,
+  'factors-multiples-visualizer': Class6FactorsMultiplesVisualizerWidget,
+  'factor-brick-simulator': Class6FactorBrickHCFWidget
 };
