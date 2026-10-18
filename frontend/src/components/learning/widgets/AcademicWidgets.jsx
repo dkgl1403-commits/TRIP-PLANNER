@@ -200,6 +200,13 @@ import {
   Class6VirahankaWidget,
   Class6ShapePatternsWidget
 } from './Class6PatternsWidgets';
+import {
+  Class6PlaceValueWidget,
+  Class6CompareOrderWidget,
+  Class6EstimationWidget,
+  Class6UnitLadderWidget,
+  Class6RomanNumeralsWidget
+} from './Class6KnowingNumbersWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 
 export function StarObserverDiagram() {
@@ -1613,6 +1620,11 @@ export const WidgetRegistry = {
   'Class6DoublingWidget': Class6DoublingWidget,
   'Class6VirahankaWidget': Class6VirahankaWidget,
   'Class6ShapePatternsWidget': Class6ShapePatternsWidget,
+  'Class6PlaceValueWidget': Class6PlaceValueWidget,
+  'Class6CompareOrderWidget': Class6CompareOrderWidget,
+  'Class6EstimationWidget': Class6EstimationWidget,
+  'Class6UnitLadderWidget': Class6UnitLadderWidget,
+  'Class6RomanNumeralsWidget': Class6RomanNumeralsWidget,
   'WorkedExamplesWidget': WorkedExamplesWidget,
   'StoryExamWidget': StoryExamWidget,
   'factors-multiples-visualizer': Class6FactorsMultiplesVisualizerWidget,
