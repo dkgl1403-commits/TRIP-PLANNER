@@ -197,6 +197,37 @@
   font-weight: 700;
 }
 
+/* Compact teacher notes inside lessons (overrides the card-style list items above) */
+.teacher-notes h4 {
+  color: #7dd3fc;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 1.25rem 0 0.4rem;
+}
+.teacher-notes h4:first-child { margin-top: 0; }
+.teacher-notes ul { margin: 0 0 0.5rem; }
+.teacher-notes ul li,
+.teacher-notes ul li:hover {
+  background: none;
+  border: none;
+  box-shadow: none;
+  transform: none;
+  backdrop-filter: none;
+  padding: 0.15rem 0 0.15rem 1.1rem;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.875rem;
+}
+.teacher-notes ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0.2rem;
+  color: #38bdf8;
+}
+.teacher-notes p { font-size: 0.875rem; line-height: 1.6; margin: 0; }
+
 .prose-invert code {
   background: rgba(30, 58, 138, 0.7);
   border: 1px solid rgba(59, 130, 246, 0.5);

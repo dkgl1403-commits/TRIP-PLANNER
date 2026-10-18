@@ -112,11 +112,8 @@ os.makedirs(AUDIO_CACHE_DIR, exist_ok=True)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "sk_5019b018d3570f369def51408a0220a9e6c36ccfcb7075e6")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "")  # Paste your cloned Voice ID here
 
-@learning_api_router.get("/tts")
-async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"):
-    if not text or not text.strip():
-        raise HTTPException(status_code=400, detail="Text required")
-
+async def synthesize_tts(text: str, lang: str = "en", voice: str = "female") -> str:
+    """Synthesizes narration to an mp3 in the audio cache (reused if already generated) and returns its path."""
     # Clean HTML/markdown tags for audio synthesis
     clean_text = re.sub(r'<[^>]*>?', '', text)
     clean_text = re.sub(r'[\*\_]', '', clean_text).strip()
@@ -135,7 +132,7 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
     file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
 
     if os.path.exists(file_path):
-        return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+        return file_path
 
     try:
         import edge_tts
@@ -161,25 +158,28 @@ async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"
 </speak>"""
         communicate = edge_tts.Communicate(ssml_text, voice_name, is_ssml=True)
         await communicate.save(file_path)
-        return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+        return file_path
     except Exception as e:
         print(f"Edge SSML synthesis failed, trying standard edge-tts: {e}")
         try:
             import edge_tts
             communicate = edge_tts.Communicate(clean_text, voice_name)
             await communicate.save(file_path)
-            return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+            return file_path
         except Exception as ex:
             try:
                 import gtts
                 gtts_lang = 'hi' if lang == 'hi' else 'en'
                 tts = gtts.gTTS(clean_text, lang=gtts_lang)
                 tts.save(file_path)
-                return FileResponse(file_path, media_type="audio/mpeg", filename=f"{text_hash}.mp3")
+                return file_path
             except Exception as ex2:
                 raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex2}")
 
 
-
-
-
+@learning_api_router.get("/tts")
+async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"):
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Text required")
+    file_path = await synthesize_tts(text, lang, voice)
+    return FileResponse(file_path, media_type="audio/mpeg", filename=os.path.basename(file_path))

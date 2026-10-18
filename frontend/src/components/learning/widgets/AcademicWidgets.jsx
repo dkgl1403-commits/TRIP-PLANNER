@@ -177,7 +177,16 @@ import {
   LeapYearPuzzleWidget,
   ProbabilityMCQPracticeWidget
 } from './ProbabilityWidgets';
+import {
+  Class6PointLineRayWidget,
+  Class6LinePairsWidget,
+  Class6AngleTurnWidget,
+  Class6ProtractorWidget,
+  Class6AngleProofsWidget
+} from './Class6LinesAnglesWidgets';
+import { WorkedExamplesWidget, StoryExamWidget } from './StoryWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
+
 export function StarObserverDiagram() {
   const [starBPos, setStarBPos] = useState({ x: 80, y: 20 });
   const svgRef = useRef(null);
@@ -1573,6 +1582,13 @@ export const WidgetRegistry = {
   'Class6FactorBrickLCMWidget': Class6FactorBrickLCMWidget,
   'Class6SynchronizedBellsWidget': Class6SynchronizedBellsWidget,
   'Class6PlayingWithNumbersMCQExamWidget': Class6PlayingWithNumbersMCQExamWidget,
+  'Class6PointLineRayWidget': Class6PointLineRayWidget,
+  'Class6LinePairsWidget': Class6LinePairsWidget,
+  'Class6AngleTurnWidget': Class6AngleTurnWidget,
+  'Class6ProtractorWidget': Class6ProtractorWidget,
+  'Class6AngleProofsWidget': Class6AngleProofsWidget,
+  'WorkedExamplesWidget': WorkedExamplesWidget,
+  'StoryExamWidget': StoryExamWidget,
   'factors-multiples-visualizer': Class6FactorsMultiplesVisualizerWidget,
   'factor-brick-simulator': Class6FactorBrickHCFWidget,
   'Class10TrigHeightsElevationWidget': Class10TrigHeightsElevationWidget,

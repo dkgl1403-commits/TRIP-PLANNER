@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WidgetRegistry } from '../widgets/AcademicWidgets';
 import { AudioNarrator } from './AudioNarrator';
 import { MiniChallenge } from './MiniChallenge';
+import { StoryPlayer } from './StoryPlayer';
 import confetti from 'canvas-confetti';
 
 function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
@@ -9,6 +10,22 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
   const [loading, setLoading] = useState(true);
   const [currentPartIdx, setCurrentPartIdx] = useState(0);
   const [audioLanguage, setAudioLanguage] = useState('en');
+  const [sceneIdx, setSceneIdx] = useState(0);
+  const [interactionDone, setInteractionDone] = useState(false);
+  const [teacherMode, setTeacherMode] = useState(() => {
+    try { return localStorage.getItem('learning_teacher_mode') === '1'; } catch { return false; }
+  });
+
+  const toggleTeacherMode = () => {
+    setTeacherMode((on) => {
+      try { localStorage.setItem('learning_teacher_mode', on ? '0' : '1'); } catch { /* storage unavailable */ }
+      return !on;
+    });
+  };
+
+  // Each part starts from its first scene
+  useEffect(() => { setSceneIdx(0); }, [currentPartIdx]);
+  useEffect(() => { setInteractionDone(false); }, [currentPartIdx, sceneIdx]);
 
   useEffect(() => {
     fetch(`/api/learning/topic/${topicId}/config`)
@@ -97,6 +114,8 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
   // MCQs and Cheatsheets might use full width.
   const isInteractiveStory = currentPart.widgetType && currentPart.widgetType !== 'MCQEngine' && currentPart.widgetType !== 'CheatSheet';
   const hasVisual = !!(currentPart.widgetType && WidgetRegistry[currentPart.widgetType]) || !!currentPart.imageUrl;
+  const scenes = Array.isArray(currentPart.scenes) && currentPart.scenes.length ? currentPart.scenes : null;
+  const currentScene = scenes ? scenes[Math.min(sceneIdx, scenes.length - 1)] : null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-black text-white font-sans flex flex-col overflow-hidden">
@@ -123,7 +142,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
           Step {currentPartIdx + 1} of {config.parts.length} <span className="mx-2 opacity-50">•</span> <span className="text-neon-coral">{progressPercent}%</span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
             <button 
               onClick={() => setAudioLanguage('en')}
@@ -138,7 +157,15 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
               HI
             </button>
           </div>
-          {currentPart.audioText && (
+          <button
+            onClick={toggleTeacherMode}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${teacherMode ? 'bg-sky-500/20 border-sky-400 text-sky-300' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+            title="Show notes for teachers: how to explain, common mistakes, classroom activity"
+          >
+            <span className="material-symbols-outlined text-base">school</span>
+            <span className="hidden sm:inline">Teacher notes</span>
+          </button>
+          {!scenes && currentPart.audioText && (
             <AudioNarrator 
               text={audioLanguage === 'hi' && currentPart.audioTextHinglish ? currentPart.audioTextHinglish : currentPart.audioText} 
               language={audioLanguage}
@@ -191,15 +218,45 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
                   </div>
                 </div>
               )}
+
+              {teacherMode && currentPart.teacherNotes && (
+                <div className="mt-8 p-5 md:p-6 rounded-2xl border border-sky-500/40 bg-sky-950/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="material-symbols-outlined text-sky-300">school</span>
+                    <span className="text-sky-300 font-bold tracking-widest uppercase text-xs">For Teachers</span>
+                  </div>
+                  <div className="teacher-notes prose prose-invert prose-sm max-w-none font-sans" dangerouslySetInnerHTML={{ __html: currentPart.teacherNotes }} />
+                </div>
+              )}
+              <div className="h-20 lg:h-8" />
             </div>
           </div>
         )}
 
         {/* Right Column: Visual Diagram / Widget */}
         {hasVisual && (
-          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} flex justify-center items-start bg-black lg:overflow-y-auto py-8 lg:py-16`}>
+          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} ${scenes ? 'order-first lg:order-none flex-col gap-4 px-3 md:px-6 py-4 lg:py-8' : 'py-8 lg:py-16'} flex justify-center items-start bg-black lg:overflow-y-auto`}>
+            {scenes && (
+              <div className="w-full max-w-3xl mx-auto">
+                <StoryPlayer
+                  scenes={scenes}
+                  sceneIdx={Math.min(sceneIdx, scenes.length - 1)}
+                  onSceneChange={setSceneIdx}
+                  language={audioLanguage}
+                  voice={config.voice || 'female'}
+                  interactionDone={interactionDone}
+                />
+              </div>
+            )}
             {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
-              React.createElement(WidgetRegistry[currentPart.widgetType], { data: currentPart.widgetData, part: currentPart })
+              React.createElement(WidgetRegistry[currentPart.widgetType], {
+                key: `${currentPartIdx}-${currentPart.widgetType}`,
+                data: currentPart.widgetData,
+                part: currentPart,
+                visual: currentScene ? currentScene.visual : undefined,
+                sceneIdx,
+                onInteract: () => setInteractionDone(true),
+              })
             ) : currentPart.imageUrl ? (
               <img src={currentPart.imageUrl} className="max-w-full max-h-full object-contain p-4 lg:p-8" alt={currentPart.title} />
             ) : null}

@@ -29,6 +29,8 @@ from seed_trade_lifecycle import seed_trade_lifecycle
 from seed_class9_probability import seed_class9_probability
 from seed_class10_probability import seed_class10_probability
 from seed_class6_playing_with_numbers import seed_class6_playing_with_numbers
+from seed_class6_structure import seed_class6_structure, CLASS6_MATH_CHAPTERS
+from seed_class6_lines_angles import seed_class6_lines_angles
 from seed_class7_perimeter_area import seed_class7_perimeter_area
 from seed_class9_circles import seed_class9_circles
 from seed_class10_circles import seed_class10_circles
@@ -572,22 +574,7 @@ def seed_curriculum():
             "subjects": [
                 {
                     "name": "Mathematics",
-                    "topics": [
-                        {"name": "Knowing Our Numbers", "board": "BOTH"},
-                        {"name": "Whole Numbers", "board": "BOTH"},
-                        {"name": "Playing With Numbers", "board": "BOTH"},
-                        {"name": "Basic Geometrical Ideas", "board": "BOTH"},
-                        {"name": "Understanding Elementary Shapes", "board": "BOTH"},
-                        {"name": "Integers", "board": "BOTH"},
-                        {"name": "Fractions", "board": "BOTH"},
-                        {"name": "Decimals", "board": "BOTH"},
-                        {"name": "Data Handling", "board": "BOTH"},
-                        {"name": "Mensuration", "board": "BOTH"},
-                        {"name": "Algebra", "board": "BOTH"},
-                        {"name": "Ratio and Proportion", "board": "BOTH"},
-                        {"name": "Symmetry", "board": "BOTH"},
-                        {"name": "Practical Geometry", "board": "BOTH"}
-                    ]
+                    "topics": [{"name": n, "board": "BOTH"} for n in CLASS6_MATH_CHAPTERS]
                 },
                 {
                     "name": "Science",
@@ -847,6 +834,8 @@ if __name__ == "__main__":
     seed_class9_probability()
     seed_class10_probability()
     seed_class6_playing_with_numbers()
+    seed_class6_structure()
+    seed_class6_lines_angles()
     seed_class7_perimeter_area()
     seed_class9_circles()
     seed_class10_circles()
