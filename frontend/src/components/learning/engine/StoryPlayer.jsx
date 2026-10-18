@@ -150,7 +150,7 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
         <p className="text-sm md:text-base text-slate-200 leading-relaxed">{sceneText(scene, language)}</p>
       </div>
       {!playing && status === 'idle' && sceneIdx === 0 && (
-        <p className="mt-1 text-[11px] text-slate-500">Press play to watch the story, or drag things in the picture yourself any time.</p>
+        <p className="mt-1 text-xs text-amber-300/90 font-semibold">▶ Press the green play button: the story is narrated and moves to the next scene by itself. You can also drag things in the picture any time.</p>
       )}
     </div>
   );

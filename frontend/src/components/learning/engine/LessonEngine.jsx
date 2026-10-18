@@ -129,7 +129,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       </div>
 
       {/* Top Navigation Header (Floating) */}
-      <div className="absolute top-0 left-0 w-full px-4 py-2 flex justify-between items-center z-50">
+      <div className="w-full shrink-0 px-4 py-2 flex flex-wrap gap-2 justify-between items-center z-50 bg-black border-b border-white/5">
         <button 
           onClick={onBack} 
           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-300 text-sm"
@@ -175,7 +175,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden pt-12 relative z-10">
+      <div className="flex-grow min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative z-10">
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!hasVisual || isInteractiveStory) && (
@@ -235,9 +235,9 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
 
         {/* Right Column: Visual Diagram / Widget */}
         {hasVisual && (
-          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} ${scenes ? 'order-first lg:order-none flex-col gap-4 px-3 md:px-6 py-4 lg:py-8' : 'py-8 lg:py-16'} flex justify-center items-start bg-black lg:overflow-y-auto`}>
+          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} ${scenes ? 'order-first lg:order-none flex-col justify-start items-stretch gap-4 px-3 md:px-6 pb-24 lg:pb-8' : 'py-8 lg:py-16 justify-center items-start'} flex bg-black lg:overflow-y-auto`}>
             {scenes && (
-              <div className="w-full max-w-3xl mx-auto">
+              <div className="w-full max-w-3xl mx-auto sticky top-0 z-30 pt-3 lg:pt-4 bg-black">
                 <StoryPlayer
                   scenes={scenes}
                   sceneIdx={Math.min(sceneIdx, scenes.length - 1)}
