@@ -18,7 +18,7 @@ export function useTween(target, duration = 900) {
     let frame;
     const start = performance.now();
     const tick = (now) => {
-      const t = Math.min(1, (now - start) / duration);
+      const t = Math.min(1, Math.max(0, (now - start) / duration)); // rAF time can be slightly before `start`
       const v = fromRef.current + (target - fromRef.current) * easeInOutCubic(t);
       valueRef.current = v;
       setValue(v);

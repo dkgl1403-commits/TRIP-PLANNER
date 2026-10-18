@@ -153,12 +153,17 @@ export function Class6FooWidget({ visual, onInteract }) {
   `dragProps.onPointerUp(e)` inside yours.
 - Keep text inside the 600×360 viewBox; long labels need `textAnchor="middle"` and short wording.
 - Never crash on missing visual fields: always merge with defaults via `useSceneState`.
+- In your own requestAnimationFrame loops, clamp progress: `Math.min(1, Math.max(0, (now - start) / duration))`;
+  rAF timestamps can be slightly earlier than `performance.now()`, and a negative value used as an index crashes.
 
 ## 6. Local testing (required before you report)
 
 Pick your own ports so parallel builders don't clash (your task tells you which). From the repo root:
 
 ```bash
+# FIRST, in a fresh git worktree: worktrees may start from `main`, which lacks the story engine and this playbook.
+# Move your own branch onto the uat tip (the integrator gives you the commit), e.g.: git reset --hard <uat-commit>
+
 # one-time setup in a fresh git worktree: reuse the main checkout's node_modules
 cmd //c mklink /J frontend\\node_modules C:\\Personal\\Projects\\TRIP_Planner\\frontend\\node_modules
 

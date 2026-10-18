@@ -50,7 +50,7 @@ function useMorph(points, duration = 1200) {
     let frame;
     const start = performance.now();
     const tick = (now) => {
-      const t = ease(Math.min(1, (now - start) / duration));
+      const t = ease(Math.min(1, Math.max(0, (now - start) / duration)));
       const v = from.map((p, i) => [p[0] + (to[i][0] - p[0]) * t, p[1] + (to[i][1] - p[1]) * t]);
       curRef.current = v;
       setCur(v);
@@ -70,7 +70,7 @@ function useReplay(dep, duration = 1400) {
     let frame;
     const start = performance.now();
     const tick = (now) => {
-      const t = Math.min(1, (now - start) / duration);
+      const t = Math.min(1, Math.max(0, (now - start) / duration));
       setP(ease(t));
       if (t < 1) frame = requestAnimationFrame(tick);
     };
