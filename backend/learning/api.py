@@ -112,74 +112,85 @@ os.makedirs(AUDIO_CACHE_DIR, exist_ok=True)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "sk_5019b018d3570f369def51408a0220a9e6c36ccfcb7075e6")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "")  # Paste your cloned Voice ID here
 
-async def synthesize_tts(text: str, lang: str = "en", voice: str = "female") -> str:
-    """Synthesizes narration to an mp3 in the audio cache (reused if already generated) and returns its path."""
-    # Clean HTML/markdown tags for audio synthesis
-    clean_text = re.sub(r'<[^>]*>?', '', text)
-    clean_text = re.sub(r'[\*\_]', '', clean_text).strip()
-    if not clean_text:
-        clean_text = "Content empty."
+# Story cast: every character keeps the same voice in every chapter. (voice, pitch, rate) per language.
+# Only two Indian English and two Hindi neural voices exist, so pitch/rate give each character a distinct sound.
+STORY_CAST = {
+    "en": {
+        "Dadi":   ("en-IN-NeerjaNeural", -14, -8),
+        "Neha":   ("en-IN-NeerjaExpressiveNeural", -2, 0),
+        "Disha":  ("en-IN-NeerjaExpressiveNeural", 14, 6),
+        "Deepak": ("en-IN-PrabhatNeural", -4, -2),
+        "Harsh":  ("en-IN-PrabhatNeural", 28, 8),
+        "Narrator-female": ("en-IN-NeerjaExpressiveNeural", 0, 0),
+        "Narrator-male":   ("en-IN-PrabhatNeural", 0, 0),
+    },
+    "hi": {
+        "Dadi":   ("hi-IN-SwaraNeural", -14, -8),
+        "Neha":   ("hi-IN-SwaraNeural", -2, 0),
+        "Disha":  ("hi-IN-SwaraNeural", 14, 6),
+        "Deepak": ("hi-IN-MadhurNeural", -4, -2),
+        "Harsh":  ("hi-IN-MadhurNeural", 28, 8),
+        "Narrator-female": ("hi-IN-SwaraNeural", 0, 0),
+        "Narrator-male":   ("hi-IN-MadhurNeural", 0, 0),
+    },
+}
 
-    # Microsoft Neural SSML Voices (Native Indian Accent & Pronunciation)
-    # Hindi Voices: hi-IN-SwaraNeural (Warm Female Teacher), hi-IN-MadhurNeural (Calm Male Narrator)
-    # English Indian Voices: en-IN-NeerjaNeural (Expressive Female), en-IN-PrabhatNeural (Clear Male)
-    if lang == "hi":
-        voice_name = "hi-IN-SwaraNeural" if voice == "female" else "hi-IN-MadhurNeural"
+
+def _voice_for(lang: str, voice: str, speaker: Optional[str]):
+    cast = STORY_CAST["hi" if lang == "hi" else "en"]
+    if speaker and speaker in cast:
+        return cast[speaker]
+    return cast["Narrator-male" if voice == "male" else "Narrator-female"]
+
+
+def _sentence_prosody(sentence: str, idx: int, base_pitch: int, base_rate: int):
+    """Questions rise, exclamations get more energy, plain sentences alternate slightly so speech isn't flat."""
+    if sentence.endswith("?"):
+        pitch, rate, volume = base_pitch + 10, base_rate - 4, 0
+    elif sentence.endswith("!"):
+        pitch, rate, volume = base_pitch + 16, base_rate + 6, 15
     else:
-        voice_name = "en-IN-NeerjaNeural" if voice == "female" else "en-IN-PrabhatNeural"
+        pitch, rate, volume = (base_pitch + 4, base_rate, 0) if idx % 2 == 0 else (base_pitch - 2, base_rate - 4, 0)
+    return {"pitch": f"{pitch:+d}Hz", "rate": f"{rate:+d}%", "volume": f"{volume:+d}%"}
 
-    text_hash = hashlib.md5(f"ms_neural_human_fillers_v5_{voice_name}_{clean_text}".encode('utf-8')).hexdigest()
-    file_path = os.path.join(AUDIO_CACHE_DIR, f"{text_hash}.mp3")
 
+async def synthesize_tts(text: str, lang: str = "en", voice: str = "female", speaker: Optional[str] = None) -> str:
+    """Synthesizes a line to an mp3 in the audio cache (reused if already generated) and returns its path."""
+    clean_text = re.sub(r'<[^>]*>?', '', text)
+    clean_text = re.sub(r'[\*\_]', '', clean_text).strip() or "Content empty."
+
+    voice_name, base_pitch, base_rate = _voice_for(lang, voice, speaker)
+    cache_key = f"expressive_v6_{speaker or voice}_{voice_name}_{clean_text}"
+    file_path = os.path.join(AUDIO_CACHE_DIR, f"{hashlib.md5(cache_key.encode('utf-8')).hexdigest()}.mp3")
     if os.path.exists(file_path):
         return file_path
 
     try:
         import edge_tts
-        # Insert human conversational fillers (Hmm..., Ahaan!, Aha!) & breathing breaks
-        if lang == "hi":
-            ssml_body = clean_text.replace('? ', '? <break time="300ms"/> Hmm... ')\
-                                  .replace('! ', '! <break time="250ms"/> Ahaan! ')\
-                                  .replace('. ', '. <break time="320ms"/> ')\
-                                  .replace(', ', ', <break time="160ms"/> ')
-        else:
-            ssml_body = clean_text.replace('? ', '? <break time="300ms"/> Hmm... ')\
-                                  .replace('! ', '! <break time="250ms"/> Aha! ')\
-                                  .replace('. ', '. <break time="320ms"/> ')\
-                                  .replace(', ', ', <break time="160ms"/> ')
-
-        # Cheerful, energetic children's teacher voice with human conversational fillers
-        ssml_text = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{ 'hi-IN' if lang == 'hi' else 'en-IN' }">
-    <voice name="{voice_name}">
-        <prosody rate="+2%" pitch="+9%">
-            {ssml_body}
-        </prosody>
-    </voice>
-</speak>"""
-        communicate = edge_tts.Communicate(ssml_text, voice_name, is_ssml=True)
-        await communicate.save(file_path)
+        audio = b""
+        for idx, sentence in enumerate(s for s in re.split(r'(?<=[.?!])\s+', clean_text) if s.strip()):
+            communicate = edge_tts.Communicate(sentence, voice_name, **_sentence_prosody(sentence, idx, base_pitch, base_rate))
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio += chunk["data"]
+        if not audio:
+            raise RuntimeError("edge-tts returned no audio")
+        with open(file_path, "wb") as f:
+            f.write(audio)
         return file_path
     except Exception as e:
-        print(f"Edge SSML synthesis failed, trying standard edge-tts: {e}")
+        print(f"edge-tts synthesis failed, falling back to gTTS: {e}")
         try:
-            import edge_tts
-            communicate = edge_tts.Communicate(clean_text, voice_name)
-            await communicate.save(file_path)
+            import gtts
+            gtts.gTTS(clean_text, lang='hi' if lang == 'hi' else 'en').save(file_path)
             return file_path
         except Exception as ex:
-            try:
-                import gtts
-                gtts_lang = 'hi' if lang == 'hi' else 'en'
-                tts = gtts.gTTS(clean_text, lang=gtts_lang)
-                tts.save(file_path)
-                return file_path
-            except Exception as ex2:
-                raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex2}")
+            raise HTTPException(status_code=500, detail=f"TTS generation failed: {ex}")
 
 
 @learning_api_router.get("/tts")
-async def generate_server_tts(text: str, lang: str = "en", voice: str = "female"):
+async def generate_server_tts(text: str, lang: str = "en", voice: str = "female", speaker: Optional[str] = None):
     if not text or not text.strip():
         raise HTTPException(status_code=400, detail="Text required")
-    file_path = await synthesize_tts(text, lang, voice)
+    file_path = await synthesize_tts(text, lang, voice, speaker)
     return FileResponse(file_path, media_type="audio/mpeg", filename=os.path.basename(file_path))

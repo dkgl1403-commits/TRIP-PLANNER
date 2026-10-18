@@ -14,3 +14,5 @@ requests
 python-multipart
 xgboost
 psutil
+edge-tts>=7.3.1
+gTTS

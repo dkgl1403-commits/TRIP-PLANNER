@@ -10,6 +10,14 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
   const [loading, setLoading] = useState(true);
   const [currentPartIdx, setCurrentPartIdx] = useState(0);
   const [audioLanguage, setAudioLanguage] = useState('en');
+  const [narrator, setNarrator] = useState(() => {
+    try { return localStorage.getItem('learning_narrator') || 'female'; } catch { return 'female'; }
+  });
+
+  const chooseNarrator = (value) => {
+    setNarrator(value);
+    try { localStorage.setItem('learning_narrator', value); } catch { /* storage unavailable */ }
+  };
   const [sceneIdx, setSceneIdx] = useState(0);
   const [interactionDone, setInteractionDone] = useState(false);
   const [teacherMode, setTeacherMode] = useState(() => {
@@ -157,6 +165,20 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
               HI
             </button>
           </div>
+          {scenes && (
+            <div className="flex bg-white/5 rounded-full p-1 border border-white/10" title="Narrator voice">
+              {[['female', 'Female narrator', 'face_3'], ['male', 'Male narrator', 'face']].map(([value, label, icon]) => (
+                <button
+                  key={value}
+                  onClick={() => chooseNarrator(value)}
+                  title={label}
+                  className={`px-2 py-1 rounded-full text-xs font-bold transition-all flex items-center ${narrator === value ? 'bg-amber-500 text-black' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <span className="material-symbols-outlined text-base">{icon}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <button
             onClick={toggleTeacherMode}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${teacherMode ? 'bg-sky-500/20 border-sky-400 text-sky-300' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
@@ -243,7 +265,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
                   sceneIdx={Math.min(sceneIdx, scenes.length - 1)}
                   onSceneChange={setSceneIdx}
                   language={audioLanguage}
-                  voice={config.voice || 'female'}
+                  narrator={narrator}
                   interactionDone={interactionDone}
                 />
               </div>

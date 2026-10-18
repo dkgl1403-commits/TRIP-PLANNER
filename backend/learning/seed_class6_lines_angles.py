@@ -3,15 +3,8 @@ from db import SessionLocal
 from seed_class6_structure import get_class6_topic
 
 # Class 6 · Lines and Angles (Ganita Prakash ch.2 + old NCERT "Basic Geometrical Ideas" / angle parts of
-# "Understanding Elementary Shapes"). Story: Meera (11) and her Dadaji, a retired carpenter in Jaipur.
-# Every part is a list of narrated scenes; each scene's `visual` drives the widget animation.
-
-
-def scene(say, say_hi, visual=None, wait=False):
-    s = {"say": say, "sayHi": say_hi, "visual": visual or {}}
-    if wait:
-        s["wait"] = True
-    return s
+# "Understanding Elementary Shapes"). Story: the Jaipur family: Dadi, Harsh, Disha, Papa Deepak and Mummy Neha.
+# Every part is a list of scenes; each scene is a short dialogue and its `visual` drives the widget animation.
 
 
 def teacher(explain, mistakes, activity, syllabus):
@@ -22,6 +15,305 @@ def teacher(explain, mistakes, activity, syllabus):
 <h4>Classroom activity (10 min)</h4><p>{activity}</p>
 <h4>Syllabus link</h4><p>{syllabus}</p>
 """
+
+
+# ─── The family (same cast and voices in every Class 6 chapter) ───
+# Dadi: retired maths teacher, the storyteller · Harsh (12): cricket-mad, cheeky · Disha (11): curious, loves kites
+# Deepak (Papa): Indian Railways engineer · Neha (Mummy): runs a home bakery · Narrator: scene-setting (male/female)
+
+
+def L(who, en, hi):
+    return {"who": who, "say": en, "sayHi": hi}
+
+
+def scene(lines, visual=None, wait=False):
+    s = {"lines": lines, "visual": visual or {}}
+    if wait:
+        s["wait"] = True
+    return s
+
+
+SCENES_1 = [
+    scene([
+        L("Narrator", "It is Makar Sankranti in Jaipur, and the sky is full of kites. Harsh and Disha are on the rooftop with their Dadi, who taught maths for thirty five years.",
+          "Makar Sankranti ka din hai, aur Jaipur ka aasmaan patangon se bhara hai. Harsh aur Disha apni Dadi ke saath chhat par hain. Dadi ne paintees saal tak maths padhaya hai."),
+        L("Dadi", "Before we fly, look at this. I make one tiny dot with my pencil. Every shape in geometry begins with a dot like this!",
+          "Patang udaane se pehle, yeh dekho. Main pencil se ek chhota sa dot banaati hoon. Geometry ki har shape aise hi ek dot se shuru hoti hai!"),
+    ], {"stage": "point"}),
+    scene([
+        L("Disha", "It's so tiny, Dadi. How big is it?", "Yeh toh bahut chhota hai, Dadi. Yeh kitna bada hai?"),
+        L("Dadi", "That is the magic! In maths, this dot is called a point. It shows an exact position, but it has no length, no width and no thickness. We name it with a capital letter, like P.",
+          "Yahi toh jaadu hai! Maths mein is dot ko point kehte hain. Yeh ek exact jagah batata hai, lekin iski na lambai hai, na chaudai, na motaai. Iska naam hum capital letter se rakhte hain, jaise P."),
+        L("Harsh", "Like a star far away in the night sky!", "Jaise raat mein door chamakta taara!"),
+    ], {"stage": "point"}),
+    scene([
+        L("Disha", "Look, my kite is flying! My charkhi is here, and the kite is way up there.", "Dekho, meri patang ud rahi hai! Meri charkhi yahan hai, aur patang upar wahan."),
+        L("Dadi", "Call the charkhi point A and the kite point B. The tight string between them is a straight path with two end points. That is a line segment, written A B with a small bar on top.",
+          "Charkhi ko point A kaho aur patang ko point B. Dono ke beech tani hui dor ek seedha raasta hai jiske do end points hain. Yeh line segment hai, jise A B likh kar upar chhoti si line lagaate hain."),
+    ], {"stage": "segment", "kite": True}),
+    scene([
+        L("Harsh", "So can we measure it?", "Toh kya hum ise naap sakte hain?"),
+        L("Dadi", "Yes! It starts at A and stops at B, so a ruler can measure it. See the ruler marks? A line segment is the shortest path between two points.",
+          "Haan! Yeh A se shuru hokar B par rukta hai, isliye ruler se naap sakte hain. Ruler ke nishaan dekho? Do points ke beech sabse chhota raasta line segment hi hai."),
+    ], {"stage": "segment"}),
+    scene([
+        L("Narrator", "The sun sets, and Papa comes up to the roof with a torch.", "Suraj dhal jaata hai, aur Papa torch lekar chhat par aate hain."),
+        L("Deepak", "Watch this, kids! The light starts at my torch and just keeps going, past B, forever!",
+          "Yeh dekho bachcho! Roshni meri torch se shuru hoti hai aur B ke aage chalti hi jaati hai, hamesha!"),
+        L("Dadi", "A path that starts at one point and goes on forever in one direction is called a ray. We write A B with an arrow on top.",
+          "Jo raasta ek point se shuru hokar ek disha mein hamesha chalta rahe, use ray kehte hain. Hum A B likh kar upar arrow lagaate hain."),
+    ], {"stage": "ray", "torch": True}),
+    scene([
+        L("Deepak", "At Indian Railways, we imagine a track that never ends, in either direction.",
+          "Indian Railways mein hum aisi patri sochte hain jo dono taraf kabhi khatam na ho."),
+        L("Dadi", "Stretch A B both ways, forever, and you get a line. A line has no end points at all, so it can never be measured. The arrows at both ends say: I keep going!",
+          "A B ko dono taraf hamesha ke liye badha do, toh milti hai line. Line ka koi end point nahi hota, isliye ise kabhi naapa nahi ja sakta. Dono taraf ke arrow kehte hain: main chalti rehti hoon!"),
+    ], {"stage": "line", "rail": True}),
+    scene([
+        L("Harsh", "Dadi, how many lines can pass through just one point?", "Dadi, ek point se kitni lines guzar sakti hain?"),
+        L("Dadi", "Watch the screen! One line through P, and another, and another. They spin in every direction!",
+          "Screen dekho! P se ek line, phir doosri, phir teesri. Har disha mein ghoom rahi hain!"),
+        L("Disha", "They never stop! So through one point, infinitely many lines can pass!", "Yeh toh rukti hi nahi! Matlab ek point se anginat lines guzar sakti hain!"),
+    ], {"stage": "onePoint"}),
+    scene([
+        L("Dadi", "Now fix two points, A and B. The grey line swings around A, searching.", "Ab do points fix karo, A aur B. Grey line A ke chaaron taraf ghoom kar dhoondh rahi hai."),
+        L("Harsh", "It turned green when it touched B!", "B ko chhoote hi woh hari ho gayi!"),
+        L("Dadi", "Exactly! Through two points, only one line can pass. That is why a carpenter marks two dots before cutting a straight line.",
+          "Bilkul! Do points se sirf ek hi line guzar sakti hai. Isiliye carpenter seedha cut lagaane se pehle do dot lagaata hai."),
+    ], {"stage": "twoPoints"}),
+    scene([
+        L("Dadi", "Your turn now! Drag point A or point B and fly the kite around. Watch the length change, but count the end points. Always two!",
+          "Ab aapki baari! Point A ya point B ko drag karo aur patang udaao. Lambai badalti hai, lekin end points gino. Hamesha do!"),
+    ], {"stage": "segment", "kite": True}, wait=True),
+]
+
+SCENES_2 = [
+    scene([
+        L("Narrator", "Next morning, the family takes the train to Ajmer. Disha is glued to the window.", "Agli subah poora parivaar train se Ajmer jaata hai. Disha khidki se chipki hui hai."),
+        L("Disha", "Look, two roads crossing each other!", "Dekho, do sadkein ek doosre ko kaat rahi hain!"),
+        L("Deepak", "Lines that cross are called intersecting lines. They meet at exactly one point, the point of intersection. Here, that is point O.",
+          "Jo lines ek doosre ko kaatti hain unhe intersecting lines kehte hain. Woh sirf ek point par milti hain, point of intersection. Yahan woh point O hai."),
+    ], {"mode": "intersecting", "angle": 50}),
+    scene([
+        L("Harsh", "Papa, can two straight lines cross twice?", "Papa, kya do seedhi lines do baar kaat sakti hain?"),
+        L("Deepak", "Watch the second line turn. The angle changes, but they still meet at only one point. Two different straight lines can never cross twice.",
+          "Doosri line ko ghoomte dekho. Angle badalta hai, lekin woh ab bhi ek hi point par milti hain. Do alag seedhi lines do baar kabhi nahi kaat saktin."),
+    ], {"mode": "intersecting", "angle": 130}),
+    scene([
+        L("Neha", "Now it has stopped at a special place. The lines meet like the corner of my cake tin!", "Ab yeh ek khaas jagah ruk gayi. Lines bilkul meri cake tin ke kone ki tarah mil rahi hain!"),
+        L("Deepak", "Exactly, Neha. When lines meet at a right angle, they are perpendicular. See the small square at O? That square means right angle.",
+          "Bilkul, Neha. Jab lines right angle par milti hain, toh woh perpendicular hoti hain. O par chhota square dekho? Woh square matlab right angle."),
+        L("Disha", "The plus sign, the window grill, my notebook margin. All perpendicular!", "Plus ka sign, khidki ki grill, meri notebook ki margin. Sab perpendicular!"),
+    ], {"mode": "intersecting", "angle": 90}),
+    scene([
+        L("Harsh", "Papa, the two rails below us never meet. Why?", "Papa, neeche ki dono patriyaan kabhi nahi miltin. Kyon?"),
+        L("Deepak", "Because they are parallel lines, lines on the same flat surface that never meet. On a broad gauge track, we keep the rails exactly 1676 millimetres apart, everywhere.",
+          "Kyonki woh parallel lines hain, ek hi samtal par aisi lines jo kabhi nahi miltin. Broad gauge track par hum patriyon ko har jagah bilkul 1676 millimetre door rakhte hain."),
+    ], {"mode": "parallel", "tilt": 0, "gap": 100, "rail": True}),
+    scene([
+        L("Dadi", "Look at the three green measurements. The gap is the same at every place. Same gap everywhere means they will never meet.",
+          "Teen hare naap dekho. Har jagah gap barabar hai. Har jagah barabar gap, matlab woh kabhi nahi milengi."),
+    ], {"mode": "parallel", "tilt": 0, "gap": 100}),
+    scene([
+        L("Harsh", "What if one rail tilts, just a tiny bit?", "Agar ek patri thodi si tirchhi ho jaaye toh?"),
+        L("Deepak", "Even three degrees is a disaster! The gaps become unequal, and far away the rails crash together. The train would derail. That is why we check the gap so carefully.",
+          "Teen degree bhi museebat hai! Gap barabar nahi rehta, aur aage jaakar patriyaan takra jaati hain. Train patri se utar jaayegi. Isiliye hum gap itni dhyaan se check karte hain."),
+    ], {"mode": "parallel", "tilt": 3, "gap": 100}),
+    scene([
+        L("Deepak", "Your turn, engineers! Use the slider to turn the line until the two lines are perpendicular. Watch for the little square!",
+          "Ab aapki baari, engineers! Slider se line ko tab tak ghumaao jab tak dono lines perpendicular na ho jaayein. Chhote square ka dhyaan rakho!"),
+    ], {"mode": "intersecting", "angle": 40, "task": "perpendicular"}, wait=True),
+]
+
+SCENES_3 = [
+    scene([
+        L("Narrator", "Back home in Jaipur, Dadi is sitting near the old wooden door.", "Jaipur ghar wapas aakar, Dadi purane lakdi ke darwaaze ke paas baithi hain."),
+        L("Dadi", "Disha, open the door just a little. See how it turns around its hinge? How much it turns is what mathematicians call an angle.",
+          "Disha, darwaaza thoda sa kholo. Dekho, yeh kabze ke chaaron taraf kaise ghoomta hai? Yeh jitna ghoomta hai, use mathematician angle kehte hain."),
+    ], {"context": "door", "angle": 0}),
+    scene([
+        L("Disha", "I pushed it a tiny bit!", "Maine bas thoda sa dhakka diya!"),
+        L("Dadi", "A small push gives a small turn, a small angle. We measure angles in degrees. This door has turned 30 degrees.",
+          "Chhota dhakka, chhota ghoomna, chhota angle. Angle ko hum degree mein naapte hain. Yeh darwaaza 30 degree ghooma hai."),
+    ], {"context": "door", "angle": 30}),
+    scene([
+        L("Harsh", "Let me open it wide!", "Mujhe pura kholne do!"),
+        L("Dadi", "Stop when the door stands straight out from the wall. That is a quarter of a full turn, 90 degrees. We call it a right angle.",
+          "Jab darwaaza deewar se bilkul seedha bahar ho, tab ruko. Yeh poore chakkar ka chauthai hissa hai, 90 degree. Ise right angle kehte hain."),
+    ], {"context": "door", "angle": 90}),
+    scene([
+        L("Dadi", "Now let us draw it like mathematicians. The hinge becomes a point O, the vertex. The wall and the door become two rays, O A and O B, the arms.",
+          "Ab ise mathematician ki tarah banaate hain. Kabza ban jaata hai point O, yaani vertex. Deewar aur darwaaza ban jaate hain do rays, O A aur O B, yaani arms."),
+        L("Disha", "And its name is angle A O B?", "Aur iska naam angle A O B hai?"),
+        L("Dadi", "Yes! And the vertex letter always sits in the middle.", "Haan! Aur vertex ka letter hamesha beech mein baithta hai."),
+    ], {"context": "plain", "angle": 55, "showParts": True}),
+    scene([
+        L("Harsh", "What if I keep turning until it points the other way?", "Agar main ghumaata rahoon jab tak yeh ulti taraf na aa jaaye?"),
+        L("Dadi", "That is half a turn. The two arms make a straight line. 180 degrees, a straight angle.", "Yeh aadha chakkar hai. Dono arms seedhi line banaate hain. 180 degree, straight angle."),
+    ], {"context": "plain", "angle": 180}),
+    scene([
+        L("Harsh", "And all the way round, like my bowling arm?", "Aur poora ghuma doon, meri bowling wali baanh ki tarah?"),
+        L("Dadi", "One full turn is 360 degrees, a complete angle.", "Ek poora chakkar 360 degree hai, complete angle."),
+    ], {"context": "plain", "angle": 360}),
+    scene([
+        L("Dadi", "A clock is an angle machine! There are 12 hour gaps around the circle, so each gap is 360 divided by 12, which is 30 degrees.",
+          "Ghadi ek angle machine hai! Gol ghere mein 12 ghante ke gap hain, toh har gap 360 bhaag 12, yaani 30 degree."),
+        L("Disha", "So at 3 o'clock the hands are 3 gaps apart. 3 times 30 is 90 degrees!", "Toh 3 baje suiyaan 3 gap door hain. 3 guna 30, yaani 90 degree!"),
+    ], {"context": "clock", "angle": 90}),
+    scene([
+        L("Harsh", "At 6 o'clock, 6 times 30. That's 180 degrees!", "6 baje, 6 guna 30. Yaani 180 degree!"),
+        L("Dadi", "Shabash! The hands point in opposite directions.", "Shabash! Suiyaan ek doosre ki ulti disha mein hain."),
+    ], {"context": "clock", "angle": 180}),
+    scene([
+        L("Disha", "Dadi, why 360 degrees? Why not 100?", "Dadi, 360 degree hi kyon? 100 kyon nahi?"),
+        L("Dadi", "Historians believe it comes from ancient Babylon, where people counted in sixties, and a year has about 360 days. And 360 is a wonderful number. It divides exactly by 2, 3, 4, 5, 6, 8, 9, 10 and 12!",
+          "Itihaaskaar maante hain ki yeh purane Babylon se aaya, jahan log saath saath mein ginte the, aur saal mein lagbhag 360 din hote hain. Aur 360 kamaal ka number hai. Yeh 2, 3, 4, 5, 6, 8, 9, 10 aur 12 se poora bant jaata hai!"),
+    ], {"context": "plain", "angle": 120}),
+]
+
+SCENES_4 = [
+    scene([
+        L("Disha", "Let's sort angles into families, just like our family!", "Chalo angles ko parivaaron mein baante, bilkul hamare parivaar ki tarah!"),
+        L("Dadi", "Smaller than a right angle is acute. Acute means sharp, like a pencil tip. The Leaning Tower of Pisa leans only about 4 degrees, a tiny acute angle.",
+          "Right angle se chhota angle acute kehlaata hai. Acute matlab nukeela, pencil ki nok jaisa. Pisa ki jhuki meenaar sirf lagbhag 4 degree jhuki hai, ek chhota sa acute angle."),
+    ], {"context": "plain", "angle": 35, "showType": True, "showParts": False}),
+    scene([
+        L("Neha", "Exactly 90 degrees is a right angle, like the corners of my cake tray and the carrom board.", "Bilkul 90 degree right angle hai, jaise meri cake tray aur carrom board ke kone."),
+    ], {"context": "plain", "angle": 90, "showParts": False}),
+    scene([
+        L("Deepak", "Between 90 and 180 degrees is obtuse, which means blunt. When I lean back in my easy chair, my body makes an obtuse angle.",
+          "90 aur 180 degree ke beech obtuse hota hai, matlab bhotha. Jab main aaraam kursi par peeche jhukta hoon, mera shareer obtuse angle banaata hai."),
+        L("Harsh", "The lazy Papa angle!", "Aalsi Papa wala angle!"),
+    ], {"context": "plain", "angle": 130, "showParts": False}),
+    scene([
+        L("Disha", "Exactly 180 degrees is a straight angle, like my book lying open flat on the table.", "Bilkul 180 degree straight angle hai, jaise mez par poori khuli meri kitaab."),
+    ], {"context": "plain", "angle": 180, "showParts": False}),
+    scene([
+        L("Neha", "Now look at this pizza with one slice taken out. The big part that is left is a reflex angle, more than 180 but less than 360 degrees.",
+          "Ab is pizza ko dekho jisse ek slice nikaal liya. Jo bada hissa bacha hai woh reflex angle hai, 180 se zyaada lekin 360 degree se kam."),
+        L("Harsh", "Can I eat the slice?", "Kya main woh slice kha sakta hoon?"),
+    ], {"context": "plain", "angle": 250, "showParts": False}),
+    scene([
+        L("Dadi", "And 360 degrees, one full turn, is a complete angle. Like Disha spinning around once in her dance class.",
+          "Aur 360 degree, ek poora chakkar, complete angle hai. Jaise Disha apni dance class mein ek baar poora ghoomti hai."),
+    ], {"context": "plain", "angle": 360, "showParts": False}),
+    scene([
+        L("Dadi", "Your turn! Drag the handle and make an obtuse angle, more than 90 but less than 180 degrees.",
+          "Ab aapki baari! Handle ko drag karo aur ek obtuse angle banao, 90 se zyaada lekin 180 degree se kam."),
+    ], {"context": "plain", "angle": 20, "showParts": False, "task": {"text": "Your turn: make an obtuse angle (between 91° and 179°).", "min": 91, "max": 179}}, wait=True),
+]
+
+SCENES_5 = [
+    scene([
+        L("Narrator", "On Sunday, Papa is building a wooden bookshelf for the children.", "Ravivaar ko Papa bachchon ke liye lakdi ki bookshelf bana rahe hain."),
+        L("Deepak", "This support must be cut at an exact angle. Guessing is not good enough!", "Yeh support bilkul sahi angle par kaatna hai. Andaaza kaafi nahi hai!"),
+        L("Disha", "I have the perfect tool, Papa. A protractor, from my geometry box!", "Mere paas perfect tool hai, Papa. Protractor, mere geometry box se!"),
+    ], {"angle": 65, "place": False, "scale": "none", "reading": False, "guess": False}),
+    scene([
+        L("Dadi", "Step one. Slide the protractor so its centre point sits exactly on the vertex O.", "Pehla step. Protractor ko aise khiskaao ki uska centre point bilkul vertex O par aa jaaye."),
+    ], {"angle": 65, "place": True, "scale": "none", "reading": False}),
+    scene([
+        L("Dadi", "Step two. Line up its base line with one arm of the angle, the white arm.", "Doosra step. Uski base line ko angle ke ek arm, safed arm, ke saath milaao."),
+    ], {"angle": 65, "place": True, "scale": "none", "reading": False}),
+    scene([
+        L("Dadi", "Step three. A protractor has two rows of numbers. Choose the row that starts at zero on your first arm, the inner green row, and follow it to the second arm.",
+          "Teesra step. Protractor par numbers ki do line hoti hain. Woh line chuno jo pehle arm par zero se shuru hoti hai, andar wali hari line, aur use doosre arm tak follow karo."),
+        L("Disha", "It says 65 degrees!", "Yeh 65 degree bata raha hai!"),
+    ], {"angle": 65, "place": True, "scale": "inner", "reading": True}),
+    scene([
+        L("Harsh", "Wait, I read 115 degrees!", "Ruko, maine toh 115 degree padha!"),
+        L("Dadi", "That is the most common exam mistake, Harsh. You read the outer row. But this angle is clearly smaller than a right angle, so 115 must be wrong. Always ask first: acute or obtuse?",
+          "Yahi exam ki sabse common galti hai, Harsh. Tumne bahar wali line padhi. Lekin yeh angle saaf right angle se chhota hai, toh 115 galat hi hoga. Hamesha pehle poocho: acute ya obtuse?"),
+    ], {"angle": 65, "place": True, "scale": "outer", "reading": True}),
+    scene([
+        L("Deepak", "Let's try a bigger angle for the top shelf. The inner row starts at zero on our arm again, and it reads 140 degrees. Obtuse, just like it looks.",
+          "Upar wali shelf ke liye bada angle try karte hain. Andar wali line phir hamare arm par zero se shuru hoti hai, aur 140 degree padhti hai. Obtuse, jaisa dikhta hai."),
+    ], {"angle": 140, "place": True, "scale": "inner", "reading": True}),
+    scene([
+        L("Dadi", "Game time! Look at the angle, slide to your best guess, then check with the protractor. Get within 10 degrees to win. Tip: compare with a right angle first, then think about half of it.",
+          "Khel ka samay! Angle dekho, slider se apna best guess lagao, phir protractor se check karo. 10 degree ke andar aaye toh jeete. Tip: pehle right angle se tulna karo, phir uske aadhe ke baare mein socho."),
+    ], {"angle": 50, "place": False, "scale": "none", "reading": False, "guess": True}, wait=True),
+]
+
+SCENES_6 = [
+    scene([
+        L("Dadi", "A good mathematician never trusts a rule until she has tested it. Let us test three angle rules. Rule one starts with a straight line A B. The angle on a straight line is half a turn, 180 degrees.",
+          "Achchha mathematician kisi niyam par tab tak bharosa nahi karta jab tak use test na kar le. Chalo teen angle ke niyam test karte hain. Pehla niyam ek seedhi line A B se shuru hota hai. Seedhi line par angle aadha chakkar hai, 180 degree."),
+    ], {"mode": "linear", "angle": 60, "step": 0}),
+    scene([
+        L("Dadi", "Now a ray O C starts from point O. It splits the straight angle into two angles, side by side. Together they are called a linear pair.",
+          "Ab point O se ek ray O C nikalti hai. Yeh straight angle ko do agal bagal angles mein baant deti hai. Inhe saath mein linear pair kehte hain."),
+    ], {"mode": "linear", "angle": 60, "step": 1}),
+    scene([
+        L("Disha", "The green one is 60 degrees and the orange one is 120 degrees.", "Hara 60 degree hai aur naarangi 120 degree."),
+        L("Harsh", "60 plus 120 is 180. They still fill the half turn!", "60 plus 120 barabar 180. Dono milkar ab bhi aadha chakkar bharte hain!"),
+    ], {"mode": "linear", "angle": 60, "step": 2}),
+    scene([
+        L("Dadi", "Move the ray anywhere. 35 and 145. 100 and 80. The numbers change, but the sum is always 180 degrees. Rule one: a linear pair adds up to 180 degrees.",
+          "Ray ko kahin bhi le jaao. 35 aur 145. 100 aur 80. Numbers badalte hain, lekin jod hamesha 180 degree. Pehla niyam: linear pair ka jod 180 degree hota hai."),
+    ], {"mode": "linear", "angle": 35, "step": 3}),
+    scene([
+        L("Neha", "Rule two looks like my kitchen scissors! Two straight lines crossing at O make four angles.", "Doosra niyam meri kitchen ki kainchi jaisa dikhta hai! O par kaatti do seedhi lines chaar angle banaati hain."),
+        L("Dadi", "Call them angle 1, 2, 3 and 4. Angle 1 and angle 3 face each other across the point. They are vertically opposite angles.",
+          "Inhe angle 1, 2, 3 aur 4 kaho. Angle 1 aur angle 3 point ke aar paar aamne saamne hain. Yeh vertically opposite angles hain."),
+    ], {"mode": "vertical", "angle": 50, "step": 0}),
+    scene([
+        L("Harsh", "Angle 1 is 50 and angle 3 is also 50. Angle 2 and angle 4 are both 130. Is that just luck?",
+          "Angle 1 hai 50 aur angle 3 bhi 50. Angle 2 aur angle 4 dono 130. Kya yeh sirf kismat hai?"),
+    ], {"mode": "vertical", "angle": 50, "step": 1}),
+    scene([
+        L("Dadi", "Let us see it first. Copy angle 1 and spin it half a turn about O.", "Pehle dekhte hain. Angle 1 ki copy banao aur use O ke chaaron taraf aadha chakkar ghumaao."),
+        L("Disha", "It lands exactly on angle 3! A perfect fit!", "Yeh bilkul angle 3 par aa gaya! Ekdum perfect fit!"),
+    ], {"mode": "vertical", "angle": 50, "step": 2}),
+    scene([
+        L("Dadi", "Now let us prove it with numbers. Angle 1 and angle 2 make a linear pair, so they add to 180. Angle 2 and angle 3 also make a linear pair, so they also add to 180.",
+          "Ab numbers se prove karte hain. Angle 1 aur angle 2 linear pair hain, toh unka jod 180. Angle 2 aur angle 3 bhi linear pair hain, toh unka jod bhi 180."),
+    ], {"mode": "vertical", "angle": 50, "step": 4}),
+    scene([
+        L("Harsh", "So angle 1 plus angle 2 equals angle 2 plus angle 3. Take away angle 2 from both sides...",
+          "Toh angle 1 plus angle 2 barabar angle 2 plus angle 3. Dono taraf se angle 2 hata do..."),
+        L("Disha", "And angle 1 equals angle 3. Proved!", "Aur angle 1 barabar angle 3. Prove ho gaya!"),
+    ], {"mode": "vertical", "angle": 50, "step": 6}),
+    scene([
+        L("Neha", "Rule three is on my cake board! Cut a round cake into slices from the centre. All the angles around the centre make one full turn.",
+          "Teesra niyam meri cake board par hai! Gol cake ko beech se slices mein kaato. Beech ke chaaron taraf ke saare angles milkar ek poora chakkar banaate hain."),
+        L("Dadi", "So angles around a point always add up to 360 degrees.", "Isliye ek point ke chaaron taraf ke angles ka jod hamesha 360 degree hota hai."),
+    ], {"mode": "point", "rays": [35, 120, 215, 300]}),
+    scene([
+        L("Dadi", "Your turn! Drag the coloured dots to move the rays, and check that the total stays 360 degrees every single time.",
+          "Ab aapki baari! Rangeen dots ko drag karke rays hilaao, aur check karo ki total har baar 360 degree hi rehta hai."),
+    ], {"mode": "point", "rays": [35, 120, 215, 300]}, wait=True),
+]
+
+SCENES_7 = [
+    scene([
+        L("Narrator", "Exam week! Disha and Harsh sit with Dadi at the dining table.", "Exam ka hafta! Disha aur Harsh Dadi ke saath dining table par baithe hain."),
+        L("Dadi", "Question 1. Four points A, B, C and D lie on a line. How many line segments can you name?",
+          "Sawaal 1. Chaar points A, B, C aur D ek line par hain. Kitne line segments ke naam bata sakte ho?"),
+    ], {"example": 0, "step": 0}),
+    scene([
+        L("Disha", "Start from A. A joins B, C and D. That's 3 segments.", "A se shuru karo. A, B, C aur D se judta hai. Yeh 3 segments."),
+    ], {"example": 0, "step": 1}),
+    scene([
+        L("Harsh", "Then B. We already have A B, so B joins only C and D. 2 more.", "Phir B. A B toh pehle hi hai, toh B sirf C aur D se judega. 2 aur."),
+    ], {"example": 0, "step": 2}),
+    scene([
+        L("Dadi", "And from C, just C D. 3 plus 2 plus 1 equals 6 line segments. Remember this pattern!",
+          "Aur C se sirf C D. 3 plus 2 plus 1 barabar 6 line segments. Yeh pattern yaad rakhna!"),
+    ], {"example": 0, "step": 4}),
+    scene([
+        L("Dadi", "Question 2. What is the angle between the hands of a clock at 4 o'clock?", "Sawaal 2. 4 baje ghadi ki suiyon ke beech kitna angle hota hai?"),
+    ], {"example": 1, "step": 0}),
+    scene([
+        L("Harsh", "Each hour gap is 30 degrees. At 4 o'clock the hands are 4 gaps apart, so 4 times 30 is 120 degrees. Obtuse!",
+          "Har ghante ka gap 30 degree. 4 baje suiyaan 4 gap door, toh 4 guna 30 barabar 120 degree. Obtuse!"),
+        L("Dadi", "Shabash, Harsh!", "Shabash, Harsh!"),
+    ], {"example": 1, "step": 3}),
+    scene([
+        L("Dadi", "Now practise on your own. Pick any question from 3 to 10, try it in your notebook first, then press show step to check.",
+          "Ab khud practice karo. 3 se 10 tak koi bhi sawaal chuno, pehle notebook mein try karo, phir show step dabaakar check karo."),
+    ], {"example": 2, "step": 0}),
+]
 
 
 CARD = 'class="my-3 p-4 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 space-y-1"'
@@ -70,7 +362,7 @@ PARTS = [
         "title": "Story 1: The Kite Festival · Point, Segment, Ray and Line",
         "readingTime": "~6 min story",
         "narrative": f"""
-<div {STORY}>It is Makar Sankranti in Jaipur. The sky is full of kites. Eleven-year-old Meera is on the rooftop with her Dadaji, a retired carpenter. He makes one tiny pencil dot on a plank and smiles: "Every straight cut I ever made began with a dot like this."</div>
+<div {STORY}>It is Makar Sankranti in Jaipur. The sky is full of kites. Harsh (12) and Disha (11) are on the rooftop with their Dadi, a retired maths teacher. She makes one tiny pencil dot and smiles: "Every shape in geometry begins with a dot like this."</div>
 
 <h2>The four building blocks of geometry</h2>
 <div {CARD}>
@@ -98,54 +390,7 @@ PARTS = [
         "keyInsight": "Count the end points: segment = 2, ray = 1, line = 0. Only a segment can be measured.",
         "widgetType": "Class6PointLineRayWidget",
         "widgetData": {},
-        "scenes": [
-            scene(
-                "It is Makar Sankranti in Jaipur, and the sky is full of kites. Meera is on the rooftop with her Dadaji, an old carpenter. Dadaji takes a sharp pencil and makes one tiny dot on a wooden plank. Every straight cut I ever made, he says, began with a dot like this.",
-                "Makar Sankranti ka din hai, aur Jaipur ka aasmaan patangon se bhara hua hai. Meera apne Dadaji ke saath chhat par hai. Dadaji purane carpenter hain. Woh ek nukeeli pencil se lakdi par ek chhota sa dot banaate hain. Kehte hain, maine jitne bhi seedhe cut lagaaye, sab aise hi ek dot se shuru hue.",
-                {"stage": "point"},
-            ),
-            scene(
-                "In maths, this dot is called a point. A point shows an exact position, nothing more. It has no length, no width and no thickness. We name a point with a capital letter, like P. The tip of a compass, or a far away star at night, gives us the idea of a point.",
-                "Maths mein is dot ko point kehte hain. Point sirf ek exact jagah batata hai. Iski na lambai hoti hai, na chaudai, na motaai. Point ka naam hum capital letter se rakhte hain, jaise P. Compass ki nok, ya raat mein door chamakta taara, point jaisa hi dikhta hai.",
-                {"stage": "point"},
-            ),
-            scene(
-                "Now look at Meera's kite. Her charkhi, the string spool, is at point A. The kite is at point B. The tight string between them is a straight path with two end points. This is called a line segment. We write it as A B with a small bar on top.",
-                "Ab Meera ki patang dekho. Uski charkhi point A par hai, aur patang point B par. Dono ke beech tani hui dor ek seedha raasta hai jiske do end points hain. Ise line segment kehte hain. Hum ise A B likh kar upar ek chhoti si line lagaate hain.",
-                {"stage": "segment", "kite": True},
-            ),
-            scene(
-                "Because a line segment starts at A and stops at B, we can measure it with a ruler. See the ruler marks. A line segment is the shortest path between two points. Every edge of your notebook is a line segment.",
-                "Line segment A se shuru hokar B par ruk jaata hai, isliye hum ise ruler se naap sakte hain. Ruler ke nishaan dekho. Do points ke beech sabse chhota raasta line segment hi hota hai. Aapki notebook ka har kinara ek line segment hai.",
-                {"stage": "segment"},
-            ),
-            scene(
-                "When the sun sets, Dadaji switches on his torch. The light starts at the torch, at point A, and goes on and on, past B, with no end. A path that starts at one point and goes on forever in one direction is called a ray. We write it as A B with an arrow on top.",
-                "Shaam hote hi Dadaji torch jalaate hain. Roshni torch se, yaani point A se shuru hoti hai, aur B ke aage bas chalti hi jaati hai, kabhi khatam nahi hoti. Jo raasta ek point se shuru hokar ek hi disha mein hamesha chalta rahe, use ray kehte hain. Hum ise A B likh kar upar ek arrow lagaate hain.",
-                {"stage": "ray", "torch": True},
-            ),
-            scene(
-                "Now imagine a railway track that never ends, in either direction. Stretch the segment A B both ways, forever. That is a line. A line has no end points at all, so it can never be measured. We draw arrows at both ends to show that it keeps going.",
-                "Ab socho ek aisi railway line jo dono taraf kabhi khatam hi na ho. Segment A B ko dono taraf hamesha ke liye badha do. Yahi line hai. Line ka koi end point nahi hota, isliye ise kabhi naapa nahi ja sakta. Dono sirron par arrow lagaate hain, yeh dikhaane ke liye ki yeh aage chalti rehti hai.",
-                {"stage": "line", "rail": True},
-            ),
-            scene(
-                "Meera has a question. Dadaji, how many lines can pass through just one point? Watch the screen. Lines keep spinning through point P, in every direction. We can draw as many as we like. Through one point, infinitely many lines can pass.",
-                "Meera ka sawaal hai. Dadaji, ek point se kitni lines guzar sakti hain? Screen dekho. Point P se har disha mein lines ghoom rahi hain. Hum jitni chahein utni bana sakte hain. Ek point se anginat, yaani infinite lines guzar sakti hain.",
-                {"stage": "onePoint"},
-            ),
-            scene(
-                "But now fix two points, A and B. The grey line swings around point A, searching. Only when it passes through B does it turn green. Through two points, exactly one line can pass. That is why a carpenter marks two dots before cutting a straight line.",
-                "Lekin ab do points fix karo, A aur B. Grey line point A ke chaaron taraf ghoom kar dhoondh rahi hai. Jaise hi woh B se guzarti hai, hari ho jaati hai. Do points se sirf ek hi line guzar sakti hai. Isiliye carpenter seedha cut lagaane se pehle do dot lagaata hai.",
-                {"stage": "twoPoints"},
-            ),
-            scene(
-                "Your turn. Drag point A or point B and fly the kite around. Watch the length change. Notice that the segment always keeps exactly two end points.",
-                "Ab aapki baari. Point A ya point B ko drag karo aur patang ko idhar udhar udaao. Dekho lambai kaise badalti hai. Dhyaan do, segment ke hamesha do hi end points rehte hain.",
-                {"stage": "segment", "kite": True},
-                wait=True,
-            ),
-        ],
+        "scenes": SCENES_1,
         "miniChallenge": {
             "question": "The beam of a lighthouse is best described as a…",
             "options": ["Line segment", "Ray", "Line", "Point"],
@@ -172,7 +417,7 @@ PARTS = [
         "title": "Story 2: Railway Tracks and Window Grills · Pairs of Lines",
         "readingTime": "~5 min story",
         "narrative": f"""
-<div {STORY}>Next morning Meera and Dadaji take the train to Ajmer. Through the window she sees roads crossing, the grill of the window, and the two shining rails running beside the train for hours without ever meeting.</div>
+<div {STORY}>Next morning the family takes the train to Ajmer. Papa (Deepak) is an Indian Railways engineer. Through the window Disha sees roads crossing, the window grill, and the two shining rails running beside the train for hours without ever meeting.</div>
 
 <h2>Three ways two lines can behave</h2>
 <div {CARD}>
@@ -189,44 +434,7 @@ PARTS = [
         "keyInsight": "Two different straight lines either meet once (intersecting) or never (parallel). Meeting at 90° makes them perpendicular.",
         "widgetType": "Class6LinePairsWidget",
         "widgetData": {},
-        "scenes": [
-            scene(
-                "Next morning, Meera and Dadaji take the train to Ajmer. Through the window, Meera sees roads crossing each other. When two lines cross, they are called intersecting lines. They meet at exactly one point, called the point of intersection. Here it is point O.",
-                "Agli subah Meera aur Dadaji train se Ajmer jaate hain. Khidki se Meera dekhti hai ki sadkein ek doosre ko kaat rahi hain. Jab do lines ek doosre ko kaatti hain, unhe intersecting lines kehte hain. Woh sirf ek point par milti hain, jise point of intersection kehte hain. Yahan woh point O hai.",
-                {"mode": "intersecting", "angle": 50},
-            ),
-            scene(
-                "Watch the second line turn. The angle between the lines changes, but they still meet at only one point. Two different straight lines can never cross twice.",
-                "Doosri line ko ghoomte dekho. Lines ke beech ka angle badal raha hai, lekin woh ab bhi sirf ek hi point par milti hain. Do alag seedhi lines do baar kabhi nahi kaat saktin.",
-                {"mode": "intersecting", "angle": 130},
-            ),
-            scene(
-                "Now the line stops at a special position. The two lines meet at a right angle, like the corner of a book. Such lines are called perpendicular lines. See the small square at O. That square is the sign of a right angle. The plus sign, a window grill and the margin of your notebook all show perpendicular lines.",
-                "Ab line ek khaas jagah ruk gayi hai. Dono lines right angle par mil rahi hain, bilkul kitaab ke kone jaisi. Aisi lines ko perpendicular lines kehte hain. O par chhota sa square dekho. Yeh square right angle ka nishaan hai. Plus ka sign, khidki ki grill, aur notebook ki margin, sab perpendicular lines dikhaate hain.",
-                {"mode": "intersecting", "angle": 90},
-            ),
-            scene(
-                "Now Meera looks down at the railway track. The two rails run side by side for hundreds of kilometres and never meet. Lines on the same flat surface that never meet are called parallel lines. Indian Railways keeps the two rails of a broad gauge track exactly 1676 millimetres apart, everywhere.",
-                "Ab Meera neeche railway track dekhti hai. Dono patriyaan saikdon kilometre tak saath saath chalti hain aur kabhi nahi miltin. Ek hi samtal par jo lines kabhi nahi miltin, unhe parallel lines kehte hain. Indian Railways broad gauge track ki dono patriyon ke beech ki doori har jagah bilkul 1676 millimetre rakhti hai.",
-                {"mode": "parallel", "tilt": 0, "gap": 100, "rail": True},
-            ),
-            scene(
-                "See the three green measurements. The gap is the same at every place. That is the secret of parallel lines. The same gap everywhere means they will never meet.",
-                "Teen hare naap dekho. Har jagah gap bilkul barabar hai. Yahi parallel lines ka raaz hai. Har jagah barabar gap, matlab woh kabhi nahi milengi.",
-                {"mode": "parallel", "tilt": 0, "gap": 100},
-            ),
-            scene(
-                "What if one rail tilts by just three degrees? Watch. The gaps become unequal, and far away the two lines will crash into each other. A train would derail. That is why railway engineers check the gap so carefully.",
-                "Agar ek patri sirf teen degree tirchhi ho jaaye toh? Dekho. Gap barabar nahi rehta, aur aage chal kar dono lines takra jaayengi. Train patri se utar jaayegi. Isiliye railway engineers gap ko itni dhyaan se check karte hain.",
-                {"mode": "parallel", "tilt": 3, "gap": 100},
-            ),
-            scene(
-                "Your turn. Use the slider to turn the line until the two lines are perpendicular. Look for the little square to appear.",
-                "Ab aapki baari. Slider se line ko tab tak ghumaao jab tak dono lines perpendicular na ho jaayein. Chhota square dikhne ka intezaar karo.",
-                {"mode": "intersecting", "angle": 40, "task": "perpendicular"},
-                wait=True,
-            ),
-        ],
+        "scenes": SCENES_2,
         "miniChallenge": {
             "question": "The opposite edges of your ruler are an example of…",
             "options": ["Intersecting lines", "Perpendicular lines", "Parallel lines"],
@@ -250,10 +458,10 @@ PARTS = [
     },
     # ─────────────────────────────── Part 3 ───────────────────────────────
     {
-        "title": "Story 3: Dadaji's Door · What is an Angle?",
+        "title": "Story 3: Dadi's Door · What is an Angle?",
         "readingTime": "~6 min story",
         "narrative": f"""
-<div {STORY}>Back home, Dadaji is fixing a wooden door. "Open it a little, Meera." The door swings around its hinge. "How much it turned," says Dadaji, "is what mathematicians call an angle."</div>
+<div {STORY}>Back home, Dadi asks Disha to open the old wooden door a little. The door swings around its hinge. "How much it turned," says Dadi, "is what mathematicians call an angle."</div>
 
 <h2>An angle is an amount of turn</h2>
 <div {CARD}>
@@ -284,53 +492,7 @@ PARTS = [
         "keyInsight": "An angle measures how much something turns, not how long its arms are. One full turn = 360°.",
         "widgetType": "Class6AngleTurnWidget",
         "widgetData": {},
-        "scenes": [
-            scene(
-                "Back home, Dadaji is fixing a wooden door. Meera, he says, open the door a little. The door turns around its hinge. The amount by which it turns is what mathematicians call an angle.",
-                "Ghar wapas aakar Dadaji ek lakdi ka darwaaza theek kar rahe hain. Kehte hain, Meera, darwaaza thoda kholo. Darwaaza apne kabze ke chaaron taraf ghoomta hai. Woh jitna ghoomta hai, use mathematician angle kehte hain.",
-                {"context": "door", "angle": 0},
-            ),
-            scene(
-                "A small push gives a small turn, and a small angle. We measure angles in degrees. This door has turned 30 degrees.",
-                "Halka sa dhakka, thoda sa ghoomna, chhota sa angle. Angle ko hum degree mein naapte hain. Yeh darwaaza 30 degree ghooma hai.",
-                {"context": "door", "angle": 30},
-            ),
-            scene(
-                "Now open it wider, until the door stands straight out from the wall. This is a quarter of a full turn, and it measures 90 degrees. It is called a right angle.",
-                "Ab ise aur kholo, jab tak darwaaza deewar se bilkul seedha bahar na nikal aaye. Yeh ek poore chakkar ka chauthai hissa hai, aur yeh 90 degree ka hai. Ise right angle kehte hain.",
-                {"context": "door", "angle": 90},
-            ),
-            scene(
-                "Now let us draw it like mathematicians. The hinge becomes a point O, called the vertex. The wall and the door become two rays, O A and O B, called the arms. We name this angle as angle A O B, always keeping the vertex letter in the middle.",
-                "Ab ise mathematician ki tarah banaate hain. Kabza ban jaata hai point O, jise vertex kehte hain. Deewar aur darwaaza ban jaate hain do rays, O A aur O B, jinhe arms kehte hain. Is angle ka naam hai angle A O B. Vertex ka letter hamesha beech mein rakhte hain.",
-                {"context": "plain", "angle": 55, "showParts": True},
-            ),
-            scene(
-                "Turn the arm until it points the opposite way. That is half a turn. The two arms now make a straight line. This is 180 degrees, a straight angle.",
-                "Arm ko tab tak ghumaao jab tak woh ulti disha mein na aa jaaye. Yeh aadha chakkar hai. Ab dono arms milkar ek seedhi line bana rahe hain. Yeh 180 degree hai, straight angle.",
-                {"context": "plain", "angle": 180},
-            ),
-            scene(
-                "Keep turning, all the way round, until the arm comes back home. One full turn is 360 degrees. This is a complete angle.",
-                "Ghumaate raho, poora chakkar, jab tak arm wapas apni jagah na aa jaaye. Ek poora chakkar 360 degree hota hai. Ise complete angle kehte hain.",
-                {"context": "plain", "angle": 360},
-            ),
-            scene(
-                "Dadaji points at the wall clock. A clock is an angle machine. There are 12 hours around the circle, so each hour gap is 360 divided by 12, which is 30 degrees. At 3 o'clock the hands are 3 gaps apart. 3 times 30 is 90 degrees, a right angle.",
-                "Dadaji deewar ki ghadi ki taraf ishaara karte hain. Ghadi ek angle machine hai. Gol ghere mein 12 ghante hain, toh har ghante ka gap hai 360 bhaag 12, yaani 30 degree. 3 baje dono suiyaan 3 gap door hoti hain. 3 guna 30, yaani 90 degree, ek right angle.",
-                {"context": "clock", "angle": 90},
-            ),
-            scene(
-                "At 6 o'clock the hands point in opposite directions. 6 times 30 is 180 degrees.",
-                "6 baje suiyaan ek doosre ki ulti disha mein hoti hain. 6 guna 30, yaani 180 degree.",
-                {"context": "clock", "angle": 180},
-            ),
-            scene(
-                "Why 360 degrees, and not 100? Historians believe the idea comes from ancient Babylon, where people counted in sixties, and a year has about 360 days. 360 is also a wonderful number. It divides exactly by 2, 3, 4, 5, 6, 8, 9, 10 and 12. So halves, thirds and quarters of a turn are always whole numbers of degrees.",
-                "360 degree hi kyon, 100 kyon nahi? Itihaaskaar maante hain ki yeh idea purane Babylon se aaya, jahan log saath saath mein ginte the, aur saal mein lagbhag 360 din hote hain. 360 ek kamaal ka number bhi hai. Yeh 2, 3, 4, 5, 6, 8, 9, 10 aur 12 se poora bant jaata hai. Isliye chakkar ka aadha, tihaai, chauthai, sab poore degree mein aate hain.",
-                {"context": "plain", "angle": 120},
-            ),
-        ],
+        "scenes": SCENES_3,
         "miniChallenge": {
             "question": "What is the angle between the hands of a clock at 2 o'clock?",
             "options": ["30°", "60°", "90°", "120°"],
@@ -357,7 +519,7 @@ PARTS = [
         "title": "Story 4: The Angle Family · Acute to Reflex",
         "readingTime": "~4 min story",
         "narrative": f"""
-<div {STORY}>Meera wants to sort every angle in the house into families: the sharp ones, the square ones, the lazy ones and the very big ones.</div>
+<div {STORY}>Disha wants to sort every angle in the house into families: the sharp ones, the square ones, the lazy ones and the very big ones. Mummy (Neha) brings examples from her bakery.</div>
 
 <h2>The angle family</h2>
 <table class="w-full text-xs md:text-sm my-3">
@@ -376,44 +538,7 @@ PARTS = [
         "keyInsight": "Compare with 90° and 180° first. Less than 90° is acute, between 90° and 180° is obtuse, past 180° is reflex.",
         "widgetType": "Class6AngleTurnWidget",
         "widgetData": {},
-        "scenes": [
-            scene(
-                "Meera decides to sort angles into families, by size. An angle smaller than a right angle is called acute. Acute means sharp, like the tip of a pencil. The famous Leaning Tower of Pisa in Italy leans by only about 4 degrees, a tiny acute angle.",
-                "Meera angles ko size ke hisaab se parivaaron mein baantna chaahti hai. Jo angle right angle se chhota ho, use acute kehte hain. Acute ka matlab hai nukeela, pencil ki nok jaisa. Italy ka mashhoor Leaning Tower of Pisa sirf lagbhag 4 degree jhuka hai. Yeh ek chhota sa acute angle hai.",
-                {"context": "plain", "angle": 35, "showType": True, "showParts": False},
-            ),
-            scene(
-                "Exactly 90 degrees is a right angle. You find them at the corners of a door, a book and a carrom board.",
-                "Bilkul 90 degree ko right angle kehte hain. Yeh darwaaze, kitaab aur carrom board ke konon par milte hain.",
-                {"context": "plain", "angle": 90, "showParts": False},
-            ),
-            scene(
-                "Between 90 and 180 degrees, the angle is called obtuse. Obtuse means blunt. Lean back in a reclining chair and your body makes an obtuse angle.",
-                "90 aur 180 degree ke beech ke angle ko obtuse kehte hain. Obtuse ka matlab hai bhotha, jo nukeela na ho. Aaraam kursi par peeche jhuko, toh aapka shareer ek obtuse angle banaata hai.",
-                {"context": "plain", "angle": 130, "showParts": False},
-            ),
-            scene(
-                "Exactly 180 degrees is a straight angle. The two arms make one straight line, like a book opened flat on the table.",
-                "Bilkul 180 degree ko straight angle kehte hain. Dono arms milkar ek seedhi line banaate hain, jaise mez par poori khuli kitaab.",
-                {"context": "plain", "angle": 180, "showParts": False},
-            ),
-            scene(
-                "More than 180 but less than 360 degrees is a reflex angle. Here the turn has gone past the straight line. A reflex angle looks like a round pizza after one slice has been taken out.",
-                "180 se zyaada lekin 360 se kam degree ke angle ko reflex angle kehte hain. Yahan ghoomna seedhi line se aage nikal gaya hai. Reflex angle aisa dikhta hai jaise gol pizza se ek slice nikaal liya ho.",
-                {"context": "plain", "angle": 250, "showParts": False},
-            ),
-            scene(
-                "And 360 degrees, one full turn, is a complete angle. Think of a skater spinning round once, or the minute hand finishing one hour.",
-                "Aur 360 degree, yaani ek poora chakkar, complete angle hai. Socho ek skater ek baar poora ghoom gaya, ya minute ki sui ne ek ghanta poora kar liya.",
-                {"context": "plain", "angle": 360, "showParts": False},
-            ),
-            scene(
-                "Your turn. Drag the glowing handle and make an obtuse angle, more than 90 but less than 180 degrees.",
-                "Ab aapki baari. Chamakte handle ko drag karo aur ek obtuse angle banao, 90 se zyaada lekin 180 degree se kam.",
-                {"context": "plain", "angle": 20, "showParts": False, "task": {"text": "Your turn: make an obtuse angle (between 91° and 179°).", "min": 91, "max": 179}},
-                wait=True,
-            ),
-        ],
+        "scenes": SCENES_4,
         "miniChallenge": {
             "question": "An angle of 200° is…",
             "options": ["Obtuse", "Straight", "Reflex", "Complete"],
@@ -436,10 +561,10 @@ PARTS = [
     },
     # ─────────────────────────────── Part 5 ───────────────────────────────
     {
-        "title": "Story 5: The Carpenter's Joint · Measuring with a Protractor",
+        "title": "Story 5: Papa's Bookshelf · Measuring with a Protractor",
         "readingTime": "~5 min story",
         "narrative": f"""
-<div {STORY}>Dadaji needs to cut a wooden joint at an exact angle. "Guessing is not good enough," he says. Meera opens her geometry box and takes out the half-moon tool.</div>
+<div {STORY}>Papa is building a bookshelf and needs to cut a support at an exact angle. "Guessing is not good enough," he says. Disha opens her geometry box and takes out the half-moon tool.</div>
 
 <h2>3 steps to measure any angle</h2>
 <ol>
@@ -457,49 +582,12 @@ PARTS = [
         "keyInsight": "Centre on the vertex, base on an arm, and read the scale that starts at 0 on that arm. Always sanity-check: acute or obtuse?",
         "widgetType": "Class6ProtractorWidget",
         "widgetData": {},
-        "scenes": [
-            scene(
-                "Dadaji needs to cut a wooden joint at an exact angle. Guessing is not good enough. Meera brings her geometry box and takes out a half moon shaped tool. This is a protractor. It measures angles in degrees.",
-                "Dadaji ko lakdi ka ek jod bilkul sahi angle par kaatna hai. Andaaza lagaana kaafi nahi hai. Meera apna geometry box laati hai aur usmein se aadhe chaand jaisa ek tool nikaalti hai. Yeh protractor hai. Yeh angle ko degree mein naapta hai.",
-                {"angle": 65, "place": False, "scale": "none", "reading": False, "guess": False},
-            ),
-            scene(
-                "Step one. Slide the protractor so that its centre point sits exactly on the vertex O.",
-                "Pehla step. Protractor ko aise khiskaao ki uska centre point bilkul vertex O par aa jaaye.",
-                {"angle": 65, "place": True, "scale": "none", "reading": False},
-            ),
-            scene(
-                "Step two. Line up the base line of the protractor with one arm of the angle, here the white arm. Now the protractor sits perfectly.",
-                "Doosra step. Protractor ki base line ko angle ke ek arm ke saath milaao, yahan safed arm ke saath. Ab protractor bilkul sahi baitha hai.",
-                {"angle": 65, "place": True, "scale": "none", "reading": False},
-            ),
-            scene(
-                "Step three. A protractor has two rows of numbers. Choose the row that starts at zero on your first arm. Here that is the inner, green row. Follow it up to the second arm and read the number. The angle is 65 degrees.",
-                "Teesra step. Protractor par numbers ki do lines hoti hain. Woh line chuno jo aapke pehle arm par zero se shuru hoti hai. Yahan woh andar wali hari line hai. Use doosre arm tak follow karo aur number padho. Angle 65 degree hai.",
-                {"angle": 65, "place": True, "scale": "inner", "reading": True},
-            ),
-            scene(
-                "Now, the most common mistake in exams. If you read the outer row by mistake, you get 115 degrees. But our angle is clearly smaller than a right angle, so 115 must be wrong. Always ask yourself first, is my angle acute or obtuse?",
-                "Ab exam ki sabse common galti. Agar galti se bahar wali line padh li, toh aayega 115 degree. Lekin hamara angle saaf taur par right angle se chhota hai, toh 115 galat hi hoga. Hamesha pehle khud se poocho, mera angle acute hai ya obtuse?",
-                {"angle": 65, "place": True, "scale": "outer", "reading": True},
-            ),
-            scene(
-                "Let us try a bigger angle. The inner row again starts at zero on our arm. Reading it gives 140 degrees, an obtuse angle, which matches what our eyes see.",
-                "Ab ek bada angle try karte hain. Andar wali line phir se hamare arm par zero se shuru hoti hai. Padhne par aata hai 140 degree, ek obtuse angle, jo aankhon se dekhne mein bhi sahi lagta hai.",
-                {"angle": 140, "place": True, "scale": "inner", "reading": True},
-            ),
-            scene(
-                "Time for the estimation game. Look at the angle, slide to your best guess, then check with the protractor. Get within 10 degrees to win. Tip, first compare with a right angle, then think about half of it.",
-                "Ab andaaza lagaane ka khel. Angle ko dekho, slider se apna best guess lagao, phir protractor se check karo. 10 degree ke andar aaye toh aap jeete. Tip, pehle right angle se tulna karo, phir uske aadhe ke baare mein socho.",
-                {"angle": 50, "place": False, "scale": "none", "reading": False, "guess": True},
-                wait=True,
-            ),
-        ],
+        "scenes": SCENES_5,
         "miniChallenge": {
-            "question": "Riya measures a clearly acute angle and writes 150°. What is the most likely real measure?",
+            "question": "Harsh measures a clearly acute angle and writes 150°. What is the most likely real measure?",
             "options": ["150°", "30°", "60°", "90°"],
             "correctIndex": 1,
-            "explanation": "She read the wrong scale. The real angle is 180° − 150° = 30°, which is acute.",
+            "explanation": "He read the wrong scale. The real angle is 180° − 150° = 30°, which is acute.",
         },
         "teacherNotes": teacher(
             [
@@ -520,7 +608,7 @@ PARTS = [
         "title": "Story 6: Proof Lab · Three Angle Rules, Seen and Proved",
         "readingTime": "~7 min story",
         "narrative": f"""
-<div {STORY}>"A carpenter never trusts a rule until he has tested it," says Dadaji. Mathematicians feel the same way. Meera tests three rules: first with her eyes, then with numbers.</div>
+<div {STORY}>"A good mathematician never trusts a rule until she has tested it," says Dadi. Harsh and Disha test three rules: first with their eyes, then with numbers.</div>
 
 <h2>Rule 1 · Linear pair</h2>
 <p>Two angles that sit side by side on a straight line form a <strong>linear pair</strong>.</p>
@@ -545,64 +633,7 @@ PARTS = [
         "keyInsight": "On a line: 180°. Around a point: 360°. Crossing lines: opposite angles are equal, because both make a linear pair with the same neighbour.",
         "widgetType": "Class6AngleProofsWidget",
         "widgetData": {},
-        "scenes": [
-            scene(
-                "Dadaji loves to say, a carpenter never trusts a rule until he has tested it. Mathematicians are the same. Let us test three angle rules. Rule one starts with a straight line A B. The angle on a straight line is half a turn, 180 degrees.",
-                "Dadaji hamesha kehte hain, carpenter kisi niyam par tab tak bharosa nahi karta jab tak use test na kar le. Mathematician bhi aise hi hote hain. Chalo teen angle ke niyam test karte hain. Pehla niyam ek seedhi line A B se shuru hota hai. Seedhi line par angle aadha chakkar hota hai, 180 degree.",
-                {"mode": "linear", "angle": 60, "step": 0},
-            ),
-            scene(
-                "Now a ray O C starts from point O on the line. It splits the straight angle into two angles, side by side. Two angles that sit together on a straight line like this are called a linear pair.",
-                "Ab line par point O se ek ray O C nikalti hai. Yeh straight angle ko do angles mein baant deti hai, jo agal bagal hain. Seedhi line par aise saath baithe do angles ko linear pair kehte hain.",
-                {"mode": "linear", "angle": 60, "step": 1},
-            ),
-            scene(
-                "The green angle is 60 degrees and the orange one is 120 degrees. Together, they still fill the same half turn.",
-                "Hara angle 60 degree hai aur naarangi angle 120 degree. Dono milkar ab bhi wahi aadha chakkar bharte hain.",
-                {"mode": "linear", "angle": 60, "step": 2},
-            ),
-            scene(
-                "Move the ray anywhere. 35 and 145. 100 and 80. The two numbers change, but their sum is always 180 degrees. Rule one. The angles of a linear pair add up to 180 degrees.",
-                "Ray ko kahin bhi le jaao. 35 aur 145. 100 aur 80. Dono numbers badalte hain, lekin unka jod hamesha 180 degree rehta hai. Pehla niyam. Linear pair ke angles ka jod 180 degree hota hai.",
-                {"mode": "linear", "angle": 35, "step": 3},
-            ),
-            scene(
-                "Rule two. Two straight lines cross at O, like the blades of a pair of scissors. They make four angles. We call them angle 1, 2, 3 and 4. Angle 1 and angle 3 face each other across the point. They are called vertically opposite angles.",
-                "Doosra niyam. Do seedhi lines O par ek doosre ko kaatti hain, bilkul kainchi ke do phalon ki tarah. Yeh chaar angle banaati hain. Hum inhe angle 1, 2, 3 aur 4 kehte hain. Angle 1 aur angle 3 point ke aar paar aamne saamne hain. Inhe vertically opposite angles kehte hain.",
-                {"mode": "vertical", "angle": 50, "step": 0},
-            ),
-            scene(
-                "Look at their sizes. Angle 1 is 50 degrees, and angle 3 is also 50 degrees. Angle 2 and angle 4 are both 130 degrees. Is this just luck?",
-                "Inke size dekho. Angle 1 hai 50 degree, aur angle 3 bhi 50 degree. Angle 2 aur angle 4 dono 130 degree hain. Kya yeh sirf kismat hai?",
-                {"mode": "vertical", "angle": 50, "step": 1},
-            ),
-            scene(
-                "First, let us see it. Make a copy of angle 1 and spin it half a turn about O. It lands exactly on angle 3. A perfect fit. So they must be equal.",
-                "Pehle ise dekhte hain. Angle 1 ki ek copy banao aur use O ke chaaron taraf aadha chakkar ghumaao. Woh bilkul angle 3 ke upar aa kar baith jaati hai. Ekdum perfect fit. Toh dono barabar hi honge.",
-                {"mode": "vertical", "angle": 50, "step": 2},
-            ),
-            scene(
-                "Now let us prove it with numbers. Angle 1 and angle 2 make a linear pair, so angle 1 plus angle 2 is 180 degrees. Angle 2 and angle 3 also make a linear pair, so angle 2 plus angle 3 is also 180 degrees.",
-                "Ab ise numbers se prove karte hain. Angle 1 aur angle 2 linear pair banaate hain, toh angle 1 plus angle 2 barabar 180 degree. Angle 2 aur angle 3 bhi linear pair banaate hain, toh angle 2 plus angle 3 bhi 180 degree.",
-                {"mode": "vertical", "angle": 50, "step": 4},
-            ),
-            scene(
-                "Both sums are 180, so angle 1 plus angle 2 equals angle 2 plus angle 3. Take away angle 2 from both sides, and we get angle 1 equals angle 3. Proved. In the same way, angle 2 equals angle 4.",
-                "Dono jod 180 hain, toh angle 1 plus angle 2 barabar angle 2 plus angle 3. Dono taraf se angle 2 hata do, toh milta hai angle 1 barabar angle 3. Prove ho gaya. Isi tarah, angle 2 barabar angle 4.",
-                {"mode": "vertical", "angle": 50, "step": 6},
-            ),
-            scene(
-                "Rule three. Draw some rays from one point O, as many as you like. The angles all the way around the point together make one full turn. So they always add up to 360 degrees. Think of the slices of a round roti meeting at its centre.",
-                "Teesra niyam. Ek point O se kuch rays banao, jitni chaaho. Point ke chaaron taraf ke saare angles milkar ek poora chakkar banaate hain. Isliye unka jod hamesha 360 degree hota hai. Socho gol roti ke tukde jo beech mein milte hain.",
-                {"mode": "point", "rays": [35, 120, 215, 300]},
-            ),
-            scene(
-                "Your turn. Drag the coloured dots to move the rays. Watch the angles change, and check that the total stays 360 degrees every single time.",
-                "Ab aapki baari. Rangeen dots ko drag karke rays ko hilaao. Angles ko badalte dekho, aur check karo ki total har baar 360 degree hi rehta hai.",
-                {"mode": "point", "rays": [35, 120, 215, 300]},
-                wait=True,
-            ),
-        ],
+        "scenes": SCENES_6,
         "miniChallenge": {
             "question": "Two lines cross. One of the four angles is 70°. What is the angle vertically opposite to it?",
             "options": ["110°", "70°", "20°", "290°"],
@@ -629,7 +660,7 @@ PARTS = [
         "title": "Solved Questions · 10 exam-style problems, step by step",
         "readingTime": "~10 min",
         "narrative": f"""
-<div {STORY}>Meera's exam is next week. Dadaji sits with her and they solve one question at a time: read, picture it, then solve.</div>
+<div {STORY}>Exam week! Disha and Harsh sit with Dadi and solve one question at a time: read, picture it, then solve.</div>
 <h2>How to attack any angle question</h2>
 <ol>
   <li><strong>Draw it</strong> (even a rough sketch).</li>
@@ -667,7 +698,7 @@ PARTS = [
                 },
                 {
                     "title": "Turning directions",
-                    "question": "Meera faces North and turns clockwise to face East. What fraction of a turn is this, and how many degrees? If she then turns clockwise from East to West, how many degrees does she turn?",
+                    "question": "Disha faces North and turns clockwise to face East. What fraction of a turn is this, and how many degrees? If she then turns clockwise from East to West, how many degrees does she turn?",
                     "steps": [
                         "North → East clockwise is one of the four quarters of a full turn: <strong>¼ turn</strong>",
                         "¼ × 360° = <strong>90°</strong>",
@@ -732,13 +763,13 @@ PARTS = [
                 },
                 {
                     "title": "Protractor mistake",
-                    "question": "Riya measures an angle that is clearly smaller than a right angle, but writes 130°. What went wrong and what is the real measure?",
+                    "question": "Harsh measures an angle that is clearly smaller than a right angle, but writes 130°. What went wrong and what is the real measure?",
                     "steps": [
                         "An angle smaller than 90° cannot be 130°, so the reading is wrong.",
                         "She read the outer scale. Wrong-scale reading = 180° − real angle.",
                         "Real angle = 180° − 130° = <strong>50°</strong>",
                     ],
-                    "answer": "She read the wrong scale; the angle is 50°",
+                    "answer": "He read the wrong scale; the angle is 50°",
                 },
                 {
                     "title": "Lines through points",
@@ -752,43 +783,7 @@ PARTS = [
                 },
             ]
         },
-        "scenes": [
-            scene(
-                "Let us solve exam questions together, step by step. Question 1. Four points A, B, C and D lie on a line. How many line segments can you name?",
-                "Chalo exam ke sawaal saath mein, step by step solve karte hain. Sawaal 1. Chaar points A, B, C aur D ek line par hain. Aap kitne line segments ke naam bata sakte ho?",
-                {"example": 0, "step": 0},
-            ),
-            scene(
-                "Start from A. A can join B, C and D. That gives 3 segments.",
-                "A se shuru karo. A, B, C aur D se jud sakta hai. Yeh hue 3 segments.",
-                {"example": 0, "step": 1},
-            ),
-            scene(
-                "Now B. We already have A B, so B joins only C and D. That is 2 more.",
-                "Ab B. A B toh pehle hi gin liya, isliye B sirf C aur D se judega. Yeh 2 aur.",
-                {"example": 0, "step": 2},
-            ),
-            scene(
-                "From C, just C D. One more. Total, 3 plus 2 plus 1 equals 6 line segments. Notice the pattern, it will help you with bigger questions.",
-                "C se sirf C D. Ek aur. Total, 3 plus 2 plus 1 barabar 6 line segments. Is pattern par dhyaan do, bade sawaalon mein kaam aayega.",
-                {"example": 0, "step": 4},
-            ),
-            scene(
-                "Question 2. What is the angle between the hands of a clock at 4 o'clock?",
-                "Sawaal 2. 4 baje ghadi ki dono suiyon ke beech kitna angle hota hai?",
-                {"example": 1, "step": 0},
-            ),
-            scene(
-                "There are 12 equal gaps in 360 degrees, so each gap is 30 degrees. At 4 o'clock the hands are 4 gaps apart. 4 times 30 is 120 degrees, which is an obtuse angle.",
-                "360 degree mein 12 barabar gap hain, toh har gap 30 degree ka hai. 4 baje suiyaan 4 gap door hoti hain. 4 guna 30 barabar 120 degree, jo ek obtuse angle hai.",
-                {"example": 1, "step": 3},
-            ),
-            scene(
-                "Now it is your turn to practise. Pick any question from 3 to 10. Try it in your notebook first, then press show step to check each step.",
-                "Ab aapki practice ki baari. 3 se 10 tak koi bhi sawaal chuno. Pehle apni notebook mein try karo, phir show step dabaakar har step check karo.",
-                {"example": 2, "step": 0},
-            ),
-        ],
+        "scenes": SCENES_7,
         "teacherNotes": teacher(
             [
                 "Model the 4-step routine (draw, spot the rule, equation, sanity check) aloud for Q1–Q2, then let students lead Q3 onwards.",
@@ -808,7 +803,7 @@ PARTS = [
         "title": "Chapter Exam · Lines and Angles (80% to pass)",
         "readingTime": "~10 min exam",
         "narrative": f"""
-<p>You have travelled with Meera from a kite string to a full proof. Now show what you know.</p>
+<p>You have travelled with Harsh and Disha from a kite string to a full proof. Now show what you know.</p>
 <div {CARD}>
   <div><strong>10 questions</strong> covering segments, rays, lines, pairs of lines, angle types, protractor reading, clock angles and the three angle rules.</div>
   <div><strong>Pass mark: 80%</strong> (8 out of 10). You get the explanation after every answer.</div>
@@ -829,7 +824,7 @@ PARTS = [
                 {"q": "Two lines intersect and one angle is 110°. The angle vertically opposite to it is:", "options": ["70°", "110°", "250°", "90°"], "answer": 1, "explanation": "Vertically opposite angles are equal.", "topic": "Vertically opposite angles"},
                 {"q": "Three-quarters of a full turn measures:", "options": ["90°", "180°", "270°", "300°"], "answer": 2, "explanation": "¾ × 360° = 270°.", "topic": "Turns and degrees"},
                 {"q": "Three angles around a point are 90°, 120° and x. What is x?", "options": ["150°", "60°", "90°", "210°"], "answer": 0, "explanation": "90° + 120° + x = 360°, so x = 150°.", "topic": "Angles around a point"},
-                {"q": "Arjun measures an angle that is clearly acute but reads 120° on his protractor. The real angle is:", "options": ["120°", "30°", "60°", "240°"], "answer": 2, "explanation": "He read the wrong scale: 180° − 120° = 60°.", "topic": "Using a protractor"},
+                {"q": "Disha measures an angle that is clearly acute but reads 120° on her protractor. The real angle is:", "options": ["120°", "30°", "60°", "240°"], "answer": 2, "explanation": "She read the wrong scale: 180° − 120° = 60°.", "topic": "Using a protractor"},
             ],
         },
         "teacherNotes": teacher(
@@ -851,10 +846,11 @@ def seed_class6_lines_angles():
     db = SessionLocal()
     try:
         topic = get_class6_topic(db, "Lines and Angles")
-        topic.lesson_config_json = json.dumps({"type": "narrative", "voice": "female", "parts": PARTS})
+        topic.lesson_config_json = json.dumps({"type": "narrative", "parts": PARTS})
         db.commit()
         scenes = sum(len(p.get("scenes", [])) for p in PARTS)
-        print(f"Seeded Class 6 Lines and Angles: {len(PARTS)} parts, {scenes} narrated scenes")
+        lines = sum(len(sc["lines"]) for p in PARTS for sc in p.get("scenes", []))
+        print(f"Seeded Class 6 Lines and Angles: {len(PARTS)} parts, {scenes} scenes, {lines} dialogue lines")
     except Exception as e:
         db.rollback()
         print(f"Error seeding Class 6 Lines and Angles: {e}")

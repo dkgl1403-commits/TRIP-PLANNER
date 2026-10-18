@@ -16,13 +16,20 @@ from learning.api import synthesize_tts  # noqa: E402
 
 
 def story_lines(config):
-    voice = config.get("voice", "female")
+    """Yields (text, lang, voice, speaker) exactly as the StoryPlayer requests them."""
     for part in config.get("parts", []):
         for sc in part.get("scenes", []):
-            if sc.get("say"):
-                yield sc["say"], "en", voice
-            if sc.get("sayHi"):
-                yield sc["sayHi"], "hi", voice
+            lines = sc.get("lines") or [{"who": "Narrator", "say": sc.get("say"), "sayHi": sc.get("sayHi")}]
+            for line in lines:
+                who = line.get("who")
+                speaker = None if not who or who == "Narrator" else who
+                # Narrator lines follow the learner's male/female choice, so both are prepared
+                voices = ["female", "male"] if speaker is None else ["female"]
+                for voice in voices:
+                    if line.get("say"):
+                        yield line["say"], "en", voice, speaker
+                    if line.get("sayHi"):
+                        yield line["sayHi"], "hi", voice, speaker
 
 
 async def main(topic_filter=None):
@@ -41,9 +48,9 @@ async def main(topic_filter=None):
         db.close()
 
     failed = 0
-    for i, (name, text, lang, voice) in enumerate(jobs, 1):
+    for i, (name, text, lang, voice, speaker) in enumerate(jobs, 1):
         try:
-            await synthesize_tts(text, lang, voice)
+            await synthesize_tts(text, lang, voice, speaker)
             print(f"[{i}/{len(jobs)}] {name} · {lang} ✓")
         except Exception as e:
             failed += 1
