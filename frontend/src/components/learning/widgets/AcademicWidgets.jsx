@@ -185,6 +185,14 @@ import {
   Class6AngleProofsWidget
 } from './Class6LinesAnglesWidgets';
 import { WorkedExamplesWidget, StoryExamWidget } from './StoryWidgets';
+import {
+  Class6CurvesPolygonsWidget,
+  Class6TriangleLabWidget,
+  Class6AngleSumProofWidget,
+  Class6QuadFamilyWidget,
+  Class6CircleAnatomyWidget,
+  Class6SolidsWidget
+} from './Class6ElementaryShapesWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 
 export function StarObserverDiagram() {
@@ -1587,6 +1595,12 @@ export const WidgetRegistry = {
   'Class6AngleTurnWidget': Class6AngleTurnWidget,
   'Class6ProtractorWidget': Class6ProtractorWidget,
   'Class6AngleProofsWidget': Class6AngleProofsWidget,
+  'Class6CurvesPolygonsWidget': Class6CurvesPolygonsWidget,
+  'Class6TriangleLabWidget': Class6TriangleLabWidget,
+  'Class6AngleSumProofWidget': Class6AngleSumProofWidget,
+  'Class6QuadFamilyWidget': Class6QuadFamilyWidget,
+  'Class6CircleAnatomyWidget': Class6CircleAnatomyWidget,
+  'Class6SolidsWidget': Class6SolidsWidget,
   'WorkedExamplesWidget': WorkedExamplesWidget,
   'StoryExamWidget': StoryExamWidget,
   'factors-multiples-visualizer': Class6FactorsMultiplesVisualizerWidget,

@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StoryStage, ModePills, Readout, Reveal, useTween, useSceneState, useSvgDrag, polar, arcPath, sectorPath } from '../engine/storyKit';
+import {
+  StoryStage, ModePills, Readout, Reveal, useTween, useSceneState, useSvgDrag, polar, arcPath, sectorPath,
+  Arrowhead, Dot, RightAngleMark, TaskBanner, INK, AMBER, SKY, GREEN, PINK, PURPLE, RED,
+} from '../engine/storyKit';
 
 // Class 6 · Lines and Angles — scene-driven story widgets.
 // Each widget animates to the `visual` state of the current narrated scene, and the learner
@@ -7,13 +10,6 @@ import { StoryStage, ModePills, Readout, Reveal, useTween, useSceneState, useSvg
 
 const W = 600;
 const H = 360;
-const INK = '#e2e8f0';
-const AMBER = '#fbbf24';
-const SKY = '#38bdf8';
-const GREEN = '#34d399';
-const PINK = '#f472b6';
-const PURPLE = '#a78bfa';
-const RED = '#f87171';
 
 const round = (v) => Math.round(v);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -39,43 +35,6 @@ export function angleType(a) {
 }
 
 const TURN_NAMES = { 90: '¼ turn', 180: '½ turn', 270: '¾ turn', 360: '1 full turn' };
-
-function Arrowhead({ x, y, deg, color = INK, size = 12 }) {
-  const [x1, y1] = polar(x, y, size, deg + 150);
-  const [x2, y2] = polar(x, y, size, deg - 150);
-  return <polygon points={`${x},${y} ${x1},${y1} ${x2},${y2}`} fill={color} />;
-}
-
-function Dot({ x, y, label, color = AMBER, dx = -6, dy = -14, r = 6, pulse }) {
-  return (
-    <g>
-      {pulse && (
-        <circle cx={x} cy={y} r={r} fill="none" stroke={color} strokeWidth="2">
-          <animate attributeName="r" values={`${r};${r * 4}`} dur="1.6s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.8;0" dur="1.6s" repeatCount="indefinite" />
-        </circle>
-      )}
-      <circle cx={x} cy={y} r={r} fill={color} />
-      {label && <text x={x + dx} y={y + dy} fill={color} fontSize="18" fontWeight="800" fontFamily="sans-serif">{label}</text>}
-    </g>
-  );
-}
-
-function RightAngleMark({ cx, cy, deg, size = 18, color = SKY }) {
-  const [ax, ay] = polar(cx, cy, size, deg);
-  const [bx, by] = polar(cx, cy, size, deg + 90);
-  const [mx, my] = [ax + bx - cx, ay + by - cy];
-  return <polyline points={`${ax},${ay} ${mx},${my} ${bx},${by}`} fill="none" stroke={color} strokeWidth="2.5" />;
-}
-
-function TaskBanner({ text, done }) {
-  if (!text) return null;
-  return (
-    <div className={`px-3 py-2 rounded-xl text-sm font-bold border transition-all ${done ? 'bg-emerald-500/15 border-emerald-400 text-emerald-300' : 'bg-amber-500/10 border-amber-400/60 text-amber-200'}`}>
-      {done ? '✔ ' : '👉 '}{text}
-    </div>
-  );
-}
 
 // Largest t so that P + t·u stays inside the drawing area (keeps arrowheads visible)
 function distanceToEdge([px, py], [ux, uy], m = 18) {

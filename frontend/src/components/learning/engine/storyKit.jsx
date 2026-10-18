@@ -158,3 +158,49 @@ export function Reveal({ show, children, delay = 0 }) {
     </g>
   );
 }
+
+// ─── Shared drawing palette and SVG pieces for story diagrams ───
+export const INK = '#e2e8f0';
+export const AMBER = '#fbbf24';
+export const SKY = '#38bdf8';
+export const GREEN = '#34d399';
+export const PINK = '#f472b6';
+export const PURPLE = '#a78bfa';
+export const RED = '#f87171';
+
+export function Arrowhead({ x, y, deg, color = INK, size = 12 }) {
+  const [x1, y1] = polar(x, y, size, deg + 150);
+  const [x2, y2] = polar(x, y, size, deg - 150);
+  return <polygon points={`${x},${y} ${x1},${y1} ${x2},${y2}`} fill={color} />;
+}
+
+export function Dot({ x, y, label, color = AMBER, dx = -6, dy = -14, r = 6, pulse }) {
+  return (
+    <g>
+      {pulse && (
+        <circle cx={x} cy={y} r={r} fill="none" stroke={color} strokeWidth="2">
+          <animate attributeName="r" values={`${r};${r * 4}`} dur="1.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.8;0" dur="1.6s" repeatCount="indefinite" />
+        </circle>
+      )}
+      <circle cx={x} cy={y} r={r} fill={color} />
+      {label && <text x={x + dx} y={y + dy} fill={color} fontSize="18" fontWeight="800" fontFamily="sans-serif">{label}</text>}
+    </g>
+  );
+}
+
+export function RightAngleMark({ cx, cy, deg, size = 18, color = SKY }) {
+  const [ax, ay] = polar(cx, cy, size, deg);
+  const [bx, by] = polar(cx, cy, size, deg + 90);
+  const [mx, my] = [ax + bx - cx, ay + by - cy];
+  return <polyline points={`${ax},${ay} ${mx},${my} ${bx},${by}`} fill="none" stroke={color} strokeWidth="2.5" />;
+}
+
+export function TaskBanner({ text, done }) {
+  if (!text) return null;
+  return (
+    <div className={`px-3 py-2 rounded-xl text-sm font-bold border transition-all ${done ? 'bg-emerald-500/15 border-emerald-400 text-emerald-300' : 'bg-amber-500/10 border-amber-400/60 text-amber-200'}`}>
+      {done ? '✔ ' : '👉 '}{text}
+    </div>
+  );
+}
