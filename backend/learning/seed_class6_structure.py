@@ -1,3 +1,7 @@
+import glob
+import importlib
+import os
+
 from db import SessionLocal, LearningClass, LearningSubject, LearningTopic, LearningStudentProgress
 
 # Class 6 Mathematics = union of the old NCERT book (14 chapters) and the new
@@ -72,6 +76,17 @@ def seed_class6_structure():
         print(f"Error seeding Class 6 structure: {e}")
     finally:
         db.close()
+
+
+def seed_class6_chapters():
+    """Seeds the chapter list, then every seed_class6_<chapter>.py in this folder.
+    Each chapter file defines a function with the same name as the file, so new chapters need no registration."""
+    seed_class6_structure()
+    here = os.path.dirname(os.path.abspath(__file__))
+    for path in sorted(glob.glob(os.path.join(here, "seed_class6_*.py"))):
+        name = os.path.splitext(os.path.basename(path))[0]
+        if name != "seed_class6_structure":
+            getattr(importlib.import_module(name), name)()
 
 
 if __name__ == "__main__":

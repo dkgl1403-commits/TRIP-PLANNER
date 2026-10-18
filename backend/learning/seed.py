@@ -28,12 +28,7 @@ from seed_corporate_actions import seed_corporate_actions
 from seed_trade_lifecycle import seed_trade_lifecycle
 from seed_class9_probability import seed_class9_probability
 from seed_class10_probability import seed_class10_probability
-from seed_class6_playing_with_numbers import seed_class6_playing_with_numbers
-from seed_class6_structure import seed_class6_structure, CLASS6_MATH_CHAPTERS
-from seed_class6_lines_angles import seed_class6_lines_angles
-from seed_class6_elementary_shapes import seed_class6_elementary_shapes
-from seed_class6_patterns import seed_class6_patterns
-from seed_class6_knowing_numbers import seed_class6_knowing_numbers
+from seed_class6_structure import seed_class6_structure, seed_class6_chapters, CLASS6_MATH_CHAPTERS
 from seed_class7_perimeter_area import seed_class7_perimeter_area
 from seed_class9_circles import seed_class9_circles
 from seed_class10_circles import seed_class10_circles
@@ -836,12 +831,7 @@ if __name__ == "__main__":
     seed_trade_lifecycle()
     seed_class9_probability()
     seed_class10_probability()
-    seed_class6_playing_with_numbers()
-    seed_class6_structure()
-    seed_class6_lines_angles()
-    seed_class6_elementary_shapes()
-    seed_class6_patterns()
-    seed_class6_knowing_numbers()
+    seed_class6_chapters()
     seed_class7_perimeter_area()
     seed_class9_circles()
     seed_class10_circles()

@@ -177,36 +177,7 @@ import {
   LeapYearPuzzleWidget,
   ProbabilityMCQPracticeWidget
 } from './ProbabilityWidgets';
-import {
-  Class6PointLineRayWidget,
-  Class6LinePairsWidget,
-  Class6AngleTurnWidget,
-  Class6ProtractorWidget,
-  Class6AngleProofsWidget
-} from './Class6LinesAnglesWidgets';
 import { WorkedExamplesWidget, StoryExamWidget } from './StoryWidgets';
-import {
-  Class6CurvesPolygonsWidget,
-  Class6TriangleLabWidget,
-  Class6AngleSumProofWidget,
-  Class6QuadFamilyWidget,
-  Class6CircleAnatomyWidget,
-  Class6SolidsWidget
-} from './Class6ElementaryShapesWidgets';
-import {
-  Class6NumberSequencesWidget,
-  Class6SquarePatternsWidget,
-  Class6DoublingWidget,
-  Class6VirahankaWidget,
-  Class6ShapePatternsWidget
-} from './Class6PatternsWidgets';
-import {
-  Class6PlaceValueWidget,
-  Class6CompareOrderWidget,
-  Class6EstimationWidget,
-  Class6UnitLadderWidget,
-  Class6RomanNumeralsWidget
-} from './Class6KnowingNumbersWidgets';
 // --- STEP 1.1: StarObserverDiagram ---
 
 export function StarObserverDiagram() {
@@ -1604,27 +1575,6 @@ export const WidgetRegistry = {
   'Class6FactorBrickLCMWidget': Class6FactorBrickLCMWidget,
   'Class6SynchronizedBellsWidget': Class6SynchronizedBellsWidget,
   'Class6PlayingWithNumbersMCQExamWidget': Class6PlayingWithNumbersMCQExamWidget,
-  'Class6PointLineRayWidget': Class6PointLineRayWidget,
-  'Class6LinePairsWidget': Class6LinePairsWidget,
-  'Class6AngleTurnWidget': Class6AngleTurnWidget,
-  'Class6ProtractorWidget': Class6ProtractorWidget,
-  'Class6AngleProofsWidget': Class6AngleProofsWidget,
-  'Class6CurvesPolygonsWidget': Class6CurvesPolygonsWidget,
-  'Class6TriangleLabWidget': Class6TriangleLabWidget,
-  'Class6AngleSumProofWidget': Class6AngleSumProofWidget,
-  'Class6QuadFamilyWidget': Class6QuadFamilyWidget,
-  'Class6CircleAnatomyWidget': Class6CircleAnatomyWidget,
-  'Class6SolidsWidget': Class6SolidsWidget,
-  'Class6NumberSequencesWidget': Class6NumberSequencesWidget,
-  'Class6SquarePatternsWidget': Class6SquarePatternsWidget,
-  'Class6DoublingWidget': Class6DoublingWidget,
-  'Class6VirahankaWidget': Class6VirahankaWidget,
-  'Class6ShapePatternsWidget': Class6ShapePatternsWidget,
-  'Class6PlaceValueWidget': Class6PlaceValueWidget,
-  'Class6CompareOrderWidget': Class6CompareOrderWidget,
-  'Class6EstimationWidget': Class6EstimationWidget,
-  'Class6UnitLadderWidget': Class6UnitLadderWidget,
-  'Class6RomanNumeralsWidget': Class6RomanNumeralsWidget,
   'WorkedExamplesWidget': WorkedExamplesWidget,
   'StoryExamWidget': StoryExamWidget,
   'factors-multiples-visualizer': Class6FactorsMultiplesVisualizerWidget,
@@ -1640,3 +1590,12 @@ export const WidgetRegistry = {
   'Class10PolynomialsAlgebraicIdentitiesWidget': Class10PolynomialsAlgebraicIdentitiesWidget,
   'Class10PolynomialsMCQExamWidget': Class10PolynomialsMCQExamWidget
 };
+
+// Story-chapter widget files register themselves: every export named Class<N>…Widget in a
+// widgets/Class*Widgets.jsx file is added here, so new chapters never need to edit this file.
+const chapterWidgetModules = import.meta.glob('./Class*Widgets.jsx', { eager: true });
+Object.values(chapterWidgetModules).forEach((mod) => {
+  Object.entries(mod).forEach(([name, component]) => {
+    if (/^Class\d+\w*Widget$/.test(name) && !WidgetRegistry[name]) WidgetRegistry[name] = component;
+  });
+});

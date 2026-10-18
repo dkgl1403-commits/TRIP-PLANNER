@@ -7,7 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        // VITE_API_PORT lets several local backends run side by side (e.g. parallel chapter builds)
+        target: `http://127.0.0.1:${process.env.VITE_API_PORT || 8000}`,
         changeOrigin: true,
         secure: false
       }
