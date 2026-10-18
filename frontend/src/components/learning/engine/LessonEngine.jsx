@@ -3,6 +3,7 @@ import { WidgetRegistry } from '../widgets/AcademicWidgets';
 import { AudioNarrator } from './AudioNarrator';
 import { MiniChallenge } from './MiniChallenge';
 import { StoryPlayer } from './StoryPlayer';
+import { StageFullscreenContext } from './storyKit';
 import confetti from 'canvas-confetti';
 
 function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
@@ -33,6 +34,16 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
 
   // Each part starts from its first scene
   useEffect(() => { setSceneIdx(0); }, [currentPartIdx]);
+
+  // Fullscreen covers the whole visual column (story controls + widget) so play/pause stays reachable
+  const [stageFullscreen, setStageFullscreen] = useState(false);
+  useEffect(() => { setStageFullscreen(false); }, [currentPartIdx]);
+  useEffect(() => {
+    if (!stageFullscreen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setStageFullscreen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [stageFullscreen]);
   useEffect(() => { setInteractionDone(false); }, [currentPartIdx, sceneIdx]);
 
   useEffect(() => {
@@ -197,7 +208,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative z-10">
+      <div className="flex-grow min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative z-[60]">
         
         {/* Left Column: Narrative Text (if applicable) */}
         {(!hasVisual || isInteractiveStory) && (
@@ -257,9 +268,10 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
 
         {/* Right Column: Visual Diagram / Widget */}
         {hasVisual && (
-          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} ${scenes ? 'order-first lg:order-none flex-col justify-start items-stretch gap-4 px-3 md:px-6 pb-24 lg:pb-8' : 'py-8 lg:py-16 justify-center items-start'} flex bg-black lg:overflow-y-auto`}>
+          <div className={`w-full shrink-0 relative ${isInteractiveStory ? 'lg:w-1/2 lg:h-auto' : 'w-full lg:min-h-[80vh]'} ${scenes ? 'order-first lg:order-none flex-col justify-start items-stretch gap-4 px-3 md:px-6 pb-24 lg:pb-8' : 'py-8 lg:py-16 justify-center items-start'} flex bg-black lg:overflow-y-auto ${stageFullscreen ? '!fixed inset-0 z-[80] !w-screen h-screen overflow-y-auto !px-3 md:!px-8 !pb-28' : ''}`}>
+            <StageFullscreenContext.Provider value={{ fullscreen: stageFullscreen, toggle: () => setStageFullscreen((f) => !f) }}>
             {scenes && (
-              <div className="w-full max-w-3xl mx-auto sticky top-0 z-30 pt-3 lg:pt-4 bg-black">
+              <div className={`w-full ${stageFullscreen ? 'max-w-6xl' : 'max-w-3xl'} mx-auto sticky top-0 z-30 pt-3 lg:pt-4 bg-black`}>
                 <StoryPlayer
                   scenes={scenes}
                   sceneIdx={Math.min(sceneIdx, scenes.length - 1)}
@@ -271,23 +283,26 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
               </div>
             )}
             {currentPart.widgetType && WidgetRegistry[currentPart.widgetType] ? (
-              React.createElement(WidgetRegistry[currentPart.widgetType], {
+              <div className="w-full mx-auto" style={stageFullscreen ? { maxWidth: 'max(36rem, calc((100vh - 230px) * 1.45))' } : undefined}>
+              {React.createElement(WidgetRegistry[currentPart.widgetType], {
                 key: `${currentPartIdx}-${currentPart.widgetType}`,
                 data: currentPart.widgetData,
                 part: currentPart,
                 visual: currentScene ? currentScene.visual : undefined,
                 sceneIdx,
                 onInteract: () => setInteractionDone(true),
-              })
+              })}
+              </div>
             ) : currentPart.imageUrl ? (
               <img src={currentPart.imageUrl} className="max-w-full max-h-full object-contain p-4 lg:p-8" alt={currentPart.title} />
             ) : null}
+            </StageFullscreenContext.Provider>
           </div>
         )}
       </div>
 
       {/* Floating Bottom Navigation (Compact Glass Back Arrow <) */}
-      <div className="absolute bottom-6 left-6 z-50">
+      <div className="absolute bottom-6 left-6 z-[70]">
         <button 
           onClick={handlePrev} 
           disabled={currentPartIdx === 0}
@@ -298,7 +313,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
         </button>
       </div>
       
-      <div className="absolute bottom-6 right-6 z-50">
+      <div className="absolute bottom-6 right-6 z-[70]">
         <button 
           onClick={handleNext}
           title={isFinalScene ? 'Finish Lesson' : 'Next Step'}

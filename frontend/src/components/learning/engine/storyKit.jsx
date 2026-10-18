@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 
 // ─── Shared building blocks for scene-driven story widgets ───
 // A story widget receives `visual` (the current scene's visual state from the lesson config)
@@ -94,21 +94,28 @@ export function useSvgDrag(svgRef, onMove) {
   return { onPointerDown: start, onPointerMove: move, onPointerUp: end, onPointerCancel: end };
 }
 
+// Provided by LessonEngine: fullscreen then covers the whole visual column (story controls included)
+export const StageFullscreenContext = createContext(null);
+
 // Standard frame for every story widget: title strip, fullscreen toggle, stage, optional footer
 export function StoryStage({ eyebrow, title, children, footer, accent = 'text-amber-400' }) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const host = useContext(StageFullscreenContext);
+  const [localFullscreen, setLocalFullscreen] = useState(false);
+  const isFullscreen = host ? host.fullscreen : localFullscreen;
+  const setIsFullscreen = host ? () => host.toggle() : setLocalFullscreen;
+  const selfFixed = isFullscreen && !host;
   return (
-    <div className={`w-full flex flex-col p-4 md:p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${isFullscreen ? 'fixed inset-0 z-[60] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl'}`}>
+    <div className={`w-full flex flex-col p-4 md:p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${selfFixed ? 'fixed inset-0 z-[200] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl'}`}>
       <div className="flex justify-between items-center mb-3 border-b border-slate-800 pb-3 gap-3">
         <div className="min-w-0">
           {eyebrow && <span className={`${accent} font-bold uppercase text-[11px] tracking-wider block font-mono`}>{eyebrow}</span>}
           <h3 className="text-lg md:text-xl font-bold text-white truncate">{title}</h3>
         </div>
         <button onClick={() => setIsFullscreen(!isFullscreen)} className="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
-          {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          {isFullscreen ? '✕ Exit Fullscreen (Esc)' : 'Fullscreen'}
         </button>
       </div>
-      <div className={`bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden ${isFullscreen ? 'flex-grow flex items-center justify-center' : ''}`}>
+      <div className={`bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden ${selfFixed ? 'flex-grow flex items-center justify-center' : ''}`}>
         {children}
       </div>
       {footer && <div className="mt-3">{footer}</div>}
