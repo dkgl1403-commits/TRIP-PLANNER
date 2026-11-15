@@ -94,16 +94,95 @@ export function useSvgDrag(svgRef, onMove) {
   return { onPointerDown: start, onPointerMove: move, onPointerUp: end, onPointerCancel: end };
 }
 
-// Provided by LessonEngine: fullscreen then covers the whole visual column (story controls included)
+// Provided by LessonEngine: fullscreen then covers the whole lesson screen (story controls included)
 export const StageFullscreenContext = createContext(null);
+
+// Provided by LessonEngine: whether the 3D tilt/depth effect is on (learners can switch it off)
+export const Stage3DContext = createContext({ enabled: true });
+
+const FLAT = { rx: 0, ry: 0, gx: 50, gy: 50, active: false };
+
+// Gives the stage a 3D feel: it tilts towards the mouse (or the phone's tilt on Android), shows a soft
+// light glare, and presses in slightly when touched. While the learner drags inside it the stage lies
+// flat, so drag positions stay exact.
+function useStageTilt(enabled) {
+  const ref = useRef(null);
+  const [tilt, setTilt] = useState(FLAT);
+  const [pressed, setPressed] = useState(false);
+  const holding = useRef(false);
+  const frame = useRef(0);
+
+  useEffect(() => {
+    if (!enabled) { setTilt(FLAT); return undefined; }
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+    if (!coarse || typeof window.DeviceOrientationEvent === 'undefined') return undefined;
+    let base = null;
+    const onTilt = (e) => {
+      if (e.beta == null || e.gamma == null || holding.current) return;
+      if (!base) base = { b: e.beta, g: e.gamma };
+      cancelAnimationFrame(frame.current);
+      frame.current = requestAnimationFrame(() => {
+        const rx = Math.max(-6, Math.min(6, -(e.beta - base.b) / 3));
+        const ry = Math.max(-7, Math.min(7, (e.gamma - base.g) / 3));
+        setTilt({ rx, ry, gx: 50 + ry * 5, gy: 50 - rx * 5, active: true });
+      });
+    };
+    window.addEventListener('deviceorientation', onTilt);
+    return () => { window.removeEventListener('deviceorientation', onTilt); cancelAnimationFrame(frame.current); };
+  }, [enabled]);
+
+  useEffect(() => {
+    const release = () => {
+      if (!holding.current) return;
+      holding.current = false;
+      setTimeout(() => setPressed(false), 140);
+    };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    return () => { window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
+  }, []);
+
+  const handlers = enabled ? {
+    onPointerMove: (e) => {
+      if (holding.current || e.pointerType === 'touch' || !ref.current) return;
+      const r = ref.current.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      cancelAnimationFrame(frame.current);
+      frame.current = requestAnimationFrame(() => setTilt({ rx: (0.5 - py) * 7, ry: (px - 0.5) * 9, gx: px * 100, gy: py * 100, active: true }));
+    },
+    onPointerLeave: () => { cancelAnimationFrame(frame.current); setTilt(FLAT); },
+    onPointerDownCapture: (e) => {
+      holding.current = true;
+      setPressed(true);
+      setTilt(FLAT);
+      if (e.pointerType === 'touch') navigator.vibrate?.(8);
+    },
+  } : {};
+
+  const flat = !enabled || holding.current;
+  const style = flat
+    ? { transform: pressed && enabled ? 'scale(0.992)' : 'none', transition: 'transform 140ms ease-out' }
+    : {
+      transform: `perspective(1100px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateZ(0)${pressed ? ' scale(0.99)' : ''}`,
+      transition: tilt.active ? 'transform 120ms ease-out' : 'transform 500ms ease',
+      boxShadow: tilt.active ? `${-tilt.ry * 1.6}px ${tilt.rx * 1.6 + 14}px 40px rgba(0,0,0,0.55)` : undefined,
+    };
+  const glare = enabled && tilt.active && !holding.current
+    ? { background: `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.10), transparent 55%)`, opacity: 1 }
+    : { opacity: 0 };
+  return { ref, handlers, style, glare };
+}
 
 // Standard frame for every story widget: title strip, fullscreen toggle, stage, optional footer
 export function StoryStage({ eyebrow, title, children, footer, accent = 'text-amber-400' }) {
   const host = useContext(StageFullscreenContext);
+  const { enabled: tiltOn } = useContext(Stage3DContext);
   const [localFullscreen, setLocalFullscreen] = useState(false);
   const isFullscreen = host ? host.fullscreen : localFullscreen;
   const setIsFullscreen = host ? () => host.toggle() : setLocalFullscreen;
   const selfFixed = isFullscreen && !host;
+  const tilt = useStageTilt(tiltOn);
   return (
     <div className={`w-full flex flex-col p-4 md:p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${selfFixed ? 'fixed inset-0 z-[200] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl'}`}>
       <div className="flex justify-between items-center mb-3 border-b border-slate-800 pb-3 gap-3">
@@ -111,12 +190,19 @@ export function StoryStage({ eyebrow, title, children, footer, accent = 'text-am
           {eyebrow && <span className={`${accent} font-bold uppercase text-[11px] tracking-wider block font-mono`}>{eyebrow}</span>}
           <h3 className="text-lg md:text-xl font-bold text-white truncate">{title}</h3>
         </div>
-        <button onClick={() => setIsFullscreen(!isFullscreen)} className="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
-          {isFullscreen ? '✕ Exit Fullscreen (Esc)' : 'Fullscreen'}
+        <button onClick={() => setIsFullscreen(!isFullscreen)} title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen (F)'} className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition">
+          <span className="material-symbols-outlined text-base">{isFullscreen ? 'close_fullscreen' : 'open_in_full'}</span>
+          <span className="hidden sm:inline">{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</span>
         </button>
       </div>
-      <div className={`bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden ${selfFixed ? 'flex-grow flex items-center justify-center' : ''}`}>
+      <div
+        ref={tilt.ref}
+        {...tilt.handlers}
+        style={tilt.style}
+        className={`relative bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden will-change-transform ${selfFixed ? 'flex-grow flex items-center justify-center' : ''}`}
+      >
         {children}
+        <div aria-hidden className="pointer-events-none absolute inset-0 transition-opacity duration-300" style={tilt.glare} />
       </div>
       {footer && <div className="mt-3">{footer}</div>}
     </div>

@@ -23,8 +23,11 @@ const ttsUrl = (line, language, narrator) => {
   return `/api/learning/tts?text=${encodeURIComponent(lineText(line, language))}&lang=${language}&voice=${narrator}${speaker}`;
 };
 
-export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', narrator = 'female', interactionDone }) {
-  const [playing, setPlaying] = useState(false);
+// `controlRef` (optional) receives { togglePlay, goTo, sceneIdx, playing } so the lesson screen can drive the
+// player from the keyboard. Swiping left/right on the player changes scene on touch screens.
+// `autoStart` keeps the story playing when the player is moved (e.g. into fullscreen) and so mounts again.
+export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', narrator = 'female', interactionDone, controlRef, autoStart = false }) {
+  const [playing, setPlaying] = useState(autoStart);
   // The line position belongs to a scene, so switching scenes always starts from its first line
   const [linePos, setLinePos] = useState({ scene: sceneIdx, line: 0 });
   const [status, setStatus] = useState('idle'); // idle | loading | speaking | waiting | done
@@ -124,10 +127,23 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
     onSceneChange(Math.max(0, Math.min(scenes.length - 1, idx)));
   };
 
+  if (controlRef) controlRef.current = { togglePlay, goTo, sceneIdx, playing };
+
+  const swipe = useRef(null);
+  const onTouchStart = (e) => { const t = e.touches[0]; swipe.current = { x: t.clientX, y: t.clientY }; };
+  const onTouchEnd = (e) => {
+    if (!swipe.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipe.current.x;
+    const dy = t.clientY - swipe.current.y;
+    swipe.current = null;
+    if (Math.abs(dx) > 60 && Math.abs(dy) < 45) goTo(sceneIdx + (dx < 0 ? 1 : -1));
+  };
+
   if (!scene) return null;
 
   return (
-    <div className="w-full rounded-2xl border border-slate-800 bg-slate-950/90 backdrop-blur-md p-3 md:p-4 shadow-2xl">
+    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="w-full rounded-2xl border border-slate-800 bg-slate-950/90 backdrop-blur-md p-3 md:p-4 shadow-2xl">
       <div className="flex items-center gap-3">
         <button
           onClick={() => goTo(sceneIdx - 1)}
@@ -186,7 +202,10 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
         )}
       </div>
       {!playing && status === 'idle' && sceneIdx === 0 && (
-        <p className="mt-2 text-xs text-amber-300/90 font-semibold">▶ Press the green play button: the family talks through the story and it moves to the next scene by itself. You can also drag things in the picture any time.</p>
+        <>
+          <p className="hidden sm:block mt-2 text-xs text-amber-300/90 font-semibold">▶ Press play (or Space): the family talks through the story and moves on by itself. Use ← → for scenes, and drag things in the picture any time.</p>
+          <p className="sm:hidden mt-2 text-xs text-amber-300/90 font-semibold">▶ Tap play to start. Swipe here to change scene.</p>
+        </>
       )}
     </div>
   );

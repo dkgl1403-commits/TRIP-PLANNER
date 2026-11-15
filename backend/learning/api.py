@@ -76,7 +76,7 @@ def get_topic_config(topic_id: str, db: Session = Depends(get_db)):
     topic = db.query(LearningTopic).filter_by(id=topic_id).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
-    return {"status": "success", "config": topic.lesson_config_json}
+    return {"status": "success", "config": topic.lesson_config_json, "name": topic.name}
 
 @learning_api_router.get("/progress/{login_id}")
 def get_progress(login_id: str, db: Session = Depends(get_db)):
