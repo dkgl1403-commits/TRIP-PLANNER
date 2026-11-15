@@ -184,13 +184,13 @@ export function StoryStage({ eyebrow, title, children, footer, accent = 'text-am
   const selfFixed = isFullscreen && !host;
   const tilt = useStageTilt(tiltOn);
   return (
-    <div className={`w-full flex flex-col p-4 md:p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${selfFixed ? 'fixed inset-0 z-[200] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl'}`}>
-      <div className="flex justify-between items-center mb-3 border-b border-slate-800 pb-3 gap-3">
+    <div className={`w-full flex flex-col p-2.5 sm:p-4 md:p-5 bg-slate-900 text-slate-100 font-sans border border-slate-800 ${selfFixed ? 'fixed inset-0 z-[200] rounded-none h-screen w-screen pb-24 overflow-y-auto' : 'rounded-2xl shadow-2xl'}`}>
+      <div className="flex justify-between items-center mb-2 pb-2 sm:mb-3 sm:pb-3 border-b border-slate-800 gap-3">
         <div className="min-w-0">
-          {eyebrow && <span className={`${accent} font-bold uppercase text-[11px] tracking-wider block font-mono`}>{eyebrow}</span>}
-          <h3 className="text-lg md:text-xl font-bold text-white truncate">{title}</h3>
+          {eyebrow && <span className={`${accent} font-bold uppercase text-[11px] tracking-wider hidden sm:block font-mono`}>{eyebrow}</span>}
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">{title}</h3>
         </div>
-        <button onClick={() => setIsFullscreen(!isFullscreen)} title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen (F)'} className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition">
+        <button onClick={() => setIsFullscreen(!isFullscreen)} title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen (F)'} className="shrink-0 flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition">
           <span className="material-symbols-outlined text-base">{isFullscreen ? 'close_fullscreen' : 'open_in_full'}</span>
           <span className="hidden sm:inline">{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</span>
         </button>
@@ -204,7 +204,7 @@ export function StoryStage({ eyebrow, title, children, footer, accent = 'text-am
         {children}
         <div aria-hidden className="pointer-events-none absolute inset-0 transition-opacity duration-300" style={tilt.glare} />
       </div>
-      {footer && <div className="mt-3">{footer}</div>}
+      {footer && <div className="mt-2 sm:mt-3">{footer}</div>}
     </div>
   );
 }

@@ -30,6 +30,7 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
   const [playing, setPlaying] = useState(autoStart);
   // The line position belongs to a scene, so switching scenes always starts from its first line
   const [linePos, setLinePos] = useState({ scene: sceneIdx, line: 0 });
+  const [expanded, setExpanded] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | loading | speaking | waiting | done
   const audioRef = useRef(null);
   const timerRef = useRef(null);
@@ -109,6 +110,7 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
   }, [interactionDone, status]);
 
   useEffect(() => () => stopAudio(), []);
+  useEffect(() => { setExpanded(false); }, [sceneIdx]);
 
   const togglePlay = () => {
     if (playing) {
@@ -142,32 +144,27 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
 
   if (!scene) return null;
 
+  // On phones only the line being spoken is shown (tap to see the whole conversation), to leave room for the picture
+  const shownIdx = Math.min(lineIdx, lines.length - 1);
+  const hiddenOnPhone = (i) => (!expanded && i !== shownIdx ? 'hidden sm:flex' : 'flex');
+  const rowBtn = 'w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 flex items-center justify-center';
+
   return (
-    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="w-full rounded-2xl border border-slate-800 bg-slate-950/90 backdrop-blur-md p-3 md:p-4 shadow-2xl">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => goTo(sceneIdx - 1)}
-          disabled={sceneIdx === 0}
-          className="w-9 h-9 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 flex items-center justify-center"
-          title="Previous scene"
-        >
+    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="w-full rounded-2xl border border-slate-800 bg-slate-950/90 backdrop-blur-md px-2.5 py-2 sm:p-3 md:p-4 shadow-2xl">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <button onClick={() => goTo(sceneIdx - 1)} disabled={sceneIdx === 0} className={rowBtn} title="Previous scene">
           <span className="material-symbols-outlined text-lg">skip_previous</span>
         </button>
         <button
           onClick={togglePlay}
-          className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center text-white transition-all ${playing ? 'bg-neon-coral shadow-[0_0_18px_rgba(255,107,74,0.6)]' : 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.45)]'}`}
+          className={`w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full flex items-center justify-center text-white transition-all ${playing ? 'bg-neon-coral shadow-[0_0_18px_rgba(255,107,74,0.6)]' : 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.45)]'}`}
           title={playing ? 'Pause story' : 'Play story'}
         >
           {status === 'loading' && playing
             ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             : <span className="material-symbols-outlined text-2xl">{playing ? 'pause' : (status === 'done' ? 'replay' : 'play_arrow')}</span>}
         </button>
-        <button
-          onClick={() => goTo(sceneIdx + 1)}
-          disabled={isLast}
-          className="w-9 h-9 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-200 flex items-center justify-center"
-          title="Next scene"
-        >
+        <button onClick={() => goTo(sceneIdx + 1)} disabled={isLast} className={rowBtn} title="Next scene">
           <span className="material-symbols-outlined text-lg">skip_next</span>
         </button>
 
@@ -181,30 +178,38 @@ export function StoryPlayer({ scenes, sceneIdx, onSceneChange, language = 'en', 
             />
           ))}
         </div>
-        <span className="hidden sm:inline text-[11px] font-mono text-slate-500 shrink-0">{sceneIdx + 1}/{scenes.length}</span>
+        <span className="text-[11px] font-mono text-slate-500 shrink-0">{sceneIdx + 1}/{scenes.length}</span>
       </div>
 
-      <div className="mt-3 space-y-1.5">
+      <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-1.5" onClick={() => lines.length > 1 && setExpanded((x) => !x)}>
         {lines.map((line, i) => {
           const active = i === lineIdx && (playing || status !== 'idle');
           const isNarrator = !line.who || line.who === 'Narrator';
+          const clamp = !expanded && i === shownIdx ? 'line-clamp-2 sm:line-clamp-none' : '';
           return (
-            <div key={i} className={`flex items-start gap-2 rounded-lg px-1.5 py-1 transition-all duration-300 ${active ? 'bg-white/5' : ''} ${playing && i > lineIdx ? 'opacity-40' : ''}`}>
+            <div key={i} className={`${hiddenOnPhone(i)} items-start gap-2 rounded-lg px-1.5 py-0.5 sm:py-1 transition-all duration-300 ${active ? 'bg-white/5' : ''} ${playing && i > lineIdx ? 'sm:opacity-40' : ''}`}>
               {isNarrator
                 ? <span className={`shrink-0 material-symbols-outlined text-base mt-0.5 ${active && status === 'speaking' ? 'text-emerald-400 animate-pulse' : 'text-slate-500'}`}>record_voice_over</span>
                 : <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full border text-[11px] font-bold ${CHARACTER_STYLES[line.who] || 'bg-slate-700 text-slate-200 border-slate-600'} ${active && status === 'speaking' ? 'animate-pulse' : ''}`}>{line.who}</span>}
-              <p className={`text-sm md:text-base leading-relaxed ${isNarrator ? 'text-slate-300 italic' : 'text-slate-100'}`}>{lineText(line, language)}</p>
+              <p className={`text-sm md:text-base leading-snug sm:leading-relaxed ${clamp} ${isNarrator ? 'text-slate-300 italic' : 'text-slate-100'}`}>{lineText(line, language)}</p>
             </div>
           );
         })}
-        {status === 'waiting' && (
-          <span className="inline-block px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-300 text-[10px] font-bold uppercase tracking-wider animate-pulse">Your turn</span>
-        )}
+        <div className="flex items-center gap-2">
+          {status === 'waiting' && (
+            <span className="inline-block px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-300 text-[10px] font-bold uppercase tracking-wider animate-pulse">Your turn</span>
+          )}
+          {lines.length > 1 && (
+            <span className="sm:hidden ml-auto text-[11px] font-semibold text-slate-400">
+              {expanded ? '▴ Show less' : `▾ Line ${shownIdx + 1} of ${lines.length} · tap for all`}
+            </span>
+          )}
+        </div>
       </div>
       {!playing && status === 'idle' && sceneIdx === 0 && (
         <>
           <p className="hidden sm:block mt-2 text-xs text-amber-300/90 font-semibold">▶ Press play (or Space): the family talks through the story and moves on by itself. Use ← → for scenes, and drag things in the picture any time.</p>
-          <p className="sm:hidden mt-2 text-xs text-amber-300/90 font-semibold">▶ Tap play to start. Swipe here to change scene.</p>
+          <p className="sm:hidden mt-1 text-[11px] text-amber-300/90 font-semibold">▶ Tap play to start · swipe here for scenes</p>
         </>
       )}
     </div>

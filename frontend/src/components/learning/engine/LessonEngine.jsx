@@ -127,6 +127,31 @@ function PartNav({ parts, current, reached, onPick, onPrev, onNext }) {
   );
 }
 
+// Header settings: shown inline on wider screens, behind a ⋮ button on phones
+function SettingsMenu({ children }) {
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [open]);
+  return (
+    <div ref={boxRef} className="relative">
+      <div className="hidden sm:flex items-center gap-2">{children}</div>
+      <button onClick={() => setOpen((o) => !o)} className={`sm:hidden ${pill} ${open ? 'bg-white/15 border-white/30 text-white' : pillOff}`} title="Settings: language, voice, 3D, teacher notes">
+        <span className="material-symbols-outlined text-base">more_vert</span>
+      </button>
+      {open && (
+        <div className="sm:hidden absolute right-0 mt-2 p-3 rounded-2xl border border-slate-700 bg-slate-950/95 backdrop-blur-xl shadow-2xl z-[300] flex flex-col items-start gap-3 min-w-[13rem]">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LanguageToggle({ value, onChange }) {
   return (
     <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
@@ -396,7 +421,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
   );
   const button3d = (
     <button onClick={toggle3d} className={`${pill} ${tilt3d ? 'bg-sky-500/20 border-sky-400 text-sky-300' : pillOff}`} title="3D tilt and depth effect on the pictures">
-      <span className="material-symbols-outlined text-base">view_in_ar</span><span className="hidden sm:inline">3D</span>
+      <span className="material-symbols-outlined text-base">view_in_ar</span><span>3D</span>
     </button>
   );
 
@@ -481,7 +506,7 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
       </div>
 
       {/* Header */}
-      <div className="w-full shrink-0 px-3 py-2 flex flex-wrap gap-2 justify-between items-center relative z-[90] bg-black border-b border-white/5">
+      <div className="w-full shrink-0 px-3 py-2 flex gap-2 justify-between items-center relative z-[90] bg-black border-b border-white/5">
         <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={onBack}
@@ -494,7 +519,9 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
           <PartsMenu parts={parts} current={currentPartIdx} reached={reached} onPick={goToPart} />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          {/* Phones: settings tucked into a menu so the header stays one row */}
+          <SettingsMenu>
           <LanguageToggle value={audioLanguage} onChange={setAudioLanguage} />
           {scenes && (
             <div className="flex bg-white/5 rounded-full p-1 border border-white/10" title="Narrator voice">
@@ -517,8 +544,9 @@ function LessonEngine({ topicId, user, startAtQuiz, onBack }) {
             title="Show notes for teachers: how to explain, common mistakes, classroom activity"
           >
             <span className="material-symbols-outlined text-base">school</span>
-            <span className="hidden sm:inline">Teacher notes</span>
+            <span>Teacher notes</span>
           </button>
+          </SettingsMenu>
           {hasVisual && (
             <button onClick={enterFullscreen} className={`${pill} bg-amber-500/15 border-amber-400/60 text-amber-200 hover:bg-amber-500/25`} title="Immersive fullscreen (F)">
               <span className="material-symbols-outlined text-base">fullscreen</span>
