@@ -29,6 +29,7 @@ from seed_trade_lifecycle import seed_trade_lifecycle
 from seed_class9_probability import seed_class9_probability
 from seed_class10_probability import seed_class10_probability
 from seed_class6_structure import seed_class6_structure, seed_class6_chapters, CLASS6_MATH_CHAPTERS
+from seed_class10_structure import seed_class10_chapters
 from seed_class7_perimeter_area import seed_class7_perimeter_area
 from seed_class9_circles import seed_class9_circles
 from seed_class10_circles import seed_class10_circles
@@ -837,4 +838,5 @@ if __name__ == "__main__":
     seed_class10_circles()
     seed_class10_trig_heights()
     seed_class10_polynomials()
+    seed_class10_chapters()  # story chapters replace the older Class 10 lessons above
     seed_class11_12_structure()
